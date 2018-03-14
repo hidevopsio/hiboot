@@ -5,11 +5,16 @@ import (
 	log "github.com/kataras/golog"
 	"github.com/hi-devops-io/hi/boot/pkg/config"
 	"fmt"
+	"github.com/kataras/iris/context"
 )
 
 type Boot struct {
 	app *iris.Application
 	config *config.AppConfig
+}
+
+type Health struct {
+	Status string `json:"status"`
 }
 
 var (
@@ -23,6 +28,13 @@ func init() {
 	log.Debug(boot.config)
 
 	boot.app = iris.New()
+
+	boot.app.Get("/health", func(ctx context.Context) {
+		health := Health{
+			Status: "UP",
+		}
+		ctx.JSON(health)
+	})
 }
 
 func Instance() *iris.Application {
