@@ -1,2 +1,2 @@
-# hi-devops
-hi-devops service
+# hi
+'hi' is a cloud native app for DevOps team.

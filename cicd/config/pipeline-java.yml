@@ -1,0 +1,18 @@
+
+pipeline:
+  identifiers:
+  - pom.xml
+  configfiles:
+  - src/main/resources/application.yml
+  - src/main/resources/application-${app.profile}.yml
+  targets:
+  - target/${app.name}.jar
+  - target/${app.name}-${app.version}.jar
+  fromdir: target/deployments
+  deploymentfile: app.jar
+  imagestream: s2i-java:latest
+  versionfrom: pom.xml
+  options: -Xms128m -Xmx512m -Xss512k
+  buildcommand: mvn clean install -U
+
+
