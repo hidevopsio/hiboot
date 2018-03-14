@@ -1,7 +1,5 @@
 app:
-  profile:
-  project:
-  name:
-  version:
-  type:
-  timezone: Asia/Shanghai
+  project: devops
+  name: hi
+  logging:
+    level: info

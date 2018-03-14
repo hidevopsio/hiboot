@@ -1,0 +1,7 @@
+pipeline:
+  profile: dev
+  project:
+  app:
+  version:
+  type:
+  timezone: Asia/Shanghai

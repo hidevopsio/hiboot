@@ -1,0 +1,15 @@
+
+pipeline:
+  identifiers:
+  - pom.xml
+  targets:
+  - target/${app.name}.war
+  - target/${app.name}-${app.version}.war
+  fromdir: target/deployments
+  deploymentfile: ROOT.war
+  imagestream: s2i-java-war:latest
+  versionfrom: pom.xml
+  options: -Xms128m -Xmx512m -Xss512k
+  buildcommand: mvn clean install -U
+
+

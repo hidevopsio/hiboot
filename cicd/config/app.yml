@@ -1,0 +1,5 @@
+app:
+  project: devops
+  name: hi
+  logging:
+    level: debug
