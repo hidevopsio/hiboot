@@ -6,7 +6,7 @@ import (
 	"os"
 	"fmt"
 
-	"github.com/hi-devops-io/hi/cicd/pkg/config"
+	"github.com/hidevopsio/hi/cicd/pkg/config"
 )
 
 
