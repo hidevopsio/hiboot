@@ -2,7 +2,7 @@ package app
 
 import (
 	"github.com/hi-devops-io/hi/boot/pkg/application"
-	"github.com/hi-devops-io/hi/cicd/pkg/controllers"
+	"github.com/hi-devops-io/hi/cicd/pkg/web"
 )
 
 
@@ -10,7 +10,7 @@ func init() {
 
 	app := application.Instance()
 
-	deploymentController := controllers.DeploymentController{}
+	deploymentController := web.DeploymentController{}
 
 	deploymentRoutes := app.Party("/deployment", deploymentController.Before)
 	{

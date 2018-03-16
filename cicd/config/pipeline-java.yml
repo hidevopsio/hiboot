@@ -1,5 +1,6 @@
 
 pipeline:
+  name: java.jar
   identifiers:
   - pom.xml
   configfiles:
