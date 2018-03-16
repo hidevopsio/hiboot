@@ -1,6 +1,9 @@
-package pipeline
+package pipelines
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/hidevopsio/hi/boot/pkg/log"
+)
 
 type PipelineInterface interface {
 	PullSourceCode() error
@@ -12,6 +15,7 @@ type PipelineInterface interface {
 	Upload() error
 	NewImage() error
 	Deploy() error
+	Run() error
 }
 
 
@@ -37,6 +41,22 @@ type Pipeline struct {
 }
 
 
+// @Title EnsurePipline
+// @Description set default value
+// @Param pipeline
+// @Return error
+func (p *Pipeline) EnsurePipeline()  {
+	if "" == p.ImageTag {
+		p.ImageTag = "latest"
+	}
+	if "" == p.DockerRegistry {
+		p.DockerRegistry = "docker-registry.default.svc:5000"
+	}
+	if "" == p.Profile {
+		p.Profile = "dev"
+	}
+}
+
 // pipeline:
 // - PullSourceCode
 // - Build
@@ -47,18 +67,52 @@ type Pipeline struct {
 // - NewImage
 // - Deploy
 
-func Run(pipeline PipelineInterface) error {
-	err := pipeline.PullSourceCode()
+func (p *Pipeline) PullSourceCode() error {
+	log.Debug("Pipeline.PullSourceCode()")
+	return nil
+}
+
+func (p *Pipeline) Build() error {
+	return nil
+}
+
+func (p *Pipeline) RunUnitTest() error {
+	return nil
+}
+
+func (p *Pipeline) RunIntegrationTest() error {
+	return nil
+}
+
+func (p *Pipeline) CopyTarget() error {
+	return nil
+}
+
+func (p *Pipeline) Upload() error {
+	return nil
+}
+
+func (p *Pipeline) NewImage() error {
+	return nil
+}
+
+func (p *Pipeline) Deploy() error {
+	log.Debug("Pipeline.Deploy()")
+	return nil
+}
+
+func (p *Pipeline) Run() error {
+	err := p.PullSourceCode()
 	if err != nil {
 		return fmt.Errorf("failed: %s", err)
 	}
 
-	err = pipeline.Build()
+	err = p.Build()
 	if err != nil {
 		return fmt.Errorf("failed: %s", err)
 	}
 
-	err = pipeline.RunUnitTest()
+	err = p.RunUnitTest()
 	if err != nil {
 		return fmt.Errorf("failed: %s", err)
 	}
