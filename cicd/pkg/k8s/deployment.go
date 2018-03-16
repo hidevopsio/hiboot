@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"github.com/hidevopsio/hi/boot/pkg/log"
-	"github.com/hidevopsio/hi/cicd/pkg/pipelines"
+	"github.com/hidevopsio/hi/cicd/pkg/pipeline"
 )
 
 type App struct {
@@ -39,7 +39,7 @@ func int32Ptr(i int32) *int32 { return &i }
 // @Description deploy application
 // @Param pipeline
 // @Return error
-func Deploy(pipeline *pipelines.Pipeline) (string, error) {
+func Deploy(pipeline *pipeline.Pipeline) (string, error) {
 
 	log.Debug(pipeline)
 
