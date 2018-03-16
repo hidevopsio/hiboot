@@ -5,10 +5,11 @@ package config
 import (
 	"fmt"
 	"github.com/spf13/viper"
+	"github.com/hidevopsio/hi/cicd/pkg/pipelines"
 )
 
 type Configuration struct {
-	PipelineConf Pipeline `mapstructure:"pipeline"`
+	PipelineConf pipelines.Pipeline `mapstructure:"pipeline"`
 }
 
 func BuildPipelineConfig(profile, project, app, version, appType string) *Pipeline {

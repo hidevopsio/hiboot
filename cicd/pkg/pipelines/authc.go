@@ -1,4 +1,4 @@
-package pipeline
+package pipelines
 
 type Authentication interface{
 	Authenticate() error

@@ -3,16 +3,15 @@ package web
 import (
 	"github.com/kataras/iris"
 
-	//"github.com/hidevopsio/hi/cicd/pkg/pipeline"
-	"github.com/hidevopsio/hi/cicd/pkg/config"
+	"github.com/hidevopsio/hi/cicd/pkg/pipelines"
 )
 
 // Operations about object
-type DeploymentController struct {
+type Controller struct {
 
 }
 
-func (c *DeploymentController) Before(ctx iris.Context) {
+func (c *Controller) Before(ctx iris.Context) {
 	ctx.Application().Logger().Infof("Path: %s | IP: %s", ctx.Path(), ctx.RemoteAddr())
 
 	// .Next is required to move forward to the chain of handlers,
@@ -27,8 +26,8 @@ func (c *DeploymentController) Before(ctx iris.Context) {
 // @Success 200 {string}
 // @Failure 403 body is empty
 // @router / [post]
-func (c *DeploymentController) Deploy(ctx iris.Context) {
-	var pipeline config.Pipeline
+func (c *Controller) Deploy(ctx iris.Context) {
+	var pipeline pipelines.PipelineInterface
 	err := ctx.ReadJSON(&pipeline)
 	if err != nil {
 		ctx.Values().Set("error", "deployment failed, read and parse request body failed. " + err.Error())
@@ -37,7 +36,7 @@ func (c *DeploymentController) Deploy(ctx iris.Context) {
 	}
 
 	// invoke models
-	//pipeline.Run(&pipeline)
+	pipeline.Run()
 
 	// just for debug now
 	ctx.JSON(pipeline)

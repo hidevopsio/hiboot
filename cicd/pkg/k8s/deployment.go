@@ -7,9 +7,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"fmt"
-	"github.com/hidevopsio/hi/cicd/pkg/config"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"github.com/hidevopsio/hi/boot/pkg/log"
+	"github.com/hidevopsio/hi/cicd/pkg/pipelines"
 )
 
 type App struct {
@@ -34,21 +34,12 @@ func init() {
 
 func int32Ptr(i int32) *int32 { return &i }
 
+
 // @Title Deploy
 // @Description deploy application
-// @Param app
-// @Return deployment result as string, error
-func Deploy(pipeline *config.Pipeline) (string, error) {
-
-	if "" == pipeline.ImageTag {
-		pipeline.ImageTag = "latest"
-	}
-	if "" == pipeline.DockerRegistry {
-		pipeline.DockerRegistry = "docker-registry.default.svc:5000"
-	}
-	if "" == pipeline.Profile {
-		pipeline.Profile = "dev"
-	}
+// @Param pipeline
+// @Return error
+func Deploy(pipeline *pipelines.Pipeline) (string, error) {
 
 	log.Debug(pipeline)
 
