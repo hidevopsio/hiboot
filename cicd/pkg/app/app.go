@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/hi-devops-io/hi/boot/pkg/application"
-	"github.com/hi-devops-io/hi/cicd/pkg/web"
+	"github.com/hidevopsio/hi/boot/pkg/application"
+	"github.com/hidevopsio/hi/cicd/pkg/web"
 )
 
 

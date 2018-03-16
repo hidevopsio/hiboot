@@ -3,7 +3,7 @@ package application
 import (
 	"github.com/kataras/iris"
 	log "github.com/kataras/golog"
-	"github.com/hi-devops-io/hi/boot/pkg/config"
+	"github.com/hidevopsio/hi/boot/pkg/config"
 	"fmt"
 	"github.com/kataras/iris/context"
 )

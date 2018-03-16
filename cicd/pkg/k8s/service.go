@@ -6,8 +6,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"fmt"
-	"github.com/hi-devops-io/hi/cicd/pkg/config"
-	"github.com/hi-devops-io/hi/boot/pkg/log"
+	"github.com/hidevopsio/hi/cicd/pkg/config"
+	"github.com/hidevopsio/hi/boot/pkg/log"
 )
 
 func CreateService(pipeline *config.Pipeline) error {

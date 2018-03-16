@@ -3,8 +3,8 @@ package web
 import (
 	"github.com/kataras/iris"
 
-	//"github.com/hi-devops-io/hi/cicd/pkg/pipeline"
-	"github.com/hi-devops-io/hi/cicd/pkg/config"
+	//"github.com/hidevopsio/hi/cicd/pkg/pipeline"
+	"github.com/hidevopsio/hi/cicd/pkg/config"
 )
 
 // Operations about object
