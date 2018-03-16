@@ -1,9 +1,9 @@
-package controllers
+package web
 
 import (
 	"github.com/kataras/iris"
 
-	"github.com/hi-devops-io/hi/cicd/pkg/pipelines"
+	//"github.com/hi-devops-io/hi/cicd/pkg/pipeline"
 	"github.com/hi-devops-io/hi/cicd/pkg/config"
 )
 
@@ -37,7 +37,7 @@ func (c *DeploymentController) Deploy(ctx iris.Context) {
 	}
 
 	// invoke models
-	pipelines.Deploy(&pipeline)
+	//pipeline.Run(&pipeline)
 
 	// just for debug now
 	ctx.JSON(pipeline)

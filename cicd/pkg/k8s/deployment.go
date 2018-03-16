@@ -1,13 +1,15 @@
-package pipelines
+package k8s
 
 import (
-	log "github.com/kataras/golog"
-	appsv1beta1 "k8s.io/api/apps/v1beta1"
-	apiv1 "k8s.io/api/core/v1"
+	"k8s.io/api/apps/v1beta1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"fmt"
 	"github.com/hi-devops-io/hi/cicd/pkg/config"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"github.com/hi-devops-io/hi/boot/pkg/log"
 )
 
 type App struct {
@@ -37,7 +39,6 @@ func int32Ptr(i int32) *int32 { return &i }
 // @Param app
 // @Return deployment result as string, error
 func Deploy(pipeline *config.Pipeline) (string, error) {
-	deploymentsClient := KubeApi.clientSet.AppsV1beta1().Deployments(pipeline.Project)
 
 	if "" == pipeline.ImageTag {
 		pipeline.ImageTag = "latest"
@@ -51,87 +52,76 @@ func Deploy(pipeline *config.Pipeline) (string, error) {
 
 	log.Debug(pipeline)
 
-	deployment := &appsv1beta1.Deployment{
+	deploySpec := &v1beta1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: pipeline.App,
 		},
-		Spec: appsv1beta1.DeploymentSpec{
+		Spec: v1beta1.DeploymentSpec{
 			Replicas: int32Ptr(1),
-			Template: apiv1.PodTemplateSpec{
+			Strategy: v1beta1.DeploymentStrategy{
+				Type: v1beta1.RollingUpdateDeploymentStrategyType,
+				RollingUpdate: &v1beta1.RollingUpdateDeployment{
+					MaxUnavailable: &intstr.IntOrString{
+						Type:   intstr.Int,
+						IntVal: int32(0),
+					},
+					MaxSurge: &intstr.IntOrString{
+						Type:   intstr.Int,
+						IntVal: int32(1),
+					},
+				},
+			},
+			RevisionHistoryLimit: int32Ptr(10),
+			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
+					Name: pipeline.App,
 					Labels: map[string]string{
 						"app": pipeline.App,
 					},
 				},
-				Spec: apiv1.PodSpec{
-					Containers: []apiv1.Container{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
 						{
 							Name:  pipeline.App,
 							Image: pipeline.DockerRegistry + "/" + pipeline.Project + "/" + pipeline.App + ":" + pipeline.ImageTag,
-							Ports: []apiv1.ContainerPort{
+							Ports: []corev1.ContainerPort{
 								{
 									Name:          "http",
-									Protocol:      apiv1.ProtocolTCP,
+									Protocol:      corev1.ProtocolTCP,
 									ContainerPort: 8080,
 								},
 							},
-							Env: []apiv1.EnvVar{
+							Env: []corev1.EnvVar{
 								{
 									Name:  "APP_PROFILES_ACTIVE",
 									Value: pipeline.Profile,
 								},
 							},
+							ImagePullPolicy: corev1.PullIfNotPresent,
 						},
 					},
 				},
 			},
 		},
 	}
-	log.Debug(deployment)
+	log.Debug(deploySpec)
 
 	// Create Deployment
-	log.Info("Creating deployment...")
-	result, err := deploymentsClient.Create(deployment)
-	if err != nil {
-		panic(err)
+	//Client.ClientSet.ExtensionsV1beta1().Deployments()
+	deploy := Client.ClientSet.AppsV1beta1().Deployments(pipeline.Project)
+	log.Info("Update or Create Deployment...")
+	result, err := deploy.Update(deploySpec)
+	var retVal string
+	switch {
+	case err == nil:
+		log.Info("Deployment updated")
+	case !errors.IsNotFound(err):
+		_, err = deploy.Create(deploySpec)
+		retVal = fmt.Sprintf("Created deployment %q.\n", result.GetObjectMeta().GetName())
+		log.Info(retVal)
+	default:
+		return retVal, fmt.Errorf("could not update deployment controller: %s", err)
 	}
-
-	retVal := fmt.Sprintf("Created deployment %q.\n", result.GetObjectMeta().GetName())
-	log.Info(retVal)
-
-	createService(pipeline)
 
 	return retVal, err
-}
-
-func createService(pipeline *config.Pipeline) (*apiv1.Service, error) {
-	// create service
-
-	serviceClient := KubeApi.clientSet.CoreV1().Services(pipeline.Project)
-	service := &apiv1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: pipeline.App,
-			Labels: map[string]string{
-				"app": pipeline.App,
-			},
-		},
-		Spec: apiv1.ServiceSpec{
-			Ports: []apiv1.ServicePort{
-				{
-					Name: "http",
-					Port: 8080,
-				},
-			},
-			Selector: map[string]string{
-				"app": pipeline.App,
-			},
-		},
-	}
-
-	var svc *apiv1.Service
-	var err error
-	svc, err = serviceClient.Create(service)
-	log.Info(svc, err)
-
-	return svc, err
 }

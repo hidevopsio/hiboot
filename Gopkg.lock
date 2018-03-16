@@ -20,6 +20,12 @@
   revision = "72acac2207479d21dd45898c2a4264246c818148"
 
 [[projects]]
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
+  version = "v1.1.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/eknkc/amber"
   packages = [".","parser"]
@@ -120,12 +126,6 @@
   name = "github.com/iris-contrib/formBinder"
   packages = ["."]
   revision = "ad9fb86c356f971f30319c40ddbdcf72129a2791"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/john-deng/k8s-cli-demo"
-  packages = ["models"]
-  revision = "154d0112e5a722b6549545ef3b7c9e4e493628df"
 
 [[projects]]
   branch = "master"
@@ -254,6 +254,12 @@
   version = "v2.0.1"
 
 [[projects]]
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/ryanuber/columnize"
   packages = ["."]
@@ -300,6 +306,12 @@
   packages = ["."]
   revision = "25b30aa063fc18e48662b86996252eabdcf2f0c7"
   version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/stretchr/testify"
+  packages = ["assert"]
+  revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
+  version = "v1.2.1"
 
 [[projects]]
   branch = "master"
@@ -364,6 +376,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2ea607d8e0fdd8026939e9e14b4500fbab33b38e9ff9821bd0b55a515b27154e"
+  inputs-digest = "f2f9eb6f2b3e081e5812a295acf7f34ff896ab6f09a99eb00a497541d7ec38a1"
   solver-name = "gps-cdcl"
   solver-version = 1

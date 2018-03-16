@@ -1,4 +1,4 @@
-package pipelines
+package pipeline
 
 type JavaPipeline struct{
 
