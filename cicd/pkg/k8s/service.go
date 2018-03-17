@@ -6,11 +6,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"fmt"
-	"github.com/hidevopsio/hi/cicd/pkg/config"
 	"github.com/hidevopsio/hi/boot/pkg/log"
+	"github.com/hidevopsio/hi/cicd/pkg/pipeline"
 )
 
-func CreateService(pipeline *config.Pipeline) error {
+func CreateService(pipeline *pipeline.Pipeline) error {
 	// create service
 
 	serviceSpec := &corev1.Service{
