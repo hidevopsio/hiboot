@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"os"
+	"runtime"
+	"strings"
+	"github.com/hidevopsio/hi/boot/pkg/log"
 )
 
 type Configuration struct {
@@ -15,11 +18,15 @@ type Configuration struct {
 var conf Configuration
 
 func Build() *Configuration {
+	_, filename, _, _ := runtime.Caller(0)
+	workdir := strings.Replace(filename, "boot/pkg/system/builder.go", "", -1)
+	log.Debug(workdir)
+
 	viper.SetDefault("app.project", "devops")
 	viper.SetDefault("app.name", "hi")
 	viper.SetDefault("app.server.port", 8080)
 	viper.SetDefault("app.logging.level", "info")
-	viper.AddConfigPath("./config")
+	viper.AddConfigPath(workdir + "/config")
 	viper.SetConfigName("app")
 	viper.SetConfigType("yaml")
 	err := viper.ReadInConfig()
