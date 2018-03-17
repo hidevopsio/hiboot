@@ -1,6 +1,6 @@
 // TODO: app config should be generic kit
 
-package config
+package system
 
 import (
 	"fmt"
@@ -9,10 +9,12 @@ import (
 )
 
 type Configuration struct {
-	AppConf AppConfig `mapstructure:"app"`
+	App App `mapstructure:"app"`
 }
 
-func BuildAppConfig() *AppConfig {
+var conf Configuration
+
+func Build() *Configuration {
 	viper.SetDefault("app.project", "devops")
 	viper.SetDefault("app.name", "hi")
 	viper.SetDefault("app.server.port", 8080)
@@ -24,8 +26,6 @@ func BuildAppConfig() *AppConfig {
 	if err != nil {
 		panic(fmt.Errorf("Error config file: %s \n", err))
 	}
-
-	var conf Configuration
 
 	err = viper.Unmarshal(&conf)
 	if err != nil {
@@ -41,5 +41,5 @@ func BuildAppConfig() *AppConfig {
 		}
 	}
 
-	return &conf.AppConf
+	return &conf
 }

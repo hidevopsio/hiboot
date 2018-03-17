@@ -3,22 +3,24 @@ package pipelines
 import (
 	"testing"
 	"github.com/hidevopsio/hi/boot/pkg/log"
+	"github.com/hidevopsio/hi/cicd/pkg/pipeline"
+	"github.com/hidevopsio/hi/cicd/pkg/ci"
 )
 
 func init()  {
 	log.SetLevel("debug")
 }
 
-func TestPipeline(t *testing.T)  {
+func TestJavaPipeline(t *testing.T)  {
 
 	log.Debug("Test Java Pipeline")
 
 	javaPipeline := &JavaPipeline{
-		Pipeline{
+		pipeline.Pipeline{
 			App: "test",
 			Project: "demo",
 		},
 	}
 
-	Run(javaPipeline)
+	ci.Run(javaPipeline)
 }

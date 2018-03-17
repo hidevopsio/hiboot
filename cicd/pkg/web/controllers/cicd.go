@@ -4,7 +4,7 @@ import (
 	"github.com/kataras/iris"
 
 	"github.com/hidevopsio/hi/cicd/pkg/pipeline"
-	"github.com/hidevopsio/hi/cicd/pkg/executor"
+	"github.com/hidevopsio/hi/cicd/pkg/ci"
 )
 
 // Operations about object
@@ -37,7 +37,7 @@ func (c *CicdController) Run(ctx iris.Context) {
 	}
 
 	// invoke models
-	executor.Run(&pipeline)
+	ci.Run(&pipeline)
 
 	// just for debug now
 	ctx.JSON(pipeline)
