@@ -1,12 +1,15 @@
-package executor
+
+// dependencies: ci -> pipeline -> impl
+
+package ci
 
 import (
-	"github.com/hidevopsio/hi/boot/pkg/log"
 	"fmt"
-	"github.com/hidevopsio/hi/cicd/pkg/pipeline/pintf"
+	"github.com/hidevopsio/hi/boot/pkg/log"
+	"github.com/hidevopsio/hi/cicd/pkg/pipeline"
 )
 
-func Run(p pintf.PipelineInterface) error {
+func Run(p pipeline.PipelineInterface) error {
 
 	p.EnsurePipeline()
 

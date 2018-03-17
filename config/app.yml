@@ -2,4 +2,4 @@ app:
   project: devops
   name: hi
   logging:
-    level: info
+    level: debug

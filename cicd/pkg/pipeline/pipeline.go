@@ -15,6 +15,18 @@ import (
 // - NewImage
 // - Deploy
 
+type PipelineInterface interface {
+	EnsurePipeline() error
+	PullSourceCode() error
+	Build() error
+	RunUnitTest() error
+	RunIntegrationTest() error
+	Analysis() error
+	CopyTarget() error
+	Upload() error
+	NewImage() error
+	Deploy() error
+}
 
 type Pipeline struct {
 	Name string `json:"name"`
@@ -22,6 +34,7 @@ type Pipeline struct {
 	Project string `json:"project"`	// Project = Namespace
 	App string `json:"app"`
 	Version string `json:"version"`
+	GitUrl string `json:"git_url"`
 	ImageTag string `json:"image_tag"`
 	Type string `json:"type"`
 	Timezone string `json:"timezone"`

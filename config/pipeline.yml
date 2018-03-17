@@ -5,3 +5,4 @@ pipeline:
   version:
   type:
   timezone: Asia/Shanghai
+  giturl: https://github.com/john-deng

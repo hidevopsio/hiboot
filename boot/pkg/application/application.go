@@ -3,14 +3,14 @@ package application
 import (
 	"github.com/kataras/iris"
 	log "github.com/kataras/golog"
-	"github.com/hidevopsio/hi/boot/pkg/config"
+	"github.com/hidevopsio/hi/boot/pkg/system"
 	"fmt"
 	"github.com/kataras/iris/context"
 )
 
 type Boot struct {
 	app *iris.Application
-	config *config.AppConfig
+	config *system.Configuration
 }
 
 type Health struct {
@@ -22,8 +22,8 @@ var (
 )
 
 func init() {
-	boot.config = config.BuildAppConfig()
-	log.SetLevel(boot.config.Logging.Level)
+	boot.config = system.Build()
+	log.SetLevel(boot.config.App.Logging.Level)
 	log.Debug("application init")
 	log.Debug(boot.config)
 
@@ -41,11 +41,11 @@ func Instance() *iris.Application {
 	return boot.app
 }
 
-func Config() *config.AppConfig  {
+func Config() *system.Configuration {
 	return boot.config
 }
 
 func Run() {
-	serverPort := fmt.Sprintf(":%v", boot.config.Server.Port)
+	serverPort := fmt.Sprintf(":%v", boot.config.App.Server.Port)
 	boot.app.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithCharset("UTF-8"), iris.WithoutVersionChecker)
 }
