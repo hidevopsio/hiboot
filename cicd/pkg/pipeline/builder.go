@@ -27,7 +27,6 @@ func Build(name string) *Configuration {
 	viper.AddConfigPath(workdir + "/config")
 	viper.SetConfigName("pipeline")
 	viper.SetConfigType("yaml")
-	viper.SetEnvKeyReplacer()
 	err := viper.ReadInConfig()
 	if err != nil {
 		panic(fmt.Errorf("Error config file: %s \n", err))
