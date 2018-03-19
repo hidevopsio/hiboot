@@ -236,6 +236,18 @@
   version = "1.0.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/openshift/api"
+  packages = ["build/v1"]
+  revision = "dca24d1902afee9d2be02425a2d7c9f910063631"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/openshift/client-go"
+  packages = ["build/clientset/versioned/scheme","build/clientset/versioned/typed/build/v1"]
+  revision = "5039916f9ac015e14899959fb6fc62945578657e"
+
+[[projects]]
   name = "github.com/pelletier/go-toml"
   packages = ["."]
   revision = "acdc4509485b587f5e675510c4f2c63e90ff68a8"
@@ -376,6 +388,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f2f9eb6f2b3e081e5812a295acf7f34ff896ab6f09a99eb00a497541d7ec38a1"
+  inputs-digest = "b078b56024d5b0cfc666e4c75bfcbf8f053bb300934b09f9bad2f149db376b84"
   solver-name = "gps-cdcl"
   solver-version = 1

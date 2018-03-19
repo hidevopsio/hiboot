@@ -20,11 +20,12 @@ var conf Configuration
 // TODO: we may eliminate this func, merge to system.builder instead
 func Build(name string) *Configuration {
 
+	// add workDir for passing test
 	_, filename, _, _ := runtime.Caller(0)
-	workdir := strings.Replace(filename, "/pkg/pipeline/builder.go", "", -1)
-	log.Debug(workdir)
+	workDir := strings.Replace(filename, "/pkg/pipeline/builder.go", "", -1)
+	log.Debug(workDir)
 
-	viper.AddConfigPath(workdir + "/config")
+	viper.AddConfigPath(workDir + "/config")
 	viper.SetConfigName("pipeline")
 	viper.SetConfigType("yaml")
 	err := viper.ReadInConfig()

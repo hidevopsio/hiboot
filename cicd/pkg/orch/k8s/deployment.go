@@ -12,26 +12,6 @@ import (
 	"github.com/hidevopsio/hi/cicd/pkg/pipeline"
 )
 
-type App struct {
-	Name           string  `json:"name"`
-	Project        string  `json:"project"`
-	Profile        string  `json:"profile"`
-	DockerRegistry string  `json:"docker_registry"`
-	ImageTag       string  `json:"image_tag"`
-	Port           int32   `json:"port"`
-	Ports          []int32 `json:"ports"`
-}
-
-type Response struct {
-	Message string
-	Code    int
-	Data    interface{}
-}
-
-func init() {
-
-}
-
 func int32Ptr(i int32) *int32 { return &i }
 
 
@@ -99,7 +79,7 @@ func Deploy(pipeline *pipeline.Pipeline) (string, error) {
 
 	// Create Deployment
 	//Client.ClientSet.ExtensionsV1beta1().Deployments()
-	deploy := Client.ClientSet.AppsV1beta1().Deployments(pipeline.Project)
+	deploy := ClientSet.AppsV1beta1().Deployments(pipeline.Project)
 	log.Info("Update or Create Deployment...")
 	result, err := deploy.Update(deploySpec)
 	var retVal string

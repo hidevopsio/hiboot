@@ -34,7 +34,7 @@ func CreateService(pipeline *pipeline.Pipeline) error {
 		},
 	}
 
-	services := Client.ClientSet.CoreV1().Services(pipeline.Project)
+	services := ClientSet.CoreV1().Services(pipeline.Project)
 	svc, err := services.Get(pipeline.App, metav1.GetOptions{})
 	switch {
 	case err == nil:
