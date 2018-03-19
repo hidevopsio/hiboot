@@ -14,15 +14,12 @@ import (
 )
 
 var (
-	Client KubeClient
-)
-
-
-type KubeClient struct {
-	Kubeconfig *string
 	Config     *rest.Config
 	ClientSet  *kubernetes.Clientset
-}
+
+	kubeconfig *string
+)
+
 
 func init() {
 
@@ -31,24 +28,24 @@ func init() {
 	if os.Getenv("KUBE_CLIENT_MODE") == "external" {
 		log.Info("Kubernetes External Client Mode")
 		if home := homedir.HomeDir(); home != "" {
-			Client.Kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+			kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
 		} else {
-			Client.Kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+			kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 		}
-		Client.Config, err = clientcmd.BuildConfigFromFlags(os.Getenv("KUBE_MASTER_URL"), *Client.Kubeconfig)
+		Config, err = clientcmd.BuildConfigFromFlags(os.Getenv("KUBE_MASTER_URL"), *kubeconfig)
 		if err != nil {
 			panic(err.Error())
 		}
 	} else {
 		log.Info("Kubernetes Internal Client Mode")
-		Client.Config, err = rest.InClusterConfig()
+		Config, err = rest.InClusterConfig()
 		if err != nil {
 			panic(err.Error())
 		}
 	}
 
 	// creates the ClientSet
-	Client.ClientSet, err = kubernetes.NewForConfig(Client.Config)
+	ClientSet, err = kubernetes.NewForConfig(Config)
 	if err != nil {
 		panic(err.Error())
 	}
