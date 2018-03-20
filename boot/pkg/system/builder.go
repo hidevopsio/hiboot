@@ -12,23 +12,38 @@ import (
 )
 
 type Configuration struct {
-	App App `mapstructure:"app"`
+	App     App     `mapstructure:"app"`
+	Server  Server  `mapstructure:"server"`
+	Logging Logging `mapstructure:"logging"`
 }
 
-var conf Configuration
+var (
+	conf Configuration
+)
+
+const (
+	application = "application"
+	config = "/config"
+	yaml = "yaml"
+	defaultLoggingLevel = "info"
+	defaultPort = 8080
+	defaultAppName = "app"
+	defaultProjectName = "devops"
+
+)
 
 func Build() *Configuration {
 	_, filename, _, _ := runtime.Caller(0)
 	workdir := strings.Replace(filename, "boot/pkg/system/builder.go", "", -1)
 	log.Debug(workdir)
 
-	viper.SetDefault("app.project", "devops")
-	viper.SetDefault("app.name", "hi")
-	viper.SetDefault("app.server.port", 8080)
-	viper.SetDefault("app.logging.level", "info")
-	viper.AddConfigPath(workdir + "/config")
-	viper.SetConfigName("app")
-	viper.SetConfigType("yaml")
+	viper.SetDefault("app.project", defaultProjectName)
+	viper.SetDefault("app.name", defaultAppName)
+	viper.SetDefault("server.port", defaultPort)
+	viper.SetDefault("logging.level", defaultLoggingLevel)
+	viper.AddConfigPath(workdir + config)
+	viper.SetConfigName(application)
+	viper.SetConfigType(yaml)
 	err := viper.ReadInConfig()
 	if err != nil {
 		panic(fmt.Errorf("Error config file: %s \n", err))
@@ -40,7 +55,7 @@ func Build() *Configuration {
 	}
 	appProfile := os.Getenv("APP_PROFILES_ACTIVE")
 	if appProfile != "" {
-		viper.SetConfigName("app-" + appProfile)
+		viper.SetConfigName(application + "-" + appProfile)
 		viper.MergeInConfig()
 		err = viper.Unmarshal(&conf)
 		if err != nil {

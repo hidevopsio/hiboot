@@ -23,7 +23,7 @@ var (
 
 func init() {
 	boot.config = system.Build()
-	log.SetLevel(boot.config.App.Logging.Level)
+	log.SetLevel(boot.config.Logging.Level)
 	log.Debug("application init")
 	log.Debug(boot.config)
 
@@ -46,6 +46,6 @@ func Config() *system.Configuration {
 }
 
 func Run() {
-	serverPort := fmt.Sprintf(":%v", boot.config.App.Server.Port)
+	serverPort := fmt.Sprintf(":%v", boot.config.Server.Port)
 	boot.app.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithCharset("UTF-8"), iris.WithoutVersionChecker)
 }
