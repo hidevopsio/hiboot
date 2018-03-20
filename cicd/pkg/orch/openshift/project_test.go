@@ -59,20 +59,6 @@ func TestProjectCrud(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, projectName, p.Name)
 
-	// TODO: update test is not passed yet
-	// update project
-	//np := &v1.Project{
-	//	ObjectMeta: metav1.ObjectMeta{
-	//		ResourceVersion: p.ObjectMeta.ResourceVersion,
-	//		Name: projectName,
-	//		Annotations: map[string]string{
-	//			"openshift.io/display-name:": projectName + "-test",
-	//		},
-	//	},
-	//}
-	//p, err = projects.Update(np)
-	//assert.Equal(t, nil, err)
-
 	// delete project
 	err = projects.Delete(projectName, &metav1.DeleteOptions{})
 	assert.Equal(t, nil, err)

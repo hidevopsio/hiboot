@@ -24,7 +24,6 @@ func TestBuildCrud(t *testing.T)  {
 	imageTag := "latest"
 	s2iImageStream := "s2i-java:latest"
 	s2iImageStreamNamespace := "openshift"
-	//gitToken := "qxgjgsy2GsHq1Qb5rxTo"
 
 	buildV1Client, err := buildv1.NewForConfig(k8s.Config)
 	assert.Equal(t, nil, err)
@@ -78,14 +77,6 @@ func TestBuildCrud(t *testing.T)  {
 					},
 				},
 			},
-			//Triggers: []v1.BuildTriggerPolicy{
-			//	{
-			//		Type: v1.BuildTriggerType(v1.GitLabWebHookBuildTriggerType),
-			//		GenericWebHook: &v1.WebHookTrigger{
-			//			Secret: gitToken,
-			//		},
-			//	},
-			//},
 		},
 	}
 	bc, err := buildConfigs.Create(buildConfigSPec)
