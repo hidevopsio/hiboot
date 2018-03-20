@@ -26,6 +26,10 @@ var (
 	imageV1Client *imagev1.ImageV1Client
 )
 
+// @Title init
+// @Description init image config
+// @Param
+// @Return
 func init() {
 	log.SetLevel("debug")
 	var err error
@@ -35,6 +39,10 @@ func init() {
 	}
 }
 
+// @Title Create
+// @Description create imagestream
+// @Param
+// @Return v1.ImageStream, error
 func (is *ImageStream) Create() (*v1.ImageStream, error) {
 	imageStream := &v1.ImageStream{
 		ObjectMeta: metav1.ObjectMeta{
@@ -46,16 +54,26 @@ func (is *ImageStream) Create() (*v1.ImageStream, error) {
 		},
 	}
 
+	// get interface
 	is.Interface = imageV1Client.ImageStreams(is.Namespace)
 
 	// create image stream
 	return is.Interface.Create(imageStream)
 }
 
+// @Title Get
+// @Description get imagestream
+// @Param
+// @Return v1.ImageStream, error
 func (is *ImageStream) Get() (*v1.ImageStream, error) {
 	return is.Interface.Get(is.Name, metav1.GetOptions{})
 }
 
+
+// @Title Delete
+// @Description delete imagestream
+// @Param
+// @Return error
 func (is *ImageStream) Delete() error {
 	return is.Interface.Delete(is.Name, &metav1.DeleteOptions{})
 }
