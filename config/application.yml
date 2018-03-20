@@ -3,6 +3,6 @@
 app:
   project: devops
   name: hi
-  # TODO: logging - to be separated
-  logging:
-    level: debug
+
+logging:
+  level: debug
