@@ -28,10 +28,14 @@ func init() {
 
 func TestProjectLit(t *testing.T) {
 	// get all projects
-	p, err := projects.List(metav1.ListOptions{})
+	project, err := projects.List(metav1.ListOptions{})
 	assert.Equal(t, nil, err)
-	assert.NotEqual(t, 0, len(p.Items))
-	log.Debugf("There are %d projects in the cluster", len(p.Items))
+	assert.NotEqual(t, 0, len(project.Items))
+	log.Debugf("There are %d projects in the cluster", len(project.Items))
+
+	for i, p := range project.Items {
+		log.Debugf("index %d: project: %s", i, p.Name)
+	}
 }
 
 func TestProjectCrud(t *testing.T) {

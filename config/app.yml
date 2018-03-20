@@ -1,5 +1,8 @@
+# filename should be application.yml
+
 app:
   project: devops
   name: hi
+  # TODO: logging - to be separated
   logging:
     level: debug

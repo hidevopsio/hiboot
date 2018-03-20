@@ -4,74 +4,148 @@ package openshift
 import (
 	"testing"
 	"github.com/stretchr/testify/assert"
+	"github.com/openshift/api/build/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	v1 "github.com/openshift/api/build/v1"
 	buildv1 "github.com/openshift/client-go/build/clientset/versioned/typed/build/v1"
-	"fmt"
 	"github.com/hidevopsio/hi/cicd/pkg/orch/k8s"
+	"github.com/hidevopsio/hi/boot/pkg/log"
+	"os"
+	"sync"
 )
 
-
-func startBuild() error {
-	buildV1Client, err := buildv1.NewForConfig(k8s.Config)
-	if err != nil {
-		return err
-	}
-
-	namespace := "demo-dev"
-	// get all builds
-	builds, err := buildV1Client.Builds(namespace).List(metav1.ListOptions{})
-	if err != nil {
-		return err
-	}
-	fmt.Printf("There are %d builds in project %s\n", len(builds.Items), namespace)
-	// List names of all builds
-	for i, build := range builds.Items {
-		fmt.Printf("index %d: Name of the build: %s", i, build.Name)
-	}
-
-	// get a specific build
-	build := "hazelcast-demo-1"
-	myBuild, err := buildV1Client.Builds(namespace).Get(build, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Found build %s in namespace %s\n", build, namespace)
-	fmt.Printf("Raw printout of the build %+v\n", myBuild)
-	// get details of the build
-	fmt.Printf("name %s, start time %s, duration (in sec) %.0f, and phase %s\n",
-		myBuild.Name, myBuild.Status.StartTimestamp.String(),
-		myBuild.Status.Duration.Seconds(), myBuild.Status.Phase)
-
-	// trigger a build
-	buildConfig := "hazelcast-demo"
-	myBuildConfig, err := buildV1Client.BuildConfigs(namespace).Get(buildConfig, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Found BuildConfig %s in namespace %s\n", myBuildConfig.Name, namespace)
-	buildRequest := v1.BuildRequest{}
-	buildRequest.Kind = "BuildRequest"
-	buildRequest.APIVersion = "build.openshift.io/v1"
-	objectMeta := metav1.ObjectMeta{}
-	objectMeta.Name = "hazelcast-demo"
-	buildRequest.ObjectMeta = objectMeta
-	buildTriggerCause := v1.BuildTriggerCause{}
-	buildTriggerCause.Message = "Manually triggered"
-	buildRequest.TriggeredBy = []v1.BuildTriggerCause{buildTriggerCause}
-	myBuild, err = buildV1Client.BuildConfigs(namespace).Instantiate(buildConfig, &buildRequest)
-
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Name of the triggered build %s\n", myBuild.Name)
-	return nil
+func init()  {
+	log.SetLevel("debug")
 }
 
-func TestBuild(t *testing.T)  {
+func TestBuildCrud(t *testing.T)  {
+	namespace := "demo-dev"
+	appName := "bc-test"
+	imageTag := "latest"
+	s2iImageStream := "s2i-java:latest"
+	s2iImageStreamNamespace := "openshift"
+	//gitToken := "qxgjgsy2GsHq1Qb5rxTo"
 
-	err := startBuild()
+	buildV1Client, err := buildv1.NewForConfig(k8s.Config)
 	assert.Equal(t, nil, err)
 
+	buildConfigs := buildV1Client.BuildConfigs(namespace)
+
+	log.Debugf("workDir: %v", os.Getenv("PWD"))
+
+	imageStream := &ImageStream{
+		Name: appName,
+		Namespace: namespace,
+	}
+
+	// create imagestream
+	is, err := imageStream.Create()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, appName, is.ObjectMeta.Name)
+
+	buildConfigSPec := &v1.BuildConfig{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: appName,
+			Labels: map[string]string{
+				"app": appName,
+			},
+		},
+		Spec: v1.BuildConfigSpec{
+
+			// The runPolicy field controls whether builds created from this build configuration can be run simultaneously.
+			// The default value is Serial, which means new builds will run sequentially, not simultaneously.
+			RunPolicy: v1.BuildRunPolicy("Serial"),
+			CommonSpec: v1.CommonSpec{
+
+				Source: v1.BuildSource{
+					Type: v1.BuildSourceType(v1.BuildSourceBinary),
+					Binary: &v1.BinaryBuildSource{},
+				},
+				Strategy: v1.BuildStrategy{
+					Type: v1.BuildStrategyType(v1.SourceBuildStrategyType),
+					SourceStrategy: &v1.SourceBuildStrategy{
+						From: corev1.ObjectReference{
+							Kind:      "ImageStreamTag",
+							Name:      s2iImageStream,
+							Namespace: s2iImageStreamNamespace,
+						},
+					},
+				},
+				Output: v1.BuildOutput{
+					To: &corev1.ObjectReference{
+						Kind: "ImageStreamTag",
+						Name: appName + ":" + imageTag,
+					},
+				},
+			},
+			//Triggers: []v1.BuildTriggerPolicy{
+			//	{
+			//		Type: v1.BuildTriggerType(v1.GitLabWebHookBuildTriggerType),
+			//		GenericWebHook: &v1.WebHookTrigger{
+			//			Secret: gitToken,
+			//		},
+			//	},
+			//},
+		},
+	}
+	bc, err := buildConfigs.Create(buildConfigSPec)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, appName, bc.Name)
+
+	// Get build config
+	bc, err = buildConfigs.Get(appName, metav1.GetOptions{})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, appName, bc.Name)
+
+	// trigger build manually
+	buildRequestCauses := []v1.BuildTriggerCause{}
+	incremental := true
+	buildTriggerCauseManualMsg := "Manually triggered"
+	buildRequest := v1.BuildRequest{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "BuildRequest",
+			APIVersion: "build.openshift.io/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: appName,
+			Labels: map[string]string{
+				"app": appName,
+			},
+		},
+		TriggeredBy: append(buildRequestCauses,
+			v1.BuildTriggerCause{
+				Message: buildTriggerCauseManualMsg,
+			},
+		),
+		SourceStrategyOptions: &v1.SourceStrategyOptions{
+			Incremental: &incremental,
+		},
+		From: &corev1.ObjectReference{},
+		Binary: &v1.BinaryBuildSource{},
+	}
+
+	builds := buildV1Client.Builds(namespace)
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		b, err := buildConfigs.Instantiate(appName, &buildRequest)
+		assert.Equal(t, nil, err)
+		assert.Contains(t, b.Name, appName)
+		for {
+			bx, err := builds.Get(b.Name, metav1.GetOptions{})
+			if err == nil && bx.Status.Phase == v1.BuildPhase(v1.BuildPhaseRunning) {
+				wg.Done()
+				log.Debugf("build %v is running...", bx.Name)
+				break
+			}
+		}
+	}()
+	wg.Wait()
+
+	// Delete build config
+	err = buildConfigs.Delete(appName, &metav1.DeleteOptions{})
+	assert.Equal(t, nil, err)
+
+	err = imageStream.Delete()
+	assert.Equal(t, nil, err)
 }
