@@ -19,7 +19,6 @@ type ImageStreamAPI interface {
 type ImageStream struct{
 	Name string
 	Namespace string
-	Interface  imagev1.ImageStreamInterface
 }
 
 var (
@@ -54,11 +53,8 @@ func (is *ImageStream) Create() (*v1.ImageStream, error) {
 		},
 	}
 
-	// get interface
-	is.Interface = imageV1Client.ImageStreams(is.Namespace)
-
 	// create image stream
-	return is.Interface.Create(imageStream)
+	return imageV1Client.ImageStreams(is.Namespace).Create(imageStream)
 }
 
 // @Title Get
@@ -66,7 +62,7 @@ func (is *ImageStream) Create() (*v1.ImageStream, error) {
 // @Param
 // @Return v1.ImageStream, error
 func (is *ImageStream) Get() (*v1.ImageStream, error) {
-	return is.Interface.Get(is.Name, metav1.GetOptions{})
+	return imageV1Client.ImageStreams(is.Namespace).Get(is.Name, metav1.GetOptions{})
 }
 
 
@@ -75,5 +71,5 @@ func (is *ImageStream) Get() (*v1.ImageStream, error) {
 // @Param
 // @Return error
 func (is *ImageStream) Delete() error {
-	return is.Interface.Delete(is.Name, &metav1.DeleteOptions{})
+	return imageV1Client.ImageStreams(is.Namespace).Delete(is.Name, &metav1.DeleteOptions{})
 }
