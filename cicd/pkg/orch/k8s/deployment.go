@@ -79,15 +79,15 @@ func Deploy(pipeline *pipeline.Pipeline) (string, error) {
 
 	// Create Deployment
 	//Client.ClientSet.ExtensionsV1beta1().Deployments()
-	deploy := ClientSet.AppsV1beta1().Deployments(pipeline.Project)
+	deployments := ClientSet.AppsV1beta1().Deployments(pipeline.Project)
 	log.Info("Update or Create Deployment...")
-	result, err := deploy.Update(deploySpec)
+	result, err := deployments.Update(deploySpec)
 	var retVal string
 	switch {
 	case err == nil:
 		log.Info("Deployment updated")
 	case !errors.IsNotFound(err):
-		_, err = deploy.Create(deploySpec)
+		_, err = deployments.Create(deploySpec)
 		retVal = fmt.Sprintf("Created deployment %q.\n", result.GetObjectMeta().GetName())
 		log.Info(retVal)
 	default:
