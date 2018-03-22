@@ -10,9 +10,9 @@ import (
 	"github.com/hidevopsio/hi/cicd/pkg/orch/k8s"
 	"github.com/hidevopsio/hi/boot/pkg/log"
 	"os"
-	//"sync"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"time"
+	//"sync"
+	//"time"
 )
 
 func init() {
@@ -20,12 +20,13 @@ func init() {
 }
 
 func TestBuildCrud(t *testing.T) {
+	// put below configs in yaml file
 	namespace := "demo-dev"
-	appName := "hello-world"
+	appName := "security-admin-provider"
 	imageTag := "latest"
 	s2iImageStream := "s2i-java:1.0.5"
 	s2iImageStreamNamespace := "openshift"
-	buildCmd := "mvn clean package -DskipTests -Djava.net.preferIPv4Stack=true"
+	buildCmd := "mvn clean package -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true"
 	gitUrl := "https://github.com/john-deng/hello-world.git"
 	mvnMirrorUrl := os.Getenv("MAVEN_MIRROR_URL")
 
@@ -160,7 +161,7 @@ func TestBuildCrud(t *testing.T) {
 		From: &from,
 	}
 
-	builds := buildV1Client.Builds(namespace)
+	//builds := buildV1Client.Builds(namespace)
 
 	//wg := sync.WaitGroup{}
 	//wg.Add(1)
@@ -182,29 +183,29 @@ func TestBuildCrud(t *testing.T) {
 	b, err := buildConfigs.Instantiate(appName, &buildRequest)
 	assert.Equal(t, nil, err)
 	assert.Contains(t, b.Name, appName)
-	for {
-		time.Sleep(100 * time.Millisecond)
-		bx, err := builds.Get(b.Name, metav1.GetOptions{})
-		exit := false
-		if err == nil {
-			switch bx.Status.Phase {
-			case v1.BuildPhase(v1.BuildPhaseComplete):
-				log.Debugf("build %v is completed", bx.Name)
-				exit = true
-				break
-			case v1.BuildPhase(v1.BuildPhaseFailed):
-				log.Debugf("build %v is failed", bx.Name)
-				exit = true
-				break
-			default:
-				continue
-			}
-
-			if exit {
-				break
-			}
-		}
-	}
+	//for {
+	//	time.Sleep(100 * time.Millisecond)
+	//	bx, err := builds.Get(b.Name, metav1.GetOptions{})
+	//	exit := false
+	//	if err == nil {
+	//		switch bx.Status.Phase {
+	//		case v1.BuildPhase(v1.BuildPhaseComplete):
+	//			log.Debugf("build %v is completed", bx.Name)
+	//			exit = true
+	//			break
+	//		case v1.BuildPhase(v1.BuildPhaseFailed):
+	//			log.Debugf("build %v is failed", bx.Name)
+	//			exit = true
+	//			break
+	//		default:
+	//			continue
+	//		}
+	//
+	//		if exit {
+	//			break
+	//		}
+	//	}
+	//}
 
 	log.Debug("Done")
 
