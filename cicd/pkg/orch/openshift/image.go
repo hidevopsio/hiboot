@@ -43,6 +43,7 @@ func init() {
 // @Param
 // @Return v1.ImageStream, error
 func (is *ImageStream) Create() (*v1.ImageStream, error) {
+	log.Debug("ImageStream.Create()")
 	imageStream := &v1.ImageStream{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: is.Name,
@@ -62,6 +63,7 @@ func (is *ImageStream) Create() (*v1.ImageStream, error) {
 // @Param
 // @Return v1.ImageStream, error
 func (is *ImageStream) Get() (*v1.ImageStream, error) {
+	log.Debug("ImageStream.Get()")
 	return imageV1Client.ImageStreams(is.Namespace).Get(is.Name, metav1.GetOptions{})
 }
 
@@ -71,5 +73,6 @@ func (is *ImageStream) Get() (*v1.ImageStream, error) {
 // @Param
 // @Return error
 func (is *ImageStream) Delete() error {
+	log.Debug("ImageStream.Delete()")
 	return imageV1Client.ImageStreams(is.Namespace).Delete(is.Name, &metav1.DeleteOptions{})
 }

@@ -16,15 +16,11 @@ import (
 // - Deploy
 
 type PipelineInterface interface {
-	EnsurePipeline() error
-	PullSourceCode() error
+	EnsureParam() error
 	Build() error
 	RunUnitTest() error
 	RunIntegrationTest() error
 	Analysis() error
-	CopyTarget() error
-	Upload() error
-	NewImage() error
 	Deploy() error
 }
 
@@ -55,7 +51,7 @@ type Pipeline struct {
 // @Description set default value
 // @Param pipeline
 // @Return error
-func (p *Pipeline) EnsurePipeline() error  {
+func (p *Pipeline) EnsureParam() error  {
 	if "" == p.ImageTag {
 		p.ImageTag = "latest"
 	}
@@ -69,12 +65,8 @@ func (p *Pipeline) EnsurePipeline() error  {
 	return nil
 }
 
-func (p *Pipeline) PullSourceCode() error {
-	log.Debug("Pipeline.PullSourceCode()")
-	return nil
-}
-
 func (p *Pipeline) Build() error {
+
 	return nil
 }
 

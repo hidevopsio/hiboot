@@ -11,7 +11,7 @@ import (
 
 func Run(p pipeline.PipelineInterface) error {
 
-	p.EnsurePipeline()
+	p.EnsureParam()
 
 	log.Debug(p)
 

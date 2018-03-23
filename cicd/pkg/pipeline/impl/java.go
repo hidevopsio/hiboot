@@ -9,6 +9,10 @@ type JavaPipeline struct{
 	pipeline.Pipeline
 }
 
+func (p *JavaPipeline) Build() error {
+	log.Debug("JavaPipeline.Build()")
+	return nil
+}
 func (p *JavaPipeline) Deploy() error {
 	log.Debug("JavaPipeline.Deploy()")
 	return nil
