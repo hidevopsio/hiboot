@@ -10,12 +10,8 @@ import (
 )
 
 func Run(p pipeline.PipelineInterface) error {
-
-	p.EnsureParam()
-
-	log.Debug(p)
-
-	err := p.PullSourceCode()
+	log.Debug("ci.Run()")
+	err := p.EnsureParam()
 	if err != nil {
 		return fmt.Errorf("failed: %s", err)
 	}

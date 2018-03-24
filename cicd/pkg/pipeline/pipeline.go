@@ -66,7 +66,7 @@ func (p *Pipeline) EnsureParam() error  {
 }
 
 func (p *Pipeline) Build() error {
-
+	log.Debug("Pipeline.Build()")
 	return nil
 }
 

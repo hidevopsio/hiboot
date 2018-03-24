@@ -1,4 +1,4 @@
-package pipelines
+package impl
 
 import "github.com/hidevopsio/hi/boot/pkg/log"
 

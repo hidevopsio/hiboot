@@ -15,7 +15,8 @@ func TestBuildCrud(t *testing.T) {
 	// put below configs in yaml file
 	namespace := "demo-dev"
 	appName := "hello-world"
-	gitUrl := "https://github.com/john-deng/hello-world.git"
+	gitUrl := "http://gitlab.vpclub:8022/moses-demos/hello-world.git"
+	gitRef := "master"
 	imageTag := "latest"
 	s2iImageStream := "s2i-java:1.0.5"
 	buildCmd := "mvn clean package -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true"
@@ -24,7 +25,7 @@ func TestBuildCrud(t *testing.T) {
 
 	log.Debugf("workDir: %v", os.Getenv("PWD"))
 
-	buildConfig, err := NewBuildConfig(namespace, appName, gitUrl, imageTag, s2iImageStream)
+	buildConfig, err := NewBuildConfig(namespace, appName, gitUrl, gitRef, imageTag, s2iImageStream)
 	assert.Equal(t, nil, err)
 
 	bc, err := buildConfig.Create()
