@@ -14,6 +14,7 @@ type BuildConfig struct {
 	AppName string
 	Namespace string
 	GitUrl string
+	GitRef string
 	ImageTag string
 
 	// use NewFrom when creating new buildConfig
@@ -29,7 +30,7 @@ type BuildConfig struct {
 // @Description Create new BuildConfig Instance
 // @Param namespace, appName, gitUrl, imageTag, s2iImageStream string
 // @Return *BuildConfig, error
-func NewBuildConfig(namespace, appName, gitUrl, imageTag, s2iImageStream string) (*BuildConfig, error) {
+func NewBuildConfig(namespace, appName, gitUrl, gitRef, imageTag, s2iImageStream string) (*BuildConfig, error) {
 
 	log.Debug("NewBuildConfig()")
 
@@ -54,6 +55,7 @@ func NewBuildConfig(namespace, appName, gitUrl, imageTag, s2iImageStream string)
 		AppName: appName,
 		Namespace: namespace,
 		GitUrl: gitUrl,
+		GitRef: gitRef,
 		ImageTag: imageTag,
 
 	}
@@ -104,6 +106,10 @@ func (b *BuildConfig) Create() (*v1.BuildConfig, error) {
 					Type: v1.BuildSourceType(v1.BuildSourceGit),
 					Git: &v1.GitBuildSource{
 						URI: b.GitUrl,
+						Ref: b.GitRef,
+					},
+					SourceSecret: &corev1.LocalObjectReference{
+						Name: "test-token",
 					},
 				},
 				Strategy: v1.BuildStrategy{

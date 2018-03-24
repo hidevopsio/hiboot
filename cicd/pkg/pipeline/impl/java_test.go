@@ -1,14 +1,19 @@
-package pipelines
+package impl
 
 import (
 	"testing"
 	"github.com/hidevopsio/hi/boot/pkg/log"
 	"github.com/hidevopsio/hi/cicd/pkg/pipeline"
-	"github.com/hidevopsio/hi/cicd/pkg/ci"
 )
 
 func init()  {
 	log.SetLevel("debug")
+}
+
+func run(p pipeline.PipelineInterface)  {
+	p.EnsureParam()
+	p.Build()
+	p.Deploy()
 }
 
 func TestJavaPipeline(t *testing.T)  {
@@ -22,5 +27,5 @@ func TestJavaPipeline(t *testing.T)  {
 		},
 	}
 
-	ci.Run(javaPipeline)
+	run(javaPipeline)
 }
