@@ -1,3 +1,18 @@
+// Copyright 2018 John Deng (hi.devops.io@gmail.com).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
 package openshift
 
 import (
@@ -10,11 +25,17 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
+type GitSource struct{
+	Url string
+	Ref string
+	Secret string
+}
+
+
 type BuildConfig struct {
 	AppName string
 	Namespace string
-	GitUrl string
-	GitRef string
+	Git GitSource
 	ImageTag string
 
 	// use NewFrom when creating new buildConfig
@@ -30,7 +51,7 @@ type BuildConfig struct {
 // @Description Create new BuildConfig Instance
 // @Param namespace, appName, gitUrl, imageTag, s2iImageStream string
 // @Return *BuildConfig, error
-func NewBuildConfig(namespace, appName, gitUrl, gitRef, imageTag, s2iImageStream string) (*BuildConfig, error) {
+func NewBuildConfig(namespace, appName, gitUrl, gitRef, gitSecret, imageTag, s2iImageStream string) (*BuildConfig, error) {
 
 	log.Debug("NewBuildConfig()")
 
@@ -54,8 +75,12 @@ func NewBuildConfig(namespace, appName, gitUrl, gitRef, imageTag, s2iImageStream
 
 		AppName: appName,
 		Namespace: namespace,
-		GitUrl: gitUrl,
-		GitRef: gitRef,
+		Git: GitSource{
+			Url: gitUrl,
+			Ref: gitRef,
+			Secret: gitSecret,
+		},
+
 		ImageTag: imageTag,
 
 	}
@@ -105,11 +130,11 @@ func (b *BuildConfig) Create() (*v1.BuildConfig, error) {
 				Source: v1.BuildSource{
 					Type: v1.BuildSourceType(v1.BuildSourceGit),
 					Git: &v1.GitBuildSource{
-						URI: b.GitUrl,
-						Ref: b.GitRef,
+						URI: b.Git.Url,
+						Ref: b.Git.Ref,
 					},
 					SourceSecret: &corev1.LocalObjectReference{
-						Name: "test-token",
+						Name: b.Git.Secret,
 					},
 				},
 				Strategy: v1.BuildStrategy{

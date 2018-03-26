@@ -13,37 +13,29 @@
 // limitations under the License.
 
 
-// dependencies: ci -> pipeline -> impl
-
-package ci
+package auth
 
 import (
-	"fmt"
+	"testing"
+	"github.com/hidevopsio/hi/cicd/pkg/scm/factories"
+	"github.com/stretchr/testify/assert"
+	"os"
 	"github.com/hidevopsio/hi/boot/pkg/log"
-	"github.com/hidevopsio/hi/cicd/pkg/pipeline"
 )
 
-func Run(p pipeline.PipelineInterface) error {
-	log.Debug("ci.Run()")
-	err := p.EnsureParam()
-	if err != nil {
-		return fmt.Errorf("failed: %s", err)
-	}
+func init() {
+	log.SetLevel(log.DebugLevel)
+}
 
-	err = p.Build()
-	if err != nil {
-		return fmt.Errorf("failed: %s", err)
-	}
+func TestUserGetSession(t *testing.T) {
+	baseUrl :=  os.Getenv("SCM_URL") + os.Getenv("SCM_API_VER")
+	username := os.Getenv("SCM_USERNAME")
+	password := os.Getenv("SCM_PASSWORD")
 
-	err = p.RunUnitTest()
-	if err != nil {
-		return fmt.Errorf("failed: %s", err)
-	}
+	scmFactory := new(factories.ScmFactory)
+	scm, err := scmFactory.New(factories.GitlabScmType)
+	assert.Equal(t, nil, err)
 
-	err = p.Deploy()
-	if err != nil {
-		return fmt.Errorf("failed: %s", err)
-	}
-
-	return nil
+	scm.GetSession(baseUrl, username, password)
+	log.Debug(scm)
 }

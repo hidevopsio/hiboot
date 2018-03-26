@@ -1,81 +1,67 @@
+// Copyright 2018 John Deng (hi.devops.io@gmail.com).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
 package k8s
 
 import (
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"github.com/hidevopsio/hi/boot/pkg/log"
 	"testing"
 	"github.com/stretchr/testify/assert"
 )
 
-type Secret struct{
-	Name string
-	Username string
-	Password string
-	Namespace string
-
-	secrets *corev1.Secret
-}
-
 func init()  {
-
+	log.SetLevel(log.DebugLevel)
 }
 
-// Create new instance of type Secret
-func NewSecret(name, username, password, namespace string) (*Secret) {
-	log.Debug("NewSecret")
-	s := &Secret{
-		Name: name,
-		Username: username,
-		Password: password,
-		Namespace: namespace,
-	}
 
-	return s
-}
+func TestSecretCreate(t *testing.T) {
+	log.Debug("TestSecretCrud()")
 
-// Create takes the representation of a secret and creates it.  Returns the server's representation of the secret, and an error, if there is any.
-func (s *Secret) Create() error  {
-	log.Debug("Secret.Create()")
-	var data map[string][]byte
-	if s.Username != "" {
-		data = map[string][]byte{
-			"username": []byte(s.Username),
-			"password": []byte(s.Password),
-		}
-	} else {
-		data = map[string][]byte{
-			"password": []byte(s.Password),
-		}
-	}
+	secretName := "test-secret"
+	username := "test"
+	password := "test-pwd"
+	namespace := "demo-dev"
 
-	coreSecret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: s.Name,
-			Labels: map[string]string{
-				"username": s.Username,
-			},
-		},
-		Data: data,
-	}
-	var err error
-	s.secrets, err = ClientSet.CoreV1().Secrets(s.Namespace).Create(coreSecret)
-	return err
-}
+	secret := NewSecret(secretName, username, password, namespace)
 
-func (s *Secret) Get() (*corev1.Secret, error)  {
-	log.Debug("Secret.Get()")
-	var err error
-	s.secrets, err = ClientSet.CoreV1().Secrets(s.Namespace).Get(s.Name, metav1.GetOptions{})
-
-	return s.secrets, err
-}
-
-// /Users/johnd/go/src/k8s.io/apimachinery/pkg/apis/meta/v1/types.go
-func TestSecretCrud(t *testing.T) {
-	secret := NewSecret("test-secret", "test", "tE5t1100", "openshift")
-
+	// Create secret
 	err := secret.Create()
 	assert.Equal(t, nil, err)
+}
+
+func TestSecretCrud(t *testing.T) {
+	log.Debug("TestSecretCrud()")
+
+	secretName := "the-test-secret"
+	username := "test"
+	password := "test-pwd"
+	namespace := "openshift"
+
+	secret := NewSecret(secretName, username, password, namespace)
+
+	// Create secret
+	err := secret.Create()
+	assert.Equal(t, nil, err)
+
+	// Get secret
+	s, err := secret.Get()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, s.Name, secretName)
+
+	// Delete secret
+	err = secret.Delete()
+	assert.Equal(t, nil, err)
+
 }
