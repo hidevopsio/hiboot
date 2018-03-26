@@ -12,38 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+package factories
 
-// dependencies: ci -> pipeline -> impl
-
-package ci
 
 import (
-	"fmt"
 	"github.com/hidevopsio/hi/boot/pkg/log"
-	"github.com/hidevopsio/hi/cicd/pkg/pipeline"
+	"github.com/hidevopsio/hi/cicd/pkg/scm"
+	"github.com/hidevopsio/hi/cicd/pkg/scm/gitlab"
+	"errors"
+	"fmt"
 )
 
-func Run(p pipeline.PipelineInterface) error {
-	log.Debug("ci.Run()")
-	err := p.EnsureParam()
-	if err != nil {
-		return fmt.Errorf("failed: %s", err)
-	}
+const (
+	GithubScmType = 1
+	GitlabScmType = 2
+)
 
-	err = p.Build()
-	if err != nil {
-		return fmt.Errorf("failed: %s", err)
-	}
+type ScmFactory struct{}
 
-	err = p.RunUnitTest()
-	if err != nil {
-		return fmt.Errorf("failed: %s", err)
-	}
 
-	err = p.Deploy()
-	if err != nil {
-		return fmt.Errorf("failed: %s", err)
+func (s *ScmFactory) New(provider int) (scm.SessionInterface, error)  {
+	log.Debug("scm.NewSession()")
+	switch provider {
+	case GithubScmType:
+		return nil, errors.New(fmt.Sprintf("SCM of type %d not implemented\n", provider))
+	case GitlabScmType:
+		return new(gitlab.Session), nil
+	default:
+		return nil, errors.New(fmt.Sprintf("SCM of type %d not recognized\n", provider))
 	}
-
-	return nil
+	return nil, nil
 }

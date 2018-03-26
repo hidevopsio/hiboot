@@ -12,38 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-// dependencies: ci -> pipeline -> impl
-
-package ci
+package gitlab
 
 import (
-	"fmt"
 	"github.com/hidevopsio/hi/boot/pkg/log"
-	"github.com/hidevopsio/hi/cicd/pkg/pipeline"
+	"github.com/hidevopsio/hi/cicd/pkg/scm"
+	"github.com/jinzhu/copier"
+	"github.com/xanzy/go-gitlab"
+	"net/http"
 )
 
-func Run(p pipeline.PipelineInterface) error {
-	log.Debug("ci.Run()")
-	err := p.EnsureParam()
-	if err != nil {
-		return fmt.Errorf("failed: %s", err)
-	}
+type Session struct {
+	scm.Session
+}
 
-	err = p.Build()
-	if err != nil {
-		return fmt.Errorf("failed: %s", err)
+func (s *Session) GetSession(baseUrl, username, password string) error {
+	so := &gitlab.GetSessionOptions{
+		Login:    &username,
+		Password: &password,
 	}
+	c := gitlab.NewClient(&http.Client{}, "")
+	c.SetBaseURL(baseUrl)
+	session, resp, err := c.Session.GetSession(so)
+	log.Debug(session, resp, err)
 
-	err = p.RunUnitTest()
-	if err != nil {
-		return fmt.Errorf("failed: %s", err)
-	}
-
-	err = p.Deploy()
-	if err != nil {
-		return fmt.Errorf("failed: %s", err)
-	}
+	copier.Copy(s, session)
 
 	return nil
 }
