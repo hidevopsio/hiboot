@@ -19,6 +19,8 @@ import (
 
 	"github.com/hidevopsio/hi/cicd/pkg/pipeline"
 	"github.com/hidevopsio/hi/cicd/pkg/ci"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/hidevopsio/hi/boot/pkg/log"
 )
 
 // Operations about object
@@ -42,6 +44,7 @@ func (c *CicdController) Before(ctx iris.Context) {
 // @Failure 403 body is empty
 // @router / [post]
 func (c *CicdController) Run(ctx iris.Context) {
+	log.Debug("cicd.Run()")
 	var pipeline pipeline.Pipeline
 	err := ctx.ReadJSON(&pipeline)
 	if err != nil {
@@ -49,6 +52,9 @@ func (c *CicdController) Run(ctx iris.Context) {
 		ctx.StatusCode(iris.StatusInternalServerError)
 		return
 	}
+
+	user := ctx.Values().Get("jwt").(*jwt.Token)
+	log.Debugf("cicd token: %s", user.Signature)
 
 	// invoke models
 	ci.Run(&pipeline)

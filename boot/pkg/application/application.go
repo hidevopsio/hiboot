@@ -21,6 +21,17 @@ import (
 	"github.com/hidevopsio/hi/boot/pkg/system"
 	"fmt"
 	"github.com/kataras/iris/context"
+	"github.com/hidevopsio/hi/boot/pkg/utils"
+	"crypto/rsa"
+	"io/ioutil"
+	"github.com/dgrijalva/jwt-go"
+	jwtmiddleware "github.com/iris-contrib/middleware/jwt"
+)
+
+
+const (
+	privateKeyPath = "/config/app.rsa"
+	pubKeyPath     = "/config/app.rsa.pub"
 )
 
 type Boot struct {
@@ -33,10 +44,44 @@ type Health struct {
 }
 
 var (
+	jwtHandler *jwtmiddleware.Middleware
+	verifyKey *rsa.PublicKey
+	signKey   *rsa.PrivateKey
 	boot Boot
 )
 
+func fatal(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func init() {
+	wd := utils.GetWorkingDir("/boot/pkg/application/application.go")
+
+	signBytes, err := ioutil.ReadFile(wd + privateKeyPath)
+	fatal(err)
+
+	signKey, err = jwt.ParseRSAPrivateKeyFromPEM(signBytes)
+	fatal(err)
+
+	verifyBytes, err := ioutil.ReadFile(wd + pubKeyPath)
+	fatal(err)
+
+	verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
+	fatal(err)
+
+	jwtHandler = jwtmiddleware.New(jwtmiddleware.Config{
+		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
+			log.Debug(token)
+			return verifyKey, nil
+		},
+		// When set, the middleware verifies that tokens are signed with the specific signing algorithm
+		// If the signing method is not constant the ValidationKeyGetter callback can be used to implement additional checks
+		// Important to avoid security issues described here: https://auth0.com/blog/2015/03/31/critical-vulnerabilities-in-json-web-token-libraries/
+		SigningMethod: jwt.SigningMethodRS256,
+	})
+
 	boot.config = system.Build()
 	log.SetLevel(boot.config.Logging.Level)
 	log.Debug("application init")
@@ -50,6 +95,21 @@ func init() {
 		}
 		ctx.JSON(health)
 	})
+}
+
+func GenerateToken(claim jwt.MapClaims) (string, error)  {
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claim)
+
+	// Sign and get the complete encoded token as a string using the secret
+	return token.SignedString(signKey)
+}
+
+func GetSignKey() *rsa.PrivateKey  {
+	return signKey
+}
+
+func ApplyJwt()  {
+	boot.app.Use(jwtHandler.Serve)
 }
 
 func Instance() *iris.Application {

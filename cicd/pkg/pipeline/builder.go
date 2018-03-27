@@ -19,9 +19,7 @@ package pipeline
 import (
 	"fmt"
 	"github.com/spf13/viper"
-	"runtime"
-	"github.com/hidevopsio/hi/boot/pkg/log"
-	"strings"
+	"github.com/hidevopsio/hi/boot/pkg/utils"
 )
 
 type Configuration struct {
@@ -34,12 +32,9 @@ var conf Configuration
 // TODO: we may eliminate this func, merge to system.builder instead
 func Build(name string) *Configuration {
 
-	// add workDir for passing test
-	_, filename, _, _ := runtime.Caller(0)
-	workDir := strings.Replace(filename, "/pkg/pipeline/builder.go", "", -1)
-	log.Debug(workDir)
+	wd := utils.GetWorkingDir("/pkg/pipeline/builder.go")
 
-	viper.AddConfigPath(workDir + "/config")
+	viper.AddConfigPath(wd + "/config")
 	viper.SetConfigName("pipeline")
 	viper.SetConfigType("yaml")
 	err := viper.ReadInConfig()

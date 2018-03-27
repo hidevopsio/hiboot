@@ -16,10 +16,9 @@
 package auth
 
 import (
-	"testing"
-	"github.com/hidevopsio/hi/cicd/pkg/scm/factories"
-	"github.com/stretchr/testify/assert"
 	"os"
+	"testing"
+	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hi/boot/pkg/log"
 )
 
@@ -27,15 +26,46 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 }
 
-func TestUserGetSession(t *testing.T) {
-	baseUrl :=  os.Getenv("SCM_URL") + os.Getenv("SCM_API_VER")
+func TestUserLogin(t *testing.T) {
+	baseUrl :=  os.Getenv("SCM_URL")
 	username := os.Getenv("SCM_USERNAME")
 	password := os.Getenv("SCM_PASSWORD")
 
-	scmFactory := new(factories.ScmFactory)
-	scm, err := scmFactory.New(factories.GitlabScmType)
+	u := new(User)
+	token, message, err := u.Login(baseUrl, username,  password)
 	assert.Equal(t, nil, err)
 
-	scm.GetSession(baseUrl, username, password)
-	log.Debug(scm)
+	log.Debug(token)
+	log.Debug(message)
+}
+
+func TestUserLoginFailed(t *testing.T) {
+	baseUrl :=  os.Getenv("SCM_URL")
+
+	u := new(User)
+	token, message, err := u.Login(baseUrl, "xxx",  "xxx")
+	assert.Contains(t, err.Error(), "Unauthorized")
+	log.Debug(token)
+	log.Debug(message)
+}
+
+func TestUserGetSession(t *testing.T) {
+	baseUrl :=  os.Getenv("SCM_URL")
+	username := os.Getenv("SCM_USERNAME")
+	password := os.Getenv("SCM_PASSWORD")
+
+	u := new(User)
+	err := u.GetSession(baseUrl, username,  password)
+	assert.Equal(t, nil, err)
+
+	log.Debug(u.session)
+}
+
+func TestUserGetSessionUnauthorized(t *testing.T) {
+	baseUrl :=  os.Getenv("SCM_URL")
+	u := new(User)
+	err := u.GetSession(baseUrl, "xxx",  "xxx")
+	assert.Contains(t, err.Error(), "Unauthorized")
+
+	log.Debug(err.Error())
 }
