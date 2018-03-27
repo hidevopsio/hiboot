@@ -26,17 +26,26 @@ type Session struct {
 	scm.Session
 }
 
+const (
+	ApiVersion = "/api/v3"
+)
+
 func (s *Session) GetSession(baseUrl, username, password string) error {
 	so := &gitlab.GetSessionOptions{
 		Login:    &username,
 		Password: &password,
 	}
 	c := gitlab.NewClient(&http.Client{}, "")
-	c.SetBaseURL(baseUrl)
+	c.SetBaseURL(baseUrl + ApiVersion)
 	session, resp, err := c.Session.GetSession(so)
 	log.Debug(session, resp, err)
 
 	copier.Copy(s, session)
 
-	return nil
+	return err
+}
+
+
+func (s *Session) GetToken() string {
+	return s.PrivateToken
 }

@@ -14,6 +14,9 @@
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
 
+app.rsa.pub
+app.rsa
+
 .idea/
 vendor/
 

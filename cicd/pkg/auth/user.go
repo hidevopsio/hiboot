@@ -15,15 +15,50 @@
 
 package auth
 
+import (
+	"github.com/hidevopsio/hi/cicd/pkg/scm/factories"
+	"github.com/hidevopsio/hi/cicd/pkg/scm"
+	"github.com/hidevopsio/hi/boot/pkg/log"
+	"crypto/rsa"
+)
+
+type UserInterface interface{
+	Login(baseUrl, username, password string) (string, error)
+}
+
 type User struct {
-	Username  string `json:"username"`
-	Password  string `json:"password"`
+	session scm.SessionInterface
+	verifyKey *rsa.PublicKey
+	signKey   *rsa.PrivateKey
 }
 
-func (u *User) Login() (*User, error) {
-	return nil, nil
+func fatal(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
-func (u *User) GetSession() (*User, error) {
-	return nil, nil
+func (u *User) Login(baseUrl, username, password string) (string, string, error) {
+
+	retVal := "Login successful."
+	// login scm
+	err := u.GetSession(baseUrl, username, password)
+	if err != nil {
+		retVal = "Login " + err.Error()
+	}
+
+	return u.session.GetToken(), retVal, err
+}
+
+func (u *User) GetSession(baseUrl, username, password string) error {
+
+	scmFactory := new(factories.ScmFactory)
+	var err error
+	u.session, err = scmFactory.New(factories.GitlabScmType)
+
+	if err == nil {
+		err = u.session.GetSession(baseUrl, username, password)
+	}
+
+	return err
 }

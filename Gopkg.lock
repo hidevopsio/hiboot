@@ -26,6 +26,12 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/dgrijalva/jwt-go"
+  packages = ["."]
+  revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
+  version = "v3.2.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/eknkc/amber"
   packages = [".","parser"]
@@ -81,6 +87,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/google/go-querystring"
+  packages = ["query"]
+  revision = "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
+
+[[projects]]
+  branch = "master"
   name = "github.com/google/gofuzz"
   packages = ["."]
   revision = "24818f796faf91cd76ec7bddd72458fbced7a6c1"
@@ -126,6 +138,18 @@
   name = "github.com/iris-contrib/formBinder"
   packages = ["."]
   revision = "ad9fb86c356f971f30319c40ddbdcf72129a2791"
+
+[[projects]]
+  name = "github.com/iris-contrib/middleware"
+  packages = ["jwt"]
+  revision = "1060fbb0ce08a72c50c612e8e5bdc8076c28343d"
+  version = "v10"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/jinzhu/copier"
+  packages = ["."]
+  revision = "7e38e58719c33e0d44d585c4ab477a30f8cb82dd"
 
 [[projects]]
   branch = "master"
@@ -238,13 +262,13 @@
 [[projects]]
   branch = "master"
   name = "github.com/openshift/api"
-  packages = ["build/v1"]
+  packages = ["build/v1","image/docker10","image/dockerpre012","image/v1","project/v1"]
   revision = "dca24d1902afee9d2be02425a2d7c9f910063631"
 
 [[projects]]
   branch = "master"
   name = "github.com/openshift/client-go"
-  packages = ["build/clientset/versioned/scheme","build/clientset/versioned/typed/build/v1"]
+  packages = ["build/clientset/versioned/scheme","build/clientset/versioned/typed/build/v1","image/clientset/versioned/scheme","image/clientset/versioned/typed/image/v1","project/clientset/versioned/scheme","project/clientset/versioned/typed/project/v1"]
   revision = "5039916f9ac015e14899959fb6fc62945578657e"
 
 [[projects]]
@@ -326,6 +350,12 @@
   version = "v1.2.1"
 
 [[projects]]
+  name = "github.com/xanzy/go-gitlab"
+  packages = ["."]
+  revision = "d760a66e91a4212eef40a57567787a5163a8f74c"
+  version = "v0.8.1"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["acme","acme/autocert","ssh/terminal"]
@@ -362,10 +392,10 @@
   revision = "cfdcce51965fe68951a5fa45454aa6278c3f9614"
 
 [[projects]]
+  branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "7f97868eec74b32b0982dd158a51a446d1da7eb5"
-  version = "v2.1.1"
+  revision = "4fc5987536ef307a24ca299aee7ae301cde3d221"
 
 [[projects]]
   branch = "master"
@@ -388,6 +418,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b078b56024d5b0cfc666e4c75bfcbf8f053bb300934b09f9bad2f149db376b84"
+  inputs-digest = "6cf51290cb43cd181dbd029d81e0c4fd8051a5eee32fd4b5027982e1ec141be3"
   solver-name = "gps-cdcl"
   solver-version = 1

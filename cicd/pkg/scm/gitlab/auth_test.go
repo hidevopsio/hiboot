@@ -26,7 +26,7 @@ func init()  {
 }
 
 func TestUserGet(t *testing.T)  {
-	baseUrl :=  os.Getenv("SCM_URL") + os.Getenv("SCM_API_VER")
+	baseUrl :=  os.Getenv("SCM_URL")
 	username := os.Getenv("SCM_USERNAME")
 	password := os.Getenv("SCM_PASSWORD")
 

@@ -20,6 +20,7 @@ import (
 
 type SessionInterface interface {
 	GetSession(baseUrl, username, password string) error
+	GetToken() string
 }
 
 type Session struct {
