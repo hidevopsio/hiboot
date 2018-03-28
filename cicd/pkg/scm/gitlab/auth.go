@@ -31,6 +31,8 @@ const (
 )
 
 func (s *Session) GetSession(baseUrl, username, password string) error {
+	log.Debug("Session.GetSession()")
+	log.Debugf("url: %v, username: %v", baseUrl, username)
 	so := &gitlab.GetSessionOptions{
 		Login:    &username,
 		Password: &password,

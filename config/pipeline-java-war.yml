@@ -4,8 +4,8 @@ pipeline:
   identifiers:
   - pom.xml
   targets:
-  - target/${app.name}.war
-  - target/${app.name}-${app.version}.war
+  - target/${app}.war
+  - target/${app}-${version}.war
   fromdir: target/deployments
   deploymentfile: ROOT.war
   imagestream: s2i-java-war:latest

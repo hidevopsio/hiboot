@@ -19,15 +19,19 @@ import (
 	"github.com/hidevopsio/hi/cicd/pkg/web/controllers"
 )
 
-func init() {
+func NewBoot() *application.Boot {
 	// iris app
-	app := application.Instance()
+	boot := new(application.Boot)
+
 
 	user := controllers.UserController{}
 
+	boot.Init()
+
+	app := boot.App()
 	app.Post("/user/login", user.Login)
 
-	application.ApplyJwt()
+	boot.ApplyJwt()
 
 	// cicd
 	cicd := controllers.CicdController{}
@@ -36,10 +40,13 @@ func init() {
 		// Method POST: http://localhost:8080/deployment/deploy
 		cicdRouters.Post("/run", cicd.Run)
 	}
+
+	return boot
 }
 
 func Run()  {
-	application.Run()
+	boot := NewBoot()
+	boot.Run()
 }
 
 

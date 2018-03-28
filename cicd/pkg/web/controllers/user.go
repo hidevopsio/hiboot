@@ -17,9 +17,7 @@ package controllers
 import (
 	"github.com/kataras/iris"
 	"github.com/hidevopsio/hi/cicd/pkg/auth"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/hidevopsio/hi/boot/pkg/application"
-	"time"
 )
 
 type UserRequest struct {
@@ -29,8 +27,8 @@ type UserRequest struct {
 }
 
 type UserResponse struct {
-	Message string `json:"message"`
-	Token   string `json:"token"`
+	Message string                `json:"message"`
+	Token   *application.JwtToken `json:"token"`
 }
 
 // Operations about object
@@ -49,7 +47,7 @@ func (c *UserController) Login(ctx iris.Context) {
 
 	err := ctx.ReadJSON(&request)
 	if err != nil {
-		ctx.Values().Set("error", "login failed, read and parse request body failed. "+err.Error())
+		ctx.Values().Set("error", "login failed, read and parse request body failed. " + err.Error())
 		ctx.StatusCode(iris.StatusInternalServerError)
 		return
 	}
@@ -59,24 +57,23 @@ func (c *UserController) Login(ctx iris.Context) {
 	token, message, err := u.Login(request.Url, request.Username, request.Password)
 	if err == nil {
 
-		jwtToken, err := application.GenerateToken(jwt.MapClaims{
-			"u":   request.Username, //
-			"p":   token,            //
-			"exp": time.Now().Add(time.Hour * time.Duration(24)).Unix(),
-			"iat": time.Now().Unix(),
-		})
-
+		jwtToken, err := application.GenerateJwtToken(application.MapJwt{
+			"username": request.Username,
+			"password": token,
+		}, 24)
 		if err == nil {
 			response = &UserResponse{
 				Message: message,
-				Token:   jwtToken,
+				Token:   &jwtToken,
 			}
+		} else {
+			ctx.Values().Set("error", "login failed, generating token failed. " + err.Error())
+			ctx.StatusCode(iris.StatusInternalServerError)
 		}
 	} else {
-		response = &UserResponse{
-			Message: message,
-			Token:   "(nil)",
-		}
+		ctx.Values().Set("error", "login failed, wrong username or password " + err.Error())
+		ctx.StatusCode(iris.StatusForbidden)
+		return
 	}
 
 	// just for debug now

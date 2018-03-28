@@ -17,15 +17,30 @@ package controllers
 import (
 	"github.com/kataras/iris"
 
-	"github.com/hidevopsio/hi/cicd/pkg/pipeline"
-	"github.com/hidevopsio/hi/cicd/pkg/ci"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/hidevopsio/hi/boot/pkg/log"
+	"github.com/hidevopsio/hi/cicd/pkg/ci/factories"
+	"github.com/hidevopsio/hi/cicd/pkg/ci"
+	"fmt"
 )
 
-// Operations about object
-type CicdController struct {
+type CicdRequest struct{
+	Project  string `json:"project"`	// Project = Namespace
+	App      string `json:"app"`
+	Profile  string `json:"profile"`
+	Pipeline string `json:"pipeline"`
+}
 
+
+type CicdResponse struct{
+	Message string `json:"message"`
+}
+
+// Operations about object
+type CicdController struct {}
+
+func init()  {
+	log.SetLevel(log.DebugLevel)
 }
 
 func (c *CicdController) Before(ctx iris.Context) {
@@ -44,21 +59,48 @@ func (c *CicdController) Before(ctx iris.Context) {
 // @Failure 403 body is empty
 // @router / [post]
 func (c *CicdController) Run(ctx iris.Context) {
-	log.Debug("cicd.Run()")
-	var pipeline pipeline.Pipeline
-	err := ctx.ReadJSON(&pipeline)
+	log.Debug("CicdController.Run()")
+	var p ci.Pipeline
+	err := ctx.ReadJSON(&p)
 	if err != nil {
 		ctx.Values().Set("error", "deployment failed, read and parse request body failed. " + err.Error())
 		ctx.StatusCode(iris.StatusInternalServerError)
 		return
 	}
 
-	user := ctx.Values().Get("jwt").(*jwt.Token)
-	log.Debugf("cicd token: %s", user.Signature)
+	// decrypt jwt token
+	token := ctx.Values().Get("jwt").(*jwt.Token)
+	var username, password string
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		username = fmt.Sprintf("%v", claims["username"])
+		password = fmt.Sprintf("%v", claims["password"])
+
+		log.Println("username: ", username)
+		log.Println("password: ", password)
+	} else {
+		log.Debug(err)
+	}
+
+	// verify scm token
+	// TODO:
 
 	// invoke models
-	ci.Run(&pipeline)
+	pipelineFactory := new(factories.PipelineFactory)
+	pi, err := pipelineFactory.New(p.Name)
+
+	// Run Pipeline, password is a token, no need to pass username to pipeline
+	pi.Init(&p)
+	err = pi.Run(username, password, true)
+
+	// Check error
+	message := "Run Pipeline Successful."
+	if err != nil {
+		message = err.Error()
+	}
+	response := &CicdResponse{
+		Message: message,
+	}
 
 	// just for debug now
-	ctx.JSON(pipeline)
+	ctx.JSON(response)
 }

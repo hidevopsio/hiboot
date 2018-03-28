@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package k8s
-
 
 import (
 	corev1 "k8s.io/api/core/v1"
@@ -22,32 +20,44 @@ import (
 
 	"github.com/hidevopsio/hi/boot/pkg/log"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"strings"
 )
 
-type Secret struct{
-	Name string
-	Username string
-	Password string
+type Secret struct {
+	Name      string
+	Username  string
+	Password  string
 	Namespace string
 
 	secrets *corev1.Secret
 }
 
 // Create new instance of type Secret
-func NewSecret(name, username, password, namespace string) (*Secret) {
-	log.Debug("NewSecret")
-	s := &Secret{
-		Name: name,
-		Username: username,
-		Password: password,
-		Namespace: namespace,
+func NewSecret(name, username, password, namespace string, isToken bool) (*Secret) {
+	log.Debugf("NewSecret(%v, %v, %v)", username, strings.Repeat("*", len(password)), namespace)
+
+	var s *Secret
+	if isToken {
+		s = &Secret{
+			Name:      name,
+			Password:  password,
+			Namespace: namespace,
+		}
+	} else {
+
+		s = &Secret{
+			Name:      name,
+			Username:  username,
+			Password:  password,
+			Namespace: namespace,
+		}
 	}
 
 	return s
 }
 
 // Create takes the representation of a secret and creates it.  Returns the server's representation of the secret, and an error, if there is any.
-func (s *Secret) Create() error  {
+func (s *Secret) Create() error {
 	log.Debug("Secret.Create()")
 	var data map[string][]byte
 	if s.Username != "" {
@@ -82,7 +92,7 @@ func (s *Secret) Create() error  {
 }
 
 // Get takes name of the secret, and returns the corresponding secret object, and an error if there is any.
-func (s *Secret) Get() (*corev1.Secret, error)  {
+func (s *Secret) Get() (*corev1.Secret, error) {
 	log.Debug("Secret.Get()")
 	var err error
 	s.secrets, err = ClientSet.CoreV1().Secrets(s.Namespace).Get(s.Name, metav1.GetOptions{})
@@ -91,12 +101,10 @@ func (s *Secret) Get() (*corev1.Secret, error)  {
 }
 
 // Delete takes name of the secret and deletes it. Returns an error if one occurs.
-func (s *Secret) Delete() error  {
+func (s *Secret) Delete() error {
 	log.Debug("Secret.Delete()")
 	var err error
 	err = ClientSet.CoreV1().Secrets(s.Namespace).Delete(s.Name, &metav1.DeleteOptions{})
 
 	return err
 }
-
-

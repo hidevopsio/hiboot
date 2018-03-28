@@ -5,10 +5,10 @@ pipeline:
   - pom.xml
   configfiles:
   - src/main/resources/application.yml
-  - src/main/resources/application-${app.profile}.yml
+  - src/main/resources/application-${profile}.yml
   targets:
-  - target/${app.name}.jar
-  - target/${app.name}-${app.version}.jar
+  - target/${app}.jar
+  - target/${app}-${version}.jar
   fromdir: target/deployments
   deploymentfile: app.jar
   imagestream: s2i-java:latest

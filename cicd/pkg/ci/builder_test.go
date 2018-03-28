@@ -12,31 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package impl
+package ci
+
 
 import (
 	"testing"
 	"github.com/hidevopsio/hi/boot/pkg/log"
-	"github.com/hidevopsio/hi/cicd/pkg/pipeline"
-	"github.com/hidevopsio/hi/cicd/pkg/ci"
+	"github.com/stretchr/testify/assert"
+	"github.com/hidevopsio/hi/boot/pkg/system"
 )
 
 func init()  {
 	log.SetLevel(log.DebugLevel)
 }
 
-func TestJavaWarPipeline(t *testing.T)  {
+func TestPipelineBuilder(t *testing.T)  {
 
-	log.Debug("Test Java War Pipeline")
+	log.Debug("Test Pipeline Builder")
 
-	javaWarPipeline := &JavaWarPipeline{
-		JavaPipeline{
-			pipeline.Pipeline{
-				App: "test",
-				Project: "demo",
-			},
-		},
-	}
+	sysCfg := system.Build()
+	log.Debug(sysCfg)
+	assert.Equal(t, "hi", sysCfg.App.Name)
 
-	ci.Run(javaWarPipeline)
+	cfg := Build("java")
+	log.Debug(cfg)
+	assert.Equal(t, "java", cfg.Pipeline.Name)
 }

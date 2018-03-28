@@ -22,17 +22,21 @@ import (
 
 	"fmt"
 	"github.com/hidevopsio/hi/boot/pkg/log"
-	"github.com/hidevopsio/hi/cicd/pkg/pipeline"
 )
 
-func CreateService(pipeline *pipeline.Pipeline) error {
+type Service struct{
+	App string
+	Project string
+}
+
+func (s *Service) Create() error {
 	// create service
 
 	serviceSpec := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: pipeline.App,
+			Name: s.App,
 			Labels: map[string]string{
-				"app": pipeline.App,
+				"app": s.App,
 			},
 		},
 		Spec: corev1.ServiceSpec{
@@ -44,13 +48,13 @@ func CreateService(pipeline *pipeline.Pipeline) error {
 				},
 			},
 			Selector: map[string]string{
-				"app": pipeline.App,
+				"app": s.App,
 			},
 		},
 	}
 
-	services := ClientSet.CoreV1().Services(pipeline.Project)
-	svc, err := services.Get(pipeline.App, metav1.GetOptions{})
+	services := ClientSet.CoreV1().Services(s.Project)
+	svc, err := services.Get(s.App, metav1.GetOptions{})
 	switch {
 	case err == nil:
 		serviceSpec.ObjectMeta.ResourceVersion = svc.ObjectMeta.ResourceVersion
