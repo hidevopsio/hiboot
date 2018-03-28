@@ -26,6 +26,7 @@ import (
 	"io/ioutil"
 	"github.com/dgrijalva/jwt-go"
 	jwtmiddleware "github.com/iris-contrib/middleware/jwt"
+	"time"
 )
 
 
@@ -35,9 +36,13 @@ const (
 )
 
 type Boot struct {
-	app *iris.Application
+	app    *iris.Application
 	config *system.Configuration
 }
+
+type MapJwt map[string]interface{}
+
+type JwtToken string
 
 type Health struct {
 	Status string `json:"status"`
@@ -47,7 +52,7 @@ var (
 	jwtHandler *jwtmiddleware.Middleware
 	verifyKey *rsa.PublicKey
 	signKey   *rsa.PrivateKey
-	boot Boot
+	sysCfg *system.Configuration
 )
 
 func fatal(err error) {
@@ -57,6 +62,9 @@ func fatal(err error) {
 }
 
 func init() {
+	sysCfg = system.Build()
+	log.SetLevel(sysCfg.Logging.Level)
+
 	wd := utils.GetWorkingDir("/boot/pkg/application/application.go")
 
 	signBytes, err := ioutil.ReadFile(wd + privateKeyPath)
@@ -70,7 +78,31 @@ func init() {
 
 	verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
 	fatal(err)
+}
 
+func GenerateJwtToken(payload MapJwt, expired int64) (JwtToken, error)  {
+
+	claim := jwt.MapClaims{
+		"exp": time.Now().Add(time.Hour * time.Duration(expired)).Unix(),
+		"iat": time.Now().Unix(),
+	}
+
+	for k, v := range payload {
+		claim[k] = v
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claim)
+
+	// Sign and get the complete encoded token as a string using the secret
+	tokenString, err := token.SignedString(signKey)
+
+	jwtToken := JwtToken(tokenString)
+
+	return jwtToken, err
+}
+
+
+func (b *Boot) Init() {
 	jwtHandler = jwtmiddleware.New(jwtmiddleware.Config{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 			log.Debug(token)
@@ -82,14 +114,13 @@ func init() {
 		SigningMethod: jwt.SigningMethodRS256,
 	})
 
-	boot.config = system.Build()
-	log.SetLevel(boot.config.Logging.Level)
+	b.config = sysCfg
+	log.Debug(sysCfg)
 	log.Debug("application init")
-	log.Debug(boot.config)
 
-	boot.app = iris.New()
+	b.app = iris.New()
 
-	boot.app.Get("/health", func(ctx context.Context) {
+	b.app.Get("/health", func(ctx context.Context) {
 		health := Health{
 			Status: "UP",
 		}
@@ -97,30 +128,24 @@ func init() {
 	})
 }
 
-func GenerateToken(claim jwt.MapClaims) (string, error)  {
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claim)
 
-	// Sign and get the complete encoded token as a string using the secret
-	return token.SignedString(signKey)
+func (b *Boot) App() *iris.Application {
+	return b.app
 }
 
-func GetSignKey() *rsa.PrivateKey  {
+func (b *Boot) Config() *system.Configuration  {
+	return b.config
+}
+
+func (b *Boot) GetSignKey() *rsa.PrivateKey  {
 	return signKey
 }
 
-func ApplyJwt()  {
-	boot.app.Use(jwtHandler.Serve)
+func (b *Boot) ApplyJwt()  {
+	b.app.Use(jwtHandler.Serve)
 }
 
-func Instance() *iris.Application {
-	return boot.app
-}
-
-func Config() *system.Configuration {
-	return boot.config
-}
-
-func Run() {
-	serverPort := fmt.Sprintf(":%v", boot.config.Server.Port)
-	boot.app.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithCharset("UTF-8"), iris.WithoutVersionChecker)
+func (b *Boot) Run() {
+	serverPort := fmt.Sprintf(":%v", b.config.Server.Port)
+	b.app.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithCharset("UTF-8"), iris.WithoutVersionChecker)
 }

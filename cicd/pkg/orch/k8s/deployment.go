@@ -24,8 +24,17 @@ import (
 	"fmt"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"github.com/hidevopsio/hi/boot/pkg/log"
-	"github.com/hidevopsio/hi/cicd/pkg/pipeline"
 )
+
+type Deployment struct {
+	App string
+	Project string
+	Profile string
+	ImageTag string
+	DockerRegistry string
+}
+
+
 
 func int32Ptr(i int32) *int32 { return &i }
 
@@ -34,13 +43,13 @@ func int32Ptr(i int32) *int32 { return &i }
 // @Description deploy application
 // @Param pipeline
 // @Return error
-func Deploy(pipeline *pipeline.Pipeline) (string, error) {
+func (d *Deployment) Deploy() (string, error) {
 
-	log.Debug(pipeline)
+	log.Debug("Deployment.Deploy()")
 
 	deploySpec := &v1beta1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: pipeline.App,
+			Name: d.App,
 		},
 		Spec: v1beta1.DeploymentSpec{
 			Replicas: int32Ptr(1),
@@ -60,16 +69,16 @@ func Deploy(pipeline *pipeline.Pipeline) (string, error) {
 			RevisionHistoryLimit: int32Ptr(10),
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: pipeline.App,
+					Name: d.App,
 					Labels: map[string]string{
-						"app": pipeline.App,
+						"app": d.App,
 					},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:  pipeline.App,
-							Image: pipeline.DockerRegistry + "/" + pipeline.Project + "/" + pipeline.App + ":" + pipeline.ImageTag,
+							Name:  d.App,
+							Image: d.DockerRegistry + "/" + d.Project + "/" + d.App + ":" + d.ImageTag,
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "http",
@@ -80,7 +89,7 @@ func Deploy(pipeline *pipeline.Pipeline) (string, error) {
 							Env: []corev1.EnvVar{
 								{
 									Name:  "APP_PROFILES_ACTIVE",
-									Value: pipeline.Profile,
+									Value: d.Profile,
 								},
 							},
 							ImagePullPolicy: corev1.PullIfNotPresent,
@@ -94,7 +103,7 @@ func Deploy(pipeline *pipeline.Pipeline) (string, error) {
 
 	// Create Deployment
 	//Client.ClientSet.ExtensionsV1beta1().Deployments()
-	deployments := ClientSet.AppsV1beta1().Deployments(pipeline.Project)
+	deployments := ClientSet.AppsV1beta1().Deployments(d.Project)
 	log.Info("Update or Create Deployment...")
 	result, err := deployments.Update(deploySpec)
 	var retVal string

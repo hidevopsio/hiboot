@@ -17,17 +17,15 @@ package impl
 import (
 	"testing"
 	"github.com/hidevopsio/hi/boot/pkg/log"
-	"github.com/hidevopsio/hi/cicd/pkg/pipeline"
+	"github.com/hidevopsio/hi/cicd/pkg/ci"
+	"os"
+	"github.com/stretchr/testify/assert"
+	"reflect"
+	"fmt"
 )
 
 func init()  {
 	log.SetLevel(log.DebugLevel)
-}
-
-func run(p pipeline.PipelineInterface)  {
-	p.EnsureParam()
-	p.Build()
-	p.Deploy()
 }
 
 func TestJavaPipeline(t *testing.T)  {
@@ -35,11 +33,35 @@ func TestJavaPipeline(t *testing.T)  {
 	log.Debug("Test Java Pipeline")
 
 	javaPipeline := &JavaPipeline{
-		pipeline.Pipeline{
+		ci.Pipeline{
 			App: "test",
 			Project: "demo",
 		},
 	}
 
-	run(javaPipeline)
+	username := os.Getenv("SCM_USERNAME")
+	password := os.Getenv("SCM_PASSWORD")
+	javaPipeline.Init(&ci.Pipeline{Name: "java", GitUrl: os.Getenv("SCM_URL")})
+	err := javaPipeline.Run(username, password, false)
+	assert.Equal(t, nil, err)
+}
+
+
+type Book struct {
+	Id    int
+	Title string
+	Price float32
+	Authors []string
+}
+
+func TestIterateStruct(t *testing.T) {
+	book := Book{Id: 12, Title: "test"}
+	e := reflect.ValueOf(&book).Elem()
+
+	for i := 0; i < e.NumField(); i++ {
+		varName := e.Type().Field(i).Name
+		varType := e.Type().Field(i).Type
+		varValue := e.Field(i).Interface()
+		fmt.Printf("%v %v %v\n", varName,varType,varValue)
+	}
 }

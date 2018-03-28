@@ -14,7 +14,7 @@
 
 // TODO: app config should be generic kit
 
-package pipeline
+package ci
 
 import (
 	"fmt"
@@ -31,8 +31,8 @@ var conf Configuration
 
 // TODO: we may eliminate this func, merge to system.builder instead
 func Build(name string) *Configuration {
-
-	wd := utils.GetWorkingDir("/pkg/pipeline/builder.go")
+	// TODO: should be refactored
+	wd := utils.GetWorkingDir("/pkg/ci/builder.go")
 
 	viper.AddConfigPath(wd + "/config")
 	viper.SetConfigName("pipeline")

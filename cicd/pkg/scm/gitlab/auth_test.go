@@ -29,7 +29,7 @@ func TestUserGet(t *testing.T)  {
 	baseUrl :=  os.Getenv("SCM_URL")
 	username := os.Getenv("SCM_USERNAME")
 	password := os.Getenv("SCM_PASSWORD")
-
+	log.Debugf("url: %v, username: %v", baseUrl, username)
 	gs := new(Session)
 	err := gs.GetSession(baseUrl, username, password)
 	assert.Equal(t, nil, err)
