@@ -20,6 +20,7 @@ import (
 	"github.com/hidevopsio/hi/cicd/pkg/orch/k8s"
 	"reflect"
 	"github.com/hidevopsio/hi/cicd/pkg/orch/openshift"
+	"os"
 )
 
 // config file
@@ -122,10 +123,12 @@ func (p *Pipeline) Init(pl *Pipeline) {
 	// load config file
 	if pl != nil {
 		c := Build(pl.Name)
-		log.Debug(c.Pipeline)
-		log.Debug(p)
 
-		log.Debug("Pipeline Input Param ...")
+		// read env
+		mavenMirrorUrl := os.Getenv("MAVEN_MIRROR_URL")
+		if mavenMirrorUrl != "" && pl.RepositoryUrl == "" {
+			pl.RepositoryUrl = mavenMirrorUrl
+		}
 
 		merge(&c.Pipeline, pl)
 		merge(p, &c.Pipeline)
@@ -136,6 +139,8 @@ func (p *Pipeline) Init(pl *Pipeline) {
 	if "" == p.Namespace {
 		p.Namespace = p.Project + "-" + p.Profile
 	}
+
+	// TODO: replace variable inside pipeline, e.g. ${profile}
 
 }
 

@@ -1,8 +1,9 @@
+# to be overwritten at runtime
+
 pipeline:
   profile: dev
-  project:
-  app:
-  version:
-  type:
-  timezone: Asia/Shanghai
-  giturl: https://github.com/john-deng
+  imagetag: latest
+  scmref: master
+  scmurl: http://github.com
+  repositoryurl: http://maven.aliyun.com/nexus/content/groups/public
+  dockerregistry: docker-registry.default.svc:5000
