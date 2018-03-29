@@ -29,6 +29,7 @@ func NewBoot() *application.Boot {
 	boot.Init()
 
 	app := boot.App()
+	// Method POST: http://localhost:8080/user/login
 	app.Post("/user/login", user.Login)
 
 	boot.ApplyJwt()
@@ -37,7 +38,7 @@ func NewBoot() *application.Boot {
 	cicd := controllers.CicdController{}
 	cicdRouters := app.Party("/cicd", cicd.Before)
 	{
-		// Method POST: http://localhost:8080/deployment/deploy
+		// Method POST: http://localhost:8080/cicd/run
 		cicdRouters.Post("/run", cicd.Run)
 	}
 

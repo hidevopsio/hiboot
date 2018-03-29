@@ -19,6 +19,7 @@ import (
 	"github.com/hidevopsio/hi/cicd/pkg/auth"
 	"github.com/hidevopsio/hi/boot/pkg/application"
 	"time"
+	"github.com/hidevopsio/hi/boot/pkg/log"
 )
 
 type UserRequest struct {
@@ -54,13 +55,16 @@ func (c *UserController) Login(ctx iris.Context) {
 	}
 
 	// invoke models
-	u := &auth.User{}
-	token, message, err := u.Login(request.Url, request.Username, request.Password)
+	user := &auth.User{}
+	token, message, err := user.Login(request.Url, request.Username, request.Password)
 	if err == nil {
 
+		log.Debug(token)
+
 		jwtToken, err := application.GenerateJwtToken(application.MapJwt{
+			"url": request.Url,
 			"username": request.Username,
-			"password": token,
+			"password": request.Password, // TODO: token is not working?
 		}, 24, time.Hour)
 		if err == nil {
 			response = &UserResponse{

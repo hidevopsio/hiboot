@@ -41,7 +41,7 @@ func TestJavaPipeline(t *testing.T)  {
 
 	username := os.Getenv("SCM_USERNAME")
 	password := os.Getenv("SCM_PASSWORD")
-	javaPipeline.Init(&ci.Pipeline{Name: "java", GitUrl: os.Getenv("SCM_URL")})
+	javaPipeline.Init(&ci.Pipeline{Name: "java", ScmUrl: os.Getenv("SCM_URL")})
 	err := javaPipeline.Run(username, password, false)
 	assert.Equal(t, nil, err)
 }

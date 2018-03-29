@@ -22,6 +22,7 @@ import (
 	"github.com/hidevopsio/hi/cicd/pkg/ci/factories"
 	"github.com/hidevopsio/hi/cicd/pkg/ci"
 	"fmt"
+	"strings"
 )
 
 type CicdRequest struct{
@@ -53,7 +54,7 @@ func (c *CicdController) Before(ctx iris.Context) {
 
 
 // @Title Deploy
-// @Description deploy application
+// @Description deploy application by the pipeline
 // @Param	body
 // @Success 200 {string}
 // @Failure 403 body is empty
@@ -70,13 +71,15 @@ func (c *CicdController) Run(ctx iris.Context) {
 
 	// decrypt jwt token
 	token := ctx.Values().Get("jwt").(*jwt.Token)
-	var username, password string
+	var url, username, password string
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		username = fmt.Sprintf("%v", claims["username"])
-		password = fmt.Sprintf("%v", claims["password"])
+		pl.ScmUrl = parseToken(claims, "url")
+		username = parseToken(claims, "username")
+		password = parseToken(claims, "password")
 
+		log.Println("url: ", url)
 		log.Println("username: ", username)
-		log.Println("password: ", password)
+		log.Println("password: ", strings.Repeat("*", len(password)))
 	} else {
 		log.Debug(err)
 	}
@@ -91,10 +94,7 @@ func (c *CicdController) Run(ctx iris.Context) {
 	if err == nil {
 		// Run Pipeline, password is a token, no need to pass username to pipeline
 		pipeline.Init(&pl)
-		err = pipeline.Run(username, password, true)
-
-		// Check error
-
+		err = pipeline.Run(username, password, false)
 		if err != nil {
 			message = err.Error()
 		}
@@ -107,4 +107,8 @@ func (c *CicdController) Run(ctx iris.Context) {
 
 	// just for debug now
 	ctx.JSON(response)
+}
+
+func parseToken(claims jwt.MapClaims, prop string) string {
+	return fmt.Sprintf("%v", claims[prop])
 }

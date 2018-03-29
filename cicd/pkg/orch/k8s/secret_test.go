@@ -19,6 +19,7 @@ import (
 	"github.com/hidevopsio/hi/boot/pkg/log"
 	"testing"
 	"github.com/stretchr/testify/assert"
+	"os"
 )
 
 func init()  {
@@ -28,13 +29,12 @@ func init()  {
 
 func TestSecretCreate(t *testing.T) {
 	log.Debug("TestSecretCrud()")
-
-	secretName := "test-secret"
-	username := "test"
-	password := "test-pwd"
+	username := os.Getenv("SCM_USERNAME")
+	password :=  os.Getenv("SCM_PASSWORD")
+	secretName := username + "-secret"
 	namespace := "demo-dev"
 
-	secret := NewSecret(secretName, username, password, namespace)
+	secret := NewSecret(secretName, username, password, namespace, false)
 
 	// Create secret
 	err := secret.Create()
@@ -47,9 +47,9 @@ func TestSecretCrud(t *testing.T) {
 	secretName := "the-test-secret"
 	username := "test"
 	password := "test-pwd"
-	namespace := "openshift"
+	namespace := "demo-dev"
 
-	secret := NewSecret(secretName, username, password, namespace)
+	secret := NewSecret(secretName, username, password, namespace, false)
 
 	// Create secret
 	err := secret.Create()

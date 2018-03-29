@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"github.com/hidevopsio/hi/cicd/pkg/orch/k8s"
 	"reflect"
+	"github.com/hidevopsio/hi/cicd/pkg/orch/openshift"
 )
 
 // config file
@@ -34,8 +35,8 @@ import (
 
 type PipelineInterface interface {
 	Init(pl *Pipeline)
-	CreateSecret(username, password string, isToken bool) error
-	Build() error
+	CreateSecret(username, password string, isToken bool) (string, error)
+	Build(secret string) error
 	RunUnitTest() error
 	RunIntegrationTest() error
 	Analysis() error
@@ -45,37 +46,46 @@ type PipelineInterface interface {
 	Run(username, password string, isToken bool) error
 }
 
+type Env struct {
+	Name  string
+	Value string
+}
+
 type Pipeline struct {
 	Name           string   `json:"name"`
-	GitUrl         string   `json:"git_url"`
+	ScmUrl         string   `json:"scm_url"`
+	ScmRef         string   `json:"scm_ref"`
 	App            string   `json:"app"`
 	Profile        string   `json:"profile"`
 	Project        string   `json:"project"`
 	Namespace      string   `json:"namespace"`
 	Version        string   `json:"version"`
 	ImageTag       string   `json:"image_tag"`
-	Type           string   `json:"type"`
-	Timezone       string   `json:"timezone"`
+	//Type           string   `json:"type"` // ?
+	//Timezone       string   `json:"timezone"` // ?
 	Identifiers    []string `json:"identifiers"`
-	Targets        []string `json:"targets"`
+	//Targets        []string `json:"targets"` // ?
 	ConfigFiles    []string `json:"config_files"`
-	FromDir        string   `json:"from_dir"`
-	DeploymentFile string   `json:"deployment_file"`
+	//FromDir        string   `json:"from_dir"` // ?
+	//DeploymentFile string   `json:"deployment_file"` // ?
 	ImageStream    string   `json:"image_stream"`
-	VersionFrom    string   `json:"version_from"`
-	Options        string   `json:"options"`
-	BuildCommand   string   `json:"build_command"`
+	//VersionFrom    string   `json:"version_from"` // ?
+	//Options        string   `json:"options"` // ?
 	DockerRegistry string   `json:"docker_registry"`
+	RepositoryUrl  string   `json:"repository_url"`
+	Env            []Env    `json:"env"`
+	Script         string   `json:"script"`
 }
 
-func copyPipeline(to *Pipeline, from *Pipeline) {
+func merge(to interface{}, from interface{}) {
 	f := reflect.ValueOf(from).Elem()
 	t := reflect.ValueOf(to).Elem()
 
 	for i := 0; i < f.NumField(); i++ {
 		varName := f.Type().Field(i).Name
 		//varType := f.Type().Field(i).Type
-		varValue := f.Field(i).Interface()
+		ff := f.Field(i)
+		varValue := ff.Interface()
 		//log.Debugf("%v %v %v\n", varName, varType, varValue)
 		tf := t.FieldByName(varName)
 
@@ -89,6 +99,10 @@ func copyPipeline(to *Pipeline, from *Pipeline) {
 				}
 				break
 			case reflect.Slice:
+				if ff.Len() != 0 {
+					log.Println(varName, varValue)
+					tf.Set(reflect.ValueOf(varValue))
+				}
 				break
 			default:
 				break
@@ -113,38 +127,45 @@ func (p *Pipeline) Init(pl *Pipeline) {
 
 		log.Debug("Pipeline Input Param ...")
 
-		copyPipeline(&c.Pipeline, pl)
-		copyPipeline(p, &c.Pipeline)
+		merge(&c.Pipeline, pl)
+		merge(p, &c.Pipeline)
 
 		log.Debug(p)
 	}
 
-	if "" == p.ImageTag {
-		p.ImageTag = "latest"
-	}
-	if "" == p.DockerRegistry {
-		p.DockerRegistry = "docker-registry.default.svc:5000"
-	}
-	if "" == p.Profile {
-		p.Profile = "dev"
+	if "" == p.Namespace {
+		p.Namespace = p.Project + "-" + p.Profile
 	}
 
-	p.Namespace = p.Project + "-" + p.Profile
 }
 
-func (p *Pipeline) CreateSecret(username, password string, isToken bool) error {
+func (p *Pipeline) CreateSecret(username, password string, isToken bool) (string, error) {
 	log.Debug("Pipeline.CreateSecret()")
-
+	if username == "" {
+		return "", fmt.Errorf("unkown username")
+	}
 	// Create secret
-	secret := k8s.NewSecret(username + "-secret", username, password, p.Namespace, isToken)
+	secretName := username + "-secret"
+	secret := k8s.NewSecret(secretName, username, password, p.Namespace, isToken)
 	err := secret.Create()
 
-	return err
+	return secretName, err
 }
 
-func (p *Pipeline) Build() error {
+func (p *Pipeline) Build(secret string) error {
 	log.Debug("Pipeline.Build()")
-	return nil
+
+	buildConfig, err := openshift.NewBuildConfig(p.Namespace, p.App, p.ScmUrl, p.ScmRef, secret, p.ImageTag, p.ImageStream)
+	if err != nil {
+		return err
+	}
+	_, err = buildConfig.Create()
+	if err != nil {
+		return err
+	}
+	// Build image stream
+	_, err = buildConfig.Build(p.RepositoryUrl, p.Script)
+	return err
 }
 
 func (p *Pipeline) RunUnitTest() error {
@@ -178,30 +199,38 @@ func (p *Pipeline) Deploy() error {
 }
 
 func (p *Pipeline) Run(username, password string, isToken bool) error {
-	err := p.CreateSecret(username, password, isToken)
+	// first, let's check if namespace is exist or not
+
+	// create secret for building image
+	secret, err := p.CreateSecret(username, password, isToken)
 	if err != nil {
-		return fmt.Errorf("failed! %s", err.Error())
+		return fmt.Errorf("failed on CreateSecret! %s", err.Error())
 	}
 
-	err = p.Build()
+	// build image
+	err = p.Build(secret)
 	if err != nil {
-		return fmt.Errorf("failed! %s", err.Error())
+		return fmt.Errorf("failed on Build! %s", err.Error())
 	}
 
+	// create dc - deployment config
 	err = p.CreateDeploymentConfig()
 	if err != nil {
-		return fmt.Errorf("failed! %s", err.Error())
+		return fmt.Errorf("failed on CreateDeploymentConfig! %s", err.Error())
 	}
 
+	// inject side car
 	err = p.InjectSideCar()
 	if err != nil {
-		return fmt.Errorf("failed! %s", err.Error())
+		return fmt.Errorf("failed on InjectSideCar! %s", err.Error())
 	}
 
+	// last, but not least, let's deploy the app
 	err = p.Deploy()
 	if err != nil {
-		return fmt.Errorf("failed! %s", err.Error())
+		return fmt.Errorf("failed on Deploy! %s", err.Error())
 	}
 
+	// finally, all steps are done well, let tell the client ...
 	return nil
 }
