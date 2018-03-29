@@ -80,10 +80,10 @@ func init() {
 	fatal(err)
 }
 
-func GenerateJwtToken(payload MapJwt, expired int64) (JwtToken, error)  {
+func GenerateJwtToken(payload MapJwt, expired int64, unit time.Duration) (JwtToken, error)  {
 
 	claim := jwt.MapClaims{
-		"exp": time.Now().Add(time.Hour * time.Duration(expired)).Unix(),
+		"exp": time.Now().Add(unit * time.Duration(expired)).Unix(),
 		"iat": time.Now().Unix(),
 	}
 

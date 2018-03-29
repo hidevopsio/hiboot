@@ -18,6 +18,7 @@ import (
 	"github.com/kataras/iris"
 	"github.com/hidevopsio/hi/cicd/pkg/auth"
 	"github.com/hidevopsio/hi/boot/pkg/application"
+	"time"
 )
 
 type UserRequest struct {
@@ -60,7 +61,7 @@ func (c *UserController) Login(ctx iris.Context) {
 		jwtToken, err := application.GenerateJwtToken(application.MapJwt{
 			"username": request.Username,
 			"password": token,
-		}, 24)
+		}, 24, time.Hour)
 		if err == nil {
 			response = &UserResponse{
 				Message: message,
