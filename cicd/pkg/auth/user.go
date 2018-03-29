@@ -26,6 +26,12 @@ type UserInterface interface{
 	Login(baseUrl, username, password string) (string, error)
 }
 
+type Credential struct{
+	username string
+	password string
+	isToken bool
+}
+
 type User struct {
 	session scm.SessionInterface
 	verifyKey *rsa.PublicKey

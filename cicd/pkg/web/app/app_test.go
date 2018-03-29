@@ -32,10 +32,14 @@ func newTestServer(t *testing.T) *httpexpect.Expect {
 
 func login(expired int64, unit time.Duration) (application.JwtToken, error) {
 	u := &auth.User{}
-	token, _, err := u.Login(userRequest.Url, userRequest.Username, userRequest.Password)
+	_, _, err := u.Login(userRequest.Url, userRequest.Username, userRequest.Password)
+	if err != nil {
+		return application.JwtToken(""), err
+	}
 	jwtToken, err := application.GenerateJwtToken(application.MapJwt{
+		"url": userRequest.Url,
 		"username": userRequest.Username,
-		"password": token,
+		"password": userRequest.Password,
 	}, expired, unit)
 	return jwtToken, err
 }
@@ -78,17 +82,16 @@ func TestUserLoginWithWrongCredentials(t *testing.T) {
 		request).Expect().Status(http.StatusForbidden)
 }
 
-func TestCicdRun(t *testing.T) {
-	log.Println("TestCicdRun()")
+
+func TestCicdRunWithExpiredToken(t *testing.T) {
+	log.Println("TestCicdRunWithExpiredToken()")
 
 	e := newTestServer(t)
 
 	jwtToken, err := login(500, time.Millisecond)
 
 	if err == nil {
-		requestCicdPipeline(e, jwtToken, http.StatusOK)
-
-		time.Sleep(1500 * time.Millisecond)
+		time.Sleep(1000 * time.Millisecond)
 
 		requestCicdPipeline(e, jwtToken, http.StatusUnauthorized)
 	}
@@ -106,4 +109,16 @@ func TestCicdRunWithoutToken(t *testing.T) {
 		Name: "java",
 	}).Expect().Status(http.StatusUnauthorized)
 
+}
+
+func TestCicdRun(t *testing.T) {
+	log.Println("TestCicdRun()")
+
+	e := newTestServer(t)
+
+	jwtToken, err := login(24, time.Hour)
+
+	if err == nil {
+		requestCicdPipeline(e, jwtToken, http.StatusOK)
+	}
 }

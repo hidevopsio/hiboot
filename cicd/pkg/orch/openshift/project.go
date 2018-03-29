@@ -14,3 +14,65 @@
 
 
 package openshift
+
+import (
+	"github.com/openshift/api/project/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	projectv1 "github.com/openshift/client-go/project/clientset/versioned/typed/project/v1"
+	"github.com/hidevopsio/hi/cicd/pkg/orch/k8s"
+	"github.com/hidevopsio/hi/boot/pkg/log"
+)
+
+type Project struct{
+	Name string
+	DisplayName string
+	Description string
+
+	Client *projectv1.ProjectV1Client
+	Interface projectv1.ProjectInterface
+}
+
+func NewProject(name, displayName, desc string) (*Project, error)  {
+
+	client, err := projectv1.NewForConfig(k8s.Config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Project{
+		Name: name,
+		DisplayName: displayName,
+		Description: desc,
+		Interface: client.Projects(),
+		Client: client,
+	}, nil
+}
+
+func (p *Project) Create() (*v1.Project, error)  {
+	log.Debug("Project.Create()")
+	ps := &v1.Project{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: p.Name,
+			Labels: map[string]string{
+				"project": p.Name,
+			},
+		},
+	}
+	// create project
+	return p.Interface.Create(ps)
+}
+
+func (p *Project) Get() (*v1.Project, error)  {
+	log.Debug("Project.Get()")
+	return p.Interface.Get(p.Name, metav1.GetOptions{})
+}
+
+func (p *Project) List() (*v1.ProjectList, error)  {
+	log.Debug("Project.List()")
+	return p.Interface.List(metav1.ListOptions{})
+}
+
+func (p *Project) Delete() error  {
+	log.Debug("Project.Delete()")
+	return p.Interface.Delete(p.Name, &metav1.DeleteOptions{})
+}

@@ -25,18 +25,17 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
-type GitSource struct{
+type Scm struct{
 	Url string
 	Ref string
 	Secret string
 }
 
-
 type BuildConfig struct {
-	AppName string
+	AppName   string
 	Namespace string
-	Git GitSource
-	ImageTag string
+	Scm       Scm
+	ImageTag  string
 
 	// use NewFrom when creating new buildConfig
 	NewFrom corev1.ObjectReference
@@ -51,7 +50,7 @@ type BuildConfig struct {
 // @Description Create new BuildConfig Instance
 // @Param namespace, appName, gitUrl, imageTag, s2iImageStream string
 // @Return *BuildConfig, error
-func NewBuildConfig(namespace, appName, gitUrl, gitRef, gitSecret, imageTag, s2iImageStream string) (*BuildConfig, error) {
+func NewBuildConfig(namespace, appName, scmUrl, scmRef, scmSecret, imageTag, s2iImageStream string) (*BuildConfig, error) {
 
 	log.Debug("NewBuildConfig()")
 
@@ -75,10 +74,10 @@ func NewBuildConfig(namespace, appName, gitUrl, gitRef, gitSecret, imageTag, s2i
 
 		AppName: appName,
 		Namespace: namespace,
-		Git: GitSource{
-			Url: gitUrl,
-			Ref: gitRef,
-			Secret: gitSecret,
+		Scm: Scm{
+			Url:    scmUrl,
+			Ref:    scmRef,
+			Secret: scmSecret,
 		},
 
 		ImageTag: imageTag,
@@ -94,6 +93,8 @@ func NewBuildConfig(namespace, appName, gitUrl, gitRef, gitSecret, imageTag, s2i
 // @Return *v1.BuildConfig, error
 func (b *BuildConfig) Create() (*v1.BuildConfig, error) {
 	log.Debug("BuildConfig.Create()")
+
+	// TODO: for the sake of decoupling, the image stream creation should be here or not?
 	// create imagestream
 	imageStream := &ImageStream{
 		Name:      b.AppName,
@@ -101,7 +102,15 @@ func (b *BuildConfig) Create() (*v1.BuildConfig, error) {
 	}
 
 	var from corev1.ObjectReference
-	_, err := imageStream.Get()
+	is, err := imageStream.Get()
+
+	// the images stream is exist with 0 tags, then delete it
+	if len(is.Status.Tags) ==0 {
+		imageStream.Delete()
+		is, err = imageStream.Get()
+	}
+
+	// create new images stream if it is not found
 	if errors.IsNotFound(err) {
 		_, err := imageStream.Create()
 		if err != nil {
@@ -130,11 +139,11 @@ func (b *BuildConfig) Create() (*v1.BuildConfig, error) {
 				Source: v1.BuildSource{
 					Type: v1.BuildSourceType(v1.BuildSourceGit),
 					Git: &v1.GitBuildSource{
-						URI: b.Git.Url,
-						Ref: b.Git.Ref,
+						URI: b.Scm.Url,
+						Ref: b.Scm.Ref,
 					},
 					SourceSecret: &corev1.LocalObjectReference{
-						Name: b.Git.Secret,
+						Name: b.Scm.Secret,
 					},
 				},
 				Strategy: v1.BuildStrategy{
@@ -158,6 +167,7 @@ func (b *BuildConfig) Create() (*v1.BuildConfig, error) {
 		bc, err = b.BuildConfigs.Create(buildConfig)
 	} else {
 		bc.Spec.CommonSpec.Strategy.SourceStrategy.From = from
+		bc.Spec.Source.SourceSecret.Name = b.Scm.Secret
 		bc, err = b.BuildConfigs.Update(bc)
 	}
 
@@ -188,7 +198,7 @@ func (b *BuildConfig) Delete() error {
 // @Description Start build according to previous build config settings, it will produce new image build
 // @Param repo string, buildCmd string
 // @Return *v1.Build, error
-func (b *BuildConfig) Build(repo string, buildCmd string) (*v1.Build, error) {
+func (b *BuildConfig) Build(repoUrl string, script string) (*v1.Build, error) {
 	log.Debug("BuildConfig.Build()")
 	incremental := false
 	buildTriggerCauseManualMsg := "Manually triggered"
@@ -214,15 +224,15 @@ func (b *BuildConfig) Build(repo string, buildCmd string) (*v1.Build, error) {
 		Env: []corev1.EnvVar{
 			{
 				Name:  "MAVEN_MIRROR_URL",
-				Value: repo, // for test only, it should be passed from the client
+				Value: repoUrl, // for test only, it should be passed from the client
 			},
 			{
 				Name:  "MAVEN_CLEAR_REPO",
 				Value: "false",
 			},
 			{
-				Name:  "BUILD_CMD",
-				Value: buildCmd,
+				Name:  "PIPELINE_SCRIPT",
+				Value: script,
 			},
 		},
 		From: &b.From,

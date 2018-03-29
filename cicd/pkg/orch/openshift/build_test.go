@@ -26,22 +26,27 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 }
 
-func TestBuildCrud(t *testing.T) {
+func TestBuildCreate(t *testing.T) {
+	log.Debug("TestBuildCreate()")
+
 	// put below configs in yaml file
-	namespace := "demo-dev"
+	project := "demo"
+	profile := "dev"
+	namespace := project + "-" + profile
 	appName := "hello-world"
-	gitUrl := os.Getenv("SCM_URL") + "/moses-demos/hello-world.git"
-	gitRef := "master"
-	gitSecret := "test-secret"
+	scmUrl := os.Getenv("SCM_URL") + "/" + project + "/" + appName + ".git"
+	scmRef := "master"
+	secret := "test-secret"
 	imageTag := "latest"
-	s2iImageStream := "s2i-java:1.0.5"
-	buildCmd := "mvn clean package -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true"
-	mvnMirrorUrl := os.Getenv("MAVEN_MIRROR_URL")
-	log.Debug(mvnMirrorUrl)
+	s2iImageStream := "s2i-java:latest"
+	script := "mvn clean package -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true"
+	repoUrl := os.Getenv("MAVEN_MIRROR_URL")
+	log.Debug(repoUrl)
+	log.Debug(scmUrl)
 
 	log.Debugf("workDir: %v", os.Getenv("PWD"))
 
-	buildConfig, err := NewBuildConfig(namespace, appName, gitUrl, gitRef, gitSecret, imageTag, s2iImageStream)
+	buildConfig, err := NewBuildConfig(namespace, appName, scmUrl, scmRef, secret, imageTag, s2iImageStream)
 	assert.Equal(t, nil, err)
 
 	bc, err := buildConfig.Create()
@@ -54,11 +59,11 @@ func TestBuildCrud(t *testing.T) {
 	assert.Equal(t, appName, bc.Name)
 
 	// Build image stream
-	build, err := buildConfig.Build(mvnMirrorUrl, buildCmd)
+	build, err := buildConfig.Build(repoUrl, script)
 	assert.Equal(t, nil, err)
 	assert.Contains(t, build.Name, appName)
 
-	log.Debug("Done")
+	log.Debug("End of build test")
 }
 
 
