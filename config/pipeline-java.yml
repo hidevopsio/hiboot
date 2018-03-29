@@ -6,14 +6,21 @@ pipeline:
   configfiles:
   - src/main/resources/application.yml
   - src/main/resources/application-${profile}.yml
-  targets:
-  - target/${app}.jar
-  - target/${app}-${version}.jar
-  fromdir: target/deployments
   deploymentfile: app.jar
   imagestream: s2i-java:latest
   versionfrom: pom.xml
-  options: -Xms128m -Xmx512m -Xss512k
-  buildcommand: mvn clean install -U
-
-
+  # different APP_OPTIONS will be set accordingly
+  env:
+  - name: APP_OPTIONS
+    value: -Xms128m -Xmx512m -Xss512k -XX:+ExitOnOutOfMemoryError
+  - name: SPRING_PROFILES_ACTIVE
+    value: ${profile}
+  - name: TZ
+    value: Asia/Shanghai
+  script: |
+    mvn clean package -U -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true
+    if [[ $? == 0 ]]; then
+      echo "Successful."
+    else
+      echo "Failed!"
+    fi
