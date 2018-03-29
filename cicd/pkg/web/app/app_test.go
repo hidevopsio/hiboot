@@ -11,6 +11,7 @@ import (
 	"github.com/hidevopsio/hi/cicd/pkg/auth"
 	"github.com/hidevopsio/hi/boot/pkg/application"
 	"github.com/hidevopsio/hi/cicd/pkg/ci"
+	"time"
 )
 
 var userRequest controllers.UserRequest
@@ -28,8 +29,32 @@ func newTestServer(t *testing.T) *httpexpect.Expect {
 	return httptest.New(t, boot.App())
 }
 
+
+func login(expired int64, unit time.Duration) (application.JwtToken, error) {
+	u := &auth.User{}
+	token, _, err := u.Login(userRequest.Url, userRequest.Username, userRequest.Password)
+	jwtToken, err := application.GenerateJwtToken(application.MapJwt{
+		"username": userRequest.Username,
+		"password": token,
+	}, expired, unit)
+	return jwtToken, err
+}
+
+
+func requestCicdPipeline(e *httpexpect.Expect, jwtToken application.JwtToken, statusCode int)  {
+	e.Request("POST", "/cicd/run").WithHeader(
+		"Authorization", "Bearer " + string(jwtToken),
+	).WithJSON(ci.Pipeline{
+		Project:  "demo",
+		App:      "hello-world",
+		Profile:  "dev",
+		Name: "java",
+	}).Expect().Status(statusCode)
+}
+
+
 func TestUserLogin(t *testing.T) {
-	log.Println("TestApp()")
+	log.Println("TestUserLogin()")
 
 	e := newTestServer(t)
 
@@ -39,7 +64,7 @@ func TestUserLogin(t *testing.T) {
 }
 
 func TestUserLoginWithWrongCredentials(t *testing.T) {
-	log.Println("TestApp()")
+	log.Println("TestUserLoginWithWrongCredentials()")
 
 	e := newTestServer(t)
 
@@ -54,32 +79,23 @@ func TestUserLoginWithWrongCredentials(t *testing.T) {
 }
 
 func TestCicdRun(t *testing.T) {
-	log.Println("TestApp()")
+	log.Println("TestCicdRun()")
 
 	e := newTestServer(t)
 
-	u := &auth.User{}
-	token, _, err := u.Login(userRequest.Url, userRequest.Username, userRequest.Password)
-
-	jwtToken, err := application.GenerateJwtToken(application.MapJwt{
-		"username": userRequest.Username,
-		"password": token,
-	}, 24)
+	jwtToken, err := login(500, time.Millisecond)
 
 	if err == nil {
-		e.Request("POST", "/cicd/run").WithHeader(
-			"Authorization", "Bearer "+string(jwtToken),
-		).WithJSON(ci.Pipeline{
-			Project:  "demo",
-			App:      "hello-world",
-			Profile:  "dev",
-			Name: "java",
-		}).Expect().Status(http.StatusOK)
+		requestCicdPipeline(e, jwtToken, http.StatusOK)
+
+		time.Sleep(1500 * time.Millisecond)
+
+		requestCicdPipeline(e, jwtToken, http.StatusUnauthorized)
 	}
 }
 
 func TestCicdRunWithoutToken(t *testing.T) {
-	log.Println("TestApp()")
+	log.Println("TestCicdRunWithoutToken()")
 
 	e := newTestServer(t)
 

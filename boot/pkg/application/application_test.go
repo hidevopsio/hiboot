@@ -6,6 +6,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/hidevopsio/hi/boot/pkg/log"
 	"fmt"
+	"time"
 )
 
 func init()  {
@@ -13,7 +14,7 @@ func init()  {
 }
 
 func TestGenerateJwtToken(t *testing.T) {
-	jwtToken, err := GenerateJwtToken(MapJwt{"foo": "bar"}, 24)
+	jwtToken, err := GenerateJwtToken(MapJwt{"foo": "bar"}, 1, time.Hour)
 
 	log.Debug(jwtToken)
 	token, err := jwt.Parse(string(jwtToken), func(token *jwt.Token) (interface{}, error) {

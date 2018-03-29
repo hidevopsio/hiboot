@@ -60,8 +60,8 @@ func (c *CicdController) Before(ctx iris.Context) {
 // @router / [post]
 func (c *CicdController) Run(ctx iris.Context) {
 	log.Debug("CicdController.Run()")
-	var p ci.Pipeline
-	err := ctx.ReadJSON(&p)
+	var pl ci.Pipeline
+	err := ctx.ReadJSON(&pl)
 	if err != nil {
 		ctx.Values().Set("error", "deployment failed, read and parse request body failed. " + err.Error())
 		ctx.StatusCode(iris.StatusInternalServerError)
@@ -86,16 +86,20 @@ func (c *CicdController) Run(ctx iris.Context) {
 
 	// invoke models
 	pipelineFactory := new(factories.PipelineFactory)
-	pi, err := pipelineFactory.New(p.Name)
-
-	// Run Pipeline, password is a token, no need to pass username to pipeline
-	pi.Init(&p)
-	err = pi.Run(username, password, true)
-
-	// Check error
+	pipeline, err := pipelineFactory.New(pl.Name)
 	message := "Run Pipeline Successful."
-	if err != nil {
-		message = err.Error()
+	if err == nil {
+		// Run Pipeline, password is a token, no need to pass username to pipeline
+		pipeline.Init(&pl)
+		err = pipeline.Run(username, password, true)
+
+		// Check error
+
+		if err != nil {
+			message = err.Error()
+		}
+	} else {
+		message = "Failed, " + err.Error()
 	}
 	response := &CicdResponse{
 		Message: message,
