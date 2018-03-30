@@ -7,3 +7,8 @@ pipeline:
   scmurl: http://github.com
   repositoryurl: http://maven.aliyun.com/nexus/content/groups/public
   dockerregistry: docker-registry.default.svc:5000
+  ports:
+  - name: 8080-tcp
+    port: 8080
+    containerport: 8080
+    protocol: TCP
