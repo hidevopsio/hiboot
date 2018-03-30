@@ -28,3 +28,8 @@ type Server struct {
 type Logging struct{
 	Level string `json:"level"`
 }
+
+type Env struct {
+	Name  string
+	Value string
+}
