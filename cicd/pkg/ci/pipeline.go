@@ -18,10 +18,11 @@ import (
 	"github.com/hidevopsio/hi/boot/pkg/log"
 	"fmt"
 	"github.com/hidevopsio/hi/cicd/pkg/orch/k8s"
-	"reflect"
 	"github.com/hidevopsio/hi/cicd/pkg/orch/openshift"
 	"os"
 	"github.com/hidevopsio/hi/boot/pkg/system"
+	"github.com/hidevopsio/hi/boot/pkg/utils"
+	"github.com/hidevopsio/hi/cicd/pkg/orch"
 )
 
 // config file
@@ -48,6 +49,13 @@ type PipelineInterface interface {
 	Run(username, password string, isToken bool) error
 }
 
+//type Ports struct {
+//	Name          string `json:"name"`
+//	Port          int32  `json:"port" `
+//	ContainerPort int32  `json:"container_port"`
+//	Protocol      string `json:"protocol,omitempty"`
+//}
+
 type Pipeline struct {
 	Name           string       `json:"name"`
 	ScmUrl         string       `json:"scm_url"`
@@ -64,42 +72,8 @@ type Pipeline struct {
 	Identifiers    []string     `json:"identifiers"`
 	ConfigFiles    []string     `json:"config_files"`
 	Env            []system.Env `json:"env"`
+	Ports          []orch.Ports `json:"ports"`
 	Script         string       `json:"script"`
-}
-
-func merge(to interface{}, from interface{}) {
-	f := reflect.ValueOf(from).Elem()
-	t := reflect.ValueOf(to).Elem()
-
-	for i := 0; i < f.NumField(); i++ {
-		varName := f.Type().Field(i).Name
-		//varType := f.Type().Field(i).Type
-		ff := f.Field(i)
-		varValue := ff.Interface()
-		//log.Debugf("%v %v %v\n", varName, varType, varValue)
-		tf := t.FieldByName(varName)
-
-		if tf.IsValid() && tf.CanSet() {
-			kind := tf.Kind()
-			switch kind {
-			case reflect.String:
-				fv := fmt.Sprintf("%v", varValue)
-				if fv != "" {
-					tf.SetString(fmt.Sprintf("%v", varValue))
-				}
-				break
-			case reflect.Slice:
-				if ff.Len() != 0 {
-					log.Println(varName, varValue)
-					tf.Set(reflect.ValueOf(varValue))
-				}
-				break
-			default:
-				break
-			}
-
-		}
-	}
 }
 
 // @Title Init
@@ -119,8 +93,8 @@ func (p *Pipeline) Init(pl *Pipeline) {
 			pl.RepositoryUrl = mavenMirrorUrl
 		}
 
-		merge(&c.Pipeline, pl)
-		merge(p, &c.Pipeline)
+		utils.Merge(&c.Pipeline, pl)
+		utils.Merge(p, &c.Pipeline)
 
 		log.Debug(p)
 	}

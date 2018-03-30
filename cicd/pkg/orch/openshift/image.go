@@ -25,7 +25,7 @@ import (
 	"os"
 )
 
-type ImageStreamAPI interface {
+type ImageStreamInterface interface {
 	Create() (*v1.ImageStream, error)
 	Get() (*v1.ImageStream, error)
 	Delete() error

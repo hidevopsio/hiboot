@@ -17,6 +17,15 @@ pipeline:
     value: ${profile}
   - name: TZ
     value: Asia/Shanghai
+  ports:
+  - name: 8080-tcp
+    port: 8080
+    containerport: 8080
+    protocol: TCP
+  - name: 7575-tcp
+    port: 7575
+    containerport: 8080
+    protocol: TCP
   script: |
     mvn clean package -U -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true
     if [[ $? == 0 ]]; then
