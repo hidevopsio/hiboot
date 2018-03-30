@@ -21,6 +21,7 @@ import (
 	"reflect"
 	"github.com/hidevopsio/hi/cicd/pkg/orch/openshift"
 	"os"
+	"github.com/hidevopsio/hi/boot/pkg/system"
 )
 
 // config file
@@ -47,35 +48,23 @@ type PipelineInterface interface {
 	Run(username, password string, isToken bool) error
 }
 
-type Env struct {
-	Name  string
-	Value string
-}
-
 type Pipeline struct {
-	Name           string   `json:"name"`
-	ScmUrl         string   `json:"scm_url"`
-	ScmRef         string   `json:"scm_ref"`
-	App            string   `json:"app"`
-	Profile        string   `json:"profile"`
-	Project        string   `json:"project"`
-	Namespace      string   `json:"namespace"`
-	Version        string   `json:"version"`
-	ImageTag       string   `json:"image_tag"`
-	//Type           string   `json:"type"` // ?
-	//Timezone       string   `json:"timezone"` // ?
-	Identifiers    []string `json:"identifiers"`
-	//Targets        []string `json:"targets"` // ?
-	ConfigFiles    []string `json:"config_files"`
-	//FromDir        string   `json:"from_dir"` // ?
-	//DeploymentFile string   `json:"deployment_file"` // ?
-	ImageStream    string   `json:"image_stream"`
-	//VersionFrom    string   `json:"version_from"` // ?
-	//Options        string   `json:"options"` // ?
-	DockerRegistry string   `json:"docker_registry"`
-	RepositoryUrl  string   `json:"repository_url"`
-	Env            []Env    `json:"env"`
-	Script         string   `json:"script"`
+	Name           string       `json:"name"`
+	ScmUrl         string       `json:"scm_url"`
+	ScmRef         string       `json:"scm_ref"`
+	App            string       `json:"app"`
+	Profile        string       `json:"profile"`
+	Project        string       `json:"project"`
+	Namespace      string       `json:"namespace"`
+	Version        string       `json:"version"`
+	ImageTag       string       `json:"image_tag"`
+	ImageStream    string       `json:"image_stream"`
+	DockerRegistry string       `json:"docker_registry"`
+	RepositoryUrl  string       `json:"repository_url"`
+	Identifiers    []string     `json:"identifiers"`
+	ConfigFiles    []string     `json:"config_files"`
+	Env            []system.Env `json:"env"`
+	Script         string       `json:"script"`
 }
 
 func merge(to interface{}, from interface{}) {
