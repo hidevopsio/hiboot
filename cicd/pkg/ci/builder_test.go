@@ -14,19 +14,19 @@
 
 package ci
 
-
 import (
 	"testing"
 	"github.com/hidevopsio/hi/boot/pkg/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hi/boot/pkg/system"
+	"github.com/hidevopsio/hi/boot/pkg/utils"
 )
 
-func init()  {
+func init() {
 	log.SetLevel(log.DebugLevel)
 }
 
-func TestPipelineBuilder(t *testing.T)  {
+func TestPipelineBuilder(t *testing.T) {
 
 	log.Debug("Test Pipeline Builder")
 
@@ -37,4 +37,73 @@ func TestPipelineBuilder(t *testing.T)  {
 	cfg := Build("java")
 	log.Debug(cfg)
 	assert.Equal(t, "java", cfg.Pipeline.Name)
+
+	// replace internal variables
+	utils.Replace(&cfg.Pipeline, "profile", "dev")
+	log.Debug(cfg.Pipeline)
+}
+
+type Foo struct {
+	Name        string
+	Env         []system.Env
+	ConfigFiles []string
+}
+
+type Bar struct {
+	Name        string
+	Age         int
+	Env         []system.Env
+	ConfigFiles []string
+}
+
+func TestCopy(t *testing.T) {
+	t1 := &Foo{
+		Name: "foo",
+		Env: []system.Env{
+			{
+				Name:  "ENV_FOO",
+				Value: "env.foo",
+			},
+			{
+				Name:  "ENV_Bar",
+				Value: "env.bar",
+			},
+		},
+	}
+
+	t2 := &Bar{}
+	log.Println(t2)
+	utils.Copy(t2, t1)
+	log.Println(t2)
+
+	assert.Equal(t, t1.Name, t2.Name)
+	assert.Equal(t, t1.Env[0].Name, t2.Env[0].Name)
+	assert.Equal(t, t1.Env[0].Value, t2.Env[0].Value)
+}
+
+func TestReplacement(t *testing.T) {
+	t1 := &Foo{
+		Name: "${foo}",
+		Env: []system.Env{
+			{
+				Name:  "ENV_BAR",
+				Value: "is_${foo}",
+			},
+			{
+				Name:  "CONFIG",
+				Value: "src/main/resources/application-${foo}.yml",
+			},
+		},
+		ConfigFiles: []string{
+			"src/main/resources/application.yml",
+			"src/main/resources/application-${foo}.yml",
+		},
+	}
+
+	log.Println(t1)
+	utils.Replace(t1, "foo", "bar")
+	log.Println(t1)
+
+	assert.Equal(t, "bar", t1.Name)
+	assert.Equal(t, "is_bar", t1.Env[0].Value)
 }

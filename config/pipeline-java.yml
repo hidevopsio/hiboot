@@ -12,7 +12,7 @@ pipeline:
   # different APP_OPTIONS will be set accordingly
   env:
   - name: APP_OPTIONS
-    value: -Xms128m -Xmx512m -Xss512k -XX:+ExitOnOutOfMemoryError
+    value: -Xms128m -Xmx512m -Xss512k
   - name: SPRING_PROFILES_ACTIVE
     value: ${profile}
   - name: TZ
