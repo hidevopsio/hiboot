@@ -7,6 +7,7 @@ import (
 	"strings"
 	"errors"
 	"database/sql"
+	"strconv"
 )
 
 func validate(toValue interface{}) (*reflect.Value, error)  {
@@ -224,6 +225,13 @@ func Merge(to interface{}, from interface{}) {
 				fv := fmt.Sprintf("%v", varValue)
 				if fv != "" {
 					tf.SetString(fmt.Sprintf("%v", varValue))
+				}
+
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				fv := fmt.Sprintf("%v", varValue)
+				if fv != "" {
+					fv, _ := strconv.Atoi(fv)
+					tf.SetInt(int64(fv))
 				}
 			default:
 				Merge(t.Addr().Interface(), f.Addr().Interface())
