@@ -66,6 +66,7 @@ type Pipeline struct {
 	Profile        string       `json:"profile"`
 	Project        string       `json:"project"`
 	Namespace      string       `json:"namespace"`
+	Replicas       int32        `json:"replicas"`
 	Version        string       `json:"version"`
 	ImageTag       string       `json:"image_tag"`
 	ImageStream    string       `json:"image_stream"`
@@ -155,6 +156,18 @@ func (p *Pipeline) Analysis() error {
 
 func (p *Pipeline) CreateDeploymentConfig() error {
 	log.Debug("Pipeline.CreateDeploymentConfig()")
+
+	// new dc instance
+	dc, err := openshift.NewDeploymentConfig(p.App, p.Namespace)
+	if err != nil {
+		return err
+	}
+
+	// create dc
+	err = dc.Create(&p.Env, &p.Ports, p.Replicas)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -165,16 +178,44 @@ func (p *Pipeline) InjectSideCar() error {
 
 func (p *Pipeline) Deploy() error {
 	log.Debug("Pipeline.Deploy()")
+
+	// new dc instance
+	dc, err := openshift.NewDeploymentConfig(p.App, p.Namespace)
+	if err != nil {
+		return err
+	}
+
+	_, err = dc.Instantiate()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (p *Pipeline) CreateService() error {
 	log.Debug("Pipeline.CreateService()")
+
+	// new dc instance
+	svc := k8s.NewService(p.App, p.Namespace)
+
+	err := svc.Create(&p.Ports)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (p *Pipeline) CreateRoute() error {
 	log.Debug("Pipeline.CreateRoute()")
+
+	route, err := openshift.NewRoute(p.App, p.Namespace)
+	if err != nil {
+		return err
+	}
+
+	err = route.Create(8080)
 	return nil
 }
 
