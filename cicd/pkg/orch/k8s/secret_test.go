@@ -27,7 +27,7 @@ func init()  {
 }
 
 
-func TestSecretCreate(t *testing.T) {
+func TestSecretCreation(t *testing.T) {
 	log.Debug("TestSecretCrud()")
 	username := os.Getenv("SCM_USERNAME")
 	password :=  os.Getenv("SCM_PASSWORD")

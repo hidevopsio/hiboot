@@ -46,6 +46,8 @@ type PipelineInterface interface {
 	CreateDeploymentConfig() error
 	InjectSideCar() error
 	Deploy() error
+	CreateService() error
+	CreateRoute() error
 	Run(username, password string, isToken bool) error
 }
 
@@ -166,6 +168,16 @@ func (p *Pipeline) Deploy() error {
 	return nil
 }
 
+func (p *Pipeline) CreateService() error {
+	log.Debug("Pipeline.CreateService()")
+	return nil
+}
+
+func (p *Pipeline) CreateRoute() error {
+	log.Debug("Pipeline.CreateRoute()")
+	return nil
+}
+
 func (p *Pipeline) Run(username, password string, isToken bool) error {
 	// first, let's check if namespace is exist or not
 
@@ -193,10 +205,22 @@ func (p *Pipeline) Run(username, password string, isToken bool) error {
 		return fmt.Errorf("failed on InjectSideCar! %s", err.Error())
 	}
 
-	// last, but not least, let's deploy the app
+	// deploy
 	err = p.Deploy()
 	if err != nil {
 		return fmt.Errorf("failed on Deploy! %s", err.Error())
+	}
+
+	// create service
+	err = p.CreateService()
+	if err != nil {
+		return fmt.Errorf("failed on CreateService! %s", err.Error())
+	}
+
+	// create route
+	err = p.CreateRoute()
+	if err != nil {
+		return fmt.Errorf("failed on CreateRoute! %s", err.Error())
 	}
 
 	// finally, all steps are done well, let tell the client ...

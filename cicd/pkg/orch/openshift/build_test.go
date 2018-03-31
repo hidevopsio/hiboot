@@ -26,7 +26,7 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 }
 
-func TestBuildCreate(t *testing.T) {
+func TestBuildCreation(t *testing.T) {
 	log.Debug("TestBuildCreate()")
 
 	// put below configs in yaml file

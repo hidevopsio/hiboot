@@ -13,3 +13,34 @@
 // limitations under the License.
 
 package openshift
+
+import (
+	"testing"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestRouteCreation(t *testing.T)  {
+	projectName := "demo"
+	profile := "dev"
+	namespace := projectName + "-" + profile
+	app := "hello-world"
+
+	route, err := NewRoute(app, namespace)
+	assert.Equal(t, nil, err)
+
+	err = route.Create(8080)
+	assert.Equal(t, nil, err)
+}
+
+func TestRouteDeletion(t *testing.T)  {
+	projectName := "demo"
+	profile := "dev"
+	namespace := projectName + "-" + profile
+	app := "hello-world"
+
+	route, err := NewRoute(app, namespace)
+	assert.Equal(t, nil, err)
+
+	err = route.Delete()
+	assert.Equal(t, nil, err)
+}
