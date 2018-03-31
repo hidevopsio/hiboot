@@ -1,7 +1,7 @@
 # to be overwritten at runtime
 
 pipeline:
-  profile: dev
+  profile: ${profile}
   imagetag: latest
   scmref: master
   scmurl: http://github.com
