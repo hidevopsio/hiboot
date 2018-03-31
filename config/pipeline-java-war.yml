@@ -3,7 +3,7 @@ pipeline:
   name: java-war
   identifiers:
   - pom.xml
-  deploymentfile: ROOT.war
+  deployment_file: ROOT.war
   imagestream: s2i-java-war:latest
   env:
   - name: APP_OPTIONS
