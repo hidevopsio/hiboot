@@ -165,9 +165,15 @@ func (b *BuildConfig) Create() (*v1.BuildConfig, error) {
 	bc, err := b.BuildConfigs.Get(b.AppName, metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		bc, err = b.BuildConfigs.Create(buildConfig)
+		if nil == err {
+			log.Infof("Created BuildConfig %v", bc.Name)
+		}
 	} else {
 		buildConfig.ResourceVersion = bc.ResourceVersion
 		bc, err = b.BuildConfigs.Update(buildConfig)
+		if nil == err {
+			log.Infof("Updated BuildConfig %v", bc.Name)
+		}
 	}
 
 	return bc, err
@@ -237,7 +243,11 @@ func (b *BuildConfig) Build(repoUrl string, script string) (*v1.Build, error) {
 		From: &b.From,
 	}
 
-	return b.BuildConfigs.Instantiate(b.AppName, &buildRequest)
+	build, err := b.BuildConfigs.Instantiate(b.AppName, &buildRequest)
+	if nil == err {
+		log.Infof("Instantiated Build %v", build.Name)
+	}
+	return build, err
 }
 
 

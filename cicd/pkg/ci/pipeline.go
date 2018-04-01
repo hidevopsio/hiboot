@@ -110,7 +110,12 @@ func (p *Pipeline) Init(pl *Pipeline) {
 	utils.Replace(p, "profile", pl.Profile)
 
 	if "" == p.Namespace {
-		p.Namespace = p.Project + "-" + p.Profile
+		if "" == pl.Profile {
+			p.Namespace = p.Project
+		} else {
+
+			p.Namespace = p.Project + "-" + p.Profile
+		}
 	}
 
 	log.Debug(p)
