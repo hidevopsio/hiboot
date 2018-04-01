@@ -166,9 +166,8 @@ func (b *BuildConfig) Create() (*v1.BuildConfig, error) {
 	if errors.IsNotFound(err) {
 		bc, err = b.BuildConfigs.Create(buildConfig)
 	} else {
-		bc.Spec.CommonSpec.Strategy.SourceStrategy.From = from
-		bc.Spec.Source.SourceSecret.Name = b.Scm.Secret
-		bc, err = b.BuildConfigs.Update(bc)
+		buildConfig.ResourceVersion = bc.ResourceVersion
+		bc, err = b.BuildConfigs.Update(buildConfig)
 	}
 
 	return bc, err

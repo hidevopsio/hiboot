@@ -3,15 +3,13 @@ pipeline:
   name: java-war
   identifiers:
   - pom.xml
-  deployment_file: ROOT.war
+  deploymentFile: ROOT.war
   imagestream: s2i-java-war:latest
   env:
   - name: APP_OPTIONS
     value: -Xms128m -Xmx512m -Xss512k -XX:+ExitOnOutOfMemoryError
   - name: SPRING_PROFILES_ACTIVE
     value: ${profile}
-  - name: TZ
-    value: Asia/Shanghai
   script: |
     mvn clean package -U -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true
     if [[ $? == 0 ]]; then

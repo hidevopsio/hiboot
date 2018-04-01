@@ -2,14 +2,18 @@
 
 pipeline:
   profile: ${profile}
-  image_tag: latest
-  scm_ref: master
-  scm_url: http://github.com
-  repository_url: http://maven.aliyun.com/nexus/content/groups/public
-  docker_registry: docker-registry.default.svc:5000
+  imageTag: latest
+  scmType: git
+  scmUrl: http://github.com
+  scmRef: master
+  repositoryUrl: http://maven.aliyun.com/nexus/content/groups/public
+  dockerRegistry: docker-registry.default.svc:5000
   replicas: 1
+  env:
+  - name: TZ
+    value: Asia/Shanghai
   ports:
   - name: 8080-tcp
     port: 8080
-    container_port: 8080
+    containerPort: 8080
     protocol: TCP
