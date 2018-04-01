@@ -146,7 +146,7 @@ func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas 
 		cfg.ObjectMeta.ResourceVersion = result.ResourceVersion
 		result, err = dc.Interface.Update(cfg)
 		if err == nil {
-			log.Info("DeploymentConfig updated", result.Name)
+			log.Infof("Updated DeploymentConfig %v.", result.Name)
 		} else {
 			return err
 		}
@@ -156,7 +156,7 @@ func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas 
 		if err != nil {
 			return err
 		}
-		log.Infof("Created DeploymentConfig %q.\n", d.Name)
+		log.Infof("Created DeploymentConfig %v.\n", d.Name)
 		break
 	default:
 		return fmt.Errorf("failed to create DeploymentConfig: %s", err)
@@ -183,5 +183,10 @@ func (dc *DeploymentConfig) Instantiate() (*v1.DeploymentConfig, error)  {
 		Latest: true,
 	}
 
-	return dc.Interface.Instantiate(dc.Name, request)
+	d, err := dc.Interface.Instantiate(dc.Name, request)
+	if nil == err {
+		log.Infof("Instantiated Build %v", d.Name)
+	}
+
+	return d, err
 }
