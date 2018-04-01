@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hi/boot/pkg/system"
 	"github.com/hidevopsio/hi/boot/pkg/utils"
+	"github.com/imdario/mergo"
 )
 
 func init() {
@@ -45,6 +46,7 @@ func TestPipelineBuilder(t *testing.T) {
 
 type Foo struct {
 	Name        string
+	Profile 	string
 	Env         []system.Env
 	ConfigFiles []string
 }
@@ -106,4 +108,42 @@ func TestReplacement(t *testing.T) {
 
 	assert.Equal(t, "bar", t1.Name)
 	assert.Equal(t, "is_bar", t1.Env[0].Value)
+}
+
+func TestMerging(t *testing.T) {
+	t1 := &Foo{
+		Name: "foo",
+		Env: []system.Env{
+			{
+				Name:  "ENV_FOO",
+				Value: "is_foo",
+			},
+		},
+		ConfigFiles: []string{
+			"src/main/resources/application.yml",
+		},
+	}
+
+	t2 := &Foo{
+		Name: "bar",
+		Profile: "dev",
+		Env: []system.Env{
+			{
+				Name:  "CONFIG",
+				Value: "src/main/resources/application-bar.yml",
+			},
+		},
+		ConfigFiles: []string{
+			"src/main/resources/application-bar.yml",
+		},
+	}
+
+	log.Println(t1)
+	assert.Equal(t, "foo", t1.Name)
+	assert.Equal(t, "", t1.Profile)
+	mergo.Merge(t1, t2, mergo.WithOverride)
+	log.Println(t1)
+	assert.Equal(t, "bar", t1.Name)
+	assert.Equal(t, "dev", t1.Profile)
+	assert.Equal(t, "is_foo", t1.Env[0].Value)
 }

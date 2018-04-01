@@ -17,6 +17,8 @@ import (
 var userRequest controllers.UserRequest
 
 func init() {
+	log.SetLevel(log.DebugLevel)
+
 	userRequest = controllers.UserRequest{
 		Url:      os.Getenv("SCM_URL"),
 		Username: os.Getenv("SCM_USERNAME"),

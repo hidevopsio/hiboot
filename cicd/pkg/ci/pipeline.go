@@ -21,8 +21,9 @@ import (
 	"github.com/hidevopsio/hi/cicd/pkg/orch/openshift"
 	"os"
 	"github.com/hidevopsio/hi/boot/pkg/system"
-	"github.com/hidevopsio/hi/boot/pkg/utils"
 	"github.com/hidevopsio/hi/cicd/pkg/orch"
+	"github.com/imdario/mergo"
+	"github.com/hidevopsio/hi/boot/pkg/utils"
 )
 
 // config file
@@ -60,6 +61,7 @@ type PipelineInterface interface {
 
 type Pipeline struct {
 	Name           string       `json:"name"`
+	ScmType        string       `json:"scm_type"`
 	ScmUrl         string       `json:"scm_url"`
 	ScmRef         string       `json:"scm_ref"`
 	App            string       `json:"app"`
@@ -96,18 +98,22 @@ func (p *Pipeline) Init(pl *Pipeline) {
 			pl.RepositoryUrl = mavenMirrorUrl
 		}
 
-		utils.Merge(&c.Pipeline, pl)
-		utils.Merge(p, &c.Pipeline)
+		if pl.Profile == "" {
+			p.Profile = "dev"
+		}
 
-		log.Debug(p)
+		mergo.Merge(&c.Pipeline, pl, mergo.WithOverride)
+		mergo.Merge(p, c.Pipeline, mergo.WithOverride)
+
 	}
+	// TODO: replace variable inside pipeline, e.g. ${profile}
+	utils.Replace(p, "profile", pl.Profile)
 
 	if "" == p.Namespace {
 		p.Namespace = p.Project + "-" + p.Profile
 	}
 
-	// TODO: replace variable inside pipeline, e.g. ${profile}
-
+	log.Debug(p)
 }
 
 func (p *Pipeline) CreateSecret(username, password string, isToken bool) (string, error) {
@@ -126,7 +132,8 @@ func (p *Pipeline) CreateSecret(username, password string, isToken bool) (string
 func (p *Pipeline) Build(secret string) error {
 	log.Debug("Pipeline.Build()")
 
-	buildConfig, err := openshift.NewBuildConfig(p.Namespace, p.App, p.ScmUrl, p.ScmRef, secret, p.ImageTag, p.ImageStream)
+	scmUrl := p.CombineScmUrl()
+	buildConfig, err := openshift.NewBuildConfig(p.Namespace, p.App, scmUrl, p.ScmRef, secret, p.ImageTag, p.ImageStream)
 	if err != nil {
 		return err
 	}
@@ -137,6 +144,11 @@ func (p *Pipeline) Build(secret string) error {
 	// Build image stream
 	_, err = buildConfig.Build(p.RepositoryUrl, p.Script)
 	return err
+}
+
+func (p *Pipeline) CombineScmUrl() string {
+	scmUrl := p.ScmUrl + "/" + p.Project + "/" + p.App + "." + p.ScmType
+	return scmUrl
 }
 
 func (p *Pipeline) RunUnitTest() error {

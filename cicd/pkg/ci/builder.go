@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"github.com/hidevopsio/hi/boot/pkg/utils"
+	"github.com/imdario/mergo"
 )
 
 type Configuration struct {
@@ -47,12 +48,15 @@ func Build(name string) *Configuration {
 		panic(fmt.Errorf("Unable to decode Config: %s \n", err))
 	}
 
+	var confReplacer Configuration
 	viper.SetConfigName("pipeline-" + name)
 	viper.MergeInConfig()
-	err = viper.Unmarshal(&conf)
+	err = viper.Unmarshal(&confReplacer)
 	if err != nil {
 		panic(fmt.Errorf("Unable to decode Config: %s \n", err))
 	}
+
+	mergo.Merge(&conf, confReplacer, mergo.WithOverride)
 
 	return &conf
 }

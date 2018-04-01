@@ -7,7 +7,6 @@ import (
 	"strings"
 	"errors"
 	"database/sql"
-	"strconv"
 )
 
 func validate(toValue interface{}) (*reflect.Value, error)  {
@@ -205,42 +204,35 @@ func set(to, from reflect.Value) bool {
 	return true
 }
 
-func Merge(to interface{}, from interface{}) {
 
-	f := reflect.ValueOf(from).Elem()
-	t := reflect.ValueOf(to).Elem()
+// TODO: parse environment variables and other variables that stored in a map and then replace them.
+/*
+m := map[string]string{
+	"profile": "dev",
+    "version": "1.0.0",
+}
 
-	for i := 0; i < f.NumField(); i++ {
-		varName := f.Type().Field(i).Name
-		//varType := f.Type().Field(i).Type
-		ff := f.Field(i)
-		varValue := ff.Interface()
-		//log.Debugf("%v %v %v\n", varName, varType, varValue)
-		tf := t.FieldByName(varName)
+type Target struct{
+	Profile string
+	Version string
+}
 
-		if tf.IsValid() && tf.CanSet() {
-			kind := tf.Kind()
-			switch kind {
-			case reflect.String:
-				fv := fmt.Sprintf("%v", varValue)
-				if fv != "" {
-					tf.SetString(fmt.Sprintf("%v", varValue))
-				}
+target := &Target{
+	Profile: "${profile}",
+	Version: "${version}",
+}
 
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				fv := fmt.Sprintf("%v", varValue)
-				if fv != "" {
-					fv, _ := strconv.Atoi(fv)
-					tf.SetInt(int64(fv))
-				}
-			default:
-				Merge(t.Addr().Interface(), f.Addr().Interface())
-				break
-			}
-
-		}
+func Replace(target, m) {
+	for i := 0; i < target.NumOfField(); i++ {
+		field := target.GetField(i)
+		fv := field.GetValue()
+		// find ${xxx} then lookup m to find the value
+		srcValue := m["xxx"]
+		strings.Replace(fv, "${xxx}", srcValue)
 	}
 }
+
+*/
 
 
 func Replace(to interface{}, name, value string) {

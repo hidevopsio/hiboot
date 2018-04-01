@@ -3,28 +3,22 @@ pipeline:
   name: java
   identifiers:
   - pom.xml
-  config_files:
+  configFiles:
   - src/main/resources/application.yml
   - src/main/resources/application-${profile}.yml
-  deployment_file: app.jar
+  deploymentFile: app.jar
   imagestream: s2i-java:latest
-  version_from: pom.xml
+  versionFrom: pom.xml
   # different APP_OPTIONS will be set accordingly
   env:
   - name: APP_OPTIONS
     value: -Xms128m -Xmx512m -Xss512k
   - name: SPRING_PROFILES_ACTIVE
     value: ${profile}
-  - name: TZ
-    value: Asia/Shanghai
   ports:
-  - name: 8080-tcp
-    port: 8080
-    container_port: 8080
-    protocol: TCP
   - name: 7575-tcp
     port: 7575
-    container_port: 8080
+    containerPort: 8080
     protocol: TCP
   script: |
     mvn clean package -U -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true
