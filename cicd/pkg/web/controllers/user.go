@@ -44,6 +44,7 @@ type UserController struct {
 // @Failure 403 body is empty
 // @router / [post]
 func (c *UserController) Login(ctx iris.Context) {
+	log.Debug("UserController.Login()")
 	var request UserRequest
 	var response *UserResponse
 
@@ -56,10 +57,10 @@ func (c *UserController) Login(ctx iris.Context) {
 
 	// invoke models
 	user := &auth.User{}
-	token, message, err := user.Login(request.Url, request.Username, request.Password)
+	_, message, err := user.Login(request.Url, request.Username, request.Password)
 	if err == nil {
 
-		log.Debug(token)
+		//log.Debug(token)
 
 		jwtToken, err := application.GenerateJwtToken(application.MapJwt{
 			"url": request.Url,

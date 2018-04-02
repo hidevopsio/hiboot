@@ -39,8 +39,9 @@ func (s *Session) GetSession(baseUrl, username, password string) error {
 	}
 	c := gitlab.NewClient(&http.Client{}, "")
 	c.SetBaseURL(baseUrl + ApiVersion)
-	session, resp, err := c.Session.GetSession(so)
-	log.Debug(session, resp, err)
+	log.Debug("before c.Session.GetSession(so)")
+	session, _, err := c.Session.GetSession(so)
+	log.Debug("after c.Session.GetSession(so)")
 
 	copier.Copy(s, session)
 

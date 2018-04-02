@@ -71,15 +71,15 @@ func (c *CicdController) Run(ctx iris.Context) {
 
 	// decrypt jwt token
 	token := ctx.Values().Get("jwt").(*jwt.Token)
-	var url, username, password string
+	var username, password string
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		pl.ScmUrl = parseToken(claims, "url")
 		username = parseToken(claims, "username")
 		password = parseToken(claims, "password")
 
-		log.Println("url: ", url)
-		log.Println("username: ", username)
-		log.Println("password: ", strings.Repeat("*", len(password)))
+		log.Debug("url: ", pl.ScmUrl)
+		log.Debug("username: ", username)
+		log.Debug("password: ", strings.Repeat("*", len(password)))
 	} else {
 		log.Debug(err)
 	}
@@ -90,7 +90,7 @@ func (c *CicdController) Run(ctx iris.Context) {
 	// invoke models
 	pipelineFactory := new(factories.PipelineFactory)
 	pipeline, err := pipelineFactory.New(pl.Name)
-	message := "Run Pipeline Successful."
+	message := "Successful."
 	if err == nil {
 		// Run Pipeline, password is a token, no need to pass username to pipeline
 		pipeline.Init(&pl)

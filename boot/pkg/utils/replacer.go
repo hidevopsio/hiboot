@@ -3,10 +3,10 @@ package utils
 import (
 	"reflect"
 	"fmt"
-	"github.com/hidevopsio/hi/boot/pkg/log"
 	"strings"
 	"errors"
 	"database/sql"
+	//"github.com/hidevopsio/hi/boot/pkg/log"
 )
 
 func validate(toValue interface{}) (*reflect.Value, error)  {
@@ -264,12 +264,12 @@ func Replace(to interface{}, name, value string) {
 			//dst = indirect(reflect.New(toType).Elem())
 			if t.Kind() == reflect.Slice {
 				dst = indirect(t.Index(i))
-				log.Debug(dst.Interface())
+				//log.Debug(dst.Interface())
 
 				// TODO: refactoring below code
 				dstType := dst.Type().Name()
 				dstValue := dst.Interface()
-				log.Debug(dstType)
+				//log.Debug(dstType)
 				dv := fmt.Sprintf("%v", dstValue)
 				if strings.Contains(dv, dstVarName) {
 					if dstType == "string" && dst.IsValid() && dst.CanSet() {
@@ -287,23 +287,23 @@ func Replace(to interface{}, name, value string) {
 
 		for _, field := range deepFields(toType) {
 			fieldName := field.Name
-			log.Debug("fieldName: ", fieldName)
+			//log.Debug("fieldName: ", fieldName)
 			if dstField := dst.FieldByName(fieldName); dstField.IsValid() && dstField.CanSet() {
 				fieldValue := dstField.Interface()
-				log.Debug("fieldValue: ", fieldValue)
+				//log.Debug("fieldValue: ", fieldValue)
 
 				kind := dstField.Kind()
 				switch kind {
 				case reflect.String:
 					fv := fmt.Sprintf("%v", fieldValue)
-					log.Debug(fieldName, ": ", fieldValue)
+					//log.Debug(fieldName, ": ", fieldValue)
 					if strings.Contains(fv, dstVarName) {
 						newVal := strings.Replace(fv, dstVarName, value, -1)
-						log.Debug("newVal: " + newVal)
+						//log.Debug("newVal: " + newVal)
 						dstField.SetString(newVal)
 					}
 				default:
-					log.Debug(fieldName, " is a ", kind)
+					//log.Debug(fieldName, " is a ", kind)
 					Replace(dstField.Addr().Interface(), name, value)
 				}
 			}

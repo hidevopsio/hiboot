@@ -40,11 +40,11 @@ import (
 type PipelineInterface interface {
 	Init(pl *Pipeline)
 	CreateSecret(username, password string, isToken bool) (string, error)
-	Build(secret string) error
+	Build(secret string, completedHandler func() error) error
 	RunUnitTest() error
 	RunIntegrationTest() error
 	Analysis() error
-	CreateDeploymentConfig() error
+	CreateDeploymentConfig(force bool) error
 	InjectSideCar() error
 	Deploy() error
 	CreateService() error
@@ -118,7 +118,7 @@ func (p *Pipeline) Init(pl *Pipeline) {
 		}
 	}
 
-	log.Debug(p)
+	//log.Debug(p)
 }
 
 func (p *Pipeline) CreateSecret(username, password string, isToken bool) (string, error) {
@@ -134,7 +134,7 @@ func (p *Pipeline) CreateSecret(username, password string, isToken bool) (string
 	return secretName, err
 }
 
-func (p *Pipeline) Build(secret string) error {
+func (p *Pipeline) Build(secret string, completedHandler func() error) error {
 	log.Debug("Pipeline.Build()")
 
 	scmUrl := p.CombineScmUrl()
@@ -147,7 +147,10 @@ func (p *Pipeline) Build(secret string) error {
 		return err
 	}
 	// Build image stream
-	_, err = buildConfig.Build(p.RepositoryUrl, p.Script)
+	build, err := buildConfig.Build(p.RepositoryUrl, p.Script)
+
+	buildConfig.Watch(build, completedHandler)
+
 	return err
 }
 
@@ -171,7 +174,7 @@ func (p *Pipeline) Analysis() error {
 	return nil
 }
 
-func (p *Pipeline) CreateDeploymentConfig() error {
+func (p *Pipeline) CreateDeploymentConfig(force bool) error {
 	log.Debug("Pipeline.CreateDeploymentConfig()")
 
 	// new dc instance
@@ -180,11 +183,12 @@ func (p *Pipeline) CreateDeploymentConfig() error {
 		return err
 	}
 
-	// create dc
-	err = dc.Create(&p.Env, &p.Ports, p.Replicas)
+
+	err = dc.Create(&p.Env, &p.Ports, p.Replicas, force)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -202,7 +206,8 @@ func (p *Pipeline) Deploy() error {
 		return err
 	}
 
-	_, err = dc.Instantiate()
+	d, err := dc.Instantiate()
+	log.Debug(d.Name)
 	if err != nil {
 		return err
 	}
@@ -237,7 +242,10 @@ func (p *Pipeline) CreateRoute() error {
 }
 
 func (p *Pipeline) Run(username, password string, isToken bool) error {
-	// first, let's check if namespace is exist or not
+	log.Debug("Pipeline.Run()")
+	// TODO: first, let's check if namespace is exist or not
+
+	// TODO: check if the same app in the same namespace is already in running status.
 
 	// create secret for building image
 	secret, err := p.CreateSecret(username, password, isToken)
@@ -246,39 +254,52 @@ func (p *Pipeline) Run(username, password string, isToken bool) error {
 	}
 
 	// build image
-	err = p.Build(secret)
+	err = p.Build(secret, func() error {
+		// create dc - deployment config
+		err = p.CreateDeploymentConfig(false)
+		if err != nil {
+			log.Error(err.Error())
+			return fmt.Errorf("failed on CreateDeploymentConfig! %s", err.Error())
+		}
+
+		//// deploy
+		//err = p.Deploy()
+		//if err != nil {
+		//	log.Error(err.Error())
+		//	return fmt.Errorf("failed on Deploy! %s", err.Error())
+		//}
+
+		rc := k8s.NewReplicationController(p.App, p.Namespace)
+		// rc.Watch(message, handler)
+		err := rc.Watch(func() error {
+			log.Debug("Completed!")
+			return nil
+		})
+
+		// inject side car
+		err = p.InjectSideCar()
+		if err != nil {
+			log.Error(err.Error())
+			return fmt.Errorf("failed on InjectSideCar! %s", err.Error())
+		}
+
+		// create service
+		err = p.CreateService()
+		if err != nil {
+			log.Error(err.Error())
+			return fmt.Errorf("failed on CreateService! %s", err.Error())
+		}
+
+		// create route
+		err = p.CreateRoute()
+		if err != nil {
+			log.Error(err.Error())
+			return fmt.Errorf("failed on CreateRoute! %s", err.Error())
+		}
+		return nil
+	})
 	if err != nil {
 		return fmt.Errorf("failed on Build! %s", err.Error())
-	}
-
-	// create dc - deployment config
-	err = p.CreateDeploymentConfig()
-	if err != nil {
-		return fmt.Errorf("failed on CreateDeploymentConfig! %s", err.Error())
-	}
-
-	// inject side car
-	err = p.InjectSideCar()
-	if err != nil {
-		return fmt.Errorf("failed on InjectSideCar! %s", err.Error())
-	}
-
-	// deploy
-	err = p.Deploy()
-	if err != nil {
-		return fmt.Errorf("failed on Deploy! %s", err.Error())
-	}
-
-	// create service
-	err = p.CreateService()
-	if err != nil {
-		return fmt.Errorf("failed on CreateService! %s", err.Error())
-	}
-
-	// create route
-	err = p.CreateRoute()
-	if err != nil {
-		return fmt.Errorf("failed on CreateRoute! %s", err.Error())
 	}
 
 	// finally, all steps are done well, let tell the client ...
