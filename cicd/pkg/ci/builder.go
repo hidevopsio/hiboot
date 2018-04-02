@@ -27,12 +27,11 @@ type Configuration struct {
 	Pipeline Pipeline `mapstructure:"pipeline"`
 }
 
-var conf Configuration
-
-
 // TODO: we may eliminate this func, merge to system.builder instead
 func Build(name string) *Configuration {
 	// TODO: should be refactored
+	var conf Configuration
+
 	wd := utils.GetWorkingDir("/pkg/ci/builder.go")
 
 	viper.AddConfigPath(wd + "/config")

@@ -105,7 +105,7 @@ func GenerateJwtToken(payload MapJwt, expired int64, unit time.Duration) (JwtTok
 func (b *Boot) Init() {
 	jwtHandler = jwtmiddleware.New(jwtmiddleware.Config{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
-			log.Debug(token)
+			//log.Debug(token)
 			return verifyKey, nil
 		},
 		// When set, the middleware verifies that tokens are signed with the specific signing algorithm

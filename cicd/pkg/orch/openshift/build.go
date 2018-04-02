@@ -23,6 +23,7 @@ import (
 	"github.com/hidevopsio/hi/cicd/pkg/orch/k8s"
 	"github.com/hidevopsio/hi/boot/pkg/log"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/watch"
 )
 
 type Scm struct{
@@ -32,7 +33,7 @@ type Scm struct{
 }
 
 type BuildConfig struct {
-	AppName   string
+	Name      string
 	Namespace string
 	Scm       Scm
 	ImageTag  string
@@ -72,7 +73,7 @@ func NewBuildConfig(namespace, appName, scmUrl, scmRef, scmSecret, imageTag, s2i
 			Namespace: namespace,
 		},
 
-		AppName: appName,
+		Name:      appName,
 		Namespace: namespace,
 		Scm: Scm{
 			Url:    scmUrl,
@@ -97,7 +98,7 @@ func (b *BuildConfig) Create() (*v1.BuildConfig, error) {
 	// TODO: for the sake of decoupling, the image stream creation should be here or not?
 	// create imagestream
 	imageStream := &ImageStream{
-		Name:      b.AppName,
+		Name:      b.Name,
 		Namespace: b.Namespace,
 	}
 
@@ -124,9 +125,9 @@ func (b *BuildConfig) Create() (*v1.BuildConfig, error) {
 	// buildConfig
 	buildConfig := &v1.BuildConfig{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: b.AppName,
+			Name: b.Name,
 			Labels: map[string]string{
-				"app": b.AppName,
+				"app": b.Name,
 			},
 		},
 		Spec: v1.BuildConfigSpec{
@@ -155,14 +156,14 @@ func (b *BuildConfig) Create() (*v1.BuildConfig, error) {
 				Output: v1.BuildOutput{
 					To: &corev1.ObjectReference{
 						Kind: "ImageStreamTag",
-						Name: b.AppName + ":" + b.ImageTag,
+						Name: b.Name + ":" + b.ImageTag,
 					},
 				},
 			},
 		},
 	}
 
-	bc, err := b.BuildConfigs.Get(b.AppName, metav1.GetOptions{})
+	bc, err := b.BuildConfigs.Get(b.Name, metav1.GetOptions{})
 	if errors.IsNotFound(err) {
 		bc, err = b.BuildConfigs.Create(buildConfig)
 		if nil == err {
@@ -186,7 +187,7 @@ func (b *BuildConfig) Create() (*v1.BuildConfig, error) {
 // @Return *v1.BuildConfig, error
 func (b *BuildConfig) Get() (*v1.BuildConfig, error) {
 	log.Debug("BuildConfig.Get()")
-	return b.BuildConfigs.Get(b.AppName, metav1.GetOptions{})
+	return b.BuildConfigs.Get(b.Name, metav1.GetOptions{})
 }
 
 // @Title Delete
@@ -195,7 +196,7 @@ func (b *BuildConfig) Get() (*v1.BuildConfig, error) {
 // @Return error
 func (b *BuildConfig) Delete() error {
 	log.Debug("BuildConfig.Delet()")
-	return b.BuildConfigs.Delete(b.AppName, &metav1.DeleteOptions{})
+	return b.BuildConfigs.Delete(b.Name, &metav1.DeleteOptions{})
 }
 
 
@@ -213,9 +214,9 @@ func (b *BuildConfig) Build(repoUrl string, script string) (*v1.Build, error) {
 			APIVersion: "build.openshift.io/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: b.AppName,
+			Name: b.Name,
 			Labels: map[string]string{
-				"app": b.AppName,
+				"app": b.Name,
 			},
 		},
 		TriggeredBy: append([]v1.BuildTriggerCause{},
@@ -243,13 +244,60 @@ func (b *BuildConfig) Build(repoUrl string, script string) (*v1.Build, error) {
 		From: &b.From,
 	}
 
-	build, err := b.BuildConfigs.Instantiate(b.AppName, &buildRequest)
+	build, err := b.BuildConfigs.Instantiate(b.Name, &buildRequest)
 	if nil == err {
 		log.Infof("Instantiated Build %v", build.Name)
 	}
 	return build, err
 }
 
+func (b *BuildConfig) Watch(build *v1.Build, completedHandler func() error) error {
+	w, err := b.Builds.Watch(metav1.ListOptions{
+		LabelSelector: "app=" + b.Name,
+		Watch: true,
+	})
+
+	if nil != err {
+		return err
+	}
+
+	for {
+		select {
+		case event, ok := <-w.ResultChan():
+			if !ok {
+				log.Warn("Completed ...")
+				break
+			}
+			switch event.Type {
+			case watch.Added:
+				bld := event.Object.(*v1.Build)
+				log.Info("Added new build ", bld.Name)
+			case watch.Modified:
+
+				bld := event.Object.(*v1.Build)
+				if bld.Name == build.Name {
+					//log.Info("Modified: ", event.Object)
+					log.Debugf("bld.Status.Phase: %v", bld.Status.Phase)
+					if bld.Status.Phase == v1.BuildPhaseComplete {
+						var err error
+						if nil !=  completedHandler {
+							err = completedHandler()
+						}
+						w.Stop()
+						return err
+					}
+				}
+
+			case watch.Deleted:
+				log.Info("Deleted: ", event.Object)
+			default:
+				log.Error("Failed")
+			}
+		}
+	}
+
+	return err
+}
 
 // @Title GetBuild
 // @Description Get current build
@@ -257,7 +305,7 @@ func (b *BuildConfig) Build(repoUrl string, script string) (*v1.Build, error) {
 // @Return *v1.Build, error
 func (b *BuildConfig) GetBuild() (*v1.Build, error) {
 	log.Debug("BuildConfig.GetBuild()")
-	return b.Builds.Get(b.AppName, metav1.GetOptions{})
+	return b.Builds.Get(b.Name, metav1.GetOptions{})
 }
 
 

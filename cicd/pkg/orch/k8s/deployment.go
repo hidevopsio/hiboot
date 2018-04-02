@@ -110,7 +110,7 @@ func (d *Deployment) Deploy() (string, error) {
 	switch {
 	case err == nil:
 		log.Info("Deployment updated")
-	case errors.IsNotFound(err):
+	case !errors.IsNotFound(err):
 		_, err = deployments.Create(deploySpec)
 		retVal = fmt.Sprintf("Created deployment %q.\n", result.GetObjectMeta().GetName())
 		log.Info(retVal)

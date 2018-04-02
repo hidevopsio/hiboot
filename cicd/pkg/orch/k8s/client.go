@@ -47,7 +47,8 @@ func init() {
 		} else {
 			kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 		}
-		Config, err = clientcmd.BuildConfigFromFlags(os.Getenv("KUBE_MASTER_URL"), *kubeconfig)
+		//Config, err = clientcmd.BuildConfigFromFlags(os.Getenv("KUBE_MASTER_URL"), *kubeconfig)
+		Config, err = clientcmd.BuildConfigFromFlags("", *kubeconfig)
 		if err != nil {
 			panic(err.Error())
 		}

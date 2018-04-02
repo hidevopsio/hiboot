@@ -45,7 +45,7 @@ func fatal(err error) {
 }
 
 func (u *User) Login(baseUrl, username, password string) (string, string, error) {
-
+	log.Debug("User.Login()")
 	retVal := "Login successful."
 	// login scm
 	err := u.GetSession(baseUrl, username, password)
@@ -57,7 +57,7 @@ func (u *User) Login(baseUrl, username, password string) (string, string, error)
 }
 
 func (u *User) GetSession(baseUrl, username, password string) error {
-
+	log.Debug("User.GetSession()")
 	scmFactory := new(factories.ScmFactory)
 	var err error
 	u.session, err = scmFactory.New(factories.GitlabScmType)

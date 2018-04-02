@@ -53,15 +53,15 @@ func NewDeploymentConfig(name, namespace string) (*DeploymentConfig, error) {
 	}, nil
 }
 
-func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas int32) error {
+func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas int32, force bool) error {
 	log.Debug("DeploymentConfig.Create()")
-	var intervalSeconds int64
-	var timeoutSeconds int64
-	var updatePeriodSeconds int64
-
-	intervalSeconds = 1
-	timeoutSeconds = 600
-	updatePeriodSeconds = 1
+	//var intervalSeconds int64
+	//var timeoutSeconds int64
+	//var updatePeriodSeconds int64
+	//
+	//intervalSeconds = 1
+	//timeoutSeconds = 600
+	//updatePeriodSeconds = 1
 
 	// env
 	e := make([]corev1.EnvVar, 0)
@@ -88,11 +88,11 @@ func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas 
 			Strategy: v1.DeploymentStrategy{
 				Type: v1.DeploymentStrategyTypeRolling,
 
-				RollingParams: &v1.RollingDeploymentStrategyParams{
-					IntervalSeconds:     &intervalSeconds,
-					TimeoutSeconds:      &timeoutSeconds,
-					UpdatePeriodSeconds: &updatePeriodSeconds,
-				},
+				//RollingParams: &v1.RollingDeploymentStrategyParams{
+				//	IntervalSeconds:     &intervalSeconds,
+				//	TimeoutSeconds:      &timeoutSeconds,
+				//	UpdatePeriodSeconds: &updatePeriodSeconds,
+				//},
 			},
 
 			Template: &corev1.PodTemplateSpec{
@@ -133,9 +133,6 @@ func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas 
 						},
 					},
 				},
-				{
-					Type: "ConfigChange",
-				},
 			},
 		},
 	}
@@ -143,26 +140,33 @@ func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas 
 	result, err := dc.Interface.Get(dc.Name, metav1.GetOptions{})
 	switch {
 	case err == nil:
-		cfg.ObjectMeta.ResourceVersion = result.ResourceVersion
-		result, err = dc.Interface.Update(cfg)
-		if err == nil {
-			log.Infof("Updated DeploymentConfig %v.", result.Name)
-		} else {
-			return err
+		// select update or patch according to the user's request
+		if force {
+			cfg.ObjectMeta.ResourceVersion = result.ResourceVersion
+			result, err = dc.Interface.Update(cfg)
+			if err == nil {
+				log.Infof("Updated DeploymentConfig %v.", result.Name)
+			} else {
+				return err
+			}
 		}
-		break
 	case errors.IsNotFound(err):
 		d, err := dc.Interface.Create(cfg)
 		if err != nil {
 			return err
 		}
 		log.Infof("Created DeploymentConfig %v.\n", d.Name)
-		break
 	default:
 		return fmt.Errorf("failed to create DeploymentConfig: %s", err)
 	}
 
 	return nil
+}
+
+
+func (dc *DeploymentConfig) Get() (*v1.DeploymentConfig, error) {
+	log.Debug("DeploymentConfig.Get()")
+	return dc.Interface.Get(dc.Name, metav1.GetOptions{})
 }
 
 func (dc *DeploymentConfig) Delete() error {
