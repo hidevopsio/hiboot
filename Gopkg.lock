@@ -14,6 +14,12 @@
   revision = "35b3f5bdbcc920cd31f4870536dbc63be8530541"
 
 [[projects]]
+  name = "github.com/ajg/form"
+  packages = ["."]
+  revision = "cc2954064ec9ea8d93917f0f87456e11d7b881ad"
+  version = "v1.5"
+
+[[projects]]
   branch = "master"
   name = "github.com/aymerick/raymond"
   packages = [".","ast","lexer","parser"]
@@ -54,6 +60,12 @@
   packages = ["."]
   revision = "c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9"
   version = "v1.4.7"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/gavv/monotime"
+  packages = ["."]
+  revision = "6f8212e8d10df7383609d3c377ca08884d8f3ec0"
 
 [[projects]]
   name = "github.com/ghodss/yaml"
@@ -134,10 +146,22 @@
   version = "0.3.2"
 
 [[projects]]
+  name = "github.com/imkira/go-interpol"
+  packages = ["."]
+  revision = "5accad8134979a6ac504d456a6c7f1c53da237ca"
+  version = "v1.1.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/iris-contrib/formBinder"
   packages = ["."]
   revision = "ad9fb86c356f971f30319c40ddbdcf72129a2791"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/iris-contrib/httpexpect"
+  packages = ["."]
+  revision = "ebe99fcebbcedf6e7916320cce24c3e1832766ac"
 
 [[projects]]
   name = "github.com/iris-contrib/middleware"
@@ -177,7 +201,7 @@
 
 [[projects]]
   name = "github.com/kataras/iris"
-  packages = [".","cache","cache/cfg","cache/client","cache/client/rule","cache/entry","cache/ruleset","cache/uri","context","core/errors","core/handlerconv","core/host","core/maintenance","core/maintenance/version","core/memstore","core/netutil","core/router","core/router/macro","core/router/macro/interpreter/ast","core/router/macro/interpreter/lexer","core/router/macro/interpreter/parser","core/router/macro/interpreter/token","core/router/node","middleware/logger","middleware/recover","view"]
+  packages = [".","cache","cache/cfg","cache/client","cache/client/rule","cache/entry","cache/ruleset","cache/uri","context","core/errors","core/handlerconv","core/host","core/maintenance","core/maintenance/version","core/memstore","core/netutil","core/router","core/router/macro","core/router/macro/interpreter/ast","core/router/macro/interpreter/lexer","core/router/macro/interpreter/parser","core/router/macro/interpreter/token","core/router/node","httptest","middleware/logger","middleware/recover","view"]
   revision = "0c841013385c284695f2336b672101168d748480"
   version = "v10.3.0"
 
@@ -261,14 +285,20 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/moul/http2curl"
+  packages = ["."]
+  revision = "9ac6cf4d929b2fa8fd2d2e6dec5bb0feb4f4911d"
+
+[[projects]]
+  branch = "master"
   name = "github.com/openshift/api"
-  packages = ["build/v1","image/docker10","image/dockerpre012","image/v1","project/v1"]
+  packages = ["apps/v1","build/v1","image/docker10","image/dockerpre012","image/v1","project/v1","route/v1"]
   revision = "dca24d1902afee9d2be02425a2d7c9f910063631"
 
 [[projects]]
   branch = "master"
   name = "github.com/openshift/client-go"
-  packages = ["build/clientset/versioned/scheme","build/clientset/versioned/typed/build/v1","image/clientset/versioned/scheme","image/clientset/versioned/typed/image/v1","project/clientset/versioned/scheme","project/clientset/versioned/typed/project/v1"]
+  packages = ["apps/clientset/versioned/scheme","apps/clientset/versioned/typed/apps/v1","build/clientset/versioned/scheme","build/clientset/versioned/typed/build/v1","image/clientset/versioned/scheme","image/clientset/versioned/typed/image/v1","project/clientset/versioned/scheme","project/clientset/versioned/typed/project/v1","route/clientset/versioned/scheme","route/clientset/versioned/typed/route/v1"]
   revision = "5039916f9ac015e14899959fb6fc62945578657e"
 
 [[projects]]
@@ -308,6 +338,12 @@
   version = "v1.2.0"
 
 [[projects]]
+  name = "github.com/sergi/go-diff"
+  packages = ["diffmatchpatch"]
+  revision = "1744e2970ca51c86172c8190fadad617561ed6e7"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/shurcooL/sanitized_anchor_name"
   packages = ["."]
@@ -345,7 +381,7 @@
 
 [[projects]]
   name = "github.com/stretchr/testify"
-  packages = ["assert"]
+  packages = ["assert","require"]
   revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
   version = "v1.2.1"
 
@@ -357,6 +393,42 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/xeipuuv/gojsonpointer"
+  packages = ["."]
+  revision = "4e3ac2762d5f479393488629ee9370b50873b3a6"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/xeipuuv/gojsonreference"
+  packages = ["."]
+  revision = "bd5ef7bd5415a7ac448318e64f11a24cd21e594b"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/xeipuuv/gojsonschema"
+  packages = ["."]
+  revision = "8bcffc811467a5f691810420385be6e66b35a317"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/yalp/jsonpath"
+  packages = ["."]
+  revision = "024efa345fa9e1e6574b31ca937d71fd09da80d1"
+
+[[projects]]
+  name = "github.com/yudai/gojsondiff"
+  packages = [".","formatter"]
+  revision = "7b1b7adf999dab73a6eb02669c3d82dbb27a3dd6"
+  version = "1.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/yudai/golcs"
+  packages = ["."]
+  revision = "ecda9a501e8220fae3b4b600c3db4b0ba22cfc68"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/crypto"
   packages = ["acme","acme/autocert","ssh/terminal"]
   revision = "c4a91bd4f524f10d064139674cf55852e055ad01"
@@ -364,7 +436,7 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["html","html/atom","http2","http2/hpack","idna","lex/httplex"]
+  packages = ["html","html/atom","http2","http2/hpack","idna","lex/httplex","publicsuffix"]
   revision = "892bf7b0c6e2f93b51166bf3882e50277fa5afc6"
 
 [[projects]]
@@ -418,6 +490,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6cf51290cb43cd181dbd029d81e0c4fd8051a5eee32fd4b5027982e1ec141be3"
+  inputs-digest = "ffa0121d957f64206c53fdbb85000ad147d1cf3ef19f5aa45c3dc10fa89434fc"
   solver-name = "gps-cdcl"
   solver-version = 1
