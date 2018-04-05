@@ -25,24 +25,29 @@ import (
 	"strings"
 )
 
-type CicdRequest struct{
-	Project  string `json:"project"`	// Project = Namespace
+type CicdRequest struct {
+	Project  string `json:"project"` // Project = Namespace
 	App      string `json:"app"`
 	Profile  string `json:"profile"`
 	Pipeline string `json:"pipeline"`
 }
 
-
-type CicdResponse struct{
+type CicdResponse struct {
 	Message string `json:"message"`
 }
 
 // Operations about object
-type CicdController struct {}
+type CicdController struct{}
 
-func init()  {
+func init() {
 	log.SetLevel(log.DebugLevel)
 }
+
+const (
+	ScmUrl      = "url"
+	ScmUsername = "username"
+	ScmPassword = "password"
+)
 
 func (c *CicdController) Before(ctx iris.Context) {
 	ctx.Application().Logger().Infof("Path: %s | IP: %s", ctx.Path(), ctx.RemoteAddr())
@@ -51,7 +56,6 @@ func (c *CicdController) Before(ctx iris.Context) {
 	// if missing then it stops the execution at this handler.
 	ctx.Next()
 }
-
 
 // @Title Deploy
 // @Description deploy application by the pipeline
@@ -64,7 +68,7 @@ func (c *CicdController) Run(ctx iris.Context) {
 	var pl ci.Pipeline
 	err := ctx.ReadJSON(&pl)
 	if err != nil {
-		ctx.Values().Set("error", "deployment failed, read and parse request body failed. " + err.Error())
+		ctx.Values().Set("error", "deployment failed, read and parse request body failed. "+err.Error())
 		ctx.StatusCode(iris.StatusInternalServerError)
 		return
 	}
@@ -73,13 +77,13 @@ func (c *CicdController) Run(ctx iris.Context) {
 	token := ctx.Values().Get("jwt").(*jwt.Token)
 	var username, password string
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		pl.ScmUrl = parseToken(claims, "url")
-		username = parseToken(claims, "username")
-		password = parseToken(claims, "password")
 
-		log.Debug("url: ", pl.ScmUrl)
-		log.Debug("username: ", username)
-		log.Debug("password: ", strings.Repeat("*", len(password)))
+		pl.ScmUrl = parseToken(claims, ScmUrl)
+		username = parseToken(claims, ScmUsername)
+		password = parseToken(claims, ScmPassword)
+
+		log.Debugf("url: %v, username: %v, password: %v", pl.ScmUrl, username, strings.Repeat("*", len(password)))
+
 	} else {
 		log.Debug(err)
 	}

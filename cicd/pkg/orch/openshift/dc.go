@@ -55,13 +55,6 @@ func NewDeploymentConfig(name, namespace string) (*DeploymentConfig, error) {
 
 func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas int32, force bool) error {
 	log.Debug("DeploymentConfig.Create()")
-	//var intervalSeconds int64
-	//var timeoutSeconds int64
-	//var updatePeriodSeconds int64
-	//
-	//intervalSeconds = 1
-	//timeoutSeconds = 600
-	//updatePeriodSeconds = 1
 
 	// env
 	e := make([]corev1.EnvVar, 0)
@@ -82,17 +75,10 @@ func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas 
 
 			Selector: map[string]string{
 				"app": dc.Name,
-				//"deploymentconfig": dc.Name,
 			},
 
 			Strategy: v1.DeploymentStrategy{
 				Type: v1.DeploymentStrategyTypeRolling,
-
-				//RollingParams: &v1.RollingDeploymentStrategyParams{
-				//	IntervalSeconds:     &intervalSeconds,
-				//	TimeoutSeconds:      &timeoutSeconds,
-				//	UpdatePeriodSeconds: &updatePeriodSeconds,
-				//},
 			},
 
 			Template: &corev1.PodTemplateSpec{
@@ -103,6 +89,7 @@ func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas 
 					},
 				},
 				Spec: corev1.PodSpec{
+					// TODO: add LivenessProbe and ReadinessProbe config below
 					Containers: []corev1.Container{
 						{
 							Env:             e,
@@ -136,6 +123,8 @@ func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas 
 			},
 		},
 	}
+
+	// inject side car here
 
 	result, err := dc.Interface.Get(dc.Name, metav1.GetOptions{})
 	switch {

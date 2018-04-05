@@ -40,14 +40,13 @@ func init() {
 
 	var err error
 
-	if os.Getenv("KUBE_CLIENT_MODE") == "external" {
+	if os.Getenv("KUBERNETES_SERVICE_HOST") == "" {
 		log.Info("Kubernetes External Client Mode")
 		if home := homedir.HomeDir(); home != "" {
 			kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
 		} else {
 			kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 		}
-		//Config, err = clientcmd.BuildConfigFromFlags(os.Getenv("KUBE_MASTER_URL"), *kubeconfig)
 		Config, err = clientcmd.BuildConfigFromFlags("", *kubeconfig)
 		if err != nil {
 			panic(err.Error())
