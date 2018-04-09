@@ -16,9 +16,9 @@ pipeline:
   - name: SPRING_PROFILES_ACTIVE
     value: ${profile}
   ports:
-  - name: 7575-tcp
+  - name: grpc-7575
     port: 7575
-    containerPort: 8080
+    containerPort: 7575
     protocol: TCP
   script: |
     mvn clean package -U -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true

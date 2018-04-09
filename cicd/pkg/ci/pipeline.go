@@ -52,22 +52,19 @@ type PipelineInterface interface {
 	Run(username, password string, isToken bool) error
 }
 
-//type Ports struct {
-//	Name          string `json:"name"`
-//	Port          int32  `json:"port" `
-//	ContainerPort int32  `json:"container_port"`
-//	Protocol      string `json:"protocol,omitempty"`
-//}
+type Scm struct {
+	Type   string `json:"type"`
+	Url    string `json:"url"`
+	Ref    string `json:"ref"`
+}
 
 type Pipeline struct {
 	Name           string       `json:"name"`
-	ScmType        string       `json:"scm_type"`
-	ScmUrl         string       `json:"scm_url"`
-	ScmRef         string       `json:"scm_ref"`
 	App            string       `json:"app"`
 	Profile        string       `json:"profile"`
 	Project        string       `json:"project"`
 	Namespace      string       `json:"namespace"`
+	Scm            Scm          `json:"scm"`
 	Replicas       int32        `json:"replicas"`
 	Version        string       `json:"version"`
 	ImageTag       string       `json:"image_tag"`
@@ -138,7 +135,7 @@ func (p *Pipeline) Build(secret string, completedHandler func() error) error {
 	log.Debug("Pipeline.Build()")
 
 	scmUrl := p.CombineScmUrl()
-	buildConfig, err := openshift.NewBuildConfig(p.Namespace, p.App, scmUrl, p.ScmRef, secret, p.ImageTag, p.ImageStream)
+	buildConfig, err := openshift.NewBuildConfig(p.Namespace, p.App, scmUrl, p.Scm.Ref, secret, p.ImageTag, p.ImageStream)
 	if err != nil {
 		return err
 	}
@@ -155,7 +152,7 @@ func (p *Pipeline) Build(secret string, completedHandler func() error) error {
 }
 
 func (p *Pipeline) CombineScmUrl() string {
-	scmUrl := p.ScmUrl + "/" + p.Project + "/" + p.App + "." + p.ScmType
+	scmUrl := p.Scm.Url + "/" + p.Project + "/" + p.App + "." + p.Scm.Type
 	return scmUrl
 }
 
@@ -182,7 +179,6 @@ func (p *Pipeline) CreateDeploymentConfig(force bool) error {
 	if err != nil {
 		return err
 	}
-
 
 	err = dc.Create(&p.Env, &p.Ports, p.Replicas, force)
 	if err != nil {

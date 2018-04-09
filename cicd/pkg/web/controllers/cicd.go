@@ -78,11 +78,11 @@ func (c *CicdController) Run(ctx iris.Context) {
 	var username, password string
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 
-		pl.ScmUrl = parseToken(claims, ScmUrl)
+		pl.Scm.Url = parseToken(claims, ScmUrl)
 		username = parseToken(claims, ScmUsername)
 		password = parseToken(claims, ScmPassword)
 
-		log.Debugf("url: %v, username: %v, password: %v", pl.ScmUrl, username, strings.Repeat("*", len(password)))
+		log.Debugf("url: %v, username: %v, password: %v", pl.Scm.Url, username, strings.Repeat("*", len(password)))
 
 	} else {
 		log.Debug(err)
