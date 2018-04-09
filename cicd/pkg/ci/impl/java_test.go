@@ -32,17 +32,18 @@ func TestJavaPipeline(t *testing.T)  {
 
 	log.Debug("Test Java Pipeline")
 
-	javaPipeline := &JavaPipeline{
-		ci.Pipeline{
-			App: "test",
-			Project: "demo",
-		},
-	}
+	java := &JavaPipeline{}
 
 	username := os.Getenv("SCM_USERNAME")
 	password := os.Getenv("SCM_PASSWORD")
-	javaPipeline.Init(&ci.Pipeline{Name: "java", ScmUrl: os.Getenv("SCM_URL")})
-	err := javaPipeline.Run(username, password, false)
+	java.Init(&ci.Pipeline{
+		Name: "java",
+		Profile: "dev",
+		App: "hello-world",
+		Project: "demo",
+		Scm: ci.Scm{Url: os.Getenv("SCM_URL")},
+	})
+	err := java.Run(username, password, false)
 	assert.Equal(t, nil, err)
 }
 
