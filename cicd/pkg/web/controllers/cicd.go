@@ -23,6 +23,7 @@ import (
 	"github.com/hidevopsio/hi/cicd/pkg/ci"
 	"fmt"
 	"strings"
+	"github.com/hidevopsio/hi/boot/pkg/model"
 )
 
 type CicdRequest struct {
@@ -33,7 +34,7 @@ type CicdRequest struct {
 }
 
 type CicdResponse struct {
-	Message string `json:"message"`
+	model.Response
 }
 
 // Operations about object
@@ -106,7 +107,9 @@ func (c *CicdController) Run(ctx iris.Context) {
 		message = "Failed, " + err.Error()
 	}
 	response := &CicdResponse{
-		Message: message,
+		Response: model.Response{
+			Message: message,
+		},
 	}
 
 	// just for debug now
