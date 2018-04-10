@@ -122,6 +122,7 @@ func ResponseError(ctx iris.Context, message string, code int)  {
 	}
 
 	// just for debug now
+	ctx.StatusCode(code)
 	ctx.JSON(response)
 }
 
