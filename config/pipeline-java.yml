@@ -1,29 +1,34 @@
 
 pipeline:
   name: java
-  identifiers:
+  identifiers: # unused
   - pom.xml
-  configFiles:
+  configFiles: # unused
   - src/main/resources/application.yml
   - src/main/resources/application-${profile}.yml
-  deploymentFile: app.jar
-  imagestream: s2i-java:latest
-  versionFrom: pom.xml
-  # different APP_OPTIONS will be set accordingly
-  env:
-  - name: APP_OPTIONS
-    value: -Xms128m -Xmx512m -Xss512k
-  - name: SPRING_PROFILES_ACTIVE
-    value: ${profile}
+  buildConfigs:
+    imagestream: s2i-java:latest
+    env:
+    - name: MAVEN_MIRROR_URL
+      value: ${MAVEN_MIRROR_URL}
+    - name: MAVEN_CLEAR_REPO
+      value: false
+    - name: BUILD_SCRIPT
+      value: |
+        mvn clean package -U -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true
+        if [[ $? == 0 ]]; then
+          echo "Successful."
+        else
+          echo "Failed!"
+        fi
+  deploymentConfigs:
+    env:
+    - name: APP_OPTIONS
+      value: -Xms128m -Xmx512m -Xss512k
+    - name: SPRING_PROFILES_ACTIVE
+      value: ${profile}
   ports:
   - name: grpc-7575
     port: 7575
     containerPort: 7575
     protocol: TCP
-  script: |
-    mvn clean package -U -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true
-    if [[ $? == 0 ]]; then
-      echo "Successful."
-    else
-      echo "Failed!"
-    fi

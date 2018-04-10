@@ -27,8 +27,10 @@ type Configuration struct {
 	Pipeline Pipeline `mapstructure:"pipeline"`
 }
 
+type Builder struct {}
+
 // TODO: we may eliminate this func, merge to system.builder instead
-func Build(name string) *Configuration {
+func (b *Builder) Build(name string) *Configuration {
 	// TODO: should be refactored
 	var conf Configuration
 

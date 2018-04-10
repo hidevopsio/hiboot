@@ -53,29 +53,36 @@ type PipelineInterface interface {
 }
 
 type Scm struct {
-	Type   string `json:"type"`
-	Url    string `json:"url"`
-	Ref    string `json:"ref"`
+	Type string `json:"type"`
+	Url  string `json:"url"`
+	Ref  string `json:"ref"`
+}
+
+type DeploymentConfigs struct {
+	Replicas int32        `json:"replicas"`
+	Env      []system.Env `json:"env"`
+}
+
+type BuildConfigs struct {
+	Tag         string       `json:"tag"`
+	ImageStream string       `json:"image_stream"`
+	Env         []system.Env `json:"env"`
 }
 
 type Pipeline struct {
-	Name           string       `json:"name"`
-	App            string       `json:"app"`
-	Profile        string       `json:"profile"`
-	Project        string       `json:"project"`
-	Namespace      string       `json:"namespace"`
-	Scm            Scm          `json:"scm"`
-	Replicas       int32        `json:"replicas"`
-	Version        string       `json:"version"`
-	ImageTag       string       `json:"image_tag"`
-	ImageStream    string       `json:"image_stream"`
-	DockerRegistry string       `json:"docker_registry"`
-	RepositoryUrl  string       `json:"repository_url"`
-	Identifiers    []string     `json:"identifiers"`
-	ConfigFiles    []string     `json:"config_files"`
-	Env            []system.Env `json:"env"`
-	Ports          []orch.Ports `json:"ports"`
-	Script         string       `json:"script"`
+	Name              string            `json:"name"`
+	App               string            `json:"app"`
+	Profile           string            `json:"profile"`
+	Project           string            `json:"project"`
+	Namespace         string            `json:"namespace"`
+	Scm               Scm               `json:"scm"`
+	Version           string            `json:"version"`
+	DockerRegistry    string            `json:"docker_registry"`
+	Identifiers       []string          `json:"identifiers"`
+	ConfigFiles       []string          `json:"config_files"`
+	Ports             []orch.Ports      `json:"ports"`
+	BuildConfigs      BuildConfigs      `json:"build_configs"`
+	DeploymentConfigs DeploymentConfigs `json:"deployment_configs"`
 }
 
 // @Title Init
@@ -87,13 +94,8 @@ func (p *Pipeline) Init(pl *Pipeline) {
 
 	// load config file
 	if pl != nil {
-		c := Build(pl.Name)
-
-		// read env
-		mavenMirrorUrl := os.Getenv("MAVEN_MIRROR_URL")
-		if mavenMirrorUrl != "" && pl.RepositoryUrl == "" {
-			pl.RepositoryUrl = mavenMirrorUrl
-		}
+		builder := &Builder{}
+		c := builder.Build(pl.Name)
 
 		if pl.Profile == "" {
 			p.Profile = "dev"
@@ -104,6 +106,11 @@ func (p *Pipeline) Init(pl *Pipeline) {
 
 	}
 	// TODO: replace variable inside pipeline, e.g. ${profile}
+	// read env
+	mavenMirrorUrl := os.Getenv("MAVEN_MIRROR_URL")
+	if mavenMirrorUrl != "" {
+		utils.Replace(p, "MAVEN_MIRROR_URL", mavenMirrorUrl)
+	}
 	utils.Replace(p, "profile", pl.Profile)
 
 	if "" == p.Namespace {
@@ -115,7 +122,7 @@ func (p *Pipeline) Init(pl *Pipeline) {
 		}
 	}
 
-	//log.Debug(p)
+	log.Debug(p)
 }
 
 func (p *Pipeline) CreateSecret(username, password string, isToken bool) (string, error) {
@@ -135,7 +142,7 @@ func (p *Pipeline) Build(secret string, completedHandler func() error) error {
 	log.Debug("Pipeline.Build()")
 
 	scmUrl := p.CombineScmUrl()
-	buildConfig, err := openshift.NewBuildConfig(p.Namespace, p.App, scmUrl, p.Scm.Ref, secret, p.ImageTag, p.ImageStream)
+	buildConfig, err := openshift.NewBuildConfig(p.Namespace, p.App, scmUrl, p.Scm.Ref, secret, p.BuildConfigs.Tag, p.BuildConfigs.ImageStream)
 	if err != nil {
 		return err
 	}
@@ -144,7 +151,7 @@ func (p *Pipeline) Build(secret string, completedHandler func() error) error {
 		return err
 	}
 	// Build image stream
-	build, err := buildConfig.Build(p.RepositoryUrl, p.Script)
+	build, err := buildConfig.Build(p.BuildConfigs.Env)
 
 	buildConfig.Watch(build, completedHandler)
 
@@ -180,7 +187,7 @@ func (p *Pipeline) CreateDeploymentConfig(force bool) error {
 		return err
 	}
 
-	err = dc.Create(&p.Env, &p.Ports, p.Replicas, force)
+	err = dc.Create(&p.DeploymentConfigs.Env, &p.Ports, p.DeploymentConfigs.Replicas, force)
 	if err != nil {
 		return err
 	}

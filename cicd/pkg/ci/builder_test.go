@@ -34,8 +34,8 @@ func TestPipelineBuilder(t *testing.T) {
 	sysCfg := system.Build()
 	log.Debug(sysCfg)
 	assert.Equal(t, "hi", sysCfg.App.Name)
-
-	cfg := Build("java")
+	builder := &Builder{}
+	cfg := builder.Build("java")
 	log.Debug(cfg)
 	assert.Equal(t, "java", cfg.Pipeline.Name)
 

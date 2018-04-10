@@ -244,10 +244,6 @@ func Replace(to interface{}, name, value string) {
 	}
 
 	toType := indirectType(t.Type())
-	//k := toType.Kind()
-	//if k != reflect.Struct {
-	//	return
-	//}
 
 	isSlice := false
 	fieldSize := 1
