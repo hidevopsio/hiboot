@@ -24,6 +24,8 @@ import (
 	"github.com/hidevopsio/hi/boot/pkg/log"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/watch"
+	"github.com/hidevopsio/hi/boot/pkg/system"
+	"github.com/jinzhu/copier"
 )
 
 type Scm struct{
@@ -204,8 +206,12 @@ func (b *BuildConfig) Delete() error {
 // @Description Start build according to previous build config settings, it will produce new image build
 // @Param repo string, buildCmd string
 // @Return *v1.Build, error
-func (b *BuildConfig) Build(repoUrl string, script string) (*v1.Build, error) {
+func (b *BuildConfig) Build(env []system.Env) (*v1.Build, error) {
 	log.Debug("BuildConfig.Build()")
+
+	e := make([]corev1.EnvVar, 0)
+	copier.Copy(&e, env)
+
 	incremental := false
 	buildTriggerCauseManualMsg := "Manually triggered"
 	buildRequest := v1.BuildRequest{
@@ -227,20 +233,7 @@ func (b *BuildConfig) Build(repoUrl string, script string) (*v1.Build, error) {
 		SourceStrategyOptions: &v1.SourceStrategyOptions{
 			Incremental: &incremental,
 		},
-		Env: []corev1.EnvVar{
-			{
-				Name:  "MAVEN_MIRROR_URL",
-				Value: repoUrl, // for test only, it should be passed from the client
-			},
-			{
-				Name:  "MAVEN_CLEAR_REPO",
-				Value: "false",
-			},
-			{
-				Name:  "PIPELINE_SCRIPT",
-				Value: script,
-			},
-		},
+		Env: e,
 		From: &b.From,
 	}
 

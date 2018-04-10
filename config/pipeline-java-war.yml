@@ -3,19 +3,22 @@ pipeline:
   name: java-war
   identifiers:
   - pom.xml
-  deploymentFile: ROOT.war
-  imagestream: s2i-java-war:latest
-  env:
-  - name: APP_OPTIONS
-    value: -Xms128m -Xmx512m -Xss512k -XX:+ExitOnOutOfMemoryError
-  - name: SPRING_PROFILES_ACTIVE
-    value: ${profile}
-  script: |
-    mvn clean package -U -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true
-    if [[ $? == 0 ]]; then
-      echo "Successful."
-    else
-      echo "Failed!"
-    fi
-
-
+  buildConfigs:
+    imagestream: s2i-java-war:latest
+    env:
+    - name: MAVEN_MIRROR_URL
+      value: ${MAVEN_MIRROR_URL}
+    - name: MAVEN_CLEAR_REPO
+      value: false
+    - name: BUILD_SCRIPT
+      value: |
+        mvn clean package -U -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true
+        if [[ $? == 0 ]]; then
+          echo "Successful."
+        else
+          echo "Failed!"
+        fi
+  deploymentConfigs:
+    env:
+    - name: APP_OPTIONS
+      value: -Xms128m -Xmx512m -Xss512k
