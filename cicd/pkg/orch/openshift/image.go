@@ -12,17 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package openshift
-
 
 import (
 	"github.com/openshift/api/image/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	imagev1 "github.com/openshift/client-go/image/clientset/versioned/typed/image/v1"
 	"github.com/hidevopsio/hi/cicd/pkg/orch/k8s"
 	"github.com/hidevopsio/hi/boot/pkg/log"
-	"os"
+	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 type ImageStreamInterface interface {
@@ -34,23 +33,25 @@ type ImageStreamInterface interface {
 type ImageStream struct{
 	Name string
 	Namespace string
+	Source string
+
+	Interface imagev1.ImageStreamInterface
 }
 
-var (
-	imageV1Client *imagev1.ImageV1Client
-)
+func NewImageStream(name, namespace string) (*ImageStream, error) {
+	clientSet, err := imagev1.NewForConfig(k8s.Config)
 
-// @Title init
-// @Description init image config
-// @Param
-// @Return
-func init() {
-	log.SetLevel(log.DebugLevel)
-	var err error
-	imageV1Client, err = imagev1.NewForConfig(k8s.Config)
-	if err != nil {
-		os.Exit(1)
-	}
+	return &ImageStream{
+		Name:      name,
+		Namespace: namespace,
+		Interface: clientSet.ImageStreams(namespace),
+	}, err
+}
+
+func NewImageStreamFromSource(name, namespace, source string) (*ImageStream, error) {
+	is, err := NewImageStream(name, namespace)
+	is.Source = source
+	return is, err
 }
 
 // @Title Create
@@ -59,6 +60,7 @@ func init() {
 // @Return v1.ImageStream, error
 func (is *ImageStream) Create() (*v1.ImageStream, error) {
 	log.Debug("ImageStream.Create()")
+
 	imageStream := &v1.ImageStream{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: is.Name,
@@ -69,8 +71,38 @@ func (is *ImageStream) Create() (*v1.ImageStream, error) {
 		},
 	}
 
-	// create image stream
-	return imageV1Client.ImageStreams(is.Namespace).Create(imageStream)
+	if is.Source != "" {
+		imageStream.Spec = v1.ImageStreamSpec{
+			Tags: []v1.TagReference{
+				{
+					Name: "latest",
+					From: &corev1.ObjectReference{
+						Kind: "DockerImage",
+						Name: is.Source,
+					},
+				},
+			},
+		}
+	}
+
+	result, err := is.Get()
+	message := "create ImageStream"
+	switch {
+	case err == nil:
+		imageStream.ObjectMeta.ResourceVersion = result.ResourceVersion
+		result, err = is.Interface.Update(imageStream)
+		message = "update ImageStream"
+
+	case errors.IsNotFound(err):
+		result, err = is.Interface.Create(imageStream)
+	}
+
+	if err != nil {
+		log.Errorf("Failed to %v %v.", message, result.Name)
+		return nil, err
+	}
+	log.Infof("Succeed to %v %v.", message, result.Name)
+	return result, err
 }
 
 // @Title Get
@@ -79,7 +111,7 @@ func (is *ImageStream) Create() (*v1.ImageStream, error) {
 // @Return v1.ImageStream, error
 func (is *ImageStream) Get() (*v1.ImageStream, error) {
 	log.Debug("ImageStream.Get()")
-	return imageV1Client.ImageStreams(is.Namespace).Get(is.Name, metav1.GetOptions{})
+	return is.Interface.Get(is.Name, metav1.GetOptions{})
 }
 
 
@@ -89,5 +121,5 @@ func (is *ImageStream) Get() (*v1.ImageStream, error) {
 // @Return error
 func (is *ImageStream) Delete() error {
 	log.Debug("ImageStream.Delete()")
-	return imageV1Client.ImageStreams(is.Namespace).Delete(is.Name, &metav1.DeleteOptions{})
+	return is.Interface.Delete(is.Name, &metav1.DeleteOptions{})
 }

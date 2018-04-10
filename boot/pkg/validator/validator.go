@@ -12,20 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package validator
+
 
 import (
-	"runtime"
-	"strings"
-	"github.com/hidevopsio/hi/boot/pkg/log"
-	"os"
+	"gopkg.in/go-playground/validator.v8"
 )
 
-func GetWorkingDir(file string) string {
-	_, filename, _, _ := runtime.Caller(1)
-	wd := strings.Replace(filename, file, "", -1)
-	wd2, _ := os.Getwd()
-	log.Println("working dir: ", wd, " vs ", wd2)
+var validate *validator.Validate
 
-	return wd;
+func init()  {
+	config := &validator.Config{TagName: "validate"}
+
+	validate = validator.New(config)
+}
+
+// Validate struct
+func Validate(o interface{}) error  {
+	return validate.Struct(o)
+}
+
+// validate field
+func ValidateField(field interface{}, tag string) error  {
+	return validate.Field(field, tag)
 }

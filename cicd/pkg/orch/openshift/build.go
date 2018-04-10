@@ -44,7 +44,6 @@ type BuildConfig struct {
 	NewFrom corev1.ObjectReference
 	From corev1.ObjectReference
 
-	Client *buildv1.BuildV1Client // TODO do we need export it?
 	BuildConfigs buildv1.BuildConfigInterface
 	Builds buildv1.BuildInterface
 }
@@ -57,11 +56,10 @@ func NewBuildConfig(namespace, appName, scmUrl, scmRef, scmSecret, imageTag, s2i
 
 	log.Debug("NewBuildConfig()")
 
-	client, err := buildv1.NewForConfig(k8s.Config)
+	clientSet, err := buildv1.NewForConfig(k8s.Config)
 	buildConfig := &BuildConfig{
-		Client:       client, // TODO do we need export it?
-		BuildConfigs: client.BuildConfigs(namespace),
-		Builds:       client.Builds(namespace),
+		BuildConfigs: clientSet.BuildConfigs(namespace),
+		Builds:       clientSet.Builds(namespace),
 
 		NewFrom: corev1.ObjectReference{
 			Kind:      "ImageStreamTag",
@@ -99,9 +97,9 @@ func (b *BuildConfig) Create() (*v1.BuildConfig, error) {
 
 	// TODO: for the sake of decoupling, the image stream creation should be here or not?
 	// create imagestream
-	imageStream := &ImageStream{
-		Name:      b.Name,
-		Namespace: b.Namespace,
+	imageStream, err := NewImageStream(b.Name, b.Namespace)
+	if err != nil {
+		return nil, err
 	}
 
 	var from corev1.ObjectReference

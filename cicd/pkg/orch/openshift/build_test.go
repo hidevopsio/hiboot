@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hi/boot/pkg/log"
 	"os"
+	"github.com/hidevopsio/hi/boot/pkg/system"
 )
 
 func init() {
@@ -39,8 +40,17 @@ func TestBuildCreation(t *testing.T) {
 	secret := "test-secret"
 	imageTag := "latest"
 	s2iImageStream := "s2i-java:latest"
-	script := "mvn clean package -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true"
 	repoUrl := os.Getenv("MAVEN_MIRROR_URL")
+	env := []system.Env{
+		{
+			Name: "BUILD_SCRIPT",
+			Value: "mvn clean package -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true",
+		},
+		{
+			Name: "MAVEN_MIRROR_URL",
+			Value: os.Getenv("MAVEN_MIRROR_URL"),
+		},
+	}
 	log.Debug(repoUrl)
 	log.Debug(scmUrl)
 
@@ -59,7 +69,7 @@ func TestBuildCreation(t *testing.T) {
 	assert.Equal(t, appName, bc.Name)
 
 	// Build image stream
-	build, err := buildConfig.Build(repoUrl, script)
+	build, err := buildConfig.Build(env)
 	assert.Equal(t, nil, err)
 	assert.Contains(t, build.Name, appName)
 

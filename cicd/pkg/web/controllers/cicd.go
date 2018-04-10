@@ -26,13 +26,6 @@ import (
 	"github.com/hidevopsio/hi/boot/pkg/model"
 )
 
-type CicdRequest struct {
-	Project  string `json:"project"` // Project = Namespace
-	App      string `json:"app"`
-	Profile  string `json:"profile"`
-	Pipeline string `json:"pipeline"`
-}
-
 type CicdResponse struct {
 	model.Response
 }

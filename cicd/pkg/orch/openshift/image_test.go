@@ -39,11 +39,23 @@ func TestImageStreamCrud(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, imageStreamName, is.ObjectMeta.Name)
 
-	// update imagestream
-
 	// delete imagestream
 	err = imageStream.Delete()
 	assert.Equal(t, nil, err)
+}
+
+
+func TestImageStreamCreation(t *testing.T) {
+	name := "s2i-java-test"
+	namespace := "openshift"
+	source := "docker.io/hidevops/s2i-java:latest"
+
+	imageStream, err := NewImageStreamFromSource(name, namespace, source)
+
+	// create imagestream
+	is, err := imageStream.Create()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, name, is.ObjectMeta.Name)
 }
 
 

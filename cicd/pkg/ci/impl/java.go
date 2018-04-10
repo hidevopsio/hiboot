@@ -15,7 +15,6 @@
 package impl
 
 import (
-	"github.com/hidevopsio/hi/boot/pkg/log"
 	"github.com/hidevopsio/hi/cicd/pkg/ci"
 )
 
@@ -23,8 +22,3 @@ type JavaPipeline struct{
 	ci.Pipeline
 }
 
-
-func (p *JavaPipeline) Deploy() error {
-	log.Debug("JavaPipeline.Deploy()")
-	return nil
-}

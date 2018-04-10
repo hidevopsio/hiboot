@@ -17,9 +17,9 @@ pipeline:
       value: |
         mvn clean package -U -Dmaven.test.skip=true -Djava.net.preferIPv4Stack=true
         if [[ $? == 0 ]]; then
-          echo "Successful."
+          echo "Build Successful."
         else
-          echo "Failed!"
+          echo "Build Failed!"
         fi
   deploymentConfigs:
     env:

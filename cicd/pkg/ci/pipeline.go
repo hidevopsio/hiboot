@@ -70,10 +70,10 @@ type BuildConfigs struct {
 }
 
 type Pipeline struct {
-	Name              string            `json:"name"`
-	App               string            `json:"app"`
-	Profile           string            `json:"profile"`
-	Project           string            `json:"project"`
+	Name              string            `json:"name" validate:"required"`
+	App               string            `json:"app" validate:"required"`
+	Profile           string            `json:"profile" validate:"required"`
+	Project           string            `json:"project" validate:"required"`
 	Namespace         string            `json:"namespace"`
 	Scm               Scm               `json:"scm"`
 	Version           string            `json:"version"`

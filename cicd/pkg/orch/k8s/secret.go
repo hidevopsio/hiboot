@@ -17,7 +17,7 @@ package k8s
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
+	"k8s.io/client-go/kubernetes/typed/core/v1"
 	"github.com/hidevopsio/hi/boot/pkg/log"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"strings"
@@ -30,6 +30,8 @@ type Secret struct {
 	Namespace string
 
 	secrets *corev1.Secret
+
+	Interface v1.SecretInterface
 }
 
 // Create new instance of type Secret
@@ -37,20 +39,14 @@ func NewSecret(name, username, password, namespace string, isToken bool) (*Secre
 	log.Debugf("NewSecret(%v, %v, %v)", username, strings.Repeat("*", len(password)), namespace)
 
 	var s *Secret
-	if isToken {
-		s = &Secret{
-			Name:      name,
-			Password:  password,
-			Namespace: namespace,
-		}
-	} else {
-
-		s = &Secret{
-			Name:      name,
-			Username:  username,
-			Password:  password,
-			Namespace: namespace,
-		}
+	s = &Secret{
+		Name:      name,
+		Password:  password,
+		Namespace: namespace,
+		Interface: ClientSet.CoreV1().Secrets(namespace),
+	}
+	if !isToken {
+		s.Username = username
 	}
 
 	return s
@@ -81,11 +77,10 @@ func (s *Secret) Create() error {
 	var err error
 
 	_, err = s.Get()
-	secrets := ClientSet.CoreV1().Secrets(s.Namespace)
 	if errors.IsNotFound(err) {
-		s.secrets, err = secrets.Create(coreSecret)
+		s.secrets, err = s.Interface.Create(coreSecret)
 	} else {
-		s.secrets, err = secrets.Update(coreSecret)
+		s.secrets, err = s.Interface.Update(coreSecret)
 	}
 
 	return err
@@ -95,7 +90,7 @@ func (s *Secret) Create() error {
 func (s *Secret) Get() (*corev1.Secret, error) {
 	log.Debug("Secret.Get()")
 	var err error
-	s.secrets, err = ClientSet.CoreV1().Secrets(s.Namespace).Get(s.Name, metav1.GetOptions{})
+	s.secrets, err = s.Interface.Get(s.Name, metav1.GetOptions{})
 
 	return s.secrets, err
 }
@@ -104,7 +99,7 @@ func (s *Secret) Get() (*corev1.Secret, error) {
 func (s *Secret) Delete() error {
 	log.Debug("Secret.Delete()")
 	var err error
-	err = ClientSet.CoreV1().Secrets(s.Namespace).Delete(s.Name, &metav1.DeleteOptions{})
+	err = s.Interface.Delete(s.Name, &metav1.DeleteOptions{})
 
 	return err
 }

@@ -28,23 +28,21 @@ type Project struct{
 	DisplayName string
 	Description string
 
-	Client *projectv1.ProjectV1Client
 	Interface projectv1.ProjectInterface
 }
 
 func NewProject(name, displayName, desc string) (*Project, error)  {
 
-	client, err := projectv1.NewForConfig(k8s.Config)
+	clientSet, err := projectv1.NewForConfig(k8s.Config)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Project{
-		Name: name,
+		Name:        name,
 		DisplayName: displayName,
 		Description: desc,
-		Interface: client.Projects(),
-		Client: client,
+		Interface:   clientSet.Projects(),
 	}, nil
 }
 
