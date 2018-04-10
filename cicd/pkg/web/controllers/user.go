@@ -20,6 +20,7 @@ import (
 	"github.com/hidevopsio/hi/boot/pkg/application"
 	"time"
 	"github.com/hidevopsio/hi/boot/pkg/log"
+	"github.com/hidevopsio/hi/boot/pkg/model"
 )
 
 type UserRequest struct {
@@ -29,8 +30,7 @@ type UserRequest struct {
 }
 
 type UserResponse struct {
-	Message string                `json:"message"`
-	Token   *application.JwtToken `json:"token"`
+	model.Response
 }
 
 // Operations about object
@@ -69,8 +69,10 @@ func (c *UserController) Login(ctx iris.Context) {
 		}, 24, time.Hour)
 		if err == nil {
 			response = &UserResponse{
-				Message: message,
-				Token:   &jwtToken,
+				Response: model.Response{
+					Message: message,
+					Data:   &jwtToken,
+				},
 			}
 		} else {
 			ctx.Values().Set("error", "login failed, generating token failed. " + err.Error())
