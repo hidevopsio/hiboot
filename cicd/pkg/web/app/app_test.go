@@ -113,6 +113,21 @@ func TestCicdRunWithoutToken(t *testing.T) {
 
 }
 
+func TestCicdRunWithValidator(t *testing.T) {
+	log.Println("TestCicdRunWithValidator()")
+
+	e := newTestServer(t)
+
+	jwtToken, err := login(24, time.Hour)
+
+	if err == nil {
+		e.Request("POST", "/cicd/run").WithHeader(
+			"Authorization", "Bearer " + string(jwtToken),
+		).WithJSON(ci.Pipeline{
+		}).Expect().Status(http.StatusInternalServerError)
+	}
+}
+
 func TestCicdRun(t *testing.T) {
 	log.Println("TestCicdRun()")
 
