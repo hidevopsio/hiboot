@@ -37,14 +37,14 @@ type Route struct{
 
 func NewRoute(name, namespace string) (*Route, error)  {
 	log.Debug("NewRoute()")
-	client, err := routev1.NewForConfig(k8s.Config)
+	clientSet, err := routev1.NewForConfig(k8s.Config)
 	if err != nil {
 		return nil, err
 	}
 	return &Route{
-		Name: name,
+		Name:      name,
 		Namespace: namespace,
-		Interface: client.Routes(namespace),
+		Interface: clientSet.Routes(namespace),
 	}, nil
 }
 

@@ -34,13 +34,12 @@ type DeploymentConfig struct {
 	ImageTag  string
 
 	Interface appsv1.DeploymentConfigInterface
-	Client    *appsv1.AppsV1Client
 }
 
 func NewDeploymentConfig(name, namespace string) (*DeploymentConfig, error) {
 	log.Debug("NewDeploymentConfig()")
 
-	client, err := appsv1.NewForConfig(k8s.Config)
+	clientSet, err := appsv1.NewForConfig(k8s.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -48,8 +47,7 @@ func NewDeploymentConfig(name, namespace string) (*DeploymentConfig, error) {
 		Name:      name,
 		Namespace: namespace,
 
-		Interface: client.DeploymentConfigs(namespace),
-		Client:    client,
+		Interface: clientSet.DeploymentConfigs(namespace),
 	}, nil
 }
 

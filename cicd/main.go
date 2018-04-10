@@ -18,6 +18,6 @@ import (
 	"github.com/hidevopsio/hi/cicd/pkg/web/app"
 )
 
-func main()  {
+func main() {
 	app.Run()
 }
