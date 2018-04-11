@@ -19,6 +19,7 @@ import (
 	"github.com/hidevopsio/hi/boot/pkg/log"
 	"github.com/hidevopsio/hi/cicd/pkg/ci"
 	"os"
+	"github.com/stretchr/testify/assert"
 )
 
 func init()  {
@@ -29,17 +30,18 @@ func TestJavaWarPipeline(t *testing.T)  {
 
 	log.Debug("Test Java War Pipeline")
 
-	javaWarPipeline := &JavaWarPipeline{
-		JavaPipeline{
-			ci.Pipeline{
-				App: "test",
-				Project: "demo",
-			},
-		},
-	}
+	java := &JavaWarPipeline{}
 
 	username := os.Getenv("SCM_USERNAME")
 	password := os.Getenv("SCM_PASSWORD")
-	javaWarPipeline.Init(&ci.Pipeline{Name: "java-war"})
-	javaWarPipeline.Run(username, password, false)
+
+	java.Init(&ci.Pipeline{
+		Name: "java-war",
+		Profile: "dev",
+		App: "hello-war",
+		Project: "demo",
+		Scm: ci.Scm{Url: os.Getenv("SCM_URL")},
+	})
+	err := java.Run(username, password, false)
+	assert.Equal(t, nil, err)
 }
