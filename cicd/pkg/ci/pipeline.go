@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"github.com/hidevopsio/hi/cicd/pkg/orch/k8s"
 	"github.com/hidevopsio/hi/cicd/pkg/orch/openshift"
-	"os"
 	"github.com/hidevopsio/hi/boot/pkg/system"
 	"github.com/hidevopsio/hi/cicd/pkg/orch"
 	"github.com/imdario/mergo"
@@ -106,11 +105,6 @@ func (p *Pipeline) Init(pl *Pipeline) {
 
 	}
 	// TODO: replace variable inside pipeline, e.g. ${profile}
-	// read env
-	mavenMirrorUrl := os.Getenv("MAVEN_MIRROR_URL")
-	if mavenMirrorUrl != "" {
-		utils.Replace(p, "MAVEN_MIRROR_URL", mavenMirrorUrl)
-	}
 	utils.Replace(p, "profile", pl.Profile)
 
 	if "" == p.Namespace {

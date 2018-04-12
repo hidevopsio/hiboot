@@ -12,17 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package validator
 
 
 import (
-	 "gopkg.in/go-playground/validator.v8"
+	"gopkg.in/go-playground/validator.v8"
 )
 
-var Validate *validator.Validate
+var validate *validator.Validate
 
 func init()  {
 	config := &validator.Config{TagName: "validate"}
 
-	Validate = validator.New(config)
+	validate = validator.New(config)
+}
+
+// Validate struct
+func Validate(o interface{}) error  {
+	return validate.Struct(o)
+}
+
+// validate field
+func ValidateField(field interface{}, tag string) error  {
+	return validate.Field(field, tag)
 }

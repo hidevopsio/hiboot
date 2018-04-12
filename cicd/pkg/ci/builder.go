@@ -51,7 +51,6 @@ func (b *Builder) Build(name string) *Configuration {
 
 	var confReplacer Configuration
 	viper.SetConfigName("pipeline-" + name)
-	viper.MergeInConfig()
 	err = viper.Unmarshal(&confReplacer)
 	if err != nil {
 		panic(fmt.Errorf("Unable to decode Config: %s \n", err))
@@ -61,3 +60,6 @@ func (b *Builder) Build(name string) *Configuration {
 
 	return &conf
 }
+
+
+

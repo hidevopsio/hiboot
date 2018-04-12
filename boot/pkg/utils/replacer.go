@@ -23,7 +23,7 @@ import (
 	//"github.com/hidevopsio/hi/boot/pkg/log"
 )
 
-func validateValue(toValue interface{}) (*reflect.Value, error)  {
+func validate(toValue interface{}) (*reflect.Value, error)  {
 
 	to := indirect(reflect.ValueOf(toValue))
 
@@ -252,7 +252,7 @@ func Replace(target, m) {
 func Replace(to interface{}, name, value string) {
 
 	//t := reflect.ValueOf(to).Elem()
-	t, err := validateValue(to)
+	t, err := validate(to)
 	if err != nil {
 		return
 	}
