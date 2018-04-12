@@ -21,6 +21,8 @@ import (
 	"errors"
 	"database/sql"
 	//"github.com/hidevopsio/hi/boot/pkg/log"
+	"os"
+	"github.com/hidevopsio/hi/boot/pkg/log"
 )
 
 func validate(toValue interface{}) (*reflect.Value, error)  {
@@ -248,6 +250,22 @@ func Replace(target, m) {
 
 */
 
+func EnvReplace(env string) string  {
+	envSplit := strings.Split(env, "${")
+	for i:=0; i<len(envSplit); i++  {
+
+		spl := strings.Split(envSplit[i], "}")[0]
+		osEnv := os.Getenv(spl)
+		if osEnv!="" {
+			spl = "${"+spl+"}"
+			env = strings.Replace(env, spl, osEnv,1)
+		}
+	}
+
+	return env
+}
+
+
 
 func Replace(to interface{}, name, value string) {
 
@@ -281,10 +299,17 @@ func Replace(to interface{}, name, value string) {
 				dstValue := dst.Interface()
 				//log.Debug(dstType)
 				dv := fmt.Sprintf("%v", dstValue)
-				if strings.Contains(dv, dstVarName) {
-					if dstType == "string" && dst.IsValid() && dst.CanSet() {
-						dv = strings.Replace(dv, dstVarName, value, -1)
-						dst.SetString(dv)
+
+				if dst.Kind() != reflect.String {
+					Replace(dst.Addr().Interface(), name, value)
+				}else{
+					if dv != "" {
+						if strings.Contains(dv, dstVarName) {
+							if dstType == "string" && dst.IsValid() && dst.CanSet() {
+								dv = strings.Replace(dv, dstVarName, value, -1)
+							}
+						}
+						dst.SetString(EnvReplace(dv))
 					}
 				}
 			} else {
@@ -308,10 +333,11 @@ func Replace(to interface{}, name, value string) {
 					fv := fmt.Sprintf("%v", fieldValue)
 					//log.Debug(fieldName, ": ", fieldValue)
 					if strings.Contains(fv, dstVarName) {
-						newVal := strings.Replace(fv, dstVarName, value, -1)
-						//log.Debug("newVal: " + newVal)
-						dstField.SetString(newVal)
+						fv = strings.Replace(fv, dstVarName, value, -1)
 					}
+					replaced := EnvReplace(fv)
+					log.Print("replaced:\n", replaced)
+					dstField.SetString(replaced)
 				default:
 					//log.Debug(fieldName, " is a ", kind)
 					Replace(dstField.Addr().Interface(), name, value)
