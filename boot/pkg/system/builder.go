@@ -20,60 +20,61 @@ package system
 import (
 	"fmt"
 	"github.com/spf13/viper"
-	"os"
+	"github.com/imdario/mergo"
 	"github.com/hidevopsio/hi/boot/pkg/utils"
 )
 
-type Configuration struct {
-	App     App     `mapstructure:"app"`
-	Server  Server  `mapstructure:"server"`
-	Logging Logging `mapstructure:"logging"`
+type Builder struct {
+	Path     string
+	Name     string
+	FileType string
+	Profile  string
+	ConfigType interface{}
 }
 
-var (
-	conf Configuration
-)
+func (b *Builder) Build() (interface{}, error) {
 
-const (
-	application = "application"
-	config = "/config"
-	yaml = "yaml"
-	defaultLoggingLevel = "info"
-	defaultPort = 8080
-	defaultAppName = "app"
-	defaultProjectName = "devops"
+	conf, err := b.Read(false)
+	if err != nil {
+		return nil, err
+	}
 
-)
+	if b.Profile == ""{
+		return conf, nil
+	}
 
-func Build() *Configuration {
+	confReplacer, err := b.Read(true)
+	if err != nil {
+		return nil, err
+	}
 
-	wd := utils.GetWorkingDir("boot/pkg/system/builder.go")
+	mergo.Merge(conf, confReplacer, mergo.WithOverride)
 
-	viper.SetDefault("app.project", defaultProjectName)
-	viper.SetDefault("app.name", defaultAppName)
-	viper.SetDefault("server.port", defaultPort)
-	viper.SetDefault("logging.level", defaultLoggingLevel)
-	viper.AddConfigPath(wd + config)
-	viper.SetConfigName(application)
-	viper.SetConfigType(yaml)
-	err := viper.ReadInConfig()
+	return conf, nil
+}
+
+func (b *Builder) Read(override bool) (interface{}, error) {
+
+	name := b.Name
+	if override {
+		name = b.Name + "-" + b.Profile
+	}
+
+	v := viper.New()
+	v.AddConfigPath(b.Path)
+	v.SetConfigName(name)
+	v.SetConfigType(b.FileType)
+	err := v.ReadInConfig()
 	if err != nil {
 		panic(fmt.Errorf("Error config file: %s \n", err))
 	}
+	st := b.ConfigType
 
-	err = viper.Unmarshal(&conf)
+	cp := utils.NewReflectType(st)
+
+	err = v.Unmarshal(cp)
 	if err != nil {
 		panic(fmt.Errorf("Unable to decode Config: %s \n", err))
 	}
-	appProfile := os.Getenv("APP_PROFILES_ACTIVE")
-	if appProfile != "" {
-		viper.SetConfigName(application + "-" + appProfile)
-		viper.MergeInConfig()
-		err = viper.Unmarshal(&conf)
-		if err != nil {
-			panic(fmt.Errorf("Unable to decode Config: %s \n", err))
-		}
-	}
-
-	return &conf
+	return cp, err
 }

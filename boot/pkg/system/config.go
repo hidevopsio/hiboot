@@ -33,3 +33,10 @@ type Env struct {
 	Name  string
 	Value string
 }
+
+
+type Configuration struct {
+	App     App     `mapstructure:"app"`
+	Server  Server  `mapstructure:"server"`
+	Logging Logging `mapstructure:"logging"`
+}
