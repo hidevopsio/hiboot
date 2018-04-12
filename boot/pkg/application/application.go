@@ -27,6 +27,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	jwtmiddleware "github.com/iris-contrib/middleware/jwt"
 	"time"
+	"github.com/hidevopsio/hi/boot/pkg/model"
 )
 
 
@@ -55,6 +56,14 @@ var (
 	sysCfg *system.Configuration
 )
 
+
+const (
+	application = "application"
+	config = "/config"
+	yaml = "yaml"
+)
+
+
 func fatal(err error) {
 	if err != nil {
 		log.Fatal(err)
@@ -62,7 +71,22 @@ func fatal(err error) {
 }
 
 func init() {
-	sysCfg = system.Build()
+
+	b := &system.Builder{
+		Path: utils.GetWorkingDir("boot/pkg/system/builder_test.go") + config,
+		Name: application,
+		FileType: yaml,
+		Profile: "local",
+		ConfigType: system.Configuration{},
+	}
+
+	cp, err := b.Build()
+	if err != nil {
+		panic(fmt.Errorf("Error config file: %s \n", err))
+	}
+	sysCfg := cp.(*system.Configuration)
+	log.Print(sysCfg)
+
 	log.SetLevel(sysCfg.Logging.Level)
 
 	wd := utils.GetWorkingDir("/boot/pkg/application/application.go")
@@ -99,6 +123,30 @@ func GenerateJwtToken(payload MapJwt, expired int64, unit time.Duration) (JwtTok
 	jwtToken := JwtToken(tokenString)
 
 	return jwtToken, err
+}
+
+// set response
+func Response(ctx iris.Context, message string, data interface{})  {
+	response := &model.Response{
+		Code: ctx.GetStatusCode(),
+		Message: message,
+		Data: data,
+	}
+
+	// just for debug now
+	ctx.JSON(response)
+}
+
+// set response
+func ResponseError(ctx iris.Context, message string, code int)  {
+	response := &model.Response{
+		Code: code,
+		Message: message,
+	}
+
+	// just for debug now
+	ctx.StatusCode(code)
+	ctx.JSON(response)
 }
 
 
