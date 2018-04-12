@@ -56,6 +56,14 @@ var (
 	sysCfg *system.Configuration
 )
 
+
+const (
+	application = "application"
+	config = "/config"
+	yaml = "yaml"
+)
+
+
 func fatal(err error) {
 	if err != nil {
 		log.Fatal(err)
@@ -64,11 +72,21 @@ func fatal(err error) {
 
 func init() {
 
-	builder := system.Builder{
-		Path: "",
+	b := &system.Builder{
+		Path: utils.GetWorkingDir("boot/pkg/system/builder_test.go") + config,
+		Name: application,
+		FileType: yaml,
+		Profile: "local",
+		ConfigType: system.Configuration{},
 	}
 
-	sysCfg = system.Build()
+	cp, err := b.Build()
+	if err != nil {
+		panic(fmt.Errorf("Error config file: %s \n", err))
+	}
+	sysCfg := cp.(*system.Configuration)
+	log.Print(sysCfg)
+
 	log.SetLevel(sysCfg.Logging.Level)
 
 	wd := utils.GetWorkingDir("/boot/pkg/application/application.go")

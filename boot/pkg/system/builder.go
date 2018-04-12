@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"github.com/imdario/mergo"
-	"reflect"
+	"github.com/hidevopsio/hi/boot/pkg/utils"
 )
 
 type Builder struct {
@@ -29,39 +29,53 @@ type Builder struct {
 	Name     string
 	FileType string
 	Profile  string
+	ConfigType interface{}
 }
 
-func (b *Builder) Build(c interface{}) (interface{}, error) {
-	t := reflect.TypeOf(c)
-	conf := reflect.New(t)
-	confReplacer := reflect.New(t)
-	err := b.Read(&conf)
-	if err != nil {
-		return nil, err
-	}
-	err = b.Read(&confReplacer)
+func (b *Builder) Build() (interface{}, error) {
+
+	conf, err := b.Read(false)
 	if err != nil {
 		return nil, err
 	}
 
-	mergo.Merge(&conf, confReplacer, mergo.WithOverride)
+	if b.Profile == ""{
+		return conf, nil
+	}
 
-	return &conf, nil
+	confReplacer, err := b.Read(true)
+	if err != nil {
+		return nil, err
+	}
+
+	mergo.Merge(conf, confReplacer, mergo.WithOverride)
+
+	return conf, nil
 }
 
-func (b *Builder) Read(conf interface{}) error {
+func (b *Builder) Read(override bool) (interface{}, error) {
+
+	name := b.Name
+	if override {
+		name = b.Name + "-" + b.Profile
+	}
+
 	v := viper.New()
-
 	v.AddConfigPath(b.Path)
-	v.SetConfigName(b.Name)
+	v.SetConfigName(name)
 	v.SetConfigType(b.FileType)
 	err := v.ReadInConfig()
 	if err != nil {
 		panic(fmt.Errorf("Error config file: %s \n", err))
 	}
-	err = v.Unmarshal(conf)
+	st := b.ConfigType
+
+	cp := utils.NewReflectType(st)
+
+	err = v.Unmarshal(cp)
 	if err != nil {
 		panic(fmt.Errorf("Unable to decode Config: %s \n", err))
 	}
-	return err
+	return cp, err
 }
+
