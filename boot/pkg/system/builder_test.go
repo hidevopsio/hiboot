@@ -1,11 +1,11 @@
 package system
 
-
-type Configuration struct {
-	App     App     `mapstructure:"app"`
-	Server  Server  `mapstructure:"server"`
-	Logging Logging `mapstructure:"logging"`
-}
+import (
+	"testing"
+	"github.com/hidevopsio/hi/boot/pkg/utils"
+	"github.com/magiconair/properties/assert"
+	"github.com/hidevopsio/hi/boot/pkg/log"
+)
 
 
 const (
@@ -14,13 +14,18 @@ const (
 	yaml = "yaml"
 )
 
-//wd := utils.GetWorkingDir("boot/pkg/system/builder.go")
-//appProfile := os.Getenv("APP_PROFILES_ACTIVE")
-//if appProfile != "" {
-//	viper.SetConfigName(application + "-" + appProfile)
-//	viper.MergeInConfig()
-//	err = viper.Unmarshal(&conf)
-//	if err != nil {
-//		panic(fmt.Errorf("Unable to decode Config: %s \n", err))
-//	}
-//}
+func TestBuilder(t *testing.T)  {
+	b := &Builder{
+		Path: utils.GetWorkingDir("boot/pkg/system/builder_test.go") + config,
+		Name: application,
+		FileType: yaml,
+		Profile: "local",
+		ConfigType: Configuration{},
+	}
+
+	cp, err := b.Build()
+	assert.Equal(t, nil, err)
+	c := cp.(*Configuration)
+	log.Print(c)
+}
+
