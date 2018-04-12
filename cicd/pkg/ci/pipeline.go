@@ -68,6 +68,12 @@ type BuildConfigs struct {
 	Env         []system.Env `json:"env"`
 }
 
+const (
+	application = "pipeline"
+	config = "/config"
+	yaml = "yaml"
+)
+
 type Pipeline struct {
 	Name              string            `json:"name" validate:"required"`
 	App               string            `json:"app" validate:"required"`
@@ -93,9 +99,21 @@ func (p *Pipeline) Init(pl *Pipeline) {
 
 	// load config file
 	if pl != nil {
-		builder := &Builder{}
-		c := builder.Build(pl.Name)
+/*		builder := &Builder{}
+		c := builder.Build(pl.Name)*/
 
+		b :=&system.Builder{
+			Path: utils.GetWorkingDir("/cicd/pkg/ci/pipeline.go") + config,
+			Name: application,
+			FileType: yaml,
+			Profile: pl.Name,
+			ConfigType: Configuration{},
+		}
+		cp, err :=b.Build()
+		if err!=nil {
+			return
+		}
+		c := cp.(*Configuration)
 		if pl.Profile == "" {
 			p.Profile = "dev"
 		}
@@ -111,7 +129,6 @@ func (p *Pipeline) Init(pl *Pipeline) {
 		if "" == pl.Profile {
 			p.Namespace = p.Project
 		} else {
-
 			p.Namespace = p.Project + "-" + p.Profile
 		}
 	}
