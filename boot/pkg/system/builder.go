@@ -20,48 +20,60 @@ package system
 import (
 	"fmt"
 	"github.com/spf13/viper"
-	"github.com/imdario/mergo"
-	"reflect"
+	"os"
+	"github.com/hidevopsio/hi/boot/pkg/utils"
 )
 
-type Builder struct {
-	Path     string
-	Name     string
-	FileType string
-	Profile  string
+type Configuration struct {
+	App     App     `mapstructure:"app"`
+	Server  Server  `mapstructure:"server"`
+	Logging Logging `mapstructure:"logging"`
 }
 
-func (b *Builder) Build(c interface{}) (interface{}, error) {
-	t := reflect.TypeOf(c)
-	conf := reflect.New(t)
-	confReplacer := reflect.New(t)
-	err := b.Read(&conf)
-	if err != nil {
-		return nil, err
-	}
-	err = b.Read(&confReplacer)
-	if err != nil {
-		return nil, err
-	}
+var (
+	conf Configuration
+)
 
-	mergo.Merge(&conf, confReplacer, mergo.WithOverride)
+const (
+	application = "application"
+	config = "/config"
+	yaml = "yaml"
+	defaultLoggingLevel = "info"
+	defaultPort = 8080
+	defaultAppName = "app"
+	defaultProjectName = "devops"
 
-	return &conf, nil
-}
+)
 
-func (b *Builder) Read(conf interface{}) error {
-	v := viper.New()
+func Build() *Configuration {
 
-	v.AddConfigPath(b.Path)
-	v.SetConfigName(b.Name)
-	v.SetConfigType(b.FileType)
-	err := v.ReadInConfig()
+	wd := utils.GetWorkingDir("boot/pkg/system/builder.go")
+
+	viper.SetDefault("app.project", defaultProjectName)
+	viper.SetDefault("app.name", defaultAppName)
+	viper.SetDefault("server.port", defaultPort)
+	viper.SetDefault("logging.level", defaultLoggingLevel)
+	viper.AddConfigPath(wd + config)
+	viper.SetConfigName(application)
+	viper.SetConfigType(yaml)
+	err := viper.ReadInConfig()
 	if err != nil {
 		panic(fmt.Errorf("Error config file: %s \n", err))
 	}
-	err = v.Unmarshal(conf)
+
+	err = viper.Unmarshal(&conf)
 	if err != nil {
 		panic(fmt.Errorf("Unable to decode Config: %s \n", err))
 	}
-	return err
+	appProfile := os.Getenv("APP_PROFILES_ACTIVE")
+	if appProfile != "" {
+		viper.SetConfigName(application + "-" + appProfile)
+		viper.MergeInConfig()
+		err = viper.Unmarshal(&conf)
+		if err != nil {
+			panic(fmt.Errorf("Unable to decode Config: %s \n", err))
+		}
+	}
+
+	return &conf
 }

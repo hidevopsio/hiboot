@@ -269,14 +269,25 @@ func (b *BuildConfig) Watch(build *v1.Build, completedHandler func() error) erro
 				if bld.Name == build.Name {
 					//log.Info("Modified: ", event.Object)
 					log.Debugf("bld.Status.Phase: %v", bld.Status.Phase)
-					if bld.Status.Phase == v1.BuildPhaseComplete {
+					switch bld.Status.Phase {
+					case v1.BuildPhaseComplete :
 						var err error
 						if nil !=  completedHandler {
 							err = completedHandler()
 						}
 						w.Stop()
 						return err
+					case v1.BuildPhaseError:
+
 					}
+/*					if bld.Status.Phase == v1.BuildPhaseComplete {
+						var err error
+						if nil !=  completedHandler {
+							err = completedHandler()
+						}
+						w.Stop()
+						return err
+					}*/
 				}
 
 			case watch.Deleted:

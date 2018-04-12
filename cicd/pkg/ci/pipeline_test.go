@@ -14,3 +14,17 @@
 
 package ci
 
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+	"github.com/hidevopsio/hi/boot/pkg/log"
+)
+
+func TestPipelineInit(t *testing.T)  {
+	p := &Pipeline{
+		Name:string("nodeJs"),
+		App:string(""),
+	}
+	log.Info()
+	assert.Equal(t,Pipeline{} , p)
+}

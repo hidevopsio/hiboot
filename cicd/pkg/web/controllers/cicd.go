@@ -24,8 +24,6 @@ import (
 	"fmt"
 	"strings"
 	"github.com/hidevopsio/hi/boot/pkg/model"
-	"github.com/hidevopsio/hi/boot/pkg/utils"
-	"github.com/hidevopsio/hi/boot/pkg/application"
 )
 
 type CicdResponse struct {
@@ -64,13 +62,8 @@ func (c *CicdController) Run(ctx iris.Context) {
 	var pl ci.Pipeline
 	err := ctx.ReadJSON(&pl)
 	if err != nil {
-		application.ResponseError(ctx, err.Error(), iris.StatusInternalServerError)
-		return
-	}
-
-	err = utils.Validate.Struct(&pl)
-	if err != nil {
-		application.ResponseError(ctx, err.Error(), iris.StatusBadRequest)
+		ctx.Values().Set("error", "deployment failed, read and parse request body failed. "+err.Error())
+		ctx.StatusCode(iris.StatusInternalServerError)
 		return
 	}
 
@@ -106,8 +99,14 @@ func (c *CicdController) Run(ctx iris.Context) {
 	} else {
 		message = "Failed, " + err.Error()
 	}
+	response := &CicdResponse{
+		Response: model.Response{
+			Message: message,
+		},
+	}
 
-	application.Response(ctx, message, nil)
+	// just for debug now
+	ctx.JSON(response)
 }
 
 func parseToken(claims jwt.MapClaims, prop string) string {
