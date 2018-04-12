@@ -20,60 +20,48 @@ package system
 import (
 	"fmt"
 	"github.com/spf13/viper"
-	"os"
-	"github.com/hidevopsio/hi/boot/pkg/utils"
+	"github.com/imdario/mergo"
+	"reflect"
 )
 
-type Configuration struct {
-	App     App     `mapstructure:"app"`
-	Server  Server  `mapstructure:"server"`
-	Logging Logging `mapstructure:"logging"`
+type Builder struct {
+	Path     string
+	Name     string
+	FileType string
+	Profile  string
 }
 
-var (
-	conf Configuration
-)
+func (b *Builder) Build(c interface{}) (interface{}, error) {
+	t := reflect.TypeOf(c)
+	conf := reflect.New(t)
+	confReplacer := reflect.New(t)
+	err := b.Read(&conf)
+	if err != nil {
+		return nil, err
+	}
+	err = b.Read(&confReplacer)
+	if err != nil {
+		return nil, err
+	}
 
-const (
-	application = "application"
-	config = "/config"
-	yaml = "yaml"
-	defaultLoggingLevel = "info"
-	defaultPort = 8080
-	defaultAppName = "app"
-	defaultProjectName = "devops"
+	mergo.Merge(&conf, confReplacer, mergo.WithOverride)
 
-)
+	return &conf, nil
+}
 
-func Build() *Configuration {
+func (b *Builder) Read(conf interface{}) error {
+	v := viper.New()
 
-	wd := utils.GetWorkingDir("boot/pkg/system/builder.go")
-
-	viper.SetDefault("app.project", defaultProjectName)
-	viper.SetDefault("app.name", defaultAppName)
-	viper.SetDefault("server.port", defaultPort)
-	viper.SetDefault("logging.level", defaultLoggingLevel)
-	viper.AddConfigPath(wd + config)
-	viper.SetConfigName(application)
-	viper.SetConfigType(yaml)
-	err := viper.ReadInConfig()
+	v.AddConfigPath(b.Path)
+	v.SetConfigName(b.Name)
+	v.SetConfigType(b.FileType)
+	err := v.ReadInConfig()
 	if err != nil {
 		panic(fmt.Errorf("Error config file: %s \n", err))
 	}
-
-	err = viper.Unmarshal(&conf)
+	err = v.Unmarshal(conf)
 	if err != nil {
 		panic(fmt.Errorf("Unable to decode Config: %s \n", err))
 	}
-	appProfile := os.Getenv("APP_PROFILES_ACTIVE")
-	if appProfile != "" {
-		viper.SetConfigName(application + "-" + appProfile)
-		viper.MergeInConfig()
-		err = viper.Unmarshal(&conf)
-		if err != nil {
-			panic(fmt.Errorf("Unable to decode Config: %s \n", err))
-		}
-	}
-
-	return &conf
+	return err
 }

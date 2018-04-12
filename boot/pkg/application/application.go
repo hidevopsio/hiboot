@@ -63,6 +63,11 @@ func fatal(err error) {
 }
 
 func init() {
+
+	builder := system.Builder{
+		Path: "",
+	}
+
 	sysCfg = system.Build()
 	log.SetLevel(sysCfg.Logging.Level)
 
