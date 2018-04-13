@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package application
 
 import (
@@ -29,7 +28,6 @@ import (
 	"time"
 	"github.com/hidevopsio/hi/boot/pkg/model"
 )
-
 
 const (
 	privateKeyPath = "/config/app.rsa"
@@ -51,18 +49,16 @@ type Health struct {
 
 var (
 	jwtHandler *jwtmiddleware.Middleware
-	verifyKey *rsa.PublicKey
-	signKey   *rsa.PrivateKey
-	sysCfg *system.Configuration
+	verifyKey  *rsa.PublicKey
+	signKey    *rsa.PrivateKey
+	sysCfg     *system.Configuration
 )
-
 
 const (
 	application = "application"
-	config = "/config"
-	yaml = "yaml"
+	config      = "/config"
+	yaml        = "yaml"
 )
-
 
 func fatal(err error) {
 	if err != nil {
@@ -73,10 +69,10 @@ func fatal(err error) {
 func init() {
 
 	b := &system.Builder{
-		Path: utils.GetWorkingDir("boot/pkg/system/builder_test.go") + config,
-		Name: application,
-		FileType: yaml,
-		Profile: "local",
+		Path:       utils.GetWorkingDir("boot/pkg/system/builder_test.go") + config,
+		Name:       application,
+		FileType:   yaml,
+		Profile:    "local",
 		ConfigType: system.Configuration{},
 	}
 	sysCfg := cp.(*system.Configuration)
@@ -99,7 +95,7 @@ func init() {
 	fatal(err)
 }
 
-func GenerateJwtToken(payload MapJwt, expired int64, unit time.Duration) (JwtToken, error)  {
+func GenerateJwtToken(payload MapJwt, expired int64, unit time.Duration) (JwtToken, error) {
 
 	claim := jwt.MapClaims{
 		"exp": time.Now().Add(unit * time.Duration(expired)).Unix(),
@@ -121,11 +117,11 @@ func GenerateJwtToken(payload MapJwt, expired int64, unit time.Duration) (JwtTok
 }
 
 // set response
-func Response(ctx iris.Context, message string, data interface{})  {
+func Response(ctx iris.Context, message string, data interface{}) {
 	response := &model.Response{
-		Code: ctx.GetStatusCode(),
+		Code:    ctx.GetStatusCode(),
 		Message: message,
-		Data: data,
+		Data:    data,
 	}
 
 	// just for debug now
@@ -133,9 +129,9 @@ func Response(ctx iris.Context, message string, data interface{})  {
 }
 
 // set response
-func ResponseError(ctx iris.Context, message string, code int)  {
+func ResponseError(ctx iris.Context, message string, code int) {
 	response := &model.Response{
-		Code: code,
+		Code:    code,
 		Message: message,
 	}
 
@@ -143,7 +139,6 @@ func ResponseError(ctx iris.Context, message string, code int)  {
 	ctx.StatusCode(code)
 	ctx.JSON(response)
 }
-
 
 func (b *Boot) Init() {
 	jwtHandler = jwtmiddleware.New(jwtmiddleware.Config{
@@ -171,20 +166,19 @@ func (b *Boot) Init() {
 	})
 }
 
-
 func (b *Boot) App() *iris.Application {
 	return b.app
 }
 
-func (b *Boot) Config() *system.Configuration  {
+func (b *Boot) Config() *system.Configuration {
 	return b.config
 }
 
-func (b *Boot) GetSignKey() *rsa.PrivateKey  {
+func (b *Boot) GetSignKey() *rsa.PrivateKey {
 	return signKey
 }
 
-func (b *Boot) ApplyJwt()  {
+func (b *Boot) ApplyJwt() {
 	b.app.Use(jwtHandler.Serve)
 }
 

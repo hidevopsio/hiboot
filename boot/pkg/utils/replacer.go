@@ -25,7 +25,7 @@ import (
 	"regexp"
 )
 
-func validate(toValue interface{}) (*reflect.Value, error)  {
+func validate(toValue interface{}) (*reflect.Value, error) {
 
 	to := indirect(reflect.ValueOf(toValue))
 
@@ -35,12 +35,11 @@ func validate(toValue interface{}) (*reflect.Value, error)  {
 
 	// Return is from value is invalid
 	if !to.IsValid() {
-		return  nil, errors.New("value is not valid")
+		return nil, errors.New("value is not valid")
 	}
 
 	return &to, nil
 }
-
 
 // Copy copy things
 func Copy(toValue interface{}, fromValue interface{}) (err error) {
@@ -220,7 +219,7 @@ func set(to, from reflect.Value) bool {
 	return true
 }
 
-func ParseVariables(src string, re *regexp.Regexp) [][]string    {
+func ParseVariables(src string, re *regexp.Regexp) [][]string {
 	matches := re.FindAllStringSubmatch(src, -1)
 	if matches == nil {
 		log.Println("No matches found.")
@@ -229,10 +228,10 @@ func ParseVariables(src string, re *regexp.Regexp) [][]string    {
 	return matches
 }
 
-func ReplaceStringVariables(source string, t interface{}) (string , error) {
+func ReplaceStringVariables(source string, t interface{}) (string, error) {
 	re := regexp.MustCompile(`\$\{(.*?)\}`)
 	matches := ParseVariables(source, re)
-	for _,match := range matches{
+	for _, match := range matches {
 		varFullName := match[0]
 		// replace references
 		varName := match[1]
@@ -244,14 +243,14 @@ func ReplaceStringVariables(source string, t interface{}) (string , error) {
 		// replace env
 		envValue := os.Getenv(varName)
 		if refValue != "" {
-			source = strings.Replace(source , varFullName, refValue ,-1)
+			source = strings.Replace(source, varFullName, refValue, -1)
 		}
-		source = strings.Replace(source , varFullName, envValue ,-1)
+		source = strings.Replace(source, varFullName, envValue, -1)
 	}
 	return source, nil
 }
 
-func GetFieldValue(f interface{}, name string) reflect.Value  {
+func GetFieldValue(f interface{}, name string) reflect.Value {
 	r := reflect.ValueOf(f)
 	fv := reflect.Indirect(r).FieldByName(name)
 

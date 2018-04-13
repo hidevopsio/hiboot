@@ -11,9 +11,9 @@ import (
 type PipelineFactory struct{}
 
 const (
-	JavaPipelineType = "java"
+	JavaPipelineType    = "java"
 	JavaWarPipelineType = "java-war"
-	NodeJsPipelineType = "nodejs"
+	NodeJsPipelineType  = "nodejs"
 	GitbookPipelineType = "gitbook"
 )
 
@@ -25,7 +25,7 @@ func (pf *PipelineFactory) New(pipelineType string) (ci.PipelineInterface, error
 	case JavaWarPipelineType:
 		return new(impl.JavaWarPipeline), nil
 	case NodeJsPipelineType:
-		return new(impl.NodeJsPipeline),nil
+		return new(impl.NodeJsPipeline), nil
 	default:
 		return nil, errors.New(fmt.Sprintf("pipeline type %d not recognized\n", pipelineType))
 	}
