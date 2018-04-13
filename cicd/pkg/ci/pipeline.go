@@ -68,12 +68,6 @@ type BuildConfigs struct {
 	Env         []system.Env `json:"env"`
 }
 
-const (
-	application = "pipeline"
-	config = "/config"
-	yaml = "yaml"
-)
-
 type Pipeline struct {
 	Name              string            `json:"name" validate:"required"`
 	App               string            `json:"app" validate:"required"`
@@ -90,6 +84,10 @@ type Pipeline struct {
 	DeploymentConfigs DeploymentConfigs `json:"deployment_configs"`
 }
 
+type Configuration struct {
+	Pipeline Pipeline `mapstructure:"pipeline"`
+}
+
 // @Title Init
 // @Description set default value
 // @Param pipeline
@@ -99,18 +97,18 @@ func (p *Pipeline) Init(pl *Pipeline) {
 
 	// load config file
 	if pl != nil {
-/*		builder := &Builder{}
-		c := builder.Build(pl.Name)*/
+		/*		builder := &Builder{}
+				c := builder.Build(pl.Name)*/
 
-		b :=&system.Builder{
-			Path: utils.GetWorkingDir("/cicd/pkg/ci/pipeline.go") + config,
-			Name: application,
-			FileType: yaml,
-			Profile: pl.Name,
+		b := &system.Builder{
+			Path:       utils.GetWorkingDir("/pkg/ci/pipeline.go") + "/config",
+			Name:       "pipeline",
+			FileType:   "yaml",
+			Profile:    pl.Name,
 			ConfigType: Configuration{},
 		}
-		cp, err :=b.Build()
-		if err!=nil {
+		cp, err := b.Build()
+		if err != nil {
 			return
 		}
 		c := cp.(*Configuration)
@@ -124,7 +122,6 @@ func (p *Pipeline) Init(pl *Pipeline) {
 	}
 	// TODO: replace variable inside pipeline, e.g. ${profile}
 	utils.Replace(p, p)
-
 
 	if "" == p.Namespace {
 		if "" == pl.Profile {

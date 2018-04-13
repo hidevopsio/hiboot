@@ -9,15 +9,15 @@ import (
 )
 
 type Bar struct {
-	Name string
+	Name    string
 	Profile string
-	SubBar SubBar
+	SubBar  SubBar
 }
 
-type Foo struct{
-	Name string
+type Foo struct {
+	Name    string
 	Project string
-	Bar Bar
+	Bar     Bar
 }
 
 type SubBar struct {
@@ -65,10 +65,10 @@ func TestReplaceReferences(t *testing.T)  {
 	os.Setenv("FOO", "foo")
 	os.Setenv("BAR", "bar")
 	f := &Foo{
-		Name: "foo",
+		Name:    "foo",
 		Project: "it's ${FOO} project",
 		Bar: Bar{
-			Name: "my name is ${BAR}",
+			Name:    "my name is ${BAR}",
 			Profile: "${name}-bar",
 			SubBar: SubBar{
 				Name: "${bar.name}",

@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func init()  {
+func init() {
 	log.SetLevel(log.DebugLevel)
 }
 

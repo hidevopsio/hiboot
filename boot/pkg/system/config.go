@@ -12,20 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package system
-
 
 type App struct {
 	Project string `json:"project"`
-	Name string `json:"name"`
+	Name    string `json:"name"`
 }
 
 type Server struct {
 	Port int32 `json:"port"`
 }
 
-type Logging struct{
+type Logging struct {
 	Level string `json:"level"`
 }
 
@@ -33,7 +31,6 @@ type Env struct {
 	Name  string
 	Value string
 }
-
 
 type Configuration struct {
 	App     App     `mapstructure:"app"`

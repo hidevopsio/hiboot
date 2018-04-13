@@ -31,7 +31,6 @@ func newTestServer(t *testing.T) *httpexpect.Expect {
 	return httptest.New(t, boot.App())
 }
 
-
 func login(expired int64, unit time.Duration) (application.JwtToken, error) {
 	u := &auth.User{}
 	_, _, err := u.Login(userRequest.Url, userRequest.Username, userRequest.Password)
@@ -39,25 +38,18 @@ func login(expired int64, unit time.Duration) (application.JwtToken, error) {
 		return application.JwtToken(""), err
 	}
 	jwtToken, err := application.GenerateJwtToken(application.MapJwt{
-		"url": userRequest.Url,
+		"url":      userRequest.Url,
 		"username": userRequest.Username,
 		"password": userRequest.Password,
 	}, expired, unit)
 	return jwtToken, err
 }
 
-
-func requestCicdPipeline(e *httpexpect.Expect, jwtToken application.JwtToken, statusCode int)  {
+func requestCicdPipeline(e *httpexpect.Expect, jwtToken application.JwtToken, statusCode int, pl *ci.Pipeline) {
 	e.Request("POST", "/cicd/run").WithHeader(
-		"Authorization", "Bearer " + string(jwtToken),
-	).WithJSON(ci.Pipeline{
-		Project:  "demo",
-		App:      "admin",
-		Profile:  "dev",
-		Name: "nodejs",
-	}).Expect().Status(statusCode)
+		"Authorization", "Bearer "+string(jwtToken),
+	).WithJSON(pl).Expect().Status(statusCode)
 }
-
 
 func TestUserLogin(t *testing.T) {
 	log.Println("TestUserLogin()")
@@ -84,7 +76,6 @@ func TestUserLoginWithWrongCredentials(t *testing.T) {
 		request).Expect().Status(http.StatusForbidden)
 }
 
-
 func TestCicdRunWithExpiredToken(t *testing.T) {
 	log.Println("TestCicdRunWithExpiredToken()")
 
@@ -95,7 +86,12 @@ func TestCicdRunWithExpiredToken(t *testing.T) {
 	if err == nil {
 		time.Sleep(1000 * time.Millisecond)
 
-		requestCicdPipeline(e, jwtToken, http.StatusUnauthorized)
+		requestCicdPipeline(e, jwtToken, http.StatusUnauthorized, &ci.Pipeline{
+			Name:    "java",
+			Project: "demo",
+			Profile: "dev",
+			App:     "hello-world",
+		})
 	}
 }
 
@@ -108,12 +104,12 @@ func TestCicdRunWithoutToken(t *testing.T) {
 		Project: "demo",
 		App:     "hello-world",
 		Profile: "dev",
-		Name: "java",
+		Name:    "java",
 	}).Expect().Status(http.StatusUnauthorized)
 
 }
 
-func TestCicdRun(t *testing.T) {
+func TestCicdRunJava(t *testing.T) {
 	log.Println("TestCicdRun()")
 
 	e := newTestServer(t)
@@ -121,6 +117,28 @@ func TestCicdRun(t *testing.T) {
 	jwtToken, err := login(24, time.Hour)
 
 	if err == nil {
-		requestCicdPipeline(e, jwtToken, http.StatusOK)
+		requestCicdPipeline(e, jwtToken, http.StatusOK, &ci.Pipeline{
+			Name:    "java",
+			Project: "demo",
+			Profile: "dev",
+			App:     "hello-world",
+		})
+	}
+}
+
+func TestCicdRunNodejs(t *testing.T) {
+	log.Println("TestCicdRun()")
+
+	e := newTestServer(t)
+
+	jwtToken, err := login(24, time.Hour)
+
+	if err == nil {
+		requestCicdPipeline(e, jwtToken, http.StatusOK, &ci.Pipeline{
+			Name:    "nodejs",
+			Project: "demo",
+			Profile: "dev",
+			App:     "hello-node",
+		})
 	}
 }

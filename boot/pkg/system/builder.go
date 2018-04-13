@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 // TODO: app config should be generic kit
 
 package system
@@ -25,10 +24,10 @@ import (
 )
 
 type Builder struct {
-	Path     string
-	Name     string
-	FileType string
-	Profile  string
+	Path       string
+	Name       string
+	FileType   string
+	Profile    string
 	ConfigType interface{}
 }
 
@@ -39,7 +38,7 @@ func (b *Builder) Build() (interface{}, error) {
 		return nil, err
 	}
 
-	if b.Profile == ""{
+	if b.Profile == "" {
 		return conf, nil
 	}
 
@@ -78,4 +77,3 @@ func (b *Builder) Read(override bool) (interface{}, error) {
 	}
 	return cp, err
 }
-
