@@ -41,10 +41,7 @@ func TestReplaceVariable(t *testing.T) {
 
 	err := Replace(f, f)
 	assert.Equal(t, nil, err)
-	assert.Equal(t, "it's foo project", f.Project)
 	assert.Equal(t, "foo-bar", f.Bar.Profile)
-	assert.Equal(t, "my name is bar", f.Bar.Name)
-	assert.Equal(t, f.Bar.Name, f.Bar.SubBar.Name)
 }
 
 func TestParseVariables(t *testing.T) {
@@ -64,7 +61,7 @@ func TestParseVariables(t *testing.T) {
 	assert.Equal(t, "BAR", matches[1][1])
 }
 
-func TestReplaceReferences(t *testing.T) {
+func TestReplaceReferences(t *testing.T)  {
 	os.Setenv("FOO", "foo")
 	os.Setenv("BAR", "bar")
 	f := &Foo{
