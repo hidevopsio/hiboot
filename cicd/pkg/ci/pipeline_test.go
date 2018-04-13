@@ -20,11 +20,11 @@ import (
 	"github.com/hidevopsio/hi/boot/pkg/log"
 )
 
-func TestPipelineInit(t *testing.T)  {
+func TestPipelineInit(t *testing.T) {
 	p := &Pipeline{
-		Name:string("nodeJs"),
-		App:string(""),
+		Name: string("nodeJs"),
+		App:  string(""),
 	}
 	log.Info()
-	assert.Equal(t,Pipeline{} , p)
+	assert.Equal(t, Pipeline{}, p)
 }

@@ -19,7 +19,7 @@ import (
 	"github.com/hidevopsio/hi/cicd/pkg/ci"
 )
 
-type NodeJsPipeline struct{
+type NodeJsPipeline struct {
 	ci.Pipeline
 }
 

@@ -70,8 +70,8 @@ type BuildConfigs struct {
 
 const (
 	application = "pipeline"
-	config = "/config"
-	yaml = "yaml"
+	config      = "/config"
+	yaml        = "yaml"
 )
 
 type Pipeline struct {
@@ -99,18 +99,18 @@ func (p *Pipeline) Init(pl *Pipeline) {
 
 	// load config file
 	if pl != nil {
-/*		builder := &Builder{}
-		c := builder.Build(pl.Name)*/
+		/*		builder := &Builder{}
+				c := builder.Build(pl.Name)*/
 
-		b :=&system.Builder{
-			Path: utils.GetWorkingDir("/cicd/pkg/ci/pipeline.go") + config,
-			Name: application,
-			FileType: yaml,
-			Profile: pl.Name,
+		b := &system.Builder{
+			Path:       utils.GetWorkingDir("/cicd/pkg/ci/pipeline.go") + config,
+			Name:       application,
+			FileType:   yaml,
+			Profile:    pl.Name,
 			ConfigType: Configuration{},
 		}
-		cp, err :=b.Build()
-		if err!=nil {
+		cp, err := b.Build()
+		if err != nil {
 			return
 		}
 		c := cp.(*Configuration)
@@ -124,7 +124,6 @@ func (p *Pipeline) Init(pl *Pipeline) {
 	}
 	// TODO: replace variable inside pipeline, e.g. ${profile}
 	utils.Replace(p, p)
-
 
 	if "" == p.Namespace {
 		if "" == pl.Profile {
