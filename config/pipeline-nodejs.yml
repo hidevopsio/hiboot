@@ -1,0 +1,40 @@
+
+pipeline:
+  name: nodejs
+  identifiers: # unused
+  - package.json
+  buildConfigs:
+    imagestream: s2i-nodejs:latest
+    env:
+    - name: npm_config_registry
+      value: ${npm_config_registry}
+    - name: npm_config_disturl
+      value: https://npm.taobao.org/dist/
+    - name: npm_config_phantomjs_cdnurl
+      value: https://npm.taobao.org/dist/phantomjs/
+    - name: npm_config_phantomjs_cdnurl
+      value: https://npm.taobao.org/dist/phantomjs/
+    - name: export npm_config_electron_mirror
+      value: https://npm.taobao.org/mirrors/electron/
+    - name: export npm_config_sass_binary_site
+      value: https://npm.taobao.org/mirrors/node-sass/
+    - name: BUILD_SCRIPT
+      value: |
+        npm install
+        if [[ $? == 0 ]]; then
+          echo "Successful."
+        else
+          echo "Failed!"
+        fi
+  deploymentConfigs:
+    env:
+    - name: NPM_RUN
+      value: start
+    - name: NODE_ENV
+      value: ${profile}
+    - name: HOST
+      value: 0.0.0.0
+    - name: PORT
+      value: 8080
+    - name: project
+      value: ${project}

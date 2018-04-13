@@ -79,11 +79,6 @@ func init() {
 		Profile: "local",
 		ConfigType: system.Configuration{},
 	}
-
-	cp, err := b.Build()
-	if err != nil {
-		panic(fmt.Errorf("Error config file: %s \n", err))
-	}
 	sysCfg := cp.(*system.Configuration)
 	log.Print(sysCfg)
 

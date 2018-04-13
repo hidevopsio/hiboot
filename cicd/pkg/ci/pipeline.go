@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"github.com/hidevopsio/hi/cicd/pkg/orch/k8s"
 	"github.com/hidevopsio/hi/cicd/pkg/orch/openshift"
-	"os"
 	"github.com/hidevopsio/hi/boot/pkg/system"
 	"github.com/hidevopsio/hi/cicd/pkg/orch"
 	"github.com/imdario/mergo"
@@ -69,6 +68,12 @@ type BuildConfigs struct {
 	Env         []system.Env `json:"env"`
 }
 
+const (
+	application = "pipeline"
+	config = "/config"
+	yaml = "yaml"
+)
+
 type Pipeline struct {
 	Name              string            `json:"name" validate:"required"`
 	App               string            `json:"app" validate:"required"`
@@ -94,9 +99,21 @@ func (p *Pipeline) Init(pl *Pipeline) {
 
 	// load config file
 	if pl != nil {
-		builder := &Builder{}
-		c := builder.Build(pl.Name)
+/*		builder := &Builder{}
+		c := builder.Build(pl.Name)*/
 
+		b :=&system.Builder{
+			Path: utils.GetWorkingDir("/cicd/pkg/ci/pipeline.go") + config,
+			Name: application,
+			FileType: yaml,
+			Profile: pl.Name,
+			ConfigType: Configuration{},
+		}
+		cp, err :=b.Build()
+		if err!=nil {
+			return
+		}
+		c := cp.(*Configuration)
 		if pl.Profile == "" {
 			p.Profile = "dev"
 		}
@@ -106,18 +123,13 @@ func (p *Pipeline) Init(pl *Pipeline) {
 
 	}
 	// TODO: replace variable inside pipeline, e.g. ${profile}
-	// read env
-	mavenMirrorUrl := os.Getenv("MAVEN_MIRROR_URL")
-	if mavenMirrorUrl != "" {
-		utils.Replace(p, "MAVEN_MIRROR_URL", mavenMirrorUrl)
-	}
-	utils.Replace(p, "profile", pl.Profile)
+	utils.Replace(p, p)
+
 
 	if "" == p.Namespace {
 		if "" == pl.Profile {
 			p.Namespace = p.Project
 		} else {
-
 			p.Namespace = p.Project + "-" + p.Profile
 		}
 	}

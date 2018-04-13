@@ -52,9 +52,9 @@ func requestCicdPipeline(e *httpexpect.Expect, jwtToken application.JwtToken, st
 		"Authorization", "Bearer " + string(jwtToken),
 	).WithJSON(ci.Pipeline{
 		Project:  "demo",
-		App:      "hello-world",
+		App:      "admin",
 		Profile:  "dev",
-		Name: "java",
+		Name: "nodejs",
 	}).Expect().Status(statusCode)
 }
 
@@ -111,21 +111,6 @@ func TestCicdRunWithoutToken(t *testing.T) {
 		Name: "java",
 	}).Expect().Status(http.StatusUnauthorized)
 
-}
-
-func TestCicdRunWithValidator(t *testing.T) {
-	log.Println("TestCicdRunWithValidator()")
-
-	e := newTestServer(t)
-
-	jwtToken, err := login(24, time.Hour)
-
-	if err == nil {
-		e.Request("POST", "/cicd/run").WithHeader(
-			"Authorization", "Bearer " + string(jwtToken),
-		).WithJSON(ci.Pipeline{
-		}).Expect().Status(http.StatusInternalServerError)
-	}
 }
 
 func TestCicdRun(t *testing.T) {
