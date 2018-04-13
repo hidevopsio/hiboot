@@ -222,7 +222,6 @@ func set(to, from reflect.Value) bool {
 func ParseVariables(src string, re *regexp.Regexp) [][]string {
 	matches := re.FindAllStringSubmatch(src, -1)
 	if matches == nil {
-		log.Println("No matches found.")
 		return nil
 	}
 	return matches
@@ -231,6 +230,7 @@ func ParseVariables(src string, re *regexp.Regexp) [][]string {
 func ReplaceStringVariables(source string, t interface{}) (string, error) {
 	re := regexp.MustCompile(`\$\{(.*?)\}`)
 	matches := ParseVariables(source, re)
+
 	for _, match := range matches {
 		varFullName := match[0]
 		// replace references
@@ -268,11 +268,9 @@ func ParseReferences(st interface{}, varName []string) (string, error) {
 		switch k {
 		case reflect.String:
 			fv := fmt.Sprintf("%v", field.Interface())
-			log.Println("field value:", fv)
 			return fv, nil
 		case reflect.Int:
 			fv := fmt.Sprintf("%v", field.Interface())
-			log.Println("field value:", fv)
 			return fv, nil
 		case reflect.Invalid:
 			return "", nil

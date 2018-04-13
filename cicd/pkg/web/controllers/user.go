@@ -20,18 +20,15 @@ import (
 	"github.com/hidevopsio/hi/boot/pkg/application"
 	"time"
 	"github.com/hidevopsio/hi/boot/pkg/log"
-	"github.com/hidevopsio/hi/boot/pkg/model"
+	"github.com/hidevopsio/hi/boot/pkg/utils"
 )
 
 type UserRequest struct {
-	Url      string `json:"url"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Url      string `json:"url" validate:"required"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
-type UserResponse struct {
-	model.Response
-}
 
 // Operations about object
 type UserController struct {
@@ -46,12 +43,16 @@ type UserController struct {
 func (c *UserController) Login(ctx iris.Context) {
 	log.Debug("UserController.Login()")
 	var request UserRequest
-	var response *UserResponse
 
 	err := ctx.ReadJSON(&request)
 	if err != nil {
-		ctx.Values().Set("error", "login failed, read and parse request body failed. " + err.Error())
-		ctx.StatusCode(iris.StatusInternalServerError)
+		application.ResponseError(ctx, err.Error(), iris.StatusInternalServerError)
+		return
+	}
+
+	err = utils.Validate.Struct(&request)
+	if err != nil {
+		application.ResponseError(ctx, err.Error(), iris.StatusBadRequest)
 		return
 	}
 
@@ -68,22 +69,11 @@ func (c *UserController) Login(ctx iris.Context) {
 			"password": request.Password, // TODO: token is not working?
 		}, 24, time.Hour)
 		if err == nil {
-			response = &UserResponse{
-				Response: model.Response{
-					Message: message,
-					Data:   &jwtToken,
-				},
-			}
+			application.Response(ctx, message, &jwtToken)
 		} else {
-			ctx.Values().Set("error", "login failed, generating token failed. " + err.Error())
-			ctx.StatusCode(iris.StatusInternalServerError)
+			application.ResponseError(ctx, err.Error(), iris.StatusInternalServerError)
 		}
 	} else {
-		ctx.Values().Set("error", "login failed, wrong username or password " + err.Error())
-		ctx.StatusCode(iris.StatusForbidden)
-		return
+		application.ResponseError(ctx, err.Error(), iris.StatusForbidden)
 	}
-
-	// just for debug now
-	ctx.JSON(response)
 }
