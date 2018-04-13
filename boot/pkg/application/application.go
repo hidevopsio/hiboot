@@ -27,6 +27,7 @@ import (
 	jwtmiddleware "github.com/iris-contrib/middleware/jwt"
 	"time"
 	"github.com/hidevopsio/hi/boot/pkg/model"
+	"os"
 )
 
 const (
@@ -67,20 +68,21 @@ func fatal(err error) {
 }
 
 func init() {
+	wd := utils.GetWorkingDir("/boot/pkg/application/application.go")
 
 	b := &system.Builder{
-		Path:       utils.GetWorkingDir("boot/pkg/system/builder_test.go") + config,
+		Path:       wd + config,
 		Name:       application,
 		FileType:   yaml,
-		Profile:    "local",
+		Profile:    os.Getenv("APP_PROFILES_ACTIVE"),
 		ConfigType: system.Configuration{},
 	}
+	cp, err := b.Build()
 	sysCfg := cp.(*system.Configuration)
 	log.Print(sysCfg)
 
 	log.SetLevel(sysCfg.Logging.Level)
 
-	wd := utils.GetWorkingDir("/boot/pkg/application/application.go")
 
 	signBytes, err := ioutil.ReadFile(wd + privateKeyPath)
 	fatal(err)

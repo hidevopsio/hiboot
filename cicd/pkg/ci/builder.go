@@ -23,9 +23,6 @@ import (
 	"github.com/imdario/mergo"
 )
 
-type Configuration struct {
-	Pipeline Pipeline `mapstructure:"pipeline"`
-}
 
 type Builder struct {}
 
