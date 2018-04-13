@@ -20,10 +20,12 @@ import (
 	"strings"
 	"errors"
 	"database/sql"
-	//"github.com/hidevopsio/hi/boot/pkg/log"
+	"os"
+	"github.com/hidevopsio/hi/boot/pkg/log"
+	"regexp"
 )
 
-func validateValue(toValue interface{}) (*reflect.Value, error)  {
+func validate(toValue interface{}) (*reflect.Value, error)  {
 
 	to := indirect(reflect.ValueOf(toValue))
 
@@ -218,43 +220,100 @@ func set(to, from reflect.Value) bool {
 	return true
 }
 
-
-// TODO: parse environment variables and other variables that stored in a map and then replace them.
-/*
-m := map[string]string{
-	"profile": "dev",
-    "version": "1.0.0",
+func ParseVariables(src string, re *regexp.Regexp) [][]string    {
+	matches := re.FindAllStringSubmatch(src, -1)
+	if matches == nil {
+		log.Println("No matches found.")
+		return nil
+	}
+	return matches
 }
 
-type Target struct{
-	Profile string
-	Version string
+func ReplaceStringVariables(source string, t interface{}) (string , error) {
+	re := regexp.MustCompile(`\$\{(.*?)\}`)
+	matches := ParseVariables(source, re)
+	for _,match := range matches{
+		varFullName := match[0]
+		// replace references
+		varName := match[1]
+		vars := strings.SplitN(varName, ".", -1)
+		refValue, err := ParseReferences(t, vars)
+		if err != nil {
+			return source, err
+		}
+		// replace env
+		envValue := os.Getenv(varName)
+		if refValue != "" {
+			source = strings.Replace(source , varFullName, refValue ,-1)
+		}
+		source = strings.Replace(source , varFullName, envValue ,-1)
+	}
+	return source, nil
 }
 
-target := &Target{
-	Profile: "${profile}",
-	Version: "${version}",
+func GetFieldValue(f interface{}, name string) reflect.Value  {
+	r := reflect.ValueOf(f)
+	fv := reflect.Indirect(r).FieldByName(name)
+
+	return fv
 }
 
-func Replace(target, m) {
-	for i := 0; i < target.NumOfField(); i++ {
-		field := target.GetField(i)
-		fv := field.GetValue()
-		// find ${xxx} then lookup m to find the value
-		srcValue := m["xxx"]
-		strings.Replace(fv, "${xxx}", srcValue)
+func ParseReferences(st interface{}, varName []string) (string, error) {
+	var parent interface{}
+	parent = st
+	for _, vn := range varName {
+		capitalizedVarName := strings.Title(vn)
+		field := GetFieldValue(parent, capitalizedVarName)
+
+		k := getKind(field)
+		switch k {
+		case reflect.String:
+			fv := fmt.Sprintf("%v", field.Interface())
+			log.Println("field value:", fv)
+			return fv, nil
+		case reflect.Int:
+			fv := fmt.Sprintf("%v", field.Interface())
+			log.Println("field value:", fv)
+			return fv, nil
+		case reflect.Invalid:
+			return "", nil
+		default:
+			// check if field is ptr
+			parent = field.Addr().Interface()
+		}
+
+	}
+
+	return "", nil
+}
+
+func getKind(val reflect.Value) reflect.Kind {
+
+	// Capture the value's Kind.
+	kind := val.Kind()
+
+	// Check each condition until a case is true.
+	switch {
+
+	case kind >= reflect.Int && kind <= reflect.Int64:
+		return reflect.Int
+
+	case kind >= reflect.Uint && kind <= reflect.Uint64:
+		return reflect.Uint
+
+	case kind >= reflect.Float32 && kind <= reflect.Float64:
+		return reflect.Float32
+
+	default:
+		return kind
 	}
 }
 
-*/
+func Replace(to interface{}, root interface{}) error {
 
-
-func Replace(to interface{}, name, value string) {
-
-	//t := reflect.ValueOf(to).Elem()
-	t, err := validateValue(to)
+	t, err := validate(to)
 	if err != nil {
-		return
+		return err
 	}
 
 	toType := indirectType(t.Type())
@@ -265,8 +324,6 @@ func Replace(to interface{}, name, value string) {
 		isSlice = true
 		fieldSize = t.Len()
 	}
-
-	dstVarName := "${" + name + "}"
 
 	for i := 0; i < fieldSize; i++ {
 		var dst reflect.Value
@@ -281,10 +338,23 @@ func Replace(to interface{}, name, value string) {
 				dstValue := dst.Interface()
 				//log.Debug(dstType)
 				dv := fmt.Sprintf("%v", dstValue)
-				if strings.Contains(dv, dstVarName) {
-					if dstType == "string" && dst.IsValid() && dst.CanSet() {
-						dv = strings.Replace(dv, dstVarName, value, -1)
-						dst.SetString(dv)
+
+				if dst.Kind() != reflect.String {
+					child := dst.Addr().Interface()
+					Replace(child, root)
+				} else {
+					if dv != "" {
+
+						if dstType == "string" && dst.IsValid() && dst.CanSet() {
+							newStr, err := ReplaceStringVariables(dv, root)
+							if err != nil {
+								return err
+							}
+							dst.SetString(newStr)
+						} else {
+							log.Error("")
+						}
+
 					}
 				}
 			} else {
@@ -293,7 +363,6 @@ func Replace(to interface{}, name, value string) {
 		} else {
 			dst = indirect(*t)
 		}
-
 
 		for _, field := range deepFields(toType) {
 			fieldName := field.Name
@@ -306,17 +375,17 @@ func Replace(to interface{}, name, value string) {
 				switch kind {
 				case reflect.String:
 					fv := fmt.Sprintf("%v", fieldValue)
-					//log.Debug(fieldName, ": ", fieldValue)
-					if strings.Contains(fv, dstVarName) {
-						newVal := strings.Replace(fv, dstVarName, value, -1)
-						//log.Debug("newVal: " + newVal)
-						dstField.SetString(newVal)
+					newStr, err := ReplaceStringVariables(fv, root)
+					if err != nil {
+						return err
 					}
+					dstField.SetString(newStr)
 				default:
 					//log.Debug(fieldName, " is a ", kind)
-					Replace(dstField.Addr().Interface(), name, value)
+					Replace(dstField.Addr().Interface(), root)
 				}
 			}
 		}
 	}
+	return nil
 }

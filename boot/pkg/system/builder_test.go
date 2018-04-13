@@ -28,4 +28,3 @@ func TestBuilder(t *testing.T)  {
 	c := cp.(*Configuration)
 	log.Print(c)
 }
-

@@ -13,3 +13,17 @@
 // limitations under the License.
 
 package impl
+
+import (
+	"github.com/hidevopsio/hi/boot/pkg/log"
+	"github.com/hidevopsio/hi/cicd/pkg/ci"
+)
+
+type NodeJsPipeline struct{
+	ci.Pipeline
+}
+
+func (p *NodeJsPipeline) Deploy() error {
+	log.Debug("NodeJsPipeline.Deploy()")
+	return nil
+}

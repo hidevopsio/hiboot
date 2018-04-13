@@ -1,4 +1,4 @@
-package utils
+package validator
 
 
 import (
@@ -43,7 +43,7 @@ func TestValidateStruct(t *testing.T) {
 	}
 
 	// returns nil or ValidationErrors ( map[string]*FieldError )
-	errs := Validate.Struct(user)
+	errs := Validate(user)
 
 	if errs != nil {
 
@@ -61,12 +61,13 @@ func TestValidateStruct(t *testing.T) {
 		return
 	}
 
+	// save user to database
 }
 
 func TestValidateField(t *testing.T) {
 	myEmail := "joeybloggs.gmail.com"
 
-	errs := Validate.Field(myEmail, "required,email")
+	errs := ValidateField(myEmail, "required,email")
 
 	if errs != nil {
 		fmt.Println(errs) // output: Key: "" Error:Field validation for "" failed on the "email" tag

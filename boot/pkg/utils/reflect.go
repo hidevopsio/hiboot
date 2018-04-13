@@ -1,6 +1,9 @@
 package utils
 
-import "reflect"
+import (
+	"reflect"
+)
+
 
 func NewReflectType(st interface{}) interface{} {
 	ct := reflect.TypeOf(st)
