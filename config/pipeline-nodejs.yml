@@ -4,7 +4,7 @@ pipeline:
   identifiers: # unused
   - package.json
   buildConfigs:
-    imagestream: s2i-nodejs:latest
+    imagestream: centos7-s2i-nodejs:6.9.5
     env:
     - name: npm_config_registry
       value: ${npm_config_registry}
@@ -14,17 +14,18 @@ pipeline:
       value: https://npm.taobao.org/dist/phantomjs/
     - name: npm_config_phantomjs_cdnurl
       value: https://npm.taobao.org/dist/phantomjs/
-    - name: export npm_config_electron_mirror
+    - name: npm_config_electron_mirror
       value: https://npm.taobao.org/mirrors/electron/
-    - name: export npm_config_sass_binary_site
+    - name: npm_config_sass_binary_site
       value: https://npm.taobao.org/mirrors/node-sass/
     - name: BUILD_SCRIPT
       value: |
-        npm install
+        echo === npm_config_registry: ${npm_config_registry} ===
+        npm install -d
         if [[ $? == 0 ]]; then
-          echo "Successful."
+          echo "Build Successful."
         else
-          echo "Failed!"
+          echo "Build Failed!"
         fi
   deploymentConfigs:
     env:
