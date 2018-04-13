@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func ParseVariables(src string) [][]string    {
-	matches := regexp.MustCompile(`\$\{(.*?)\}`).FindAllStringSubmatch(src, -1)
+func ParseVariables(src string, re *regexp.Regexp) [][]string    {
+	matches := re.FindAllStringSubmatch(src, -1)
 	if matches == nil {
 		log.Println("No matches found.")
 		return nil
@@ -22,7 +22,9 @@ func TestParseVariables(t *testing.T) {
 	os.Setenv("BAR", "bar")
 	source := "the-${FOO}-${BAR}-env"
 
-	matches := ParseVariables(source)
+	re := regexp.MustCompile(`\$\{(.*?)\}`)
+
+	matches := ParseVariables(source, re)
 
 	log.Print(matches)
 	assert.Equal(t, "${FOO}", matches[0][0])
