@@ -42,7 +42,15 @@ func TestReplaceVariable(t *testing.T)  {
 	err := Replace(f, f)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "foo-bar", f.Bar.Profile)
+)
 
+func ParseVariables(src string, re *regexp.Regexp) [][]string    {
+	matches := re.FindAllStringSubmatch(src, -1)
+	if matches == nil {
+		log.Println("No matches found.")
+		return nil
+	}
+	return matches
 }
 
 func TestParseVariables(t *testing.T) {
