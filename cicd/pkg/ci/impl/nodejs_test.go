@@ -17,9 +17,9 @@ func TestNodeJsPipeline(t *testing.T) {
 	password := os.Getenv("SCM_PASSWORD")
 	pi := &ci.Pipeline{
 		Name:    "nodejs",
-		Profile: "dev",
-		App:     "admin",
 		Project: "demo",
+		Profile: "dev",
+		App:     "ngx-admin",
 		Scm:     ci.Scm{Url: os.Getenv("SCM_URL")},
 	}
 	nodeJs.Init(pi)

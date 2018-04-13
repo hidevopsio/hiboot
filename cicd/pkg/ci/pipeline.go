@@ -162,6 +162,10 @@ func (p *Pipeline) Build(secret string, completedHandler func() error) error {
 	// Build image stream
 	build, err := buildConfig.Build(p.BuildConfigs.Env)
 
+	if err != nil {
+		return err
+	}
+
 	buildConfig.Watch(build, completedHandler)
 
 	return err

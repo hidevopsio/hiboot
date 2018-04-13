@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	"github.com/hidevopsio/hi/boot/pkg/system"
 	"github.com/jinzhu/copier"
+	"fmt"
 )
 
 type Scm struct{
@@ -236,9 +237,10 @@ func (b *BuildConfig) Build(env []system.Env) (*v1.Build, error) {
 	}
 
 	build, err := b.BuildConfigs.Instantiate(b.Name, &buildRequest)
-	if nil == err {
-		log.Infof("Instantiated Build %v", build.Name)
+	if nil != err {
+		return nil, err
 	}
+	log.Infof("Instantiated Build %v", build.Name)
 	return build, err
 }
 
@@ -270,24 +272,18 @@ func (b *BuildConfig) Watch(build *v1.Build, completedHandler func() error) erro
 					//log.Info("Modified: ", event.Object)
 					log.Debugf("bld.Status.Phase: %v", bld.Status.Phase)
 					switch bld.Status.Phase {
-					case v1.BuildPhaseComplete :
+					case v1.BuildPhaseComplete:
 						var err error
-						if nil !=  completedHandler {
+						if nil != completedHandler {
 							err = completedHandler()
 						}
 						w.Stop()
 						return err
-					case v1.BuildPhaseError:
+					case v1.BuildPhaseError, v1.BuildPhaseCancelled, v1.BuildPhaseFailed:
+						w.Stop()
+						return fmt.Errorf(bld.Status.Message)
 
 					}
-/*					if bld.Status.Phase == v1.BuildPhaseComplete {
-						var err error
-						if nil !=  completedHandler {
-							err = completedHandler()
-						}
-						w.Stop()
-						return err
-					}*/
 				}
 
 			case watch.Deleted:
