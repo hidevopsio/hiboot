@@ -24,14 +24,14 @@ type SubBar struct {
 	Name string
 }
 
-func TestReplaceVariable(t *testing.T)  {
+func TestReplaceVariable(t *testing.T) {
 	os.Setenv("FOO", "foo")
 	os.Setenv("BAR", "bar")
 	f := &Foo{
-		Name: "foo",
+		Name:    "foo",
 		Project: "it's ${FOO} project",
 		Bar: Bar{
-			Name: "my name is ${BAR}",
+			Name:    "my name is ${BAR}",
 			Profile: "${name}-bar",
 			SubBar: SubBar{
 				Name: "${bar.name}",
@@ -41,16 +41,10 @@ func TestReplaceVariable(t *testing.T)  {
 
 	err := Replace(f, f)
 	assert.Equal(t, nil, err)
+	assert.Equal(t, "it's foo project", f.Project)
 	assert.Equal(t, "foo-bar", f.Bar.Profile)
-)
-
-func ParseVariables(src string, re *regexp.Regexp) [][]string    {
-	matches := re.FindAllStringSubmatch(src, -1)
-	if matches == nil {
-		log.Println("No matches found.")
-		return nil
-	}
-	return matches
+	assert.Equal(t, "my name is bar", f.Bar.Name)
+	assert.Equal(t, f.Bar.Name, f.Bar.SubBar.Name)
 }
 
 func TestParseVariables(t *testing.T) {
@@ -70,7 +64,7 @@ func TestParseVariables(t *testing.T) {
 	assert.Equal(t, "BAR", matches[1][1])
 }
 
-func TestReplaceReferences(t *testing.T)  {
+func TestReplaceReferences(t *testing.T) {
 	os.Setenv("FOO", "foo")
 	os.Setenv("BAR", "bar")
 	f := &Foo{
