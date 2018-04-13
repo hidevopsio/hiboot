@@ -123,7 +123,8 @@ func (p *Pipeline) Init(pl *Pipeline) {
 
 	}
 	// TODO: replace variable inside pipeline, e.g. ${profile}
-	utils.Replace(p, "profile", pl.Profile)
+	utils.Replace(p, p)
+
 
 	if "" == p.Namespace {
 		if "" == pl.Profile {
