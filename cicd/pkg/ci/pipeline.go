@@ -58,8 +58,9 @@ type Scm struct {
 }
 
 type DeploymentConfigs struct {
-	Replicas int32        `json:"replicas"`
-	Env      []system.Env `json:"env"`
+	ForceUpdate bool         `json:"force_update"`
+	Replicas    int32        `json:"replicas"`
+	Env         []system.Env `json:"env"`
 }
 
 type BuildConfigs struct {
@@ -272,7 +273,7 @@ func (p *Pipeline) Run(username, password string, isToken bool) error {
 	// build image
 	err = p.Build(secret, func() error {
 		// create dc - deployment config
-		err = p.CreateDeploymentConfig(false)
+		err = p.CreateDeploymentConfig(p.DeploymentConfigs.ForceUpdate)
 		if err != nil {
 			log.Error(err.Error())
 			return fmt.Errorf("failed on CreateDeploymentConfig! %s", err.Error())
