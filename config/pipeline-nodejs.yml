@@ -4,7 +4,7 @@ pipeline:
   identifiers: # unused
   - package.json
   buildConfigs:
-    imagestream: centos7-s2i-nodejs:8.10.0
+    imagestream: s2i-nodejs:8.10.0
     env:
     - name: npm_config_registry
       value: ${npm_config_registry}

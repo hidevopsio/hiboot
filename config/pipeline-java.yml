@@ -7,7 +7,7 @@ pipeline:
   - src/main/resources/application.yml
   - src/main/resources/application-${profile}.yml
   buildConfigs:
-    imagestream: s2i-java:latest
+    imagestream: s2i-java:1.0.5
     env:
     - name: MAVEN_MIRROR_URL
       value: ${MAVEN_MIRROR_URL}

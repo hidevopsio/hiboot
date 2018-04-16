@@ -12,20 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package ci
 
-import (
-	"runtime"
-	"strings"
-	"github.com/hidevopsio/hi/boot/pkg/log"
-	"os"
-)
-
-func GetWorkingDir(file string) string {
-	_, filename, _, _ := runtime.Caller(1)
-	wd := strings.Replace(filename, file, "", -1)
-	wd2, _ := os.Getwd()
-	log.Println("working dir: ", wd, " vs ", wd2)
-
-	return wd
+type PipelineInterface interface {
+	Init(pl *Pipeline)
+	CreateSecret(username, password string, isToken bool) (string, error)
+	Build(secret string, completedHandler func() error) error
+	RunUnitTest() error
+	RunIntegrationTest() error
+	Analysis() error
+	CreateDeploymentConfig(force bool) error
+	InjectSideCar() error
+	Deploy() error
+	CreateService() error
+	CreateRoute() error
+	Run(username, password string, isToken bool) error
 }
