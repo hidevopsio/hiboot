@@ -17,6 +17,7 @@ pipeline:
           echo "Build Successful."
         else
           echo "Build Failed!"
+          exit 1
         fi
   deploymentConfigs:
     env:

@@ -21,6 +21,12 @@ func TestNodeJsPipeline(t *testing.T) {
 		Profile: "dev",
 		App:     "hello-angular",
 		Scm:     ci.Scm{Url: os.Getenv("SCM_URL")},
+		//DeploymentConfigs: ci.DeploymentConfigs{
+		//	Skip: true,
+		//},
+		//BuildConfigs: ci.BuildConfigs{
+		//	Skip: true,
+		//},
 	}
 	nodeJs.Init(pi)
 	err := nodeJs.Run(username, password, false)
