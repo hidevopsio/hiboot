@@ -25,31 +25,6 @@ import (
 	"github.com/hidevopsio/hi/boot/pkg/utils"
 )
 
-// config file
-// pipeline:
-// - PullSourceCode
-// - Build
-// - RunUnitTest
-// - Analysis
-// - CopyTarget
-// - Upload
-// - NewImage
-// - Deploy
-
-type PipelineInterface interface {
-	Init(pl *Pipeline)
-	CreateSecret(username, password string, isToken bool) (string, error)
-	Build(secret string, completedHandler func() error) error
-	RunUnitTest() error
-	RunIntegrationTest() error
-	Analysis() error
-	CreateDeploymentConfig(force bool) error
-	InjectSideCar() error
-	Deploy() error
-	CreateService() error
-	CreateRoute() error
-	Run(username, password string, isToken bool) error
-}
 
 type Scm struct {
 	Type string `json:"type"`
@@ -58,12 +33,14 @@ type Scm struct {
 }
 
 type DeploymentConfigs struct {
+	Skip        bool         `json:"skip"`
 	ForceUpdate bool         `json:"force_update"`
 	Replicas    int32        `json:"replicas"`
 	Env         []system.Env `json:"env"`
 }
 
 type BuildConfigs struct {
+	Skip        bool         `json:"skip"`
 	Tag         string       `json:"tag"`
 	ImageStream string       `json:"image_stream"`
 	Env         []system.Env `json:"env"`
@@ -121,7 +98,7 @@ func (p *Pipeline) Init(pl *Pipeline) {
 		mergo.Merge(p, c.Pipeline, mergo.WithOverride)
 
 	}
-	// TODO: replace variable inside pipeline, e.g. ${profile}
+
 	utils.Replace(p, p)
 
 	if "" == p.Namespace {
@@ -150,6 +127,10 @@ func (p *Pipeline) CreateSecret(username, password string, isToken bool) (string
 
 func (p *Pipeline) Build(secret string, completedHandler func() error) error {
 	log.Debug("Pipeline.Build()")
+
+	if p.BuildConfigs.Skip {
+		return completedHandler()
+	}
 
 	scmUrl := p.CombineScmUrl()
 	buildConfig, err := openshift.NewBuildConfig(p.Namespace, p.App, scmUrl, p.Scm.Ref, secret, p.BuildConfigs.Tag, p.BuildConfigs.ImageStream)
@@ -272,26 +253,34 @@ func (p *Pipeline) Run(username, password string, isToken bool) error {
 
 	// build image
 	err = p.Build(secret, func() error {
-		// create dc - deployment config
-		err = p.CreateDeploymentConfig(p.DeploymentConfigs.ForceUpdate)
-		if err != nil {
-			log.Error(err.Error())
-			return fmt.Errorf("failed on CreateDeploymentConfig! %s", err.Error())
+
+		if !p.DeploymentConfigs.Skip {
+
+			// create dc - deployment config
+			err = p.CreateDeploymentConfig(p.DeploymentConfigs.ForceUpdate)
+			if err != nil {
+				log.Error(err.Error())
+				return fmt.Errorf("failed on CreateDeploymentConfig! %s", err.Error())
+			}
+
+			//// deploy
+			//err = p.Deploy()
+			//if err != nil {
+			//	log.Error(err.Error())
+			//	return fmt.Errorf("failed on Deploy! %s", err.Error())
+			//}
+
+			rc := k8s.NewReplicationController(p.App, p.Namespace)
+			// rc.Watch(message, handler)
+			err = rc.Watch(func() error {
+				log.Debug("Completed!")
+				return nil
+			})
+			if err != nil {
+				log.Error(err.Error())
+				return fmt.Errorf("failed on watch rc! %s", err.Error())
+			}
 		}
-
-		//// deploy
-		//err = p.Deploy()
-		//if err != nil {
-		//	log.Error(err.Error())
-		//	return fmt.Errorf("failed on Deploy! %s", err.Error())
-		//}
-
-		rc := k8s.NewReplicationController(p.App, p.Namespace)
-		// rc.Watch(message, handler)
-		err := rc.Watch(func() error {
-			log.Debug("Completed!")
-			return nil
-		})
 
 		// inject side car
 		err = p.InjectSideCar()

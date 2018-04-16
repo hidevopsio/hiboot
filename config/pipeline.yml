@@ -8,8 +8,10 @@ pipeline:
     ref: master
   dockerRegistry: docker-registry.default.svc:5000
   buildConfigs:
+    skip: false
     tag: latest
   deploymentConfigs:
+    skip: false
     forceUpdate: false
     replicas: 1
     env:

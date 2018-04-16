@@ -258,8 +258,7 @@ func (b *BuildConfig) Watch(build *v1.Build, completedHandler func() error) erro
 		select {
 		case event, ok := <-w.ResultChan():
 			if !ok {
-				log.Warn("Completed ...")
-				break
+				return fmt.Errorf("resultChan: %v", ok)
 			}
 			switch event.Type {
 			case watch.Added:
