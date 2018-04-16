@@ -10,6 +10,7 @@ pipeline:
   buildConfigs:
     tag: latest
   deploymentConfigs:
+    forceUpdate: false
     replicas: 1
     env:
     - name: TZ

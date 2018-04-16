@@ -4,7 +4,7 @@ pipeline:
   identifiers: # unused
   - package.json
   buildConfigs:
-    imagestream: centos7-s2i-nodejs:6.9.5
+    imagestream: centos7-s2i-nodejs:8.10.0
     env:
     - name: npm_config_registry
       value: ${npm_config_registry}
@@ -21,16 +21,16 @@ pipeline:
     - name: BUILD_SCRIPT
       value: |
         echo === npm_config_registry: ${npm_config_registry} ===
-        npm install -d
+        npm install --dev
         if [[ $? == 0 ]]; then
           echo "Build Successful."
         else
           echo "Build Failed!"
+          exit 1
         fi
+
   deploymentConfigs:
     env:
-    - name: NPM_RUN
-      value: start
     - name: NODE_ENV
       value: ${profile}
     - name: HOST
@@ -39,3 +39,13 @@ pipeline:
       value: 8080
     - name: project
       value: ${project}
+    - name: RUN_SCRIPT
+      value: |
+        npm run build:${profile}
+        if [[ $? == 0 ]]; then
+          echo "Build Successful."
+        else
+          echo "Build Failed!"
+          exit 1
+        fi
+        npm run start

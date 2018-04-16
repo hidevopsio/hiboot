@@ -42,6 +42,9 @@ func TestJavaPipeline(t *testing.T)  {
 		App: "hello-world",
 		Project: "demo",
 		Scm: ci.Scm{Url: os.Getenv("SCM_URL")},
+		DeploymentConfigs: ci.DeploymentConfigs{
+			ForceUpdate: false,
+		},
 	})
 	err := java.Run(username, password, false)
 	assert.Equal(t, nil, err)

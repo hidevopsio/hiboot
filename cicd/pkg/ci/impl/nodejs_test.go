@@ -19,7 +19,7 @@ func TestNodeJsPipeline(t *testing.T) {
 		Name:    "nodejs",
 		Project: "demo",
 		Profile: "dev",
-		App:     "ngx-admin",
+		App:     "hello-angular",
 		Scm:     ci.Scm{Url: os.Getenv("SCM_URL")},
 	}
 	nodeJs.Init(pi)
