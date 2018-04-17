@@ -33,10 +33,11 @@ type Scm struct {
 }
 
 type DeploymentConfigs struct {
-	Skip        bool         `json:"skip"`
-	ForceUpdate bool         `json:"force_update"`
-	Replicas    int32        `json:"replicas"`
-	Env         []system.Env `json:"env"`
+	HealthEndPoint  string 		 `json:"healthEndPoint"`
+	Skip            bool          `json:"skip"`
+	ForceUpdate 	bool          `json:"force_update"`
+	Replicas    	int32         `json:"replicas"`
+	Env         	[]system.Env  `json:"env"`
 }
 
 type BuildConfigs struct {
@@ -182,7 +183,7 @@ func (p *Pipeline) CreateDeploymentConfig(force bool) error {
 		return err
 	}
 
-	err = dc.Create(&p.DeploymentConfigs.Env, &p.Ports, p.DeploymentConfigs.Replicas, force)
+	err = dc.Create(&p.DeploymentConfigs.Env, &p.Ports, p.DeploymentConfigs.Replicas, force, p.DeploymentConfigs.HealthEndPoint)
 	if err != nil {
 		return err
 	}
