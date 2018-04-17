@@ -20,14 +20,14 @@ import (
 	"github.com/hidevopsio/hi/boot/pkg/system"
 	"fmt"
 	"github.com/kataras/iris/context"
-	"github.com/hidevopsio/hi/boot/pkg/utils"
 	"crypto/rsa"
-	"io/ioutil"
 	"github.com/dgrijalva/jwt-go"
 	jwtmiddleware "github.com/iris-contrib/middleware/jwt"
 	"time"
 	"github.com/hidevopsio/hi/boot/pkg/model"
+	"github.com/hidevopsio/hi/boot/pkg/utils"
 	"os"
+	"io/ioutil"
 )
 
 const (
@@ -68,33 +68,7 @@ func fatal(err error) {
 }
 
 func init() {
-	wd := utils.GetWorkingDir("/boot/pkg/application/application.go")
 
-	b := &system.Builder{
-		Path:       wd + config,
-		Name:       application,
-		FileType:   yaml,
-		Profile:    os.Getenv("APP_PROFILES_ACTIVE"),
-		ConfigType: system.Configuration{},
-	}
-	cp, err := b.Build()
-	sysCfg := cp.(*system.Configuration)
-	log.Print(sysCfg)
-
-	log.SetLevel(sysCfg.Logging.Level)
-
-
-	signBytes, err := ioutil.ReadFile(wd + privateKeyPath)
-	fatal(err)
-
-	signKey, err = jwt.ParseRSAPrivateKeyFromPEM(signBytes)
-	fatal(err)
-
-	verifyBytes, err := ioutil.ReadFile(wd + pubKeyPath)
-	fatal(err)
-
-	verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
-	fatal(err)
 }
 
 func GenerateJwtToken(payload MapJwt, expired int64, unit time.Duration) (JwtToken, error) {
@@ -143,6 +117,31 @@ func ResponseError(ctx iris.Context, message string, code int) {
 }
 
 func (b *Boot) Init() {
+	wd := utils.GetWorkingDir("/boot/pkg/application/application.go")
+
+	builder := &system.Builder{
+		Path:       wd + config,
+		Name:       application,
+		FileType:   yaml,
+		Profile:    os.Getenv("APP_PROFILES_ACTIVE"),
+		ConfigType: system.Configuration{},
+	}
+	cp, err := builder.Build()
+	b.config = cp.(*system.Configuration)
+	log.SetLevel(b.config.Logging.Level)
+
+	signBytes, err := ioutil.ReadFile(wd + privateKeyPath)
+	fatal(err)
+
+	signKey, err = jwt.ParseRSAPrivateKeyFromPEM(signBytes)
+	fatal(err)
+
+	verifyBytes, err := ioutil.ReadFile(wd + pubKeyPath)
+	fatal(err)
+
+	verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
+	fatal(err)
+
 	jwtHandler = jwtmiddleware.New(jwtmiddleware.Config{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 			//log.Debug(token)
@@ -154,8 +153,6 @@ func (b *Boot) Init() {
 		SigningMethod: jwt.SigningMethodRS256,
 	})
 
-	b.config = sysCfg
-	log.Debug(sysCfg)
 	log.Debug("application init")
 
 	b.app = iris.New()

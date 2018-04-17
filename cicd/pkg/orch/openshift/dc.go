@@ -26,7 +26,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"fmt"
 	"github.com/jinzhu/copier"
-	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type DeploymentConfig struct {
@@ -88,7 +87,6 @@ func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas 
 					},
 				},
 				Spec: corev1.PodSpec{
-					// TODO: add LivenessProbe and ReadinessProbe config below
 					Containers: []corev1.Container{
 						{
 							Env:             e,
@@ -96,64 +94,36 @@ func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas 
 							ImagePullPolicy: corev1.PullAlways,
 							Name:            dc.Name,
 							Ports:           p,
-/*							ReadinessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									Exec: &corev1.ExecAction{
-										Command : []string{
-											"curl",
-											healthEndPoint,
-										},
-									},
-								},
-								InitialDelaySeconds: 20,
-								TimeoutSeconds:      5,
-								PeriodSeconds:       5,
-							},
-							LivenessProbe: &corev1.Probe{
-								Handler: corev1.Handler{
-									Exec: &corev1.ExecAction{
-										Command : []string{
-											"curl",
-											healthEndPoint,
-										},
-									},
-								},
-								InitialDelaySeconds: 20,
-								TimeoutSeconds:      5,
-								PeriodSeconds:       5,
-							},*/
 							ReadinessProbe: &corev1.Probe{
 								Handler: corev1.Handler{
-									HTTPGet: &corev1.HTTPGetAction{
-										Path: healthEndPoint,
-										Host: "localhost",
-										Scheme: corev1.URISchemeHTTP,
-										Port: intstr.IntOrString{
-											IntVal: 8080,
+									Exec: &corev1.ExecAction{
+										Command : []string{
+											"curl",
+											"--silent",
+											"--show-error",
+											"--fail",
+											healthEndPoint,
 										},
 									},
 								},
-								FailureThreshold:    3,
-								SuccessThreshold:    1,
-								InitialDelaySeconds: 20,
-								TimeoutSeconds:      5,
+								InitialDelaySeconds: 10,
+								TimeoutSeconds:      1,
 								PeriodSeconds:       5,
 							},
 							LivenessProbe: &corev1.Probe{
 								Handler: corev1.Handler{
-									HTTPGet: &corev1.HTTPGetAction{
-										Path: healthEndPoint,
-										Host: "localhost",
-										Scheme: corev1.URISchemeHTTP,
-										Port: intstr.IntOrString{
-											IntVal: 8080,
+									Exec: &corev1.ExecAction{
+										Command : []string{
+											"curl",
+											"--silent",
+											"--show-error",
+											"--fail",
+											healthEndPoint,
 										},
 									},
 								},
-								FailureThreshold:    3,
-								SuccessThreshold:    1,
 								InitialDelaySeconds: 20,
-								TimeoutSeconds:      5,
+								TimeoutSeconds:      1,
 								PeriodSeconds:       5,
 							},
 						},
@@ -166,7 +136,7 @@ func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas 
 			Test: false,
 			Triggers: v1.DeploymentTriggerPolicies{
 				{
-					Type: "ImageChange",
+					Type: v1.DeploymentTriggerOnImageChange,
 					ImageChangeParams: &v1.DeploymentTriggerImageChangeParams{
 						Automatic: true,
 						ContainerNames: []string{

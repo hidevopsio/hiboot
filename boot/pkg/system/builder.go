@@ -65,7 +65,7 @@ func (b *Builder) Read(override bool) (interface{}, error) {
 	v.SetConfigType(b.FileType)
 	err := v.ReadInConfig()
 	if err != nil {
-		panic(fmt.Errorf("Error config file: %s \n", err))
+		return nil, fmt.Errorf("Error config file: %s \n", err)
 	}
 	st := b.ConfigType
 
@@ -73,7 +73,7 @@ func (b *Builder) Read(override bool) (interface{}, error) {
 
 	err = v.Unmarshal(cp)
 	if err != nil {
-		panic(fmt.Errorf("Unable to decode Config: %s \n", err))
+		return nil, fmt.Errorf("Error on viper config unmarshal : %s \n", err)
 	}
 	return cp, err
 }
