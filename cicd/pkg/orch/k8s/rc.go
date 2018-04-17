@@ -6,6 +6,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/apimachinery/pkg/watch"
+	"fmt"
 )
 
 type ReplicationController struct{
@@ -59,8 +60,7 @@ func (rc *ReplicationController) Watch(completedHandler func() error) error {
 		select {
 		case event, ok := <-w.ResultChan():
 			if !ok {
-				log.Warn("Completed ...")
-				break
+				return fmt.Errorf("failed on RC watching %v", ok)
 			}
 			switch event.Type {
 			case watch.Added:
