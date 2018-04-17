@@ -33,7 +33,7 @@ type Scm struct {
 }
 
 type DeploymentConfigs struct {
-	HealthEndPoint  string 		 `json:"healthEndPoint"`
+	HealthEndPoint  string 		 `json:"health_end_point"`
 	Skip            bool          `json:"skip"`
 	ForceUpdate 	bool          `json:"force_update"`
 	Replicas    	int32         `json:"replicas"`
