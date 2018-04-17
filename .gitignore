@@ -13,7 +13,7 @@
 
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
-
+cicd/config/
 app.rsa.pub
 app.rsa
 
