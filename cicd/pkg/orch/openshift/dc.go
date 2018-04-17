@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"fmt"
 	"github.com/jinzhu/copier"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type DeploymentConfig struct {
@@ -51,7 +52,7 @@ func NewDeploymentConfig(name, namespace string) (*DeploymentConfig, error) {
 	}, nil
 }
 
-func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas int32, force bool) error {
+func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas int32, force bool, healthEndPoint string) error {
 	log.Debug("DeploymentConfig.Create()")
 
 	// env
@@ -95,6 +96,66 @@ func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas 
 							ImagePullPolicy: corev1.PullAlways,
 							Name:            dc.Name,
 							Ports:           p,
+/*							ReadinessProbe: &corev1.Probe{
+								Handler: corev1.Handler{
+									Exec: &corev1.ExecAction{
+										Command : []string{
+											"curl",
+											healthEndPoint,
+										},
+									},
+								},
+								InitialDelaySeconds: 20,
+								TimeoutSeconds:      5,
+								PeriodSeconds:       5,
+							},
+							LivenessProbe: &corev1.Probe{
+								Handler: corev1.Handler{
+									Exec: &corev1.ExecAction{
+										Command : []string{
+											"curl",
+											healthEndPoint,
+										},
+									},
+								},
+								InitialDelaySeconds: 20,
+								TimeoutSeconds:      5,
+								PeriodSeconds:       5,
+							},*/
+							ReadinessProbe: &corev1.Probe{
+								Handler: corev1.Handler{
+									HTTPGet: &corev1.HTTPGetAction{
+										Path: healthEndPoint,
+										Host: "localhost",
+										Scheme: corev1.URISchemeHTTP,
+										Port: intstr.IntOrString{
+											IntVal: 8080,
+										},
+									},
+								},
+								FailureThreshold:    3,
+								SuccessThreshold:    1,
+								InitialDelaySeconds: 20,
+								TimeoutSeconds:      5,
+								PeriodSeconds:       5,
+							},
+							LivenessProbe: &corev1.Probe{
+								Handler: corev1.Handler{
+									HTTPGet: &corev1.HTTPGetAction{
+										Path: healthEndPoint,
+										Host: "localhost",
+										Scheme: corev1.URISchemeHTTP,
+										Port: intstr.IntOrString{
+											IntVal: 8080,
+										},
+									},
+								},
+								FailureThreshold:    3,
+								SuccessThreshold:    1,
+								InitialDelaySeconds: 20,
+								TimeoutSeconds:      5,
+								PeriodSeconds:       5,
+							},
 						},
 					},
 					DNSPolicy:     corev1.DNSClusterFirst,

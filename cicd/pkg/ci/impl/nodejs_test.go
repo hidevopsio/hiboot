@@ -21,6 +21,9 @@ func TestNodeJsPipeline(t *testing.T) {
 		Profile: "dev",
 		App:     "hello-angular",
 		Scm:     ci.Scm{Url: os.Getenv("SCM_URL")},
+		DeploymentConfigs: ci.DeploymentConfigs{
+			ForceUpdate: true,
+		},
 		//DeploymentConfigs: ci.DeploymentConfigs{
 		//	Skip: true,
 		//},

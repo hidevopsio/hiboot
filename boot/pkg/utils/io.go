@@ -27,5 +27,5 @@ func GetWorkingDir(file string) string {
 	wd2, _ := os.Getwd()
 	log.Println("working dir: ", wd, " vs ", wd2)
 
-	return wd;
+	return wd
 }
