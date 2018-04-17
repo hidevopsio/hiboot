@@ -95,6 +95,32 @@ func (dc *DeploymentConfig) Create(env interface{}, ports interface{}, replicas 
 							ImagePullPolicy: corev1.PullAlways,
 							Name:            dc.Name,
 							Ports:           p,
+							ReadinessProbe: &corev1.Probe{
+								Handler: corev1.Handler{
+									Exec: &corev1.ExecAction{
+										Command : []string{
+											"curl",
+											"localhost:8080/health",
+										},
+									},
+								},
+								InitialDelaySeconds: 10,
+								TimeoutSeconds:      1,
+								PeriodSeconds:       5,
+							},
+							LivenessProbe: &corev1.Probe{
+								Handler: corev1.Handler{
+									Exec: &corev1.ExecAction{
+										Command : []string{
+											"curl",
+											"localhost:8080/health",
+										},
+									},
+								},
+								InitialDelaySeconds: 10,
+								TimeoutSeconds:      1,
+								PeriodSeconds:       5,
+							},
 						},
 					},
 					DNSPolicy:     corev1.DNSClusterFirst,
