@@ -29,6 +29,7 @@ func TestDeploymentConfigCreation(t *testing.T) {
 	profile := "dev"
 	namespace := projectName + "-" + profile
 	app := "hello-world"
+	healthEndPoint := "http://localhost:8080/health"
 
 	env := []system.Env{
 		{
@@ -62,7 +63,7 @@ func TestDeploymentConfigCreation(t *testing.T) {
 	assert.Equal(t, app, dc.Name)
 
 	// create dc
-	err = dc.Create(&env, &ports, 1, false)
+	err = dc.Create(&env, &ports, 1, false, healthEndPoint)
 	assert.Equal(t, nil, err)
 }
 
