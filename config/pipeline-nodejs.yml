@@ -21,7 +21,7 @@ pipeline:
     - name: BUILD_SCRIPT
       value: |
         echo === npm_config_registry: ${npm_config_registry} ===
-        npm install --dev
+        npm install --only=dev
         if [[ $? == 0 ]]; then
           echo "Build Successful."
         else
