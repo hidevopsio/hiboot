@@ -22,5 +22,41 @@
 
 
 [[constraint]]
+  name = "github.com/dgrijalva/jwt-go"
+  version = "3.2.0"
+
+[[constraint]]
+  name = "github.com/imdario/mergo"
+  version = "0.3.4"
+
+[[constraint]]
+  name = "github.com/iris-contrib/middleware"
+  version = "10.0.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/kataras/golog"
+
+[[constraint]]
+  name = "github.com/kataras/iris"
+  version = "10.5.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/kataras/pio"
+
+[[constraint]]
+  name = "github.com/magiconair/properties"
+  version = "1.7.6"
+
+[[constraint]]
   name = "github.com/spf13/viper"
-  version = "1.0.0"
+  version = "1.0.2"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.2.1"
+
+[[constraint]]
+  name = "gopkg.in/go-playground/validator.v8"
+  version = "8.18.2"
