@@ -1,8 +1,0 @@
-# filename should be application.yml
-
-app:
-  project: devops
-  name: hi
-
-logging:
-  level: debug

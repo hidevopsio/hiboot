@@ -1,2 +1,3 @@
-# hi
-'hi' is a cloud native app for DevOps team.
+# hiboot
+
+'hiboot' is a cloud native web application framework.

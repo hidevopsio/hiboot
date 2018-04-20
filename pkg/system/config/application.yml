@@ -1,0 +1,9 @@
+# config file for testing
+# filename should be application.yml
+
+app:
+  project: hidevops
+  name: hiboot
+
+logging:
+  level: debug
