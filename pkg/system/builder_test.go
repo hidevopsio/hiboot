@@ -8,16 +8,12 @@ import (
 	"os"
 )
 
-const (
-	application = "application"
-	config      = "config"
-)
 
-func TestBuilder(t *testing.T) {
+func TestBuilderBuild(t *testing.T) {
 
 	b := &Builder{
 		Path:       filepath.Join(utils.GetWorkingDir(""), "config"),
-		Name:       application,
+		Name:       "application",
 		FileType:   "yaml",
 		Profile:    "local",
 		ConfigType: Configuration{},
