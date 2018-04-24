@@ -14,9 +14,15 @@
 
 package system
 
+type Profiles struct {
+	Include []string `json:"include"`
+	Active string    `json:"active"`
+}
+
 type App struct {
-	Project string `json:"project"`
-	Name    string `json:"name"`
+	Project  string   `json:"project"`
+	Name     string   `json:"name"`
+	Profiles Profiles `json:"profiles"`
 }
 
 type Server struct {

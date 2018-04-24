@@ -4,6 +4,9 @@
 app:
   project: hidevops
   name: hiboot
+  profiles:
+    include:
+    - foo
 
 logging:
   level: debug
