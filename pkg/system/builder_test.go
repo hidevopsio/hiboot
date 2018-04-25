@@ -6,6 +6,7 @@ import (
 	"github.com/magiconair/properties/assert"
 	"path/filepath"
 	"os"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 
@@ -24,6 +25,8 @@ func TestBuilderBuild(t *testing.T) {
 
 	c := cp.(*Configuration)
 	assert.Equal(t, "hiboot", c.App.Name)
+
+	log.Print(c)
 }
 
 

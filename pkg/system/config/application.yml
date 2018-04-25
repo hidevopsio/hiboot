@@ -2,7 +2,7 @@
 # filename should be application.yml
 
 app:
-  project: hidevops
+  project: hidevopsio
   name: hiboot
   profiles:
     include:
