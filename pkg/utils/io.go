@@ -31,3 +31,10 @@ func GetWorkingDir(file string) string {
 
 	return wd
 }
+
+
+func IsPathNotExist(path string) bool {
+	_, err := os.Stat(path)
+	isNotExist := os.IsNotExist(err)
+	return isNotExist
+}

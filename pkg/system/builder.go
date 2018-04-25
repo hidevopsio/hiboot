@@ -44,11 +44,13 @@ func (b *Builder) New(name string) *viper.Viper {
 	return v
 }
 
+
+
 // create file if it's not exist
 func (b *Builder) Init() (error) {
+	var err error
 
-	_, err := os.Stat(b.Path)
-	if os.IsNotExist(err) {
+	if  utils.IsPathNotExist(b.Path) {
 		err = os.Mkdir(b.Path, os.ModePerm)
 	}
 	if err != nil {
@@ -58,7 +60,7 @@ func (b *Builder) Init() (error) {
 	fn := filepath.Join(b.Path, b.Name) + "." + b.FileType
 	_, err = os.Stat(fn)
 	if os.IsNotExist(err) {
-		f, err := os.OpenFile(fn, os.O_RDONLY | os.O_CREATE, 0666)
+		f, err := os.OpenFile(fn, os.O_RDONLY|os.O_CREATE, 0666)
 		f.Close()
 		return err
 	}
@@ -66,21 +68,32 @@ func (b *Builder) Init() (error) {
 	return err
 }
 
+func (b *Builder) isFileNotExist(path string) bool {
+	for _, ext := range viper.SupportedExts {
+		if !utils.IsPathNotExist(path + ext) {
+			return false
+		}
+	}
+	return true
+}
+
 // build config file
 func (b *Builder) Build() (interface{}, error) {
 
-	conf, err := b.Read(false)
+	conf, err := b.Read(b.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	if b.Profile == "" {
+	name := b.Name + "-" + b.Profile
+	// allow the empty of the profile
+	if b.Profile == "" || b.isFileNotExist(filepath.Join(b.Path, name) + ".") {
 		return conf, nil
 	}
 
-	confReplacer, err := b.Read(true)
+	confReplacer, err := b.Read(name)
 	if err != nil {
-		return nil, err
+		return conf, err
 	}
 
 	mergo.Merge(conf, confReplacer, mergo.WithOverride, mergo.WithAppendSlice)
@@ -89,12 +102,7 @@ func (b *Builder) Build() (interface{}, error) {
 }
 
 // Read single file
-func (b *Builder) Read(override bool) (interface{}, error) {
-
-	name := b.Name
-	if override {
-		name = b.Name + "-" + b.Profile
-	}
+func (b *Builder) Read(name string) (interface{}, error) {
 
 	v := b.New(name)
 	err := v.ReadInConfig()
