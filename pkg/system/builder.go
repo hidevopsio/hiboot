@@ -22,8 +22,7 @@ import (
 	"github.com/imdario/mergo"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"path/filepath"
-	"os"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 	"bytes"
 )
 
@@ -44,28 +43,9 @@ func (b *Builder) New(name string) *viper.Viper {
 	return v
 }
 
-
-
 // create file if it's not exist
 func (b *Builder) Init() (error) {
-	var err error
-
-	if  utils.IsPathNotExist(b.Path) {
-		err = os.Mkdir(b.Path, os.ModePerm)
-	}
-	if err != nil {
-		return err
-	}
-
-	fn := filepath.Join(b.Path, b.Name) + "." + b.FileType
-	_, err = os.Stat(fn)
-	if os.IsNotExist(err) {
-		f, err := os.OpenFile(fn, os.O_RDONLY|os.O_CREATE, 0666)
-		f.Close()
-		return err
-	}
-
-	return err
+	return utils.CreateFile(b.Path, b.Name + "." + b.FileType)
 }
 
 func (b *Builder) isFileNotExist(path string) bool {

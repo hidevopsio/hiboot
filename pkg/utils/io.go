@@ -18,6 +18,7 @@ import (
 	"runtime"
 	"strings"
 	"os"
+	"path/filepath"
 )
 
 func GetWorkingDir(file string) string {
@@ -32,9 +33,37 @@ func GetWorkingDir(file string) string {
 	return wd
 }
 
-
 func IsPathNotExist(path string) bool {
 	_, err := os.Stat(path)
 	isNotExist := os.IsNotExist(err)
 	return isNotExist
+}
+
+
+func write(path, filename string, cb func(f *os.File) (n int, err error)) (int, error) {
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		err = os.Mkdir(path, os.ModePerm)
+	}
+	if err != nil {
+		return 0, err
+	}
+
+	f, _ := os.OpenFile(filepath.Join(path, filename), os.O_RDONLY | os.O_CREATE, 0666)
+	defer f.Close()
+	if cb != nil {
+		return cb(f)
+	}
+	return 0, nil
+}
+
+func CreateFile(path, filename string) (error) {
+	_, err := write(path, filename, nil)
+	return err
+}
+
+func WriterFile(path, filename string, in []byte) (int, error) {
+	return write(path, filename, func(f *os.File) (int, error) {
+		return f.Write(in)
+	})
 }
