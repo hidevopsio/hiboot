@@ -98,7 +98,7 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 		}
 
 		// Copy from field to field or method
-		for _, field := range deepFields(fromType) {
+		for _, field := range DeepFields(fromType) {
 			name := field.Name
 
 			if fromField := source.FieldByName(name); fromField.IsValid() {
@@ -128,7 +128,7 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 		}
 
 		// Copy from method to field
-		for _, field := range deepFields(toType) {
+		for _, field := range DeepFields(toType) {
 			name := field.Name
 
 			var fromMethod reflect.Value
@@ -159,14 +159,14 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 	return
 }
 
-func deepFields(reflectType reflect.Type) []reflect.StructField {
+func DeepFields(reflectType reflect.Type) []reflect.StructField {
 	var fields []reflect.StructField
 
 	if reflectType = indirectType(reflectType); reflectType.Kind() == reflect.Struct {
 		for i := 0; i < reflectType.NumField(); i++ {
 			v := reflectType.Field(i)
 			if v.Anonymous {
-				fields = append(fields, deepFields(v.Type)...)
+				fields = append(fields, DeepFields(v.Type)...)
 			} else {
 				fields = append(fields, v)
 			}
@@ -306,83 +306,93 @@ func getKind(val reflect.Value) reflect.Kind {
 	}
 }
 
-func Replace(to interface{}, root interface{}) error {
-
-	t, err := validate(to)
+func ValidateReflectType(obj interface{}, callback func(value *reflect.Value, reflectType reflect.Type, fieldSize int, isSlice bool) error) error {
+	v, err := validate(obj)
 	if err != nil {
 		return err
 	}
 
-	toType := indirectType(t.Type())
+	t := indirectType(v.Type())
 
 	isSlice := false
 	fieldSize := 1
-	if t.Kind() == reflect.Slice {
+	if v.Kind() == reflect.Slice {
 		isSlice = true
-		fieldSize = t.Len()
+		fieldSize = v.Len()
 	}
 
-	for i := 0; i < fieldSize; i++ {
-		var dst reflect.Value
-		if isSlice {
-			//dst = indirect(reflect.New(toType).Elem())
-			if t.Kind() == reflect.Slice {
-				dst = indirect(t.Index(i))
-				//log.Debug(dst.Interface())
+	if callback != nil {
+		return callback(v, t, fieldSize, isSlice)
+	}
 
-				// TODO: refactoring below code
-				dstType := dst.Type().Name()
-				dstValue := dst.Interface()
-				//log.Debug(dstType)
-				dv := fmt.Sprintf("%v", dstValue)
+	return err
+}
 
-				if dst.Kind() != reflect.String {
-					child := dst.Addr().Interface()
-					Replace(child, root)
-				} else {
-					if dv != "" {
+func Replace(to interface{}, root interface{}) error {
 
-						if dstType == "string" && dst.IsValid() && dst.CanSet() {
-							newStr, err := ReplaceStringVariables(dv, root)
-							if err != nil {
-								return err
+	return ValidateReflectType(to, func(value *reflect.Value, reflectType reflect.Type, fieldSize int, isSlice bool) error {
+		for i := 0; i < fieldSize; i++ {
+			var dst reflect.Value
+			if isSlice {
+				//dst = indirect(reflect.New(toType).Elem())
+				if value.Kind() == reflect.Slice {
+					dst = indirect(value.Index(i))
+					//log.Debug(dst.Interface())
+
+					// TODO: refactoring below code
+					dstType := dst.Type().Name()
+					dstValue := dst.Interface()
+					//log.Debug(dstType)
+					dv := fmt.Sprintf("%v", dstValue)
+
+					if dst.Kind() != reflect.String {
+						child := dst.Addr().Interface()
+						Replace(child, root)
+					} else {
+						if dv != "" {
+
+							if dstType == "string" && dst.IsValid() && dst.CanSet() {
+								newStr, err := ReplaceStringVariables(dv, root)
+								if err != nil {
+									return err
+								}
+								dst.SetString(newStr)
+							} else {
+								log.Error("")
 							}
-							dst.SetString(newStr)
-						} else {
-							log.Error("")
-						}
 
+						}
 					}
+				} else {
+					dst = indirect(*value)
 				}
 			} else {
-				dst = indirect(*t)
+				dst = indirect(*value)
 			}
-		} else {
-			dst = indirect(*t)
-		}
 
-		for _, field := range deepFields(toType) {
-			fieldName := field.Name
-			//log.Debug("fieldName: ", fieldName)
-			if dstField := dst.FieldByName(fieldName); dstField.IsValid() && dstField.CanSet() {
-				fieldValue := dstField.Interface()
-				//log.Debug("fieldValue: ", fieldValue)
+			for _, field := range DeepFields(reflectType) {
+				fieldName := field.Name
+				//log.Debug("fieldName: ", fieldName)
+				if dstField := dst.FieldByName(fieldName); dstField.IsValid() && dstField.CanSet() {
+					fieldValue := dstField.Interface()
+					//log.Debug("fieldValue: ", fieldValue)
 
-				kind := dstField.Kind()
-				switch kind {
-				case reflect.String:
-					fv := fmt.Sprintf("%v", fieldValue)
-					newStr, err := ReplaceStringVariables(fv, root)
-					if err != nil {
-						return err
+					kind := dstField.Kind()
+					switch kind {
+					case reflect.String:
+						fv := fmt.Sprintf("%v", fieldValue)
+						newStr, err := ReplaceStringVariables(fv, root)
+						if err != nil {
+							return err
+						}
+						dstField.SetString(newStr)
+					default:
+						//log.Debug(fieldName, " is a ", kind)
+						Replace(dstField.Addr().Interface(), root)
 					}
-					dstField.SetString(newStr)
-				default:
-					//log.Debug(fieldName, " is a ", kind)
-					Replace(dstField.Addr().Interface(), root)
 				}
 			}
 		}
-	}
-	return nil
+		return nil
+	})
 }
