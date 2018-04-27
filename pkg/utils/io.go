@@ -49,7 +49,7 @@ func write(path, filename string, cb func(f *os.File) (n int, err error)) (int, 
 		return 0, err
 	}
 
-	f, _ := os.OpenFile(filepath.Join(path, filename), os.O_RDONLY | os.O_CREATE, 0666)
+	f, _ := os.OpenFile(filepath.Join(path, filename), os.O_RDWR | os.O_CREATE, 0666)
 	defer f.Close()
 	if cb != nil {
 		return cb(f)
