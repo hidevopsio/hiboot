@@ -1,0 +1,12 @@
+# config file for testing
+
+app:
+  profiles:
+    include:
+    - bar
+
+server:
+  port: 8080
+
+logging:
+  level: debug
