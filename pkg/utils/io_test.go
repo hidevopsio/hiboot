@@ -18,6 +18,8 @@ import (
 	"os"
 	"testing"
 	"github.com/stretchr/testify/assert"
+	"bytes"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 func TestGetWorkingDir(t *testing.T) {
@@ -25,5 +27,15 @@ func TestGetWorkingDir(t *testing.T) {
 	expected, err := os.Getwd()
 	assert.Equal(t, nil, err)
 	assert.Equal(t, expected, wd)
+}
+
+func TestWriteFile(t *testing.T) {
+	in := "hello, world"
+	buf := bytes.NewBufferString(in)
+	path := os.TempDir()
+	log.Println("path: ", path)
+	n, err := WriterFile(path, "foo.txt", buf.Bytes())
+	assert.Equal(t, nil, err)
+	assert.Equal(t, len(in), n)
 }
 
