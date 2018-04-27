@@ -54,7 +54,7 @@ func write(path, filename string, cb func(f *os.File) (n int, err error)) (int, 
 	if cb != nil {
 		return cb(f)
 	}
-	return 0, nil
+	return 0, err
 }
 
 func CreateFile(path, filename string) (error) {
