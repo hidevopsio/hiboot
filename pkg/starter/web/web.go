@@ -3,27 +3,23 @@ package web
 import (
 	"github.com/kataras/iris"
 	"crypto/rsa"
-	"time"
 	"github.com/dgrijalva/jwt-go"
 	"os"
 	"io/ioutil"
 	jwtmiddleware "github.com/iris-contrib/middleware/jwt"
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/system"
-	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/kataras/iris/context"
 	"reflect"
 	"github.com/fatih/camelcase"
 	"strings"
+	"github.com/kataras/iris/core/router"
+	"github.com/kataras/iris/httptest"
+	"testing"
+	"github.com/iris-contrib/httpexpect"
 )
-
-var (
-	Application iris.Application
-	Context iris.Context
-)
-
 
 const (
 	privateKeyPath = "/config/app.rsa"
@@ -33,14 +29,18 @@ const (
 	AuthAnon       = "anon"
 )
 
-type WebApplication struct {
+type ApplicationInterface interface {
+	Init()
+	Config() *system.Configuration
+	GetSignKey() *rsa.PrivateKey
+	Run()
+	NewTestServer(t *testing.T) *httpexpect.Expect
+}
+
+type Application struct {
 	app    *iris.Application
 	config *system.Configuration
 }
-
-type MapJwt map[string]interface{}
-
-type JwtToken string
 
 type Health struct {
 	Status string `json:"status"`
@@ -50,13 +50,10 @@ type Controller struct{
 	Name string
 }
 
-type controllerMethod func(*Controller, context.Context)
-
 var (
 	jwtHandler *jwtmiddleware.Middleware
 	verifyKey  *rsa.PublicKey
 	signKey    *rsa.PrivateKey
-	sysCfg     *system.Configuration
 )
 
 const (
@@ -71,56 +68,8 @@ func fatal(err error) {
 	}
 }
 
-func init() {
 
-}
-
-func GenerateJwtToken(payload MapJwt, expired int64, unit time.Duration) (JwtToken, error) {
-
-	claim := jwt.MapClaims{
-		"exp": time.Now().Add(unit * time.Duration(expired)).Unix(),
-		"iat": time.Now().Unix(),
-	}
-
-	for k, v := range payload {
-		claim[k] = v
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claim)
-
-	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err := token.SignedString(signKey)
-
-	jwtToken := JwtToken(tokenString)
-
-	return jwtToken, err
-}
-
-// set response
-func Response(ctx iris.Context, message string, data interface{}) {
-	response := &model.Response{
-		Code:    ctx.GetStatusCode(),
-		Message: message,
-		Data:    data,
-	}
-
-	// just for debug now
-	ctx.JSON(response)
-}
-
-// set response
-func ResponseError(ctx iris.Context, message string, code int) {
-	response := &model.Response{
-		Code:    code,
-		Message: message,
-	}
-
-	// just for debug now
-	ctx.StatusCode(code)
-	ctx.JSON(response)
-}
-
-func (wa *WebApplication) Init() {
+func (wa *Application) Init() {
 	wd := utils.GetWorkingDir("")
 
 	builder := &system.Builder{
@@ -131,8 +80,17 @@ func (wa *WebApplication) Init() {
 		ConfigType: system.Configuration{},
 	}
 	cp, err := builder.Build()
-	wa.config = cp.(*system.Configuration)
-	log.SetLevel(wa.config.Logging.Level)
+	if err == nil {
+		wa.config = cp.(*system.Configuration)
+		log.SetLevel(wa.config.Logging.Level)
+	} else {
+		log.SetLevel(log.DebugLevel)
+	}
+
+	// check if key exist
+	if utils.IsPathNotExist(wd + privateKeyPath) {
+		return
+	}
 
 	signBytes, err := ioutil.ReadFile(wd + privateKeyPath)
 	fatal(err)
@@ -158,10 +116,31 @@ func (wa *WebApplication) Init() {
 	})
 
 	log.Debug("application init")
+}
 
-	wa.app = iris.New()
+func (wa *Application) Config() *system.Configuration {
+	return wa.config
+}
 
-	wa.app.Get("/health", func(ctx context.Context) {
+func (wa *Application) GetSignKey() *rsa.PrivateKey {
+	return signKey
+}
+
+func (wa *Application) Run() {
+	serverPort := ":8080"
+	if wa.config != nil {
+		serverPort = fmt.Sprintf(":%v", wa.config.Server.Port)
+	}
+	// TODO: WithCharset should be configurable
+	wa.app.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithCharset("UTF-8"), iris.WithoutVersionChecker)
+}
+
+func (wa *Application) NewTestServer(t *testing.T) *httpexpect.Expect {
+	return httptest.New(t, wa.app)
+}
+
+func healthHandler(app *iris.Application) *router.Route {
+	return app.Get("/health", func(ctx context.Context) {
 		health := Health{
 			Status: "UP",
 		}
@@ -169,34 +148,8 @@ func (wa *WebApplication) Init() {
 	})
 }
 
-func (wa *WebApplication) App() *iris.Application {
-	return wa.app
-}
-
-func (wa *WebApplication) Config() *system.Configuration {
-	return wa.config
-}
-
-func (wa *WebApplication) GetSignKey() *rsa.PrivateKey {
-	return signKey
-}
-
-func (wa *WebApplication) ApplyJwt() {
-	wa.app.Use(jwtHandler.Serve)
-}
-
-func (wa *WebApplication) Run() {
-	serverPort := fmt.Sprintf(":%v", wa.config.Server.Port)
-	wa.app.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithCharset("UTF-8"), iris.WithoutVersionChecker)
-}
-
-func (wa *WebApplication) handler(ctx context.Context)  {
-
-}
-
-
-func (wa *WebApplication) CallMethod(method reflect.Method, object interface{}, ctx context.Context) {
-	log.Println("NumIn: ", method.Type.NumIn())
+func (wa *Application) handle(method reflect.Method, object interface{}, ctx context.Context) {
+	//log.Debug("NumIn: ", method.Type.NumIn())
 	inputs := make([]reflect.Value, method.Type.NumIn())
 
 	inputs[0] = reflect.ValueOf(object)
@@ -204,16 +157,28 @@ func (wa *WebApplication) CallMethod(method reflect.Method, object interface{}, 
 	method.Func.Call(inputs)
 }
 
-func NewWebApplication(controllers interface{}) (*WebApplication, error) {
-	// iris app
+func NewApplication(controllers interface{}) (*Application, error) {
 
-	wa := &WebApplication{}
+	wa := &Application{}
 
 	wa.Init()
 
-	app := wa.App()
+	app := iris.New()
 
-	log.Print(app)
+
+	// The only one Required:
+	// here is how you define how your own context will
+	// be created and acquired from the iris' generic context pool.
+	app.ContextPool.Attach(func() context.Context {
+		return &Context{
+			// Optional Part 3:
+			Context: context.NewContext(app),
+		}
+	})
+
+	wa.app = app
+
+	healthHandler(app)
 
 	err := utils.ValidateReflectType(controllers, func(value *reflect.Value, reflectType reflect.Type, fieldSize int, isSlice bool) error {
 		appliedJwt := false
@@ -221,35 +186,39 @@ func NewWebApplication(controllers interface{}) (*WebApplication, error) {
 			for _, field := range utils.DeepFields(reflectType) {
 				fieldName := field.Name
 				fieldType := field.Type
-				ctl := value.FieldByName(fieldName)
-				ctlObj := ctl.Interface()
-				if fieldType.Elem().Kind() == reflect.Struct{
-					log.Print("name: ", fieldName)
-					log.Print("tag: ", field.Tag)
+				controller := value.FieldByName(fieldName).Interface()
+				if fieldType.Elem().Kind() == reflect.Struct {
+					log.Debug("name: ", fieldName)
+					log.Debug("tag: ", field.Tag)
 
-					controller := field.Tag.Get("controller")
-					auth := field.Tag.Get("auth")
-					log.Print("controller: ", controller)
-					log.Print("auth: ", auth)
-					if ! appliedJwt && ! (auth == AuthAnon) {
-						appliedJwt = true
-						wa.ApplyJwt()
+					controllerName := field.Tag.Get("controller")
+					if controllerName == "" {
+						controllerName = strings.ToLower(fieldName)
 					}
-					contextPath := pathSep + controller
+					auth := field.Tag.Get("auth")
+					log.Debug("controller: ", controllerName)
+					log.Debug("auth: ", auth)
+					if ! appliedJwt && auth != "" && ! (auth == AuthAnon) {
+						appliedJwt = true
+						app.Use(jwtHandler.Serve)
+					}
+					contextPath := pathSep + controllerName
 
 					beforeMethod, ok := fieldType.MethodByName("Before")
 					var party iris.Party
 					if ok {
 						log.Print(contextPath)
 						log.Print(beforeMethod.Name)
-						//party = app.Party(contextPath, beforeMethod.Func.Interface().(context.Handler))
+						party = app.Party(contextPath, func(ctx context.Context) {
+							wa.handle(beforeMethod, controller, ctx)
+						})
 					}
 
 					numOfMethod := fieldType.NumMethod()
-					log.Print("methods: ", numOfMethod)
-					for mi := 0; mi < numOfMethod; mi++{
+					log.Debug("methods: ", numOfMethod)
+					for mi := 0; mi < numOfMethod; mi++ {
 						method := fieldType.Method(mi)
-						log.Print("method: ", method.Name)
+						log.Debug("method: ", method.Name)
 						methodName := method.Name
 
 						// TODO: contextMapping naming can be configured in applicatino.yml, e.g camelCase or ...
@@ -261,14 +230,14 @@ func NewWebApplication(controllers interface{}) (*WebApplication, error) {
 
 						if party == nil {
 							relativePath := contextPath + contextMapping
-							log.Print("relativePath: ", relativePath)
-							app.Handle(httpMethod, relativePath, func(ctx context.Context){
-								wa.CallMethod(method, ctlObj, ctx)
+							log.Debug("relativePath: ", relativePath)
+							app.Handle(httpMethod, relativePath, func(ctx context.Context) {
+								wa.handle(method, controller, ctx)
 							})
 						} else {
-							log.Print("contextMapping: ", contextMapping)
-							party.Handle(httpMethod, contextMapping, func(ctx context.Context){
-								wa.CallMethod(method, ctlObj, ctx)
+							log.Debug("contextMapping: ", contextMapping)
+							party.Handle(httpMethod, contextMapping, func(ctx context.Context) {
+								wa.handle(method, controller, ctx)
 							})
 						}
 					}
@@ -280,3 +249,4 @@ func NewWebApplication(controllers interface{}) (*WebApplication, error) {
 
 	return wa, err
 }
+
