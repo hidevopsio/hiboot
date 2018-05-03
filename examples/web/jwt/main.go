@@ -1,14 +1,12 @@
-package web
+package main
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/hidevopsio/hiboot/pkg/log"
+	"time"
 	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/starter/web/jwt"
-	"time"
+	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
-
 type UserRequest struct {
 	Username string
 	Password string
@@ -28,14 +26,12 @@ type Bar struct {
 }
 
 type FooController struct{
-	Controller
 }
 
 type BarController struct{
-	Controller
 }
 
-func (c *FooController) PostLogin(ctx *Context)  {
+func (c *FooController) PostLogin(ctx *web.Context)  {
 	log.Debug("FooController.SayHello")
 
 	userRequest := &UserRequest{}
@@ -55,7 +51,7 @@ func (c *FooController) PostLogin(ctx *Context)  {
 	}
 }
 
-func (c *FooController) PostSayHello(ctx *Context)  {
+func (c *FooController) PostSayHello(ctx *web.Context)  {
 	log.Debug("FooController.SayHello")
 
 	foo := &FooRequest{}
@@ -64,7 +60,7 @@ func (c *FooController) PostSayHello(ctx *Context)  {
 	}
 }
 
-func (c *BarController) GetSayHello(ctx *Context)  {
+func (c *BarController) GetSayHello(ctx *web.Context)  {
 	log.Debug("BarController.SayHello")
 
 	ctx.Response("Success", &Bar{Greeting: "hello bar"})
@@ -77,20 +73,11 @@ type Controllers struct{
 	Bar *BarController `controller:"bar" auth:"anon"`
 }
 
-func TestWebApplication(t *testing.T)  {
+func main()  {
 
 	controllers := &Controllers{}
-	wa, err := NewApplication(controllers)
-	assert.Equal(t, nil, err)
-
-	e := wa.NewTestServer(t)
-
-	e.Request("POST", "/foo/login").WithJSON(&UserRequest{Username: "johndoe", Password: "iHop91#15"}).
-		Expect().Status(http.StatusOK).Body().Contains("Success")
-
-	e.Request("POST", "/foo/sayHello").WithJSON(&FooRequest{Name: "John"}).
-		Expect().Status(http.StatusOK).Body().Contains("Success")
-
-	e.Request("GET", "/bar/sayHello").
-		Expect().Status(http.StatusOK).Body().Contains("Success")
+	app, err := web.NewApplication(controllers)
+	if err == nil {
+		app.Run()
+	}
 }
