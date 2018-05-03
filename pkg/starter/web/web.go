@@ -15,7 +15,8 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/kataras/iris/context"
 	"reflect"
-	"net/http"
+	"github.com/fatih/camelcase"
+	"strings"
 )
 
 var (
@@ -32,7 +33,7 @@ const (
 	AuthAnon       = "anon"
 )
 
-type Boot struct {
+type WebApplication struct {
 	app    *iris.Application
 	config *system.Configuration
 }
@@ -119,7 +120,7 @@ func ResponseError(ctx iris.Context, message string, code int) {
 	ctx.JSON(response)
 }
 
-func (b *Boot) Init() {
+func (wa *WebApplication) Init() {
 	wd := utils.GetWorkingDir("")
 
 	builder := &system.Builder{
@@ -130,8 +131,8 @@ func (b *Boot) Init() {
 		ConfigType: system.Configuration{},
 	}
 	cp, err := builder.Build()
-	b.config = cp.(*system.Configuration)
-	log.SetLevel(b.config.Logging.Level)
+	wa.config = cp.(*system.Configuration)
+	log.SetLevel(wa.config.Logging.Level)
 
 	signBytes, err := ioutil.ReadFile(wd + privateKeyPath)
 	fatal(err)
@@ -158,9 +159,9 @@ func (b *Boot) Init() {
 
 	log.Debug("application init")
 
-	b.app = iris.New()
+	wa.app = iris.New()
 
-	b.app.Get("/health", func(ctx context.Context) {
+	wa.app.Get("/health", func(ctx context.Context) {
 		health := Health{
 			Status: "UP",
 		}
@@ -168,34 +169,49 @@ func (b *Boot) Init() {
 	})
 }
 
-func (b *Boot) App() *iris.Application {
-	return b.app
+func (wa *WebApplication) App() *iris.Application {
+	return wa.app
 }
 
-func (b *Boot) Config() *system.Configuration {
-	return b.config
+func (wa *WebApplication) Config() *system.Configuration {
+	return wa.config
 }
 
-func (b *Boot) GetSignKey() *rsa.PrivateKey {
+func (wa *WebApplication) GetSignKey() *rsa.PrivateKey {
 	return signKey
 }
 
-func (b *Boot) ApplyJwt() {
-	b.app.Use(jwtHandler.Serve)
+func (wa *WebApplication) ApplyJwt() {
+	wa.app.Use(jwtHandler.Serve)
 }
 
-func (b *Boot) Run() {
-	serverPort := fmt.Sprintf(":%v", b.config.Server.Port)
-	b.app.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithCharset("UTF-8"), iris.WithoutVersionChecker)
+func (wa *WebApplication) Run() {
+	serverPort := fmt.Sprintf(":%v", wa.config.Server.Port)
+	wa.app.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithCharset("UTF-8"), iris.WithoutVersionChecker)
 }
 
-func NewApplication(controllers interface{}) (*Boot, error) {
+func (wa *WebApplication) handler(ctx context.Context)  {
+
+}
+
+
+func (wa *WebApplication) CallMethod(method reflect.Method, object interface{}, ctx context.Context) {
+	log.Println("NumIn: ", method.Type.NumIn())
+	inputs := make([]reflect.Value, method.Type.NumIn())
+
+	inputs[0] = reflect.ValueOf(object)
+	inputs[1] = reflect.ValueOf(ctx)
+	method.Func.Call(inputs)
+}
+
+func NewWebApplication(controllers interface{}) (*WebApplication, error) {
 	// iris app
-	boot := new(Boot)
 
-	boot.Init()
+	wa := &WebApplication{}
 
-	app := boot.App()
+	wa.Init()
+
+	app := wa.App()
 
 	log.Print(app)
 
@@ -205,6 +221,8 @@ func NewApplication(controllers interface{}) (*Boot, error) {
 			for _, field := range utils.DeepFields(reflectType) {
 				fieldName := field.Name
 				fieldType := field.Type
+				ctl := value.FieldByName(fieldName)
+				ctlObj := ctl.Interface()
 				if fieldType.Elem().Kind() == reflect.Struct{
 					log.Print("name: ", fieldName)
 					log.Print("tag: ", field.Tag)
@@ -215,7 +233,7 @@ func NewApplication(controllers interface{}) (*Boot, error) {
 					log.Print("auth: ", auth)
 					if ! appliedJwt && ! (auth == AuthAnon) {
 						appliedJwt = true
-						boot.ApplyJwt()
+						wa.ApplyJwt()
 					}
 					contextPath := pathSep + controller
 
@@ -236,16 +254,22 @@ func NewApplication(controllers interface{}) (*Boot, error) {
 
 						// TODO: contextMapping naming can be configured in applicatino.yml, e.g camelCase or ...
 
-						contextMapping := pathSep + utils.LowerFirst(methodName)
-						methodInterface := method.Func.Interface()
-						log.Print(methodInterface)
+						ctxMap := camelcase.Split(methodName)
+						httpMethod := strings.ToUpper(ctxMap[0])
+						contextMapping := strings.Replace(methodName, ctxMap[0], "", 1)
+						contextMapping = pathSep + utils.LowerFirst(contextMapping)
 
 						if party == nil {
-							log.Print(contextPath + contextMapping)
-							app.Handle(http.MethodPost, contextPath + contextMapping, methodInterface.(context.Handler))
+							relativePath := contextPath + contextMapping
+							log.Print("relativePath: ", relativePath)
+							app.Handle(httpMethod, relativePath, func(ctx context.Context){
+								wa.CallMethod(method, ctlObj, ctx)
+							})
 						} else {
-							log.Print(contextMapping)
-							//party.Post(contextMapping, methodInterface.(context.Handler))
+							log.Print("contextMapping: ", contextMapping)
+							party.Handle(httpMethod, contextMapping, func(ctx context.Context){
+								wa.CallMethod(method, ctlObj, ctx)
+							})
 						}
 					}
 				}
@@ -254,5 +278,5 @@ func NewApplication(controllers interface{}) (*Boot, error) {
 		return nil
 	})
 
-	return boot, err
+	return wa, err
 }
