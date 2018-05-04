@@ -19,7 +19,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"net/http"
-	"github.com/hidevopsio/hiboot/pkg/starter/web/jwt"
 	"time"
 	"github.com/hidevopsio/hiboot/pkg/system"
 )
@@ -63,7 +62,7 @@ func (c *FooController) PostLogin(ctx *Context)  {
 
 	userRequest := &UserRequest{}
 	if ctx.RequestBody(userRequest) == nil {
-		jwtToken, err := jwt.GenerateToken(jwt.Map{
+		jwtToken, err := GenerateJwtToken(JwtMap{
 			"username": userRequest.Username,
 			"password": userRequest.Password,
 		}, 10, time.Minute)
@@ -139,7 +138,7 @@ func TestWebApplication(t *testing.T)  {
 		Expect().Status(http.StatusOK).Body().Contains("Success")
 
 	e.Request("GET", "/bar/sayHello").
-		Expect().Status(http.StatusOK).Body().Contains("Success")
+		Expect().Status(http.StatusUnauthorized)
 }
 
 
