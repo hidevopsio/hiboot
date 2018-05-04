@@ -106,7 +106,7 @@ type HelloController struct{
 // in this method, the name Get means that the method context mapping is '/'
 func (c *HelloController) Get(ctx *Context)  {
 
-	ctx.ResponseBody("Success", "Hello, World")
+	ctx.ResponseBody("success", "Hello, World")
 }
 
 func TestHelloWorld(t *testing.T)  {
@@ -119,6 +119,30 @@ func TestHelloWorld(t *testing.T)  {
 	e := app.NewTestServer(t)
 	e.Request("GET", "/").
 		Expect().Status(http.StatusOK).Body().Contains("Success")
+}
+
+func TestHelloWorldLocale(t *testing.T)  {
+
+	// create new web application
+	app, err := NewApplication(&HelloController{Controller{ContextMapping: "/"}})
+	assert.Equal(t, nil, err)
+
+	// run the application
+	e := app.NewTestServer(t)
+
+	// cn-ZH
+	e.Request("GET", "/").
+		WithHeader("Accept-Language", "cn-ZH").
+	Expect().
+		Status(http.StatusOK).
+		Body().Contains("成功")
+
+	// en-US
+	e.Request("GET", "/").
+		WithHeader("Accept-Language", "en-US").
+		Expect().
+		Status(http.StatusOK).
+		Body().Contains("Success")
 }
 
 func TestWebApplication(t *testing.T)  {

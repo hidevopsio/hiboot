@@ -31,6 +31,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"path/filepath"
+	"github.com/kataras/iris/middleware/i18n"
 )
 
 const (
@@ -136,7 +137,7 @@ func healthHandler(app *iris.Application) *router.Route {
 	})
 }
 
-func (wa *Application) handle(method reflect.Method, object interface{}, ctx context.Context) {
+func (wa *Application) handle(method reflect.Method, object interface{}, ctx *Context) {
 	//log.Debug("NumIn: ", method.Type.NumIn())
 	inputs := make([]reflect.Value, method.Type.NumIn())
 
@@ -165,6 +166,40 @@ func NewApplication(controllers ... interface{}) (*Application, error) {
 			Context: context.NewContext(app),
 		}
 	})
+
+
+	var localeFiles []string
+
+	// TODO: localePath should be configurable in application.yml
+	// locale:
+	//   en-US: ./config/i18n/en-US.ini
+	//   cn-ZH: ./config/i18n/cn-ZH.ini
+	// TODO: or
+	// locale:
+	//   path: ./config/i18n/
+
+	localePath := "./config/i18n/"
+	err := filepath.Walk(localePath, utils.Visit(&localeFiles))
+
+	if err != nil {
+		panic(err)
+	}
+
+	languages := make(map[string]string)
+	for _, file := range localeFiles {
+		basename := utils.Basename(file)
+		lng := utils.Filename(basename)
+		if lng != "" {
+			languages[lng] = file
+		}
+	}
+
+	globalLocale := i18n.New(i18n.Config{
+		Default:      "en-US",
+		URLParameter: "lang",
+		Languages: languages,
+	})
+	app.Use(globalLocale)
 
 	wa.app = app
 
@@ -248,7 +283,7 @@ func (wa *Application)register(controllers []interface{}, auths... string) error
 			log.Debug("contextPath: ", contextMapping)
 			log.Debug("beforeMethod.Name: ", beforeMethod.Name)
 			party = app.Party(contextMapping, func(ctx context.Context) {
-				wa.handle(beforeMethod, controller, ctx)
+				wa.handle(beforeMethod, controller, ctx.(*Context))
 			})
 		}
 
@@ -266,12 +301,12 @@ func (wa *Application)register(controllers []interface{}, auths... string) error
 				relativePath := filepath.Join(contextMapping, apiContextMapping)
 				log.Debug("relativePath: ", relativePath)
 				app.Handle(httpMethod, relativePath, func(ctx context.Context) {
-					wa.handle(method, controller, ctx)
+					wa.handle(method, controller, ctx.(*Context))
 				})
 			} else {
 				log.Debug("contextMapping: ", apiContextMapping)
 				party.Handle(httpMethod, apiContextMapping, func(ctx context.Context) {
-					wa.handle(method, controller, ctx)
+					wa.handle(method, controller, ctx.(*Context))
 				})
 			}
 

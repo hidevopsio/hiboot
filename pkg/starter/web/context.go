@@ -19,6 +19,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"net/http"
+	"github.com/kataras/iris/middleware/i18n"
 )
 
 type ContextInterface interface {
@@ -79,11 +80,22 @@ func (ctx *Context) RequestBody(data interface{}) error {
 	return nil
 }
 
+// handle i18n
+func (ctx *Context) translate(message string) string {
+
+	message = i18n.Translate(ctx, message)
+
+	return message
+}
+
 // set response
 func (ctx *Context) ResponseBody(message string, data interface{}) {
+
+	// TODO: check if data is a string, should we translate it?
+
 	response := &model.Response{
 		Code:    ctx.GetStatusCode(),
-		Message: message,
+		Message: ctx.translate(message), 	//TODO: Handle i18n
 		Data:    data,
 	}
 
@@ -95,7 +107,7 @@ func (ctx *Context) ResponseBody(message string, data interface{}) {
 func (ctx *Context) ResponseError(message string, code int) {
 	response := &model.Response{
 		Code:    code,
-		Message: message,
+		Message: ctx.translate(message), 	//TODO: Handle i18n
 	}
 
 	// just for debug now
