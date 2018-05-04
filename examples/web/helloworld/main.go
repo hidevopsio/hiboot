@@ -21,8 +21,10 @@ func (c *FooController) GetHello(ctx *web.Context)  {
 func main()  {
 
 	// create new web application
-	app, _ := web.NewApplication(&FooController{})
+	app, err := web.NewApplication(&FooController{})
 
 	// run the application
-	app.Run()
+	if err == nil {
+		app.Run()
+	}
 }

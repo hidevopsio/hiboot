@@ -9,15 +9,15 @@ go get -u github.com/hidevopsio/hiboot
 ```
 
 
-### The simplest go web application
+### The simplest go web application in the world
+
+
 
 ```go
 package main
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"os"
 )
 
 // Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
@@ -38,14 +38,11 @@ func main()  {
 
 	// create new web application
 	app, err := web.NewApplication(&FooController{})
-	if err != nil {
 
-		log.Error(err)
-		os.Exit(1)
-	}
-	
 	// run the application
-	app.Run()
+	if err == nil {
+		app.Run()
+	}
 }
 
 ```
