@@ -17,10 +17,14 @@ package controllers
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/starter/web/jwt"
 	"time"
 	"net/http"
 )
+
+type UserRequest struct {
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+}
 
 type FooRequest struct {
 	Name string
@@ -51,7 +55,7 @@ func (c *FooController) PostLogin(ctx *web.Context)  {
 
 	userRequest := &UserRequest{}
 	if ctx.RequestBody(userRequest) == nil {
-		jwtToken, err := jwt.GenerateToken(jwt.Map{
+		jwtToken, err := web.GenerateJwtToken(web.JwtMap{
 			"username": userRequest.Username,
 			"password": userRequest.Password,
 		}, 10, time.Minute)
@@ -59,7 +63,7 @@ func (c *FooController) PostLogin(ctx *web.Context)  {
 		//log.Debugf("token: %v", *jwtToken)
 
 		if err == nil {
-			ctx.Response("Success", jwtToken)
+			ctx.ResponseBody("Success", jwtToken)
 		} else {
 			ctx.ResponseError(err.Error(), http.StatusInternalServerError)
 		}
@@ -71,6 +75,6 @@ func (c *FooController) PostSayHello(ctx *web.Context)  {
 
 	foo := &FooRequest{}
 	if ctx.RequestBody(foo) == nil {
-		ctx.Response("Success", &FooResponse{Greeting: "hello, " + foo.Name})
+		ctx.ResponseBody("Success", &FooResponse{Greeting: "hello, " + foo.Name})
 	}
 }
