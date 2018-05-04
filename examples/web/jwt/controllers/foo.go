@@ -63,7 +63,7 @@ func (c *FooController) PostLogin(ctx *web.Context)  {
 		//log.Debugf("token: %v", *jwtToken)
 
 		if err == nil {
-			ctx.ResponseBody("Success", jwtToken)
+			ctx.ResponseBody("success", jwtToken)
 		} else {
 			ctx.ResponseError(err.Error(), http.StatusInternalServerError)
 		}
@@ -75,6 +75,13 @@ func (c *FooController) PostSayHello(ctx *web.Context)  {
 
 	foo := &FooRequest{}
 	if ctx.RequestBody(foo) == nil {
-		ctx.ResponseBody("Success", &FooResponse{Greeting: "hello, " + foo.Name})
+		ctx.ResponseBody("success", &FooResponse{Greeting: "hello, " + foo.Name})
 	}
+}
+
+func (c *FooController) GetSayHello(ctx *web.Context)  {
+	log.Debug("FooController.SayHello")
+
+	ctx.ResponseBody("success", &FooResponse{Greeting: "hello, world"})
+
 }

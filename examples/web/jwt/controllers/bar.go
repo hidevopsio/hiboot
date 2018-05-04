@@ -41,7 +41,10 @@ func init()  {
 
 func (c *BarController) GetSayHello(ctx *web.Context)  {
 	log.Debug("BarController.SayHello")
-
-	ctx.ResponseBody("Success", &Bar{Greeting: "hello bar"})
+	language := ctx.Values().GetString(ctx.Application().ConfigurationReadOnly().GetTranslateLanguageContextKey())
+	log.Debug(language)
+	ctx.ResponseBody("success", &Bar{Greeting: "hello bar"})
 
 }
+
+// curl -H 'Accept-Language: zh-CN' -H """Authorization: Bearer $(curl -d '{"username":"test","password":"123"}' -H "Content-Type: application/json" -X POST http://localhost:8080/foo/login 2>/dev/null | jq -r '.data') """ http://localhost:8080/bars/sayHello
