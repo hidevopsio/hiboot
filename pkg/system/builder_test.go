@@ -13,7 +13,7 @@ import (
 func TestBuilderBuild(t *testing.T) {
 
 	b := &Builder{
-		Path:       filepath.Join(utils.GetWorkingDir(""), "config"),
+		Path:       filepath.Join(utils.GetRelativePath(1), "config"),
 		Name:       "application",
 		FileType:   "yaml",
 		Profile:    "local",

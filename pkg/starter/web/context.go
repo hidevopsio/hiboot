@@ -3,8 +3,6 @@ package web
 import (
 	"github.com/kataras/iris/context"
 	"github.com/hidevopsio/hiboot/pkg/model"
-	"time"
-	"github.com/hidevopsio/hiboot/pkg/starter/web/jwt"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"net/http"
 )
@@ -13,7 +11,6 @@ type ContextInterface interface {
 	RequestBody(data interface{}) error
 	Response(message string, data interface{})
 	ResponseError(message string, code int)
-	GenerateJwtToken(payload jwt.Map, expired int64, unit time.Duration) (jwt.Token, error)
 }
 
 // Create your own custom Context, put any fields you wanna need.
@@ -21,6 +18,7 @@ type Context struct {
 	// Optional Part 1: embed (optional but required if you don't want to override all context's methods)
 	context.Context // it's the context/context.go#context struct but you don't need to know it.
 	ContextInterface
+
 }
 
 var _ context.Context = &Context{} // optionally: validate on compile-time if Context implements context.Context.
@@ -91,9 +89,5 @@ func (ctx *Context) ResponseError(message string, code int) {
 	ctx.JSON(response)
 }
 
-// set response
-func (ctx *Context) GenerateJwtToken(payload jwt.Map, expired int64, unit time.Duration) (*jwt.Token, error) {
-	return jwt.GenerateToken(payload, expired, unit, signKey)
-}
 
 
