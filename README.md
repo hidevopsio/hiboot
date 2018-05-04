@@ -59,7 +59,7 @@ go run main.go
 ### testing
 
 ```bash
-curl http://localhost:8080/foo/hello
+curl http://localhost:8080/
 ```
 
 ### Happy coding in go!
