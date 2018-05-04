@@ -80,7 +80,7 @@ func (ctx *Context) RequestBody(data interface{}) error {
 }
 
 // set response
-func (ctx *Context) Response(message string, data interface{}) {
+func (ctx *Context) ResponseBody(message string, data interface{}) {
 	response := &model.Response{
 		Code:    ctx.GetStatusCode(),
 		Message: message,

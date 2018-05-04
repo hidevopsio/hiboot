@@ -71,7 +71,7 @@ func (c *FooController) PostLogin(ctx *Context)  {
 		log.Debugf("token: %v", jwtToken)
 
 		if err == nil {
-			ctx.Response("Success", jwtToken)
+			ctx.ResponseBody("Success", jwtToken)
 		} else {
 			ctx.ResponseError(err.Error(), http.StatusInternalServerError)
 		}
@@ -83,14 +83,14 @@ func (c *FooController) PostSayHello(ctx *Context)  {
 
 	foo := &FooRequest{}
 	if ctx.RequestBody(foo) == nil {
-		ctx.Response("Success", &FooResponse{Greeting: "hello, " + foo.Name})
+		ctx.ResponseBody("Success", &FooResponse{Greeting: "hello, " + foo.Name})
 	}
 }
 
 func (c *BarController) GetSayHello(ctx *Context)  {
 	log.Debug("BarController.SayHello")
 
-	ctx.Response("Success", &Bar{Greeting: "hello bar"})
+	ctx.ResponseBody("Success", &Bar{Greeting: "hello bar"})
 
 }
 
@@ -107,7 +107,7 @@ type HelloController struct{
 // in this method, the name Get means that the method context mapping is '/'
 func (c *HelloController) Get(ctx *Context)  {
 
-	ctx.Response("Success", "Hello, World")
+	ctx.ResponseBody("Success", "Hello, World")
 }
 
 func TestHelloWorld(t *testing.T)  {

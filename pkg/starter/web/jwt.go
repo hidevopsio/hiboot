@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package jwt
+package web
 
 import (
 	"time"
@@ -26,7 +26,7 @@ import (
 	"fmt"
 )
 
-type Map map[string]interface{}
+type JwtMap map[string]interface{}
 
 type Token string
 
@@ -38,7 +38,7 @@ const (
 var (
 	verifyKey  *rsa.PublicKey
 	signKey    *rsa.PrivateKey
-	jwtHandler *jwtmiddleware.Middleware
+	jwtHandler *JwtMiddleware
 	jwtEnabled bool
 )
 
@@ -48,7 +48,7 @@ func fatal(err error) {
 	}
 }
 
-func Init(wd string) error  {
+func InitJwt(wd string) error  {
 
 	// check if key exist
 	if utils.IsPathNotExist(wd + privateKeyPath) {
@@ -76,7 +76,7 @@ func Init(wd string) error  {
 		return err
 	}
 
-	jwtHandler = jwtmiddleware.New(jwtmiddleware.Config{
+	jwtHandler = NewJwtMiddlware(jwtmiddleware.Config{
 		ValidationKeyGetter: func(token *jwtgo.Token) (interface{}, error) {
 			//log.Debug(token)
 			return verifyKey, nil
@@ -97,11 +97,11 @@ func GetSignKey() *rsa.PrivateKey {
 	return signKey
 }
 
-func GetHandler() *jwtmiddleware.Middleware  {
+func GetJwtHandler() *JwtMiddleware {
 	return jwtHandler
 }
 
-func GenerateToken(payload Map, expired int64, unit time.Duration) (*Token, error) {
+func GenerateJwtToken(payload JwtMap, expired int64, unit time.Duration) (*Token, error) {
 	if jwtEnabled {
 		claim := jwtgo.MapClaims{
 			"exp": time.Now().Add(unit * time.Duration(expired)).Unix(),

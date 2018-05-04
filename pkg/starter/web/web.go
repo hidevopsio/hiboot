@@ -30,7 +30,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/starter/web/jwt"
 	"path/filepath"
 )
 
@@ -102,7 +101,7 @@ func (wa *Application) Init() {
 	}
 
 
-	err = jwt.Init(wa.workDir)
+	err = InitJwt(wa.workDir)
 	if err != nil {
 		wa.jwtEnabled = false
 		log.Error(err.Error())
@@ -189,7 +188,7 @@ func NewApplication(controllers ... interface{}) (*Application, error) {
 			return nil, err
 		}
 
-		app.Use(jwt.GetHandler().Serve)
+		app.Use(jwtHandler.Serve)
 
 		err = wa.register(controllers, AuthTypeJwt)
 		if err != nil {
