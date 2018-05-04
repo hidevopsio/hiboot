@@ -4,14 +4,15 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
 )
 
-
+// Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
+// the lower cased foo will be the context mapping of the controller
+// context mapping can be overwritten by FooController.ContextMapping
 type FooController struct{
+	web.Controller
 }
 
-type Controllers struct{
-	Foo *FooController
-}
-
+// Get hello
+// The first word of method is the http method GET, the rest is the context mapping hello
 func (c *FooController) GetHello(ctx *web.Context)  {
 
 	ctx.Response("Success", "Hello, World")
@@ -19,9 +20,9 @@ func (c *FooController) GetHello(ctx *web.Context)  {
 
 func main()  {
 
-	controllers := &Controllers{}
-	app, err := web.NewApplication(controllers)
-	if err == nil {
-		app.Run()
-	}
+	// create new web application
+	app, _ := web.NewApplication(&FooController{})
+
+	// run the application
+	app.Run()
 }

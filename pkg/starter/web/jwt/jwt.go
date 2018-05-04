@@ -3,29 +3,110 @@ package jwt
 import (
 	"time"
 	jwtgo "github.com/dgrijalva/jwt-go"
+	jwtmiddleware "github.com/iris-contrib/middleware/jwt"
+	"crypto/rsa"
+	"io/ioutil"
+	"github.com/hidevopsio/hiboot/pkg/utils"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/system"
+	"fmt"
 )
 
 type Map map[string]interface{}
 
 type Token string
 
-func GenerateToken(payload Map, expired int64, unit time.Duration, signKey interface{}) (*Token, error) {
+const (
+	privateKeyPath = "/config/app.rsa"
+	pubKeyPath     = "/config/app.rsa.pub"
+)
 
-	claim := jwtgo.MapClaims{
-		"exp": time.Now().Add(unit * time.Duration(expired)).Unix(),
-		"iat": time.Now().Unix(),
+var (
+	verifyKey  *rsa.PublicKey
+	signKey    *rsa.PrivateKey
+	jwtHandler *jwtmiddleware.Middleware
+	jwtEnabled bool
+)
+
+func fatal(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func Init(wd string) error  {
+
+	// check if key exist
+	if utils.IsPathNotExist(wd + privateKeyPath) {
+		return &system.NotFoundError{Name: wd + privateKeyPath}
 	}
 
-	for k, v := range payload {
-		claim[k] = v
+
+	signBytes, err := ioutil.ReadFile(wd + privateKeyPath)
+	if err != nil {
+		return err
 	}
 
-	token := jwtgo.NewWithClaims(jwtgo.SigningMethodRS256, claim)
+	signKey, err = jwtgo.ParseRSAPrivateKeyFromPEM(signBytes)
+	if err != nil {
+		return err
+	}
 
-	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err := token.SignedString(signKey)
+	verifyBytes, err := ioutil.ReadFile(wd + pubKeyPath)
+	if err != nil {
+		return err
+	}
 
-	jwtToken := Token(tokenString)
+	verifyKey, err = jwtgo.ParseRSAPublicKeyFromPEM(verifyBytes)
+	if err != nil {
+		return err
+	}
 
-	return &jwtToken, err
+	jwtHandler = jwtmiddleware.New(jwtmiddleware.Config{
+		ValidationKeyGetter: func(token *jwtgo.Token) (interface{}, error) {
+			//log.Debug(token)
+			return verifyKey, nil
+		},
+		// When set, the middleware verifies that tokens are signed with the specific signing algorithm
+		// If the signing method is not constant the ValidationKeyGetter callback can be used to implement additional checks
+		// Important to avoid security issues described here: https://auth0.com/blog/2015/03/31/critical-vulnerabilities-in-json-web-token-libraries/
+		SigningMethod: jwtgo.SigningMethodRS256,
+	})
+
+	jwtEnabled = true
+
+	return nil
+}
+
+
+func GetSignKey() *rsa.PrivateKey {
+	return signKey
+}
+
+func GetHandler() *jwtmiddleware.Middleware  {
+	return jwtHandler
+}
+
+func GenerateToken(payload Map, expired int64, unit time.Duration) (*Token, error) {
+	if jwtEnabled {
+		claim := jwtgo.MapClaims{
+			"exp": time.Now().Add(unit * time.Duration(expired)).Unix(),
+			"iat": time.Now().Unix(),
+		}
+
+		for k, v := range payload {
+			claim[k] = v
+		}
+
+		token := jwtgo.NewWithClaims(jwtgo.SigningMethodRS256, claim)
+
+		// Sign and get the complete encoded token as a string using the secret
+		tokenString, err := token.SignedString(signKey)
+
+		jwtToken := Token(tokenString)
+
+		return &jwtToken, err
+	}
+
+	return nil, fmt.Errorf("JWT does not work")
 }

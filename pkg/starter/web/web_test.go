@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/starter/web/jwt"
 	"time"
+	"github.com/hidevopsio/hiboot/pkg/system"
 )
 
 type UserRequest struct {
@@ -35,12 +36,20 @@ type BarController struct{
 	Controller
 }
 
+type InvalidController struct {}
+
+func (c *FooController) Before(ctx *Context)  {
+	log.Debug("FooController.Before")
+
+	ctx.Next()
+}
+
 func (c *FooController) PostLogin(ctx *Context)  {
 	log.Debug("FooController.SayHello")
 
 	userRequest := &UserRequest{}
 	if ctx.RequestBody(userRequest) == nil {
-		jwtToken, err := ctx.GenerateJwtToken(jwt.Map{
+		jwtToken, err := jwt.GenerateToken(jwt.Map{
 			"username": userRequest.Username,
 			"password": userRequest.Password,
 		}, 10, time.Minute)
@@ -71,16 +80,40 @@ func (c *BarController) GetSayHello(ctx *Context)  {
 
 }
 
-type Controllers struct{
 
-	Foo *FooController `auth:"anon"`
-	Bar *BarController `controller:"bar" auth:"anon"`
+// Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
+// the lower cased foo will be the context mapping of the controller
+// context mapping can be overwritten by FooController.ContextMapping
+type HelloController struct{
+	Controller
+}
+
+// Get hello
+// The first word of method is the http method GET, the rest is the context mapping hello
+// in this method, the name Get means that the method context mapping is '/'
+func (c *HelloController) Get(ctx *Context)  {
+
+	ctx.Response("Success", "Hello, World")
+}
+
+func TestHelloWorld(t *testing.T)  {
+
+	// create new web application
+	app, err := NewApplication(&HelloController{Controller{ContextMapping: "/"}})
+	assert.Equal(t, nil, err)
+
+	// run the application
+	e := app.NewTestServer(t)
+	e.Request("GET", "/").
+		Expect().Status(http.StatusOK).Body().Contains("Success")
 }
 
 func TestWebApplication(t *testing.T)  {
 
-	controllers := &Controllers{}
-	wa, err := NewApplication(controllers)
+	wa, err := NewApplication(
+		&FooController{},
+		&BarController{Controller{AuthType: AuthTypeJwt}},
+	)
 	assert.Equal(t, nil, err)
 
 	e := wa.NewTestServer(t)
@@ -93,4 +126,14 @@ func TestWebApplication(t *testing.T)  {
 
 	e.Request("GET", "/bar/sayHello").
 		Expect().Status(http.StatusOK).Body().Contains("Success")
+}
+
+
+func TestInvalidController(t *testing.T)  {
+
+	_, err := NewApplication(
+		&InvalidController{},
+	)
+	err, ok := err.(*system.InvalidControllerError)
+	assert.Equal(t, ok, true)
 }

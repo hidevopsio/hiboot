@@ -16,8 +16,8 @@ package utils
 
 import (
 	"runtime"
-	"strings"
 	"os"
+	"path/filepath"
 )
 
 func GetWorkingDir(file string) string {
@@ -25,13 +25,15 @@ func GetWorkingDir(file string) string {
 	if file == "" {
 		return wd
 	}
-
-	_, filename, _, _ := runtime.Caller(1)
-	wd = strings.Replace(filename, file, "", -1)
-
 	return wd
 }
 
+
+func GetRelativePath(skip int) string {
+	_, path, _, _ := runtime.Caller(skip)
+
+	return filepath.Dir(path)
+}
 
 func IsPathNotExist(path string) bool {
 	_, err := os.Stat(path)

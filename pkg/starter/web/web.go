@@ -1,32 +1,33 @@
 package web
 
 import (
-	"github.com/kataras/iris"
-	"crypto/rsa"
-	"github.com/dgrijalva/jwt-go"
 	"os"
-	"io/ioutil"
-	jwtmiddleware "github.com/iris-contrib/middleware/jwt"
 	"fmt"
+	"reflect"
+	"strings"
+	"testing"
+	"crypto/rsa"
+	"github.com/fatih/camelcase"
+	"github.com/kataras/iris"
+	"github.com/kataras/iris/core/router"
+	"github.com/kataras/iris/httptest"
+	"github.com/kataras/iris/context"
+	"github.com/iris-contrib/httpexpect"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/kataras/iris/context"
-	"reflect"
-	"github.com/fatih/camelcase"
-	"strings"
-	"github.com/kataras/iris/core/router"
-	"github.com/kataras/iris/httptest"
-	"testing"
-	"github.com/iris-contrib/httpexpect"
+	"github.com/hidevopsio/hiboot/pkg/starter/web/jwt"
+	"path/filepath"
 )
 
 const (
-	privateKeyPath = "/config/app.rsa"
-	pubKeyPath     = "/config/app.rsa.pub"
+	mainPackageDepth = 3
 
-	pathSep        = "/"
-	AuthAnon       = "anon"
+	pathSep = "/"
+
+	AuthTypeDefault = ""
+	AuthTypeAnon    = "anon"
+	AuthTypeJwt     = "jwt"
 )
 
 type ApplicationInterface interface {
@@ -40,40 +41,39 @@ type ApplicationInterface interface {
 type Application struct {
 	app    *iris.Application
 	config *system.Configuration
+	jwtEnabled bool
+	workDir string
 }
 
 type Health struct {
 	Status string `json:"status"`
 }
 
-type Controller struct{
-	Name string
+type Controller struct {
+	ContextMapping string
+	AuthType       string
 }
-
-var (
-	jwtHandler *jwtmiddleware.Middleware
-	verifyKey  *rsa.PublicKey
-	signKey    *rsa.PrivateKey
-)
 
 const (
 	application = "application"
-	config      = "/config"
+	config      = "config"
 	yaml        = "yaml"
 )
 
-func fatal(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
+var (
+	Controllers []interface{}
+)
 
 
 func (wa *Application) Init() {
-	wd := utils.GetWorkingDir("")
+	log.Println("application init")
+
+	wa.workDir = utils.GetWorkingDir("")
+
+	log.Println("working dir: ", wa.workDir)
 
 	builder := &system.Builder{
-		Path:       wd + config,
+		Path:       filepath.Join(wa.workDir, config),
 		Name:       application,
 		FileType:   yaml,
 		Profile:    os.Getenv("APP_PROFILES_ACTIVE"),
@@ -87,43 +87,18 @@ func (wa *Application) Init() {
 		log.SetLevel(log.DebugLevel)
 	}
 
-	// check if key exist
-	if utils.IsPathNotExist(wd + privateKeyPath) {
-		return
+
+	err = jwt.Init(wa.workDir)
+	if err != nil {
+		wa.jwtEnabled = false
+		log.Error(err.Error())
+	} else {
+		wa.jwtEnabled = true
 	}
-
-	signBytes, err := ioutil.ReadFile(wd + privateKeyPath)
-	fatal(err)
-
-	signKey, err = jwt.ParseRSAPrivateKeyFromPEM(signBytes)
-	fatal(err)
-
-	verifyBytes, err := ioutil.ReadFile(wd + pubKeyPath)
-	fatal(err)
-
-	verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
-	fatal(err)
-
-	jwtHandler = jwtmiddleware.New(jwtmiddleware.Config{
-		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
-			//log.Debug(token)
-			return verifyKey, nil
-		},
-		// When set, the middleware verifies that tokens are signed with the specific signing algorithm
-		// If the signing method is not constant the ValidationKeyGetter callback can be used to implement additional checks
-		// Important to avoid security issues described here: https://auth0.com/blog/2015/03/31/critical-vulnerabilities-in-json-web-token-libraries/
-		SigningMethod: jwt.SigningMethodRS256,
-	})
-
-	log.Debug("application init")
 }
 
 func (wa *Application) Config() *system.Configuration {
 	return wa.config
-}
-
-func (wa *Application) GetSignKey() *rsa.PrivateKey {
-	return signKey
 }
 
 func (wa *Application) Run() {
@@ -157,14 +132,16 @@ func (wa *Application) handle(method reflect.Method, object interface{}, ctx con
 	method.Func.Call(inputs)
 }
 
-func NewApplication(controllers interface{}) (*Application, error) {
+func Add(controller interface{})  {
+	Controllers = append(Controllers, controller)
+}
 
+func NewApplication(controllers ... interface{}) (*Application, error) {
 	wa := &Application{}
 
 	wa.Init()
 
 	app := iris.New()
-
 
 	// The only one Required:
 	// here is how you define how your own context will
@@ -180,73 +157,113 @@ func NewApplication(controllers interface{}) (*Application, error) {
 
 	healthHandler(app)
 
-	err := utils.ValidateReflectType(controllers, func(value *reflect.Value, reflectType reflect.Type, fieldSize int, isSlice bool) error {
-		appliedJwt := false
-		for i := 0; i < fieldSize; i++ {
-			for _, field := range utils.DeepFields(reflectType) {
-				fieldName := field.Name
-				fieldType := field.Type
-				controller := value.FieldByName(fieldName).Interface()
-				if fieldType.Elem().Kind() == reflect.Struct {
-					log.Debug("name: ", fieldName)
-					log.Debug("tag: ", field.Tag)
-
-					controllerName := field.Tag.Get("controller")
-					if controllerName == "" {
-						controllerName = strings.ToLower(fieldName)
-					}
-					auth := field.Tag.Get("auth")
-					log.Debug("controller: ", controllerName)
-					log.Debug("auth: ", auth)
-					if ! appliedJwt && auth != "" && ! (auth == AuthAnon) {
-						appliedJwt = true
-						app.Use(jwtHandler.Serve)
-					}
-					contextPath := pathSep + controllerName
-
-					beforeMethod, ok := fieldType.MethodByName("Before")
-					var party iris.Party
-					if ok {
-						log.Print(contextPath)
-						log.Print(beforeMethod.Name)
-						party = app.Party(contextPath, func(ctx context.Context) {
-							wa.handle(beforeMethod, controller, ctx)
-						})
-					}
-
-					numOfMethod := fieldType.NumMethod()
-					log.Debug("methods: ", numOfMethod)
-					for mi := 0; mi < numOfMethod; mi++ {
-						method := fieldType.Method(mi)
-						log.Debug("method: ", method.Name)
-						methodName := method.Name
-
-						// TODO: contextMapping naming can be configured in applicatino.yml, e.g camelCase or ...
-
-						ctxMap := camelcase.Split(methodName)
-						httpMethod := strings.ToUpper(ctxMap[0])
-						contextMapping := strings.Replace(methodName, ctxMap[0], "", 1)
-						contextMapping = pathSep + utils.LowerFirst(contextMapping)
-
-						if party == nil {
-							relativePath := contextPath + contextMapping
-							log.Debug("relativePath: ", relativePath)
-							app.Handle(httpMethod, relativePath, func(ctx context.Context) {
-								wa.handle(method, controller, ctx)
-							})
-						} else {
-							log.Debug("contextMapping: ", contextMapping)
-							party.Handle(httpMethod, contextMapping, func(ctx context.Context) {
-								wa.handle(method, controller, ctx)
-							})
-						}
-					}
-				}
-			}
+	if len(controllers) == 0 {
+		controllers = Controllers
+		if len(controllers) == 0 {
+			return nil, &system.NotFoundError{Name: "controller"}
 		}
-		return nil
-	})
+	}
 
-	return wa, err
+	if ! wa.jwtEnabled {
+		err := wa.register(controllers, AuthTypeAnon, AuthTypeDefault, AuthTypeJwt)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err := wa.register(controllers, AuthTypeAnon, AuthTypeDefault)
+		if err != nil {
+			return nil, err
+		}
+
+		app.Use(jwt.GetHandler().Serve)
+
+		err = wa.register(controllers, AuthTypeJwt)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return wa, nil
 }
 
+func (wa *Application)register(controllers []interface{}, auths... string) error {
+	app := wa.app
+	for _, c := range controllers {
+		field := reflect.ValueOf(c)
+
+		fieldType := field.Type()
+		log.Debug("fieldType: ", fieldType)
+		fieldName := fieldType.Elem().Name()
+		log.Debug("fieldName: ", fieldName)
+
+		controller := field.Interface()
+		log.Debug("controller: ", controller)
+
+		fieldAuth := field.Elem().FieldByName("AuthType")
+		if ! fieldAuth.IsValid() {
+			return &system.InvalidControllerError{Name: fieldName}
+		}
+		a := fmt.Sprintf("%v", fieldAuth.Interface())
+		log.Debug(a)
+		if ! utils.StringInSlice(a, auths) {
+			continue
+		}
+
+		cp := field.Elem().FieldByName("ContextMapping")
+		if ! cp.IsValid() {
+			return &system.InvalidControllerError{Name: fieldName}
+		}
+		contextMapping := fmt.Sprintf("%v", cp.Interface())
+
+		fieldNames := camelcase.Split(fieldName)
+		controllerName := ""
+		if len(fieldNames) >= 2 {
+			controllerName = strings.Replace(fieldName, fieldNames[len(fieldNames)-1], "", 1)
+			controllerName = utils.LowerFirst(controllerName)
+		}
+		log.Debug("controllerName: ", controllerName)
+		if contextMapping == "" {
+			contextMapping = pathSep + controllerName
+		}
+
+		numOfMethod := field.NumMethod()
+		log.Debug("methods: ", numOfMethod)
+
+		beforeMethod, ok := fieldType.MethodByName("Before")
+		var party iris.Party
+		if ok {
+			log.Debug("contextPath: ", contextMapping)
+			log.Debug("beforeMethod.Name: ", beforeMethod.Name)
+			party = app.Party(contextMapping, func(ctx context.Context) {
+				wa.handle(beforeMethod, controller, ctx)
+			})
+		}
+
+		for mi := 0; mi < numOfMethod; mi++ {
+			method := fieldType.Method(mi)
+			methodName := method.Name
+			log.Debug("method: ", methodName)
+
+			ctxMap := camelcase.Split(methodName)
+			httpMethod := strings.ToUpper(ctxMap[0])
+			apiContextMapping := strings.Replace(methodName, ctxMap[0], "", 1)
+			apiContextMapping = pathSep + utils.LowerFirst(apiContextMapping)
+
+			if party == nil {
+				relativePath := filepath.Join(contextMapping, apiContextMapping)
+				log.Debug("relativePath: ", relativePath)
+				app.Handle(httpMethod, relativePath, func(ctx context.Context) {
+					wa.handle(method, controller, ctx)
+				})
+			} else {
+				log.Debug("contextMapping: ", apiContextMapping)
+				party.Handle(httpMethod, apiContextMapping, func(ctx context.Context) {
+					wa.handle(method, controller, ctx)
+				})
+			}
+
+		}
+
+	}
+	return nil
+}
