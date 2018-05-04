@@ -18,6 +18,8 @@ import (
 	"runtime"
 	"os"
 	"path/filepath"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"strings"
 )
 
 func GetWorkingDir(file string) string {
@@ -39,4 +41,30 @@ func IsPathNotExist(path string) bool {
 	_, err := os.Stat(path)
 	isNotExist := os.IsNotExist(err)
 	return isNotExist
+}
+
+func Visit(files *[]string) filepath.WalkFunc {
+	return func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			log.Fatal(err)
+		}
+		*files = append(*files, path)
+		return nil
+	}
+}
+
+func Basename(s string) string {
+	n := strings.LastIndexByte(s, '.')
+	if n > 0 {
+		return s[:n]
+	}
+	return s
+}
+
+func Filename(s string) string {
+	n := strings.LastIndexByte(s, '/')
+	if n > 0 {
+		return s[n + 1:]
+	}
+	return s
 }

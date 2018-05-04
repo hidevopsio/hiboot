@@ -31,7 +31,7 @@ type Controller struct{
 // if the method name is a single word Get, the the context mapping will be '/'
 func (c *Controller) Get(ctx *web.Context)  {
 
-	ctx.ResponseBody("Success", "Hello, World")
+	ctx.ResponseBody("success", "hello hiboot")
 }
 
 func main()  {
