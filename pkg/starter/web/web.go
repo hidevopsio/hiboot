@@ -150,7 +150,7 @@ func Add(controller interface{})  {
 	Controllers = append(Controllers, controller)
 }
 
-func NewApplication(controllers ... interface{}) (*Application, error) {
+func newApplication(controllers []interface{}) (*Application, error) {
 	wa := &Application{}
 
 	wa.Init()
@@ -314,4 +314,18 @@ func (wa *Application)register(controllers []interface{}, auths... string) error
 
 	}
 	return nil
+}
+
+
+
+func NewApplication(controllers ... interface{}) *Application {
+
+	wa, err := newApplication(controllers)
+	if err != nil {
+
+		log.Error(err)
+		os.Exit(1)
+	}
+
+	return wa
 }
