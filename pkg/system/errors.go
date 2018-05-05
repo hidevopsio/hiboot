@@ -21,6 +21,7 @@ type InvalidControllerError struct {
 }
 
 func (e *InvalidControllerError) Error() string {
+	// TODO: locale
 	return fmt.Sprintf("the Controller %v is invalid, please add web.Controller as the struct member", e.Name)
 }
 
@@ -30,5 +31,6 @@ type NotFoundError struct {
 }
 
 func (e *NotFoundError) Error() string {
+	// TODO: locale
 	return fmt.Sprintf("%v is not found", e.Name)
 }
