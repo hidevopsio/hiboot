@@ -12,25 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package system
-
-import "fmt"
-
-type InvalidControllerError struct {
-	Name string
-}
-
-func (e *InvalidControllerError) Error() string {
-	// TODO: locale
-	return fmt.Sprintf("%v must be derived from web.Controller", e.Name)
-}
+// Line 1: main package
+package controllers
 
 
-type NotFoundError struct {
-	Name string
-}
+import (
+	"testing"
+	"net/http"
+	"github.com/hidevopsio/hiboot/pkg/starter/web"
+)
 
-func (e *NotFoundError) Error() string {
-	// TODO: locale
-	return fmt.Sprintf("%v is not found", e.Name)
+func TestBarSayHello(t *testing.T) {
+	e := web.NewApplication(&BarController{}).RunTestServer(t)
+
+	e.Request("GET", "/bar/sayHello").
+		Expect().Status(http.StatusOK)
 }

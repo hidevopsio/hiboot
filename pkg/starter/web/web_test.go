@@ -16,11 +16,11 @@ package web
 
 import (
 	"testing"
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"net/http"
 	"time"
 	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/stretchr/testify/assert"
 )
 
 type UserRequest struct {
@@ -112,23 +112,16 @@ func (c *HelloController) Get(ctx *Context)  {
 func TestHelloWorld(t *testing.T)  {
 
 	// create new web application
-	app, err := NewApplication(&HelloController{Controller{ContextMapping: "/"}})
-	assert.Equal(t, nil, err)
+	e := NewApplication(&HelloController{Controller{ContextMapping: "/"}}).RunTestServer(t)
 
 	// run the application
-	e := app.NewTestServer(t)
 	e.Request("GET", "/").
 		Expect().Status(http.StatusOK).Body().Contains("Success")
 }
 
 func TestHelloWorldLocale(t *testing.T)  {
 
-	// create new web application
-	app, err := NewApplication(&HelloController{Controller{ContextMapping: "/"}})
-	assert.Equal(t, nil, err)
-
-	// run the application
-	e := app.NewTestServer(t)
+	e := NewApplication(&HelloController{Controller{ContextMapping: "/"}}).RunTestServer(t)
 
 	// cn-ZH
 	e.Request("GET", "/").
@@ -147,13 +140,10 @@ func TestHelloWorldLocale(t *testing.T)  {
 
 func TestWebApplication(t *testing.T)  {
 
-	wa, err := NewApplication(
+	e := NewApplication(
 		&FooController{},
 		&BarController{Controller{AuthType: AuthTypeJwt}},
-	)
-	assert.Equal(t, nil, err)
-
-	e := wa.NewTestServer(t)
+	).RunTestServer(t)
 
 	e.Request("POST", "/foo/login").WithJSON(&UserRequest{Username: "johndoe", Password: "iHop91#15"}).
 		Expect().Status(http.StatusOK).Body().Contains("Success")
@@ -168,9 +158,8 @@ func TestWebApplication(t *testing.T)  {
 
 func TestInvalidController(t *testing.T)  {
 
-	_, err := NewApplication(
-		&InvalidController{},
-	)
+	controllers := []interface{}{&InvalidController{}}
+	_, err := newApplication(controllers)
 	err, ok := err.(*system.InvalidControllerError)
 	assert.Equal(t, ok, true)
 }

@@ -12,25 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package system
 
-import "fmt"
+package log
 
-type InvalidControllerError struct {
-	Name string
+import (
+	"testing"
+)
+
+func TestLogDebug(t *testing.T)  {
+	SetLevel(DebugLevel)
+	Debug("testing ...")
 }
 
-func (e *InvalidControllerError) Error() string {
-	// TODO: locale
-	return fmt.Sprintf("%v must be derived from web.Controller", e.Name)
-}
-
-
-type NotFoundError struct {
-	Name string
-}
-
-func (e *NotFoundError) Error() string {
-	// TODO: locale
-	return fmt.Sprintf("%v is not found", e.Name)
-}
