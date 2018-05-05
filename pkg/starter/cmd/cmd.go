@@ -12,25 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package system
+package cmd
 
-import "fmt"
-
-type InvalidControllerError struct {
-	Name string
-}
-
-func (e *InvalidControllerError) Error() string {
-	// TODO: locale
-	return fmt.Sprintf("%v must be derived from web.Controller", e.Name)
-}
-
-
-type NotFoundError struct {
-	Name string
-}
-
-func (e *NotFoundError) Error() string {
-	// TODO: locale
-	return fmt.Sprintf("%v is not found", e.Name)
-}

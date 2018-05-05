@@ -105,7 +105,7 @@ func (wa *Application) Init() {
 	err = InitJwt(wa.workDir)
 	if err != nil {
 		wa.jwtEnabled = false
-		log.Error(err.Error())
+		log.Warn(err.Error())
 	} else {
 		wa.jwtEnabled = true
 	}
@@ -124,7 +124,7 @@ func (wa *Application) Run() {
 	wa.app.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithCharset("UTF-8"), iris.WithoutVersionChecker)
 }
 
-func (wa *Application) NewTestServer(t *testing.T) *httpexpect.Expect {
+func (wa *Application) RunTestServer(t *testing.T) *httpexpect.Expect {
 	return httptest.New(t, wa.app)
 }
 
@@ -155,55 +155,25 @@ func newApplication(controllers []interface{}) (*Application, error) {
 
 	wa.Init()
 
-	app := iris.New()
+	wa.app = iris.New()
 
 	// The only one Required:
 	// here is how you define how your own context will
 	// be created and acquired from the iris' generic context pool.
-	app.ContextPool.Attach(func() context.Context {
+	wa.app.ContextPool.Attach(func() context.Context {
 		return &Context{
 			// Optional Part 3:
-			Context: context.NewContext(app),
+			Context: context.NewContext(wa.app),
 		}
 	})
 
-
-	var localeFiles []string
-
-	// TODO: localePath should be configurable in application.yml
-	// locale:
-	//   en-US: ./config/i18n/en-US.ini
-	//   cn-ZH: ./config/i18n/cn-ZH.ini
-	// TODO: or
-	// locale:
-	//   path: ./config/i18n/
-
-	localePath := "./config/i18n/"
-	err := filepath.Walk(localePath, utils.Visit(&localeFiles))
-
+	err := wa.initLocale()
 	if err != nil {
-		panic(err)
+		log.Warn(err)
 	}
 
-	languages := make(map[string]string)
-	for _, file := range localeFiles {
-		basename := utils.Basename(file)
-		lng := utils.Filename(basename)
-		if lng != "" {
-			languages[lng] = file
-		}
-	}
 
-	globalLocale := i18n.New(i18n.Config{
-		Default:      "en-US",
-		URLParameter: "lang",
-		Languages: languages,
-	})
-	app.Use(globalLocale)
-
-	wa.app = app
-
-	healthHandler(app)
+	healthHandler(wa.app)
 
 	if len(controllers) == 0 {
 		controllers = Controllers
@@ -223,7 +193,7 @@ func newApplication(controllers []interface{}) (*Application, error) {
 			return nil, err
 		}
 
-		app.Use(jwtHandler.Serve)
+		wa.app.Use(jwtHandler.Serve)
 
 		err = wa.register(controllers, AuthTypeJwt)
 		if err != nil {
@@ -232,6 +202,43 @@ func newApplication(controllers []interface{}) (*Application, error) {
 	}
 
 	return wa, nil
+}
+
+func (wa *Application) initLocale() error {
+	var localeFiles []string
+	// TODO: localePath should be configurable in application.yml
+	// locale:
+	//   en-US: ./config/i18n/en-US.ini
+	//   cn-ZH: ./config/i18n/cn-ZH.ini
+	// TODO: or
+	// locale:
+	//   path: ./config/i18n/
+	localePath := "./config/i18n/"
+	if utils.IsPathNotExist(localePath) {
+		return &system.NotFoundError{Name: localePath}
+	}
+
+	err := filepath.Walk(localePath, utils.Visit(&localeFiles))
+	if err != nil {
+		return err
+	}
+	languages := make(map[string]string)
+	for _, file := range localeFiles {
+		basename := utils.Basename(file)
+		lng := utils.Filename(basename)
+		if lng != "" {
+			languages[lng] = file
+		}
+	}
+	globalLocale := i18n.New(i18n.Config{
+		Default:      "en-US",
+		URLParameter: "lang",
+		Languages:    languages,
+	})
+
+	wa.app.Use(globalLocale)
+
+	return nil
 }
 
 func (wa *Application)register(controllers []interface{}, auths... string) error {
