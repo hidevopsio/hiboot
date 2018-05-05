@@ -12,15 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package main
 
 import (
-	"reflect"
+	"os"
+	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	_ "github.com/hidevopsio/hiboot/examples/web/jwt/controllers"
 )
 
-func NewReflectType(st interface{}) interface{} {
-	ct := reflect.TypeOf(st)
-	co := reflect.New(ct)
-	cp := co.Elem().Addr().Interface()
-	return cp
+func main()  {
+
+	app, err := web.NewApplication()
+	if err != nil {
+
+		log.Error(err)
+		os.Exit(1)
+	}
+
+	app.Run()
 }

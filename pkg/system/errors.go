@@ -12,15 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package system
 
-import (
-	"reflect"
-)
+import "fmt"
 
-func NewReflectType(st interface{}) interface{} {
-	ct := reflect.TypeOf(st)
-	co := reflect.New(ct)
-	cp := co.Elem().Addr().Interface()
-	return cp
+type InvalidControllerError struct {
+	Name string
+}
+
+func (e *InvalidControllerError) Error() string {
+	// TODO: locale
+	return fmt.Sprintf("the Controller %v is invalid, please add web.Controller as the struct member", e.Name)
+}
+
+
+type NotFoundError struct {
+	Name string
+}
+
+func (e *NotFoundError) Error() string {
+	// TODO: locale
+	return fmt.Sprintf("%v is not found", e.Name)
 }

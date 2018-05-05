@@ -16,9 +16,10 @@ package utils
 
 import (
 	"runtime"
-	"strings"
 	"os"
 	"path/filepath"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"strings"
 )
 
 func GetWorkingDir(file string) string {
@@ -26,11 +27,14 @@ func GetWorkingDir(file string) string {
 	if file == "" {
 		return wd
 	}
-
-	_, filename, _, _ := runtime.Caller(1)
-	wd = strings.Replace(filename, file, "", -1)
-
 	return wd
+}
+
+
+func GetRelativePath(skip int) string {
+	_, path, _, _ := runtime.Caller(skip)
+
+	return filepath.Dir(path)
 }
 
 func IsPathNotExist(path string) bool {
@@ -38,7 +42,6 @@ func IsPathNotExist(path string) bool {
 	isNotExist := os.IsNotExist(err)
 	return isNotExist
 }
-
 
 func write(path, filename string, cb func(f *os.File) (n int, err error)) (int, error) {
 	_, err := os.Stat(path)
@@ -66,4 +69,30 @@ func WriterFile(path, filename string, in []byte) (int, error) {
 	return write(path, filename, func(f *os.File) (int, error) {
 		return f.Write(in)
 	})
+}
+
+func Visit(files *[]string) filepath.WalkFunc {
+	return func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			log.Fatal(err)
+		}
+		*files = append(*files, path)
+		return nil
+	}
+}
+
+func Basename(s string) string {
+	n := strings.LastIndexByte(s, '.')
+	if n > 0 {
+		return s[:n]
+	}
+	return s
+}
+
+func Filename(s string) string {
+	n := strings.LastIndexByte(s, '/')
+	if n > 0 {
+		return s[n + 1:]
+	}
+	return s
 }

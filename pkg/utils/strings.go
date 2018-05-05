@@ -15,12 +15,26 @@
 package utils
 
 import (
-	"reflect"
+	"unicode"
+	"strings"
 )
 
-func NewReflectType(st interface{}) interface{} {
-	ct := reflect.TypeOf(st)
-	co := reflect.New(ct)
-	cp := co.Elem().Addr().Interface()
-	return cp
+func UpperFirst(str string) string {
+	return strings.Title(str)
+}
+
+func LowerFirst(str string) string {
+	for i, v := range str {
+		return string(unicode.ToLower(v)) + str[i+1:]
+	}
+	return ""
+}
+
+func StringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
