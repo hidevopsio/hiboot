@@ -12,35 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Line 1: main package
 package main
 
-import (
-	"github.com/hidevopsio/hiboot/pkg/starter/web"
-)
+// Line 2: import web starter from hiboot
+import "github.com/hidevopsio/hiboot/pkg/starter/web"
 
-// Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
-// the lower cased foo will be the context mapping of the controller
-// context mapping can be overwritten by FooController.ContextMapping
-// if the controller name is a single word Controller, then the context mapping will be '/'
-type Controller struct{
+// Line 3-5: RESTful Controller, derived from web.Controller. The context mapping of this controller is '/' by default
+type Controller struct {
 	web.Controller
 }
 
-// Get hello
-// the first word of method is the http method GET, the rest is the context mapping hello
-// if the method name is a single word Get, the the context mapping will be '/'
-func (c *Controller) Get(ctx *web.Context)  {
-
+// Line 6-8: Get method, the context mapping of this method is '/' by default
+// the Method name Get means that the http request method is GET
+func (c *Controller) Get(ctx *web.Context) {
+	// response JSON object
 	ctx.ResponseBody("success", "hello hiboot")
 }
 
-func main()  {
-
-	// create new web application
-	app, err := web.NewApplication(&Controller{})
-
-	// run the application
-	if err == nil {
-		app.Run()
-	}
+// Line 9-11: main function
+func main() {
+	// create new web application and run it
+	web.NewApplication(&Controller{}).Run()
 }

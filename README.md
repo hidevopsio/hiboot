@@ -1,51 +1,47 @@
 # hiboot
 
-'hiboot' is a cloud native web application framework.
+'hiboot' is a cloud native web application framework written in Go. 
 
-### Get the code
+## Getting started
+
+#### Get source code
 
 ```bash
 go get -u github.com/hidevopsio/hiboot
+
+cd $GOPATH/src/github.com/hidevopsio/hiboot/examples/web/helloworld/
+
+
 ```
 
 
-### The simplest go web application in the world
-
+#### The simplest go web application in Go.
 
 
 ```go
 
+// Line 1: main package
 package main
 
-import (
-	"github.com/hidevopsio/hiboot/pkg/starter/web"
-)
+// Line 2: import web starter from hiboot
+import "github.com/hidevopsio/hiboot/pkg/starter/web"
 
-// Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
-// the lower case foo will be the context mapping of the controller
-// context mapping can also be overwritten by FooController.ContextMapping
-// if the controller name is a single word Controller, then the context mapping will be '/'
-type Controller struct{
+// Line 3-5: RESTful Controller, derived from web.Controller. The context mapping of this controller is '/' by default
+type Controller struct {
 	web.Controller
 }
 
-// Get hello
-// the first word of method is the http method GET, the rest is the context mapping hello
-// if the method name is a single word Get, the the context mapping will be '/'
-func (c *Controller) Get(ctx *web.Context)  {
-
-	ctx.ResponseBody("Success", "Hello, World")
+// Line 6-8: Get method, the context mapping of this method is '/' by default
+// the Method name Get means that the http request method is GET
+func (c *Controller) Get(ctx *web.Context) {
+	// response JSON object
+	ctx.ResponseBody("success", "hello hiboot")
 }
 
-func main()  {
-
-	// create new web application
-	app, err := web.NewApplication(&Controller{})
-
-	// run the application
-	if err == nil {
-		app.Run()
-	}
+// Line 9-11: main function
+func main() {
+	// create new web application and run it
+	web.NewApplication(&Controller{}).Run()
 }
 
 ```
@@ -56,10 +52,20 @@ func main()  {
 go run main.go
 ```
 
-### testing
+### Testing the API by curl
 
 ```bash
 curl http://localhost:8080/
 ```
 
+```bash
+{
+"code": 200,
+"message": "Success",
+"data": "hello hiboot"
+}
+```
+
 ### Happy coding in go!
+
+
