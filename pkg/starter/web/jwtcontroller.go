@@ -14,6 +14,10 @@
 
 package web
 
+import (
+	"github.com/dgrijalva/jwt-go"
+	"fmt"
+)
 
 type JwtController struct {
 	Controller
@@ -22,4 +26,8 @@ type JwtController struct {
 func (c *JwtController) Init()  {
 	c.Controller.Init()
 	c.AuthType = AuthTypeJwt
+}
+
+func (c *JwtController) ParseToken(claims jwt.MapClaims, prop string) string  {
+	return fmt.Sprintf("%v", claims[prop])
 }

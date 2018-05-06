@@ -124,7 +124,8 @@ func TestHelloWorld(t *testing.T)  {
 	// create new test server
 	NewTestApplication(t, new(HelloController)).
 		Get("/").
-		Expect().Status(http.StatusOK).Body().Contains("Success")
+		Expect().Status(http.StatusOK).
+		Body().Contains("Success")
 }
 
 func TestHelloWorldLocale(t *testing.T)  {
@@ -157,8 +158,10 @@ func TestWebApplication(t *testing.T)  {
 		Expect().Status(http.StatusOK).
 		Body().Contains("Success")
 
-	ta.Post("/foo/sayHello").WithJSON(&FooRequest{Name: "John"}).
-		Expect().Status(http.StatusOK).Body().Contains("Success")
+	ta.Post("/foo/sayHello").
+		WithJSON(&FooRequest{Name: "John"}).
+		Expect().Status(http.StatusOK).
+		Body().Contains("Success")
 
 	ta.Get("/bar/sayHello").
 		Expect().Status(http.StatusOK)
