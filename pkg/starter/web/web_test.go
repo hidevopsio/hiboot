@@ -21,6 +21,7 @@ import (
 	"time"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/stretchr/testify/assert"
+	"github.com/hidevopsio/hiboot/pkg/utils"
 )
 
 type UserRequest struct {
@@ -50,6 +51,10 @@ type BarController struct{
 }
 
 type InvalidController struct {}
+
+func init() {
+	utils.ChangeWorkDir("../../../")
+}
 
 func (c *FooController) Before(ctx *Context)  {
 	log.Debug("FooController.Before")
@@ -111,8 +116,9 @@ func (c *HelloController) Get(ctx *Context)  {
 
 func TestHelloWorld(t *testing.T)  {
 
-	// create new web application
-	e := NewApplication(&HelloController{Controller{ContextMapping: "/"}}).RunTestServer(t)
+	// create new test server
+	e, err := NewTestServer(t, &HelloController{Controller{ContextMapping: "/"}})
+	assert.Equal(t, nil, err)
 
 	// run the application
 	e.Request("GET", "/").
@@ -120,17 +126,18 @@ func TestHelloWorld(t *testing.T)  {
 }
 
 func TestHelloWorldLocale(t *testing.T)  {
+	// create new test server
+	e, err := NewTestServer(t, &HelloController{Controller{ContextMapping: "/"}})
+	assert.Equal(t, nil, err)
 
-	e := NewApplication(&HelloController{Controller{ContextMapping: "/"}}).RunTestServer(t)
-
-	// cn-ZH
+	// test cn-ZH
 	e.Request("GET", "/").
 		WithHeader("Accept-Language", "cn-ZH").
 	Expect().
 		Status(http.StatusOK).
 		Body().Contains("成功")
 
-	// en-US
+	// test en-US
 	e.Request("GET", "/").
 		WithHeader("Accept-Language", "en-US").
 		Expect().
@@ -140,10 +147,11 @@ func TestHelloWorldLocale(t *testing.T)  {
 
 func TestWebApplication(t *testing.T)  {
 
-	e := NewApplication(
+	e, err := NewTestServer(t,
 		&FooController{},
 		&BarController{Controller{AuthType: AuthTypeJwt}},
-	).RunTestServer(t)
+	)
+	assert.Equal(t, nil, err)
 
 	e.Request("POST", "/foo/login").WithJSON(&UserRequest{Username: "johndoe", Password: "iHop91#15"}).
 		Expect().Status(http.StatusOK).Body().Contains("Success")
@@ -158,8 +166,7 @@ func TestWebApplication(t *testing.T)  {
 
 func TestInvalidController(t *testing.T)  {
 
-	controllers := []interface{}{&InvalidController{}}
-	_, err := newApplication(controllers)
+	_, err := NewTestServer(t, &InvalidController{})
 	err, ok := err.(*system.InvalidControllerError)
 	assert.Equal(t, ok, true)
 }

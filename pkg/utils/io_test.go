@@ -24,7 +24,7 @@ import (
 )
 
 func TestGetWorkingDir(t *testing.T) {
-	wd := GetWorkingDir("")
+	wd := GetWorkDir()
 	expected, err := os.Getwd()
 	assert.Equal(t, nil, err)
 	assert.Equal(t, expected, wd)

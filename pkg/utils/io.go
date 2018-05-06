@@ -22,11 +22,16 @@ import (
 	"strings"
 )
 
-func GetWorkingDir(file string) string {
+func ChangeWorkDir(workdir string) {
+
+	os.Chdir(workdir)
+
+}
+
+func GetWorkDir() string {
+
 	wd, _ := os.Getwd()
-	if file == "" {
-		return wd
-	}
+
 	return wd
 }
 

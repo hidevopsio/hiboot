@@ -23,11 +23,14 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
+func init() {
+	utils.ChangeWorkDir("../../")
+}
 
 func TestBuilderBuild(t *testing.T) {
 
 	b := &Builder{
-		Path:       filepath.Join(utils.GetRelativePath(1), "config"),
+		Path:       filepath.Join(utils.GetWorkDir(), "config"),
 		Name:       "application",
 		FileType:   "yaml",
 		Profile:    "local",
