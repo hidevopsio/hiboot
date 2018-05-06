@@ -14,8 +14,7 @@ cd $GOPATH/src/github.com/hidevopsio/hiboot/examples/web/helloworld/
 
 ```
 
-
-#### The simplest go web application in Go.
+#### The simplest web application in Go.
 
 
 ```go
