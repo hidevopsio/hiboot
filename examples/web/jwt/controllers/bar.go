@@ -27,6 +27,7 @@ type Bar struct {
 
 type BarController struct{
 	web.Controller
+	// TODO: web.Jwt
 }
 
 

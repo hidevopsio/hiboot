@@ -19,13 +19,10 @@ import (
 	"testing"
 	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestFooSayHello(t *testing.T) {
-	e, err := web.NewTestServer(t)
-	assert.Equal(t, nil, err)
-
-	e.Request("GET", "/foo/sayHello").
+	web.NewTestApplication(t, new(FooController)).
+		Get("/foo/sayHello").
 		Expect().Status(http.StatusOK)
 }

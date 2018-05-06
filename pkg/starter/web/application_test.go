@@ -46,10 +46,6 @@ type FooController struct{
 	Controller
 }
 
-type BarController struct{
-	Controller
-}
-
 type InvalidController struct {}
 
 func init() {
@@ -91,6 +87,11 @@ func (c *FooController) PostSayHello(ctx *Context)  {
 	}
 }
 
+// BarController
+type BarController struct{
+	JwtController
+}
+
 func (c *BarController) GetSayHello(ctx *Context)  {
 	log.Debug("BarController.SayHello")
 
@@ -106,6 +107,10 @@ type HelloController struct{
 	Controller
 }
 
+func (c *HelloController) Init()  {
+	c.ContextMapping = "/"
+}
+
 // Get hello
 // The first word of method is the http method GET, the rest is the context mapping hello
 // in this method, the name Get means that the method context mapping is '/'
@@ -117,28 +122,23 @@ func (c *HelloController) Get(ctx *Context)  {
 func TestHelloWorld(t *testing.T)  {
 
 	// create new test server
-	e, err := NewTestServer(t, &HelloController{Controller{ContextMapping: "/"}})
-	assert.Equal(t, nil, err)
-
-	// run the application
-	e.Request("GET", "/").
+	NewTestApplication(t, new(HelloController)).
+		Get("/").
 		Expect().Status(http.StatusOK).Body().Contains("Success")
 }
 
 func TestHelloWorldLocale(t *testing.T)  {
 	// create new test server
-	e, err := NewTestServer(t, &HelloController{Controller{ContextMapping: "/"}})
-	assert.Equal(t, nil, err)
+	ta := NewTestApplication(t, new(HelloController))
 
 	// test cn-ZH
-	e.Request("GET", "/").
+	ta.Get("/").
 		WithHeader("Accept-Language", "cn-ZH").
-	Expect().
-		Status(http.StatusOK).
+		Expect().Status(http.StatusOK).
 		Body().Contains("成功")
 
 	// test en-US
-	e.Request("GET", "/").
+	ta.Request("GET", "/").
 		WithHeader("Accept-Language", "en-US").
 		Expect().
 		Status(http.StatusOK).
@@ -147,26 +147,27 @@ func TestHelloWorldLocale(t *testing.T)  {
 
 func TestWebApplication(t *testing.T)  {
 
-	e, err := NewTestServer(t,
-		&FooController{},
-		&BarController{Controller{AuthType: AuthTypeJwt}},
+	ta := NewTestApplication(t,
+		new(FooController),
+		new(BarController),
 	)
-	assert.Equal(t, nil, err)
 
-	e.Request("POST", "/foo/login").WithJSON(&UserRequest{Username: "johndoe", Password: "iHop91#15"}).
+	ta.Post("/foo/login").
+		WithJSON(&UserRequest{Username: "johndoe", Password: "iHop91#15"}).
+		Expect().Status(http.StatusOK).
+		Body().Contains("Success")
+
+	ta.Post("/foo/sayHello").WithJSON(&FooRequest{Name: "John"}).
 		Expect().Status(http.StatusOK).Body().Contains("Success")
 
-	e.Request("POST", "/foo/sayHello").WithJSON(&FooRequest{Name: "John"}).
-		Expect().Status(http.StatusOK).Body().Contains("Success")
-
-	e.Request("GET", "/bar/sayHello").
-		Expect().Status(http.StatusUnauthorized)
+	ta.Get("/bar/sayHello").
+		Expect().Status(http.StatusOK)
 }
 
 
 func TestInvalidController(t *testing.T)  {
 
-	_, err := NewTestServer(t, &InvalidController{})
+	_, err := NewTestApplicationEx(t, new(InvalidController))
 	err, ok := err.(*system.InvalidControllerError)
 	assert.Equal(t, ok, true)
 }
