@@ -20,7 +20,12 @@ import (
 	"testing"
 	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	"github.com/hidevopsio/hiboot/pkg/utils"
 )
+
+func init() {
+	utils.ChangeWorkDir("../")
+}
 
 func TestBarSayHello(t *testing.T) {
 	e := web.NewApplication(&BarController{}).RunTestServer(t)

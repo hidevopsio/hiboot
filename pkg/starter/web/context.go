@@ -99,7 +99,6 @@ func (ctx *Context) ResponseBody(message string, data interface{}) {
 		Data:    data,
 	}
 
-	// just for debug now
 	ctx.JSON(response)
 }
 
@@ -110,7 +109,6 @@ func (ctx *Context) ResponseError(message string, code int) {
 		Message: ctx.translate(message), 	//TODO: Handle i18n
 	}
 
-	// just for debug now
 	ctx.StatusCode(code)
 	ctx.JSON(response)
 }

@@ -20,10 +20,12 @@ import (
 	"testing"
 	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestController(t *testing.T) {
-	e := web.NewApplication(&Controller{}).RunTestServer(t)
+	e, err := web.NewTestServer(t, &Controller{})
+	assert.Equal(t, nil, err)
 
 	e.Request("GET", "/").
 		Expect().Status(http.StatusOK)

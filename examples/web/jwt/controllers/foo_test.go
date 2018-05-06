@@ -15,15 +15,16 @@
 // Line 1: main package
 package controllers
 
-
 import (
 	"testing"
 	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFooSayHello(t *testing.T) {
-	e := web.NewApplication(&FooController{}).RunTestServer(t)
+	e, err := web.NewTestServer(t)
+	assert.Equal(t, nil, err)
 
 	e.Request("GET", "/foo/sayHello").
 		Expect().Status(http.StatusOK)

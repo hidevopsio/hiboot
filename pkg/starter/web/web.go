@@ -78,39 +78,6 @@ var (
 	Controllers []interface{}
 )
 
-
-func (wa *Application) Init() {
-	log.Println("application init")
-
-	wa.workDir = utils.GetWorkingDir("")
-
-	log.Println("working dir: ", wa.workDir)
-
-	builder := &system.Builder{
-		Path:       filepath.Join(wa.workDir, config),
-		Name:       application,
-		FileType:   yaml,
-		Profile:    os.Getenv("APP_PROFILES_ACTIVE"),
-		ConfigType: system.Configuration{},
-	}
-	cp, err := builder.Build()
-	if err == nil {
-		wa.config = cp.(*system.Configuration)
-		log.SetLevel(wa.config.Logging.Level)
-	} else {
-		log.SetLevel(log.DebugLevel)
-	}
-
-
-	err = InitJwt(wa.workDir)
-	if err != nil {
-		wa.jwtEnabled = false
-		log.Warn(err.Error())
-	} else {
-		wa.jwtEnabled = true
-	}
-}
-
 func (wa *Application) Config() *system.Configuration {
 	return wa.config
 }
@@ -150,10 +117,31 @@ func Add(controller interface{})  {
 	Controllers = append(Controllers, controller)
 }
 
-func newApplication(controllers []interface{}) (*Application, error) {
-	wa := &Application{}
+func (wa *Application) Init(controllers []interface{}) error {
 
-	wa.Init()
+	builder := &system.Builder{
+		Path:       filepath.Join(wa.workDir, config),
+		Name:       application,
+		FileType:   yaml,
+		Profile:    os.Getenv("APP_PROFILES_ACTIVE"),
+		ConfigType: system.Configuration{},
+	}
+	cp, err := builder.Build()
+	if err == nil {
+		wa.config = cp.(*system.Configuration)
+		log.SetLevel(wa.config.Logging.Level)
+	} else {
+		log.SetLevel(log.DebugLevel)
+	}
+
+
+	err = InitJwt(wa.workDir)
+	if err != nil {
+		wa.jwtEnabled = false
+		log.Warn(err.Error())
+	} else {
+		wa.jwtEnabled = true
+	}
 
 	wa.app = iris.New()
 
@@ -167,7 +155,7 @@ func newApplication(controllers []interface{}) (*Application, error) {
 		}
 	})
 
-	err := wa.initLocale()
+	err = wa.initLocale()
 	if err != nil {
 		log.Warn(err)
 	}
@@ -178,30 +166,30 @@ func newApplication(controllers []interface{}) (*Application, error) {
 	if len(controllers) == 0 {
 		controllers = Controllers
 		if len(controllers) == 0 {
-			return nil, &system.NotFoundError{Name: "controller"}
+			return &system.NotFoundError{Name: "controller"}
 		}
 	}
 
 	if ! wa.jwtEnabled {
 		err := wa.register(controllers, AuthTypeAnon, AuthTypeDefault, AuthTypeJwt)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		err := wa.register(controllers, AuthTypeAnon, AuthTypeDefault)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		wa.app.Use(jwtHandler.Serve)
 
 		err = wa.register(controllers, AuthTypeJwt)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return wa, nil
+	return nil
 }
 
 func (wa *Application) initLocale() error {
@@ -241,30 +229,31 @@ func (wa *Application) initLocale() error {
 	return nil
 }
 
-func (wa *Application)register(controllers []interface{}, auths... string) error {
+func (wa *Application) register(controllers []interface{}, auths... string) error {
 	app := wa.app
 	for _, c := range controllers {
 		field := reflect.ValueOf(c)
 
 		fieldType := field.Type()
-		log.Debug("fieldType: ", fieldType)
+		//log.Debug("fieldType: ", fieldType)
 		fieldName := fieldType.Elem().Name()
-		log.Debug("fieldName: ", fieldName)
+		//log.Debug("fieldName: ", fieldName)
 
 		controller := field.Interface()
-		log.Debug("controller: ", controller)
+		//log.Debug("controller: ", controller)
 
-		fieldAuth := field.Elem().FieldByName("AuthType")
+		fieldValue := field.Elem()
+		fieldAuth := fieldValue.FieldByName("AuthType")
 		if ! fieldAuth.IsValid() {
 			return &system.InvalidControllerError{Name: fieldName}
 		}
 		a := fmt.Sprintf("%v", fieldAuth.Interface())
-		log.Debug("authType: ", a)
+		//log.Debug("authType: ", a)
 		if ! utils.StringInSlice(a, auths) {
 			continue
 		}
 
-		cp := field.Elem().FieldByName("ContextMapping")
+		cp := fieldValue.FieldByName("ContextMapping")
 		if ! cp.IsValid() {
 			return &system.InvalidControllerError{Name: fieldName}
 		}
@@ -276,19 +265,19 @@ func (wa *Application)register(controllers []interface{}, auths... string) error
 			controllerName = strings.Replace(fieldName, fieldNames[len(fieldNames)-1], "", 1)
 			controllerName = utils.LowerFirst(controllerName)
 		}
-		log.Debug("controllerName: ", controllerName)
+		//log.Debug("controllerName: ", controllerName)
 		if contextMapping == "" {
 			contextMapping = pathSep + controllerName
 		}
 
 		numOfMethod := field.NumMethod()
-		log.Debug("methods: ", numOfMethod)
+		//log.Debug("methods: ", numOfMethod)
 
 		beforeMethod, ok := fieldType.MethodByName("Before")
 		var party iris.Party
 		if ok {
-			log.Debug("contextPath: ", contextMapping)
-			log.Debug("beforeMethod.Name: ", beforeMethod.Name)
+			//log.Debug("contextPath: ", contextMapping)
+			//log.Debug("beforeMethod.Name: ", beforeMethod.Name)
 			party = app.Party(contextMapping, func(ctx context.Context) {
 				wa.handle(beforeMethod, controller, ctx.(*Context))
 			})
@@ -297,7 +286,7 @@ func (wa *Application)register(controllers []interface{}, auths... string) error
 		for mi := 0; mi < numOfMethod; mi++ {
 			method := fieldType.Method(mi)
 			methodName := method.Name
-			log.Debug("method: ", methodName)
+			//log.Debug("method: ", methodName)
 
 			ctxMap := camelcase.Split(methodName)
 			httpMethod := strings.ToUpper(ctxMap[0])
@@ -306,12 +295,12 @@ func (wa *Application)register(controllers []interface{}, auths... string) error
 
 			if party == nil {
 				relativePath := filepath.Join(contextMapping, apiContextMapping)
-				log.Debug("relativePath: ", relativePath)
+				//log.Debug("relativePath: ", relativePath)
 				app.Handle(httpMethod, relativePath, func(ctx context.Context) {
 					wa.handle(method, controller, ctx.(*Context))
 				})
 			} else {
-				log.Debug("contextMapping: ", apiContextMapping)
+				//log.Debug("contextMapping: ", apiContextMapping)
 				party.Handle(httpMethod, apiContextMapping, func(ctx context.Context) {
 					wa.handle(method, controller, ctx.(*Context))
 				})
@@ -324,15 +313,31 @@ func (wa *Application)register(controllers []interface{}, auths... string) error
 }
 
 
+func createApplication(controllers []interface{}) (*Application, error) {
+	wa := &Application{}
+	wa.workDir = utils.GetWorkDir()
+	err := wa.Init(controllers)
+	log.Debugf("workdir: %v", wa.workDir)
+	return wa, err
+}
 
-func NewApplication(controllers ... interface{}) *Application {
-
-	wa, err := newApplication(controllers)
+func NewApplication(controllers... interface{}) *Application {
+	wa, err := createApplication(controllers)
 	if err != nil {
-
 		log.Error(err)
 		os.Exit(1)
 	}
 
 	return wa
 }
+
+func NewTestServer(t *testing.T, controllers... interface{}) (*httpexpect.Expect, error) {
+	log.SetLevel(log.DebugLevel)
+
+	wa, err := createApplication(controllers)
+
+	e := wa.RunTestServer(t)
+
+	return e, err
+}
+
