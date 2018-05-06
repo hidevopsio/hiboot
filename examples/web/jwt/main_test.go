@@ -24,8 +24,7 @@ import (
 )
 
 func TestFooSayHello(t *testing.T) {
-	e := web.NewApplication().RunTestServer(t)
-
-	e.Request("GET", "/foo/sayHello").
+	web.NewTestApplication(t).
+		Get("/foo/sayHello").
 		Expect().Status(http.StatusOK)
 }

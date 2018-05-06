@@ -12,18 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Line 1: main package
-package main
+package web
 
 
-import (
-	"testing"
-	"net/http"
-	"github.com/hidevopsio/hiboot/pkg/starter/web"
-)
+type JwtController struct {
+	Controller
+}
 
-func TestController(t *testing.T) {
-	web.NewTestApplication(t, new(Controller)).
-		Get("/").
-		Expect().Status(http.StatusOK)
+func (c *JwtController) Init()  {
+	c.Controller.Init()
+	c.AuthType = AuthTypeJwt
 }

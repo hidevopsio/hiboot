@@ -28,8 +28,7 @@ func init() {
 }
 
 func TestBarSayHello(t *testing.T) {
-	e := web.NewApplication(&BarController{}).RunTestServer(t)
-
-	e.Request("GET", "/bar/sayHello").
+	web.NewTestApplication(t, new(BarController)).
+		Get("/bar/sayHello").
 		Expect().Status(http.StatusOK)
 }

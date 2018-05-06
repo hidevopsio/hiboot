@@ -12,18 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Line 1: main package
-package main
+package web
 
 
-import (
-	"testing"
-	"net/http"
-	"github.com/hidevopsio/hiboot/pkg/starter/web"
-)
+type Controller struct {
+	ContextMapping string
+	AuthType       string
+}
 
-func TestController(t *testing.T) {
-	web.NewTestApplication(t, new(Controller)).
-		Get("/").
-		Expect().Status(http.StatusOK)
+func (c *Controller) Init()  {
+	c.AuthType = AuthTypeAnon
 }

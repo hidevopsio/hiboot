@@ -32,6 +32,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"path/filepath"
 	"github.com/kataras/iris/middleware/i18n"
+	"net/http"
 )
 
 const (
@@ -42,6 +43,8 @@ const (
 	AuthTypeDefault = ""
 	AuthTypeAnon    = "anon"
 	AuthTypeJwt     = "jwt"
+
+	initMethodName  = "Init"
 )
 
 type ApplicationInterface interface {
@@ -57,15 +60,11 @@ type Application struct {
 	config *system.Configuration
 	jwtEnabled bool
 	workDir string
+	httpMethods []string
 }
 
 type Health struct {
 	Status string `json:"status"`
-}
-
-type Controller struct {
-	ContextMapping string
-	AuthType       string
 }
 
 const (
@@ -118,6 +117,18 @@ func Add(controller interface{})  {
 }
 
 func (wa *Application) Init(controllers []interface{}) error {
+
+	wa.httpMethods = []string{
+		http.MethodGet,
+		http.MethodHead,
+		http.MethodPost,
+		http.MethodPut,
+		http.MethodPatch,
+		http.MethodDelete,
+		http.MethodConnect,
+		http.MethodOptions,
+		http.MethodTrace,
+	}
 
 	builder := &system.Builder{
 		Path:       filepath.Join(wa.workDir, config),
@@ -253,12 +264,22 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 			continue
 		}
 
+		// call Init
+		initMethod, ok := fieldType.MethodByName(initMethodName)
+		if ok {
+			inputs := make([]reflect.Value, initMethod.Type.NumIn())
+			inputs[0] = reflect.ValueOf(controller)
+			initMethod.Func.Call(inputs)
+		}
+
+		// get context mapping
 		cp := fieldValue.FieldByName("ContextMapping")
 		if ! cp.IsValid() {
 			return &system.InvalidControllerError{Name: fieldName}
 		}
 		contextMapping := fmt.Sprintf("%v", cp.Interface())
 
+		// parse method
 		fieldNames := camelcase.Split(fieldName)
 		controllerName := ""
 		if len(fieldNames) >= 2 {
@@ -266,6 +287,7 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 			controllerName = utils.LowerFirst(controllerName)
 		}
 		//log.Debug("controllerName: ", controllerName)
+		// use controller's prefix as context mapping
 		if contextMapping == "" {
 			contextMapping = pathSep + controllerName
 		}
@@ -293,19 +315,21 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 			apiContextMapping := strings.Replace(methodName, ctxMap[0], "", 1)
 			apiContextMapping = pathSep + utils.LowerFirst(apiContextMapping)
 
-			if party == nil {
-				relativePath := filepath.Join(contextMapping, apiContextMapping)
-				//log.Debug("relativePath: ", relativePath)
-				app.Handle(httpMethod, relativePath, func(ctx context.Context) {
-					wa.handle(method, controller, ctx.(*Context))
-				})
-			} else {
-				//log.Debug("contextMapping: ", apiContextMapping)
-				party.Handle(httpMethod, apiContextMapping, func(ctx context.Context) {
-					wa.handle(method, controller, ctx.(*Context))
-				})
+			// check if it's valid http method
+			if utils.StringInSlice(httpMethod, wa.httpMethods) {
+				if party == nil {
+					relativePath := filepath.Join(contextMapping, apiContextMapping)
+					//log.Debug("relativePath: ", relativePath)
+					app.Handle(httpMethod, relativePath, func(ctx context.Context) {
+						wa.handle(method, controller, ctx.(*Context))
+					})
+				} else {
+					//log.Debug("contextMapping: ", apiContextMapping)
+					party.Handle(httpMethod, apiContextMapping, func(ctx context.Context) {
+						wa.handle(method, controller, ctx.(*Context))
+					})
+				}
 			}
-
 		}
 
 	}
@@ -313,31 +337,21 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 }
 
 
-func createApplication(controllers []interface{}) (*Application, error) {
-	wa := &Application{}
+func (wa *Application) createApplication(controllers []interface{}) error {
 	wa.workDir = utils.GetWorkDir()
 	err := wa.Init(controllers)
 	log.Debugf("workdir: %v", wa.workDir)
-	return wa, err
+	return err
 }
 
 func NewApplication(controllers... interface{}) *Application {
-	wa, err := createApplication(controllers)
+	wa := new(Application)
+	err := wa.createApplication(controllers)
 	if err != nil {
 		log.Error(err)
 		os.Exit(1)
 	}
 
 	return wa
-}
-
-func NewTestServer(t *testing.T, controllers... interface{}) (*httpexpect.Expect, error) {
-	log.SetLevel(log.DebugLevel)
-
-	wa, err := createApplication(controllers)
-
-	e := wa.RunTestServer(t)
-
-	return e, err
 }
 
