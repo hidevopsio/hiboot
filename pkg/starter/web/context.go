@@ -23,8 +23,7 @@ import (
 )
 
 type ContextInterface interface {
-	RequestBody(data interface{}) error
-	Response(message string, data interface{})
+	ResponseBody(message string, data interface{})
 	ResponseError(message string, code int)
 }
 
