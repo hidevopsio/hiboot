@@ -253,6 +253,14 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 		controller := field.Interface()
 		//log.Debug("controller: ", controller)
 
+		// call Init
+		initMethod, ok := fieldType.MethodByName(initMethodName)
+		if ok {
+			inputs := make([]reflect.Value, initMethod.Type.NumIn())
+			inputs[0] = reflect.ValueOf(controller)
+			initMethod.Func.Call(inputs)
+		}
+
 		fieldValue := field.Elem()
 		fieldAuth := fieldValue.FieldByName("AuthType")
 		if ! fieldAuth.IsValid() {
@@ -262,14 +270,6 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 		//log.Debug("authType: ", a)
 		if ! utils.StringInSlice(a, auths) {
 			continue
-		}
-
-		// call Init
-		initMethod, ok := fieldType.MethodByName(initMethodName)
-		if ok {
-			inputs := make([]reflect.Value, initMethod.Type.NumIn())
-			inputs[0] = reflect.ValueOf(controller)
-			initMethod.Func.Call(inputs)
 		}
 
 		// get context mapping

@@ -17,6 +17,9 @@ package controllers
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"net/http"
+	"github.com/dgrijalva/jwt-go"
+	"strings"
 )
 
 
@@ -26,26 +29,35 @@ type Bar struct {
 
 
 type BarController struct{
-	web.Controller
-	// TODO: web.Jwt
+	web.JwtController
 }
 
-
 func init()  {
-	web.Add(&BarController{
-		web.Controller{
-			ContextMapping: "/bars",
-			AuthType:       web.AuthTypeJwt,
-		},
-	})
+	web.Add(new(BarController))
 }
 
 func (c *BarController) GetSayHello(ctx *web.Context)  {
+
+	// decrypt jwt token
+	ti := ctx.Values().Get("jwt")
+	if ti == nil {
+		ctx.ResponseError("failed", http.StatusInternalServerError)
+		return
+	}
+	token := ti.(*jwt.Token)
+
+	var username, password string
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+
+		username = c.ParseToken(claims, "username")
+		password = c.ParseToken(claims, "password")
+
+		log.Debugf("username: %v, password: %v", username, strings.Repeat("*", len(password)))
+	}
+
 	log.Debug("BarController.SayHello")
 	language := ctx.Values().GetString(ctx.Application().ConfigurationReadOnly().GetTranslateLanguageContextKey())
 	log.Debug(language)
 	ctx.ResponseBody("success", &Bar{Greeting: "hello bar"})
 
 }
-
-// curl -H 'Accept-Language: zh-CN' -H """Authorization: Bearer $(curl -d '{"username":"test","password":"123"}' -H "Content-Type: application/json" -X POST http://localhost:8080/foo/login 2>/dev/null | jq -r '.data') """ http://localhost:8080/bars/sayHello
