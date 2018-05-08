@@ -169,8 +169,8 @@ func TestWebApplication(t *testing.T)  {
 
 
 func TestInvalidController(t *testing.T)  {
-
-	_, err := NewTestApplicationEx(t, new(InvalidController))
+	ta := new(TestApplication)
+	err := ta.Init(new(InvalidController))
 	err, ok := err.(*system.InvalidControllerError)
 	assert.Equal(t, ok, true)
 }

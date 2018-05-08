@@ -16,31 +16,34 @@ package web
 
 import (
 	"testing"
-	"github.com/iris-contrib/httpexpect"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"net/http"
+	"github.com/iris-contrib/httpexpect"
 	"github.com/stretchr/testify/assert"
+	"github.com/kataras/iris/httptest"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
+
+type TestApplicationInterface interface {
+	ApplicationInterface
+	NewTestServer(t *testing.T) *httpexpect.Expect
+}
 
 type TestApplication struct {
 	Application
 	expect *httpexpect.Expect
 }
 
-func NewTestApplicationEx(t *testing.T, controllers... interface{}) (*TestApplication, error) {
+func NewTestApplication(t *testing.T, controllers... interface{}) *TestApplication {
 	log.SetLevel(log.DebugLevel)
 	ta := new(TestApplication)
-	err := ta.createApplication(controllers)
-	if err == nil {
-		ta.expect = ta.RunTestServer(t)
-	}
-	return ta, err
+	err := ta.Init(controllers...)
+	assert.Equal(t, nil, err)
+	ta.expect = ta.RunTestServer(t)
+	return ta
 }
 
-func NewTestApplication(t *testing.T, controllers... interface{}) *TestApplication {
-	ta, err := NewTestApplicationEx(t, controllers...)
-	assert.Equal(t, nil, err)
-	return ta
+func (wa *TestApplication) RunTestServer(t *testing.T) *httpexpect.Expect {
+	return httptest.New(t, wa.app)
 }
 
 func (ta *TestApplication) Request(method, path string, pathargs ...interface{}) *httpexpect.Request {
