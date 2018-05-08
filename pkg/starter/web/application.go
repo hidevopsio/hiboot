@@ -19,25 +19,20 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"testing"
+	"net/http"
 	"crypto/rsa"
+	"path/filepath"
 	"github.com/fatih/camelcase"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/core/router"
-	"github.com/kataras/iris/httptest"
 	"github.com/kataras/iris/context"
-	"github.com/iris-contrib/httpexpect"
+	"github.com/kataras/iris/middleware/i18n"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"path/filepath"
-	"github.com/kataras/iris/middleware/i18n"
-	"net/http"
 )
 
 const (
-	mainPackageDepth = 3
-
 	pathSep = "/"
 
 	AuthTypeDefault = ""
@@ -52,7 +47,6 @@ type ApplicationInterface interface {
 	Config() *system.Configuration
 	GetSignKey() *rsa.PrivateKey
 	Run()
-	NewTestServer(t *testing.T) *httpexpect.Expect
 }
 
 type Application struct {
@@ -90,10 +84,6 @@ func (wa *Application) Run() {
 	wa.app.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithCharset("UTF-8"), iris.WithoutVersionChecker)
 }
 
-func (wa *Application) RunTestServer(t *testing.T) *httpexpect.Expect {
-	return httptest.New(t, wa.app)
-}
-
 func healthHandler(app *iris.Application) *router.Route {
 	return app.Get("/health", func(ctx context.Context) {
 		health := Health{
@@ -116,7 +106,9 @@ func Add(controller interface{})  {
 	Controllers = append(Controllers, controller)
 }
 
-func (wa *Application) Init(controllers []interface{}) error {
+func (wa *Application) Init(controllers ...interface{}) error {
+
+	wa.workDir = utils.GetWorkDir()
 
 	wa.httpMethods = []string{
 		http.MethodGet,
@@ -338,20 +330,18 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 
 
 func (wa *Application) createApplication(controllers []interface{}) error {
-	wa.workDir = utils.GetWorkDir()
 	err := wa.Init(controllers)
-	log.Debugf("workdir: %v", wa.workDir)
+	log.Debugf("workDir: %v", wa.workDir)
 	return err
 }
 
-func NewApplication(controllers... interface{}) *Application {
+func NewApplication(controllers ...interface{}) *Application {
 	wa := new(Application)
-	err := wa.createApplication(controllers)
+	err := wa.Init(controllers...)
 	if err != nil {
 		log.Error(err)
 		os.Exit(1)
 	}
-
 	return wa
 }
 
