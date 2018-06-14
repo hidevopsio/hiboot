@@ -77,7 +77,7 @@ func (wa *Application) Config() *system.Configuration {
 
 func (wa *Application) Run() {
 	serverPort := ":8080"
-	if wa.config != nil {
+	if wa.config != nil && wa.config.Server.Port != 0 {
 		serverPort = fmt.Sprintf(":%v", wa.config.Server.Port)
 	}
 	// TODO: WithCharset should be configurable
