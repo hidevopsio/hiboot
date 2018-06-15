@@ -13,5 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-openssl genrsa -out app.rsa 1024
-openssl rsa -in app.rsa -pubout > app.rsa.pub
+mkdir -p ssl
+
+openssl genrsa -out ssl/app.rsa 1024
+openssl rsa -in ssl/app.rsa -pubout > ssl/app.rsa.pub

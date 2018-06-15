@@ -31,8 +31,8 @@ type JwtMap map[string]interface{}
 type Token string
 
 const (
-	privateKeyPath = "/config/app.rsa"
-	pubKeyPath     = "/config/app.rsa.pub"
+	privateKeyPath = "/config/ssl/app.rsa"
+	pubKeyPath     = "/config/ssl/app.rsa.pub"
 )
 
 var (
