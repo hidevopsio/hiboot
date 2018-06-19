@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"errors"
 )
 
 type JwtMiddleware struct {
@@ -48,7 +47,6 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 
 	// If an error occurs, call the error handler and return an error
 	if err != nil {
-		m.Config.ErrorHandler(ctx, err.Error())
 		return fmt.Errorf("Error extracting token: %v", err)
 	}
 
@@ -63,7 +61,6 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 
 		// If we get here, the required token is missing
 		errorMsg := "Required authorization token not found"
-		//m.Config.ErrorHandler(ctx, errorMsg)
 		log.Debug("  Error: No credentials found (CredentialsOptional=false)")
 		return fmt.Errorf(errorMsg)
 	}
@@ -74,7 +71,6 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 	// Check if there was an error in parsing...
 	if err != nil {
 		log.Debug("Error parsing token: %v", err)
-		m.Config.ErrorHandler(ctx, err.Error())
 		return fmt.Errorf("Error parsing token: %v", err)
 	}
 
@@ -83,14 +79,12 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 			m.Config.SigningMethod.Alg(),
 			parsedToken.Header["alg"])
 		log.Debug("Error validating token algorithm: %s", message)
-		m.Config.ErrorHandler(ctx, errors.New(message).Error())
 		return fmt.Errorf("Error validating token algorithm: %s", message)
 	}
 
 	// Check if the parsed token is valid...
 	if !parsedToken.Valid {
 		log.Debug("Token is invalid")
-		m.Config.ErrorHandler(ctx, "The token isn't valid")
 		return fmt.Errorf("Token is invalid")
 	}
 
