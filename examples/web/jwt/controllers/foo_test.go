@@ -24,7 +24,7 @@ import (
 func TestFooGet(t *testing.T) {
 	web.NewTestApplication(t, new(FooController)).
 		Get("/foo").
-		WithQuery("name", "Peter").
+		WithQueryObject(FooRequest{Name: "Peter", Age: 18}).
 		Expect().Status(http.StatusOK)
 }
 
