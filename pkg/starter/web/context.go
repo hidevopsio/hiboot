@@ -20,9 +20,15 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"net/http"
 	"github.com/kataras/iris/middleware/i18n"
+	"fmt"
+	"errors"
+	"github.com/mitchellh/mapstructure"
 )
 
 type ContextInterface interface {
+	RequestEx(data interface{}, cb func() error) error
+	RequestBody(data interface{}) error
+	RequestForm(data interface{}) error
 	ResponseBody(message string, data interface{})
 	ResponseError(message string, code int)
 }
@@ -63,9 +69,12 @@ func (ctx *Context) HTML(htmlContents string) (int, error) {
 }
 
 
-// get response
-func (ctx *Context) RequestBody(data interface{}) error {
-	err := ctx.ReadJSON(&data)
+// get RequestBody
+func (ctx *Context) RequestEx(data interface{}, cb func() error) error {
+	if cb == nil {
+		return fmt.Errorf("callback func can't be nil")
+	}
+	err := cb()
 	if err != nil {
 		ctx.ResponseError(err.Error(), http.StatusInternalServerError)
 		return err
@@ -77,6 +86,55 @@ func (ctx *Context) RequestBody(data interface{}) error {
 		return err
 	}
 	return nil
+}
+
+
+// get RequestBody
+func (ctx *Context) RequestBody(data interface{}) error {
+
+	return ctx.RequestEx(data, func() error {
+		return ctx.ReadJSON(data)
+	})
+}
+
+
+// get RequestFrom
+func (ctx *Context) RequestForm(data interface{}) error {
+
+	return ctx.RequestEx(data, func() error {
+		return ctx.ReadForm(data)
+	})
+}
+
+
+// get RequestBody
+func (ctx *Context) RequestParam(data interface{}) error {
+
+	return ctx.RequestEx(data, func() error {
+
+		values := ctx.URLParams()
+		if values == nil {
+			return errors.New("An empty form passed on ReadForm")
+		}
+
+		config := &mapstructure.DecoderConfig{
+			WeaklyTypedInput: true,
+			Result:           data,
+		}
+
+		decoder, err := mapstructure.NewDecoder(config)
+		if err != nil {
+			panic(err)
+		}
+
+		err = decoder.Decode(values)
+		if err != nil {
+			panic(err)
+		}
+
+		return err
+
+	})
 }
 
 // handle i18n
