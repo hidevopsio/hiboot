@@ -87,7 +87,7 @@ func (c *FooController) Get(ctx *web.Context) {
 
 	foo := &FooRequest{}
 
-	if ctx.RequestParam(foo) == nil {
+	if ctx.RequestParams(foo) == nil {
 		ctx.ResponseBody("success", &FooResponse{
 			Greeting: "Hello, " + foo.Name,
 			Age: foo.Age })
