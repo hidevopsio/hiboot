@@ -107,8 +107,8 @@ func (ctx *Context) RequestForm(data interface{}) error {
 }
 
 
-// get RequestBody
-func (ctx *Context) RequestParam(data interface{}) error {
+// get RequestParams
+func (ctx *Context) RequestParams(data interface{}) error {
 
 	return ctx.RequestEx(data, func() error {
 
