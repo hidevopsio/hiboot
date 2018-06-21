@@ -21,8 +21,16 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
 )
 
-func TestFooSayHello(t *testing.T) {
+func TestFooGet(t *testing.T) {
 	web.NewTestApplication(t, new(FooController)).
-		Get("/foo/sayHello").
+		Get("/foo").
+		WithQuery("name", "Peter").
+		Expect().Status(http.StatusOK)
+}
+
+func TestFooPost(t *testing.T) {
+	web.NewTestApplication(t, new(FooController)).
+		Post("/foo").
+		WithJSON(FooRequest{Name: "Mike", Age: 18}).
 		Expect().Status(http.StatusOK)
 }

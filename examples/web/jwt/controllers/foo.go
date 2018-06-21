@@ -27,30 +27,32 @@ type UserRequest struct {
 }
 
 type FooRequest struct {
-	Name string
+	Name string `json:"name" validate:"required"`
+	Age  int `json:"age"`
 }
 
 type FooResponse struct {
-	Greeting string
+	Greeting string `json:"greeting"`
+	Age  int `json:"age"`
 }
 
-type FooController struct{
+type FooController struct {
 	web.Controller
 }
 
 // init - add &FooController{} to web application
-func init()  {
+func init() {
 	web.Add(&FooController{})
 }
 
-func (c *FooController) Before(ctx *web.Context)  {
+func (c *FooController) Before(ctx *web.Context) {
 	log.Debug("FooController.Before")
 	ctx.Next()
 }
 
 // Post login
 // The first word of method is the http method POST, the rest is the context mapping
-func (c *FooController) PostLogin(ctx *web.Context)  {
+func (c *FooController) PostLogin(ctx *web.Context) {
 	log.Debug("FooController.Login")
 
 	userRequest := &UserRequest{}
@@ -70,18 +72,24 @@ func (c *FooController) PostLogin(ctx *web.Context)  {
 	}
 }
 
-func (c *FooController) PostSayHello(ctx *web.Context)  {
-	log.Debug("FooController.SayHello")
+func (c *FooController) Post(ctx *web.Context) {
+	log.Debug("FooController.Post")
 
 	foo := &FooRequest{}
 	if ctx.RequestBody(foo) == nil {
-		ctx.ResponseBody("success", &FooResponse{Greeting: "hello, " + foo.Name})
+		ctx.ResponseBody("success", &FooResponse{Greeting: "Hello, " + foo.Name})
 	}
+
 }
 
-func (c *FooController) GetSayHello(ctx *web.Context)  {
-	log.Debug("FooController.SayHello")
+func (c *FooController) Get(ctx *web.Context) {
+	log.Debug("FooController.Get")
 
-	ctx.ResponseBody("success", &FooResponse{Greeting: "hello, world"})
+	foo := &FooRequest{}
 
+	if ctx.RequestParam(foo) == nil {
+		ctx.ResponseBody("success", &FooResponse{
+			Greeting: "Hello, " + foo.Name,
+			Age: foo.Age })
+	}
 }
