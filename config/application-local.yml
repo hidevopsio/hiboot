@@ -3,7 +3,8 @@
 app:
   profiles:
     include:
-    - bar
+    - web
+    - orm
 
 server:
   port: 8080
