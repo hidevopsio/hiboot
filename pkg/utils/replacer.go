@@ -328,6 +328,24 @@ func ValidateReflectType(obj interface{}, callback func(value *reflect.Value, re
 	return err
 }
 
+func ReplaceMap(m map[string]interface{}, root interface{}) error {
+	for k, v := range m {
+		// log.Println(k, ": ", v)
+		vt := reflect.TypeOf(v)
+		if vt.Kind() == reflect.String {
+			newStr, err := ReplaceStringVariables(v.(string), root)
+			if err != nil {
+				return err
+			}
+			m[k] = newStr
+		} else if vt.Kind() == reflect.Map {
+			mv := v.(map[string]interface{})
+			ReplaceMap(mv, root)
+		}
+	}
+	return nil
+}
+
 func Replace(to interface{}, root interface{}) error {
 
 	return ValidateReflectType(to, func(value *reflect.Value, reflectType reflect.Type, fieldSize int, isSlice bool) error {
@@ -386,6 +404,9 @@ func Replace(to interface{}, root interface{}) error {
 							return err
 						}
 						dstField.SetString(newStr)
+					case reflect.Map:
+						mi := dstField.Interface()
+						ReplaceMap(mi.(map[string]interface{}), root)
 					default:
 						//log.Debug(fieldName, " is a ", kind)
 						Replace(dstField.Addr().Interface(), root)

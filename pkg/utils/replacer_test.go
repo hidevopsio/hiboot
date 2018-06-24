@@ -26,6 +26,7 @@ type Bar struct {
 	Name    string
 	Profile string
 	SubBar  SubBar
+	SubMap	map[string]interface{}
 }
 
 type Foo struct {
@@ -50,15 +51,26 @@ func TestReplaceVariable(t *testing.T) {
 			SubBar: SubBar{
 				Name: "${bar.name}",
 			},
+			SubMap: map[string]interface{} {
+				"barName": "${bar.name}",
+				"name": "${name}",
+				"nestedMap": map[string]interface{} {
+					"name": "${name}",
+					"age": 18,
+				},
+			},
 		},
 	}
-
+	//log.Println(f)
 	err := Replace(f, f)
+	//log.Println(f)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "it's foo project", f.Project)
 	assert.Equal(t, "foo-bar", f.Bar.Profile)
 	assert.Equal(t, "my name is bar", f.Bar.Name)
 	assert.Equal(t, f.Bar.Name, f.Bar.SubBar.Name)
+	assert.Equal(t, f.Name, f.Bar.SubMap["name"])
+	assert.Equal(t, f.Name, f.Bar.SubMap["nestedMap"].(map[string]interface{})["name"])
 }
 
 func TestParseVariables(t *testing.T) {
