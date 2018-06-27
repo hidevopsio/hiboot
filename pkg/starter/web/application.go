@@ -30,6 +30,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/starter/db"
 )
 
 const (
@@ -55,6 +56,8 @@ type Application struct {
 	jwtEnabled bool
 	workDir string
 	httpMethods []string
+	dataSource db.DataSourceInterface
+	inject Inject
 }
 
 type Health struct {
@@ -137,7 +140,19 @@ func (wa *Application) Init(controllers ...interface{}) error {
 		log.SetLevel(log.DebugLevel)
 	}
 
+	// Init DataSource
+	if wa.config.App.DataSourceType != "" {
+		dsf := db.DataSourceFactory{}
+		wa.dataSource, err = dsf.New(wa.config.App.DataSourceType)
+		if err == nil {
+			err = wa.dataSource.Open(wa.config.DataSource)
+			if err != nil {
+				return err
+			}
+		}
+	}
 
+	// Init JWT
 	err = InitJwt(wa.workDir)
 	if err != nil {
 		wa.jwtEnabled = false
@@ -238,12 +253,12 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 		field := reflect.ValueOf(c)
 
 		fieldType := field.Type()
-		//log.Debug("fieldType: ", fieldType)
+		log.Debug("fieldType: ", fieldType)
 		fieldName := fieldType.Elem().Name()
-		//log.Debug("fieldName: ", fieldName)
+		log.Debug("fieldName: ", fieldName)
 
 		controller := field.Interface()
-		//log.Debug("controller: ", controller)
+		log.Debug("controller: ", controller)
 
 		// call Init
 		initMethod, ok := fieldType.MethodByName(initMethodName)
@@ -262,6 +277,12 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 		//log.Debug("authType: ", a)
 		if ! utils.StringInSlice(a, auths) {
 			continue
+		}
+
+		// inject component
+		err := wa.inject.IntoObject(field)
+		if err != nil {
+			return err
 		}
 
 		// get context mapping
