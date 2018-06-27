@@ -16,13 +16,14 @@ package system
 
 type Profiles struct {
 	Include []string `json:"include"`
-	Active string    `json:"active"`
+	Active  string   `json:"active"`
 }
 
 type App struct {
-	Project  string   `json:"project"`
-	Name     string   `json:"name"`
-	Profiles Profiles `json:"profiles"`
+	Project        string   `json:"project"`
+	Name           string   `json:"name"`
+	Profiles       Profiles `json:"profiles"`
+	DataSourceType string   `json:"data_source_type"`
 }
 
 type Server struct {
@@ -38,8 +39,11 @@ type Env struct {
 	Value string
 }
 
+type DataSource map[string]interface{}
+
 type Configuration struct {
-	App     App     `mapstructure:"app"`
-	Server  Server  `mapstructure:"server"`
-	Logging Logging `mapstructure:"logging"`
+	App        App        `mapstructure:"app"`
+	Server     Server     `mapstructure:"server"`
+	Logging    Logging    `mapstructure:"logging"`
+	DataSource DataSource `mapstructure:"dataSource"`
 }

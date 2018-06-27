@@ -61,9 +61,9 @@ func TestReplaceVariable(t *testing.T) {
 			},
 		},
 	}
-	//log.Println(f)
+	log.Println(f)
 	err := Replace(f, f)
-	//log.Println(f)
+	log.Println(f)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "it's foo project", f.Project)
 	assert.Equal(t, "foo-bar", f.Bar.Profile)
