@@ -10,3 +10,9 @@ app:
 
 logging:
   level: debug
+
+dataSources:
+- type: bolt
+  database: hi.db
+  mode: 0600
+  timeout: 1
