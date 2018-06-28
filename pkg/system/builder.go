@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"gopkg.in/yaml.v2"
 	"bytes"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 )
 
 type Builder struct {
@@ -91,7 +92,7 @@ func (b *Builder) Read(name string) (interface{}, error) {
 	}
 	st := b.ConfigType
 
-	cp := utils.NewReflectType(st)
+	cp := reflector.NewReflectType(st)
 
 	err = v.Unmarshal(cp)
 	if err != nil {

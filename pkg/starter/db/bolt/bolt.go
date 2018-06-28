@@ -15,9 +15,10 @@ type Bolt struct {
 }
 
 type DataSource struct {
+	Type     string        `json:"type"`
 	Database string        `json:"database"`
 	Mode     os.FileMode   `json:"mode"`
-	Timeout  int64 `json:"timeout"`
+	Timeout  int64         `json:"timeout"`
 }
 
 // Open bolt database

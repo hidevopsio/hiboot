@@ -42,8 +42,8 @@ type Env struct {
 type DataSource map[string]interface{}
 
 type Configuration struct {
-	App        App        `mapstructure:"app"`
-	Server     Server     `mapstructure:"server"`
-	Logging    Logging    `mapstructure:"logging"`
-	DataSource DataSource `mapstructure:"dataSource"`
+	App         App          `mapstructure:"app"`
+	Server      Server       `mapstructure:"server"`
+	Logging     Logging      `mapstructure:"logging"`
+	DataSources []DataSource `mapstructure:"dataSources"`
 }
