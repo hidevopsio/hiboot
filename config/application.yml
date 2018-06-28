@@ -7,12 +7,12 @@ app:
   profiles:
     include:
     - foo
-  dataSourceType: bolt
 
 logging:
   level: debug
 
-dataSource:
+dataSources:
+- type: bolt
   database: hi.db
   mode: 0600
   timeout: 1

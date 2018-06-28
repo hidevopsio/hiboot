@@ -50,13 +50,15 @@ type ApplicationInterface interface {
 	Run()
 }
 
+type DataSources map[string]interface{}
+
 type Application struct {
 	app    *iris.Application
 	config *system.Configuration
 	jwtEnabled bool
 	workDir string
 	httpMethods []string
-	dataSource db.DataSourceInterface
+	dataSources DataSources
 	inject Inject
 }
 
@@ -141,14 +143,21 @@ func (wa *Application) Init(controllers ...interface{}) error {
 	}
 
 	// Init DataSource
-	if wa.config.App.DataSourceType != "" {
-		dsf := db.DataSourceFactory{}
-		wa.dataSource, err = dsf.New(wa.config.App.DataSourceType)
-		if err == nil {
-			err = wa.dataSource.Open(wa.config.DataSource)
-			if err != nil {
-				return err
+	if len(wa.config.DataSources) != 0 {
+		factory := db.DataSourceFactory{}
+		dataSources := wa.config.DataSources
+		wa.dataSources = make(DataSources)
+		for _, dataSourceConfig := range dataSources {
+			dataSourceType := dataSourceConfig["type"].(string)
+			//log.Debug(dataSourceType)
+			dataSource, err := factory.New(dataSourceType)
+			if err == nil {
+				err = dataSource.Open(dataSourceConfig)
+				if err != nil {
+					return err
+				}
 			}
+			wa.dataSources[dataSourceType] = dataSource
 		}
 	}
 
@@ -253,12 +262,12 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 		field := reflect.ValueOf(c)
 
 		fieldType := field.Type()
-		log.Debug("fieldType: ", fieldType)
+		//log.Debug("fieldType: ", fieldType)
 		fieldName := fieldType.Elem().Name()
-		log.Debug("fieldName: ", fieldName)
+		//log.Debug("fieldName: ", fieldName)
 
 		controller := field.Interface()
-		log.Debug("controller: ", controller)
+		//log.Debug("controller: ", controller)
 
 		// call Init
 		initMethod, ok := fieldType.MethodByName(initMethodName)
@@ -280,7 +289,7 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 		}
 
 		// inject component
-		err := wa.inject.IntoObject(field)
+		err := wa.inject.IntoObject(field, wa.dataSources)
 		if err != nil {
 			return err
 		}

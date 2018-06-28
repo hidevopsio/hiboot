@@ -2,34 +2,69 @@ package web
 
 import (
 	"reflect"
-	"github.com/hidevopsio/hiboot/pkg/utils"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 )
 
 type Inject struct {
 
 }
 
-func (i *Inject) IntoObject(instance reflect.Value) error  {
-	for _, f := range utils.DeepFields(instance.Type()) {
-		log.Debugf("name: %v, type: %v, tag: %v", f.Name, f.Type, f.Tag)
-		if f.Tag != "" {
-			inst := instance
-			if instance.Kind() == reflect.Ptr {
-				inst = instance.Elem()
+const (
+	injectIdentifier = "component"
+
+	injectTypeRepository = "repository"
+	injectTypeService = "service"
+
+	dataSourceType = "dataSourceType"
+)
+
+func (i *Inject) IntoObject(object reflect.Value, dataSources DataSources) error  {
+	for _, f := range reflector.DeepFields(object.Type()) {
+		//log.Debugf("parent: %v, name: %v, type: %v, tag: %v", object.Elem().Type(), f.Name, f.Type, f.Tag)
+		component := f.Tag.Get(injectIdentifier)
+		if component != "" {
+			obj := reflector.Indirect(object)
+
+			var fieldObj reflect.Value
+			if obj.IsValid() {
+				fieldObj = obj.FieldByName(f.Name)
 			}
-			log.Debugf("+ %v, %v", instance.Kind(), inst.Kind())
-			if inst.Kind() == reflect.Struct {
-				if child := inst.FieldByName(f.Name); child.IsValid() && child.CanSet() {
-					i.IntoObject(child)
+			ft := f.Type
+			if f.Type.Kind() == reflect.Ptr {
+				ft = ft.Elem()
+			}
+			//log.Debugf("+ %v, %v, %v", object.Type(), fieldObj.Type(), ft)
+
+			if fieldObj.CanSet() {
+				// parse tag and instantiate filed
+				switch component {
+				case injectTypeService:
+
+					o := reflect.New(ft)
+					//log.Debug(fieldObj, o)
+					fieldObj.Set(o)
+					//log.Debug(fieldObj, o)
+					log.Debugf("Injected service %v into %v.%v", o, obj.Type(), f.Name)
+				case injectTypeRepository:
+					dataSourceType := f.Tag.Get(dataSourceType)
+					o := dataSources[dataSourceType]
+					if o != nil {
+						ov := reflect.ValueOf(o)
+						fieldObj.Set(ov)
+						log.Debugf("Injected repository %v into %v.%v", ov, obj.Type(), f.Name)
+					}
 				}
 			}
-			log.Debugf("- %v, %v", instance.Kind(), inst.Kind())
 
-			// parse tag and instantiate filed
+			if obj.Kind() == reflect.Struct && fieldObj.IsValid() && fieldObj.CanSet() {
+				i.IntoObject(fieldObj, dataSources)
+			}
+			//log.Debugf("- %v, %v", object.Type(), fieldObj.Type())
 		}
 	}
 
 	return nil
 }
+
 

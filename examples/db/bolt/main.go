@@ -16,79 +16,9 @@ package main
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
-	"github.com/hidevopsio/hiboot/pkg/starter/db"
-	"encoding/json"
-	"net/http"
+	_ "github.com/hidevopsio/hiboot/examples/db/bolt/controllers"
 )
 
-///////////////////////////////////////////////////////////////////////////////
-
-type User struct {
-	Id string
-	Name string
-	Age int
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-type UserService struct {
-	Repository db.KVRepository `component:"repository" db:"bolt"`
-}
-
-func (us *UserService) AddUser(user *User) error {
-	u, err := json.Marshal(user)
-	if err == nil {
-		us.Repository.Put([]byte("user"), []byte(user.Id), u)
-	}
-	return err
-}
-
-func (us *UserService) GetUser(id string) (*User, error) {
-	u, err := us.Repository.Get([]byte("user"), []byte(id))
-	if err != nil {
-		return nil, err
-	}
-	var user User
-	err = json.Unmarshal(u, &user)
-	return &user, err
-}
-
-func (us *UserService) DeleteUser(id string) error {
-	return us.Repository.Delete([]byte("user"), []byte(id))
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-type UserController struct {
-	web.Controller
-
-	UserService *UserService `component:"user"`
-}
-
-func (c *UserController) Post(ctx *web.Context) {
-
-	user := &User{}
-	ctx.RequestBody(user)
-
-	c.UserService.AddUser(user)
-
-	ctx.ResponseBody("success", user)
-}
-
-func (c *UserController) Get(ctx *web.Context) {
-
-	id := ctx.URLParam("id")
-
-	user, err := c.UserService.GetUser(id)
-	if err != nil {
-		ctx.ResponseError("Failed", http.StatusInternalServerError)
-	} else {
-		ctx.ResponseBody("success", user)
-	}
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
 func main() {
-	web.NewApplication(&UserController{}).Run()
+	web.NewApplication().Run()
 }
