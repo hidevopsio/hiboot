@@ -27,11 +27,13 @@ func main()  {
 ## Config data source
 
 ```yaml
+
 dataSources:
-- type: bolt
-  database: hi.db
-  mode: 0600
-  timeout: 1
+- type: bolt # database type
+  database: hi.db # database file path, e.g. /var/lib/data/hi.db or relative path hi.db
+  mode: 0600 # database file permission
+  timeout: 1 # connection timeout in second
+
 
 ```
 
