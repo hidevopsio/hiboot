@@ -30,6 +30,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/starter/db"
 )
 
 const (
@@ -49,12 +50,16 @@ type ApplicationInterface interface {
 	Run()
 }
 
+type DataSources map[string]interface{}
+
 type Application struct {
 	app    *iris.Application
 	config *system.Configuration
 	jwtEnabled bool
 	workDir string
 	httpMethods []string
+	dataSources DataSources
+	inject Inject
 }
 
 type Health struct {
@@ -137,7 +142,26 @@ func (wa *Application) Init(controllers ...interface{}) error {
 		log.SetLevel(log.DebugLevel)
 	}
 
+	// Init DataSource
+	if len(wa.config.DataSources) != 0 {
+		factory := db.DataSourceFactory{}
+		dataSources := wa.config.DataSources
+		wa.dataSources = make(DataSources)
+		for _, dataSourceConfig := range dataSources {
+			dataSourceType := dataSourceConfig["type"].(string)
+			//log.Debug(dataSourceType)
+			dataSource, err := factory.New(dataSourceType)
+			if err == nil {
+				err = dataSource.Open(dataSourceConfig)
+				if err != nil {
+					return err
+				}
+			}
+			wa.dataSources[dataSourceType] = dataSource
+		}
+	}
 
+	// Init JWT
 	err = InitJwt(wa.workDir)
 	if err != nil {
 		wa.jwtEnabled = false
@@ -262,6 +286,12 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 		//log.Debug("authType: ", a)
 		if ! utils.StringInSlice(a, auths) {
 			continue
+		}
+
+		// inject component
+		err := wa.inject.IntoObject(field, wa.dataSources)
+		if err != nil {
+			return err
 		}
 
 		// get context mapping
