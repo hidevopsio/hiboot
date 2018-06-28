@@ -4,6 +4,8 @@ This is the web application with Bolt database.
 
 As you can see below, the usage is extremely simple, hiboot support dependency injection, all you have to do is config data source in application.yml, add tags in struct, then you have database repository injected in your service.
 
+You don't have to learn the bolt database API, hiboot hide all complexities behind the scenes.
+
 ## Application entry point 
 
 main.go
@@ -64,6 +66,58 @@ import (
 
 type UserService struct {
 	Repository db.KVRepository `component:"repository" dataSourceType:"bolt"`
+}
+
+```
+
+## How to use
+
+### KVRepository interface
+
+```go
+
+// KVRepository is the Key/Value Repository interface
+type KVRepository interface {
+	// Put key value pair to specific bucket
+	Put(bucket, key, value []byte) error
+	// Get value from specific bucket with key
+	Get(bucket, key []byte) ([]byte, error)
+	// Delete key in specific bucket
+	Delete(bucket, key []byte) error
+}
+
+```
+
+### Use the KVRepository interface
+
+```go
+
+func (us *UserService) AddUser(user *models.User) error {
+	u, err := json.Marshal(user)
+	if err == nil {
+		// This is how we call Put function of Repository interface
+		us.Repository.Put([]byte("user"), []byte(user.Id), u)
+	}
+	return err
+}
+
+
+func (us *UserService) GetUser(id string) (*models.User, error) {
+	
+	// Get the User from Repository
+	u, err := us.Repository.Get([]byte("user"), []byte(id))
+	
+	if err != nil {
+		return nil, err
+	}
+	var user models.User
+	err = json.Unmarshal(u, &user)
+	return &user, err
+}
+
+func (us *UserService) DeleteUser(id string) error {
+	// Delete the User from Repository
+	return us.Repository.Delete([]byte("user"), []byte(id))
 }
 
 ```
