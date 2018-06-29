@@ -42,7 +42,7 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 	if err != nil {
 		log.Errorf("Error extracting JWT: %v", err)
 	} else {
-		log.Debug("Token extracted: %s", token)
+		log.Debugf("Token extracted: %s", token)
 	}
 
 	// If an error occurs, call the error handler and return an error
@@ -70,7 +70,7 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 	parsedToken, err := jwt.Parse(token, m.Config.ValidationKeyGetter)
 	// Check if there was an error in parsing...
 	if err != nil {
-		log.Debug("Error parsing token: %v", err)
+		log.Debugf("Error parsing token: %v", err)
 		return fmt.Errorf("Error parsing token: %v", err)
 	}
 
@@ -78,7 +78,7 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 		message := fmt.Sprintf("Expected %s signing method but token specified %s",
 			m.Config.SigningMethod.Alg(),
 			parsedToken.Header["alg"])
-		log.Debug("Error validating token algorithm: %s", message)
+		log.Debugf("Error validating token algorithm: %s", message)
 		return fmt.Errorf("Error validating token algorithm: %s", message)
 	}
 
@@ -88,7 +88,7 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 		return fmt.Errorf("Token is invalid")
 	}
 
-	log.Debug("JWT: %v", parsedToken)
+	log.Debugf("JWT: %v", parsedToken)
 
 	// If we get here, everything worked and we can set the
 	// user property in context.
