@@ -94,7 +94,7 @@ type KVRepository interface {
 
 ```go
 
-func (us *UserService) AddUser(user *models.User) error {
+func (us *UserService) AddUser(user *domain.User) error {
 	u, err := json.Marshal(user)
 	if err == nil {
 		// This is how we call Put function of Repository interface
@@ -104,7 +104,7 @@ func (us *UserService) AddUser(user *models.User) error {
 }
 
 
-func (us *UserService) GetUser(id string) (*models.User, error) {
+func (us *UserService) GetUser(id string) (*domain.User, error) {
 	
 	// Get the User from Repository
 	u, err := us.Repository.Get([]byte("user"), []byte(id))
@@ -112,7 +112,7 @@ func (us *UserService) GetUser(id string) (*models.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	var user models.User
+	var user domain.User
 	err = json.Unmarshal(u, &user)
 	return &user, err
 }

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
-	"github.com/hidevopsio/hiboot/examples/db/bolt/models"
+	"github.com/hidevopsio/hiboot/examples/db/bolt/domain"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 )
 
@@ -18,7 +18,7 @@ func TestCrdRequest(t *testing.T) {
 
 	// First, let's Post User
 	app.Post("/user").
-		WithJSON(models.User{Id: "1", Name: "Peter", Age: 18}).
+		WithJSON(domain.User{Id: "1", Name: "Peter", Age: 18}).
 		Expect().Status(http.StatusOK)
 
 	// Then Get User

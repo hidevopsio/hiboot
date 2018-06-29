@@ -3,14 +3,14 @@ package services
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter/db"
 	"encoding/json"
-	"github.com/hidevopsio/hiboot/examples/db/bolt/models"
+	"github.com/hidevopsio/hiboot/examples/db/bolt/domain"
 )
 
 type UserService struct {
 	Repository db.KVRepository `component:"repository" dataSourceType:"bolt"`
 }
 
-func (us *UserService) AddUser(user *models.User) error {
+func (us *UserService) AddUser(user *domain.User) error {
 	u, err := json.Marshal(user)
 	if err == nil {
 		us.Repository.Put([]byte("user"), []byte(user.Id), u)
@@ -18,12 +18,12 @@ func (us *UserService) AddUser(user *models.User) error {
 	return err
 }
 
-func (us *UserService) GetUser(id string) (*models.User, error) {
+func (us *UserService) GetUser(id string) (*domain.User, error) {
 	u, err := us.Repository.Get([]byte("user"), []byte(id))
 	if err != nil {
 		return nil, err
 	}
-	var user models.User
+	var user domain.User
 	err = json.Unmarshal(u, &user)
 	return &user, err
 }
