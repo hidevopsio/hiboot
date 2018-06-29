@@ -3,8 +3,8 @@ package controllers
 import (
 	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
-	"github.com/hidevopsio/hiboot/examples/db/bolt/services"
 	"github.com/hidevopsio/hiboot/examples/db/bolt/domain"
+	"github.com/hidevopsio/hiboot/examples/db/bolt/services"
 )
 
 type UserController struct {
@@ -35,7 +35,7 @@ func (c *UserController) Get(ctx *web.Context) {
 
 	user, err := c.UserService.GetUser(id)
 	if err != nil {
-		ctx.ResponseError("Resource is not found", http.StatusNotFound)
+		ctx.ResponseError(err.Error(), http.StatusNotFound)
 	} else {
 		ctx.ResponseBody("success", user)
 	}
@@ -47,7 +47,7 @@ func (c *UserController) Delete(ctx *web.Context) {
 
 	err := c.UserService.DeleteUser(id)
 	if err != nil {
-		ctx.ResponseError("Failed", http.StatusInternalServerError)
+		ctx.ResponseError(err.Error(), http.StatusInternalServerError)
 	} else {
 		ctx.ResponseBody("success", nil)
 	}
