@@ -1,5 +1,12 @@
 language: go
 
 go:
-  - "1.10.x"
   - master
+
+git:
+  depth: 1
+
+branches:
+  only:
+  - master
+
