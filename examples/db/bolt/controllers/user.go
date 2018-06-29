@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
 	"github.com/hidevopsio/hiboot/examples/db/bolt/services"
-	"github.com/hidevopsio/hiboot/examples/db/bolt/models"
+	"github.com/hidevopsio/hiboot/examples/db/bolt/domain"
 )
 
 type UserController struct {
@@ -19,7 +19,7 @@ func init() {
 
 func (c *UserController) Post(ctx *web.Context) {
 
-	user := &models.User{}
+	user := &domain.User{}
 	err := ctx.RequestBody(user)
 	if err == nil {
 		c.UserService.AddUser(user)

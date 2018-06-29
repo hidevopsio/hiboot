@@ -276,7 +276,7 @@ func (wa *Application) initLocale() error {
 			} else {
 				languages[lng] = languages[lng] + ", " + path
 			}
-			log.Debugf("%v, %v", lng, languages[lng])
+			//log.Debugf("%v, %v", lng, languages[lng])
 		}
 		return nil
 	})
