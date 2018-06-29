@@ -19,6 +19,9 @@ import (
 	"strings"
 )
 
+const EmptyString  = ""
+
+
 func UpperFirst(str string) string {
 	return strings.Title(str)
 }
@@ -27,14 +30,18 @@ func LowerFirst(str string) string {
 	for i, v := range str {
 		return string(unicode.ToLower(v)) + str[i+1:]
 	}
-	return ""
+	return EmptyString
 }
 
 func StringInSlice(a string, list []string) bool {
+
+	var retVal bool
+
 	for _, b := range list {
 		if b == a {
-			return true
+			retVal = true
+			break
 		}
 	}
-	return false
+	return retVal
 }
