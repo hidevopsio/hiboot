@@ -1,6 +1,7 @@
 # hiboot
 
 [![Build Status](https://travis-ci.org/hidevopsio/hiboot.svg?branch=master)](https://travis-ci.org/hidevopsio/hiboot) 
+[![Coverage Status](https://coveralls.io/repos/hidevopsio/hiboot/badge.svg?branch=master)](https://coveralls.io/r/hidevopsio/hiboot?branch=master)
  
 'hiboot' is a cloud native web application framework written in Go. 
 
