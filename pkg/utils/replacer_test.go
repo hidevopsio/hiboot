@@ -20,13 +20,14 @@ import (
 	"regexp"
 	"os"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"reflect"
 )
 
 type Bar struct {
 	Name    string
 	Profile string
 	SubBar  SubBar
-	SubMap	map[string]interface{}
+	SubMap  map[string]interface{}
 }
 
 type Foo struct {
@@ -38,6 +39,68 @@ type Foo struct {
 type SubBar struct {
 	Name string
 }
+
+func TestParseReferences(t *testing.T) {
+	s := []string{
+		"name",
+	}
+
+	b := &SubBar{Name: "bar"}
+
+	ref, err := ParseReferences(b, s)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "bar", ref)
+}
+
+func TestParseVariableName(t *testing.T) {
+
+	re := regexp.MustCompile(`\$\{(.*?)\}`)
+	matches := ParseVariables("foo ${name} bar", re)
+
+	assert.Equal(t, "name", matches[0][1])
+}
+
+func TestGetFieldValue(t *testing.T) {
+	foo := &Foo{Name: "foo"}
+
+	field := GetFieldValue(foo, "Name")
+
+	assert.Equal(t, reflect.String, field.Kind())
+	assert.Equal(t, "foo", field.String())
+}
+
+func TestReplaceStringVariables(t *testing.T) {
+	f := &Foo{
+		Name: "foo",
+		Bar: Bar{
+			Name: "Hello ${name}",
+		},
+	}
+
+	s, err := ReplaceStringVariables(f.Bar.Name, f)
+
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "Hello foo", s)
+}
+
+func TestReplaceMap(t *testing.T) {
+	b := &Bar{
+		Name:    "bar",
+		SubMap: map[string]interface{} {
+			"name": "${name}",
+			"nestedMap": map[string]interface{} {
+				"name": "nested ${name}",
+				"age": 18,
+			},
+		},
+	}
+
+	err := ReplaceMap(b.SubMap, b)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "bar", b.SubMap["name"])
+	assert.Equal(t, "nested bar", b.SubMap["nestedMap"].(map[string]interface{})["name"])
+}
+
 
 func TestReplaceVariable(t *testing.T) {
 	os.Setenv("FOO", "foo")
