@@ -164,7 +164,7 @@ func TestWebApplication(t *testing.T)  {
 		Body().Contains("Success")
 
 	ta.Get("/bar/sayHello").
-		Expect().Status(http.StatusOK)
+		Expect().Status(http.StatusUnauthorized)
 }
 
 

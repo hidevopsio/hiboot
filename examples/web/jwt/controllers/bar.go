@@ -36,7 +36,7 @@ func init()  {
 	web.Add(new(BarController))
 }
 
-func (c *BarController) GetSayHello(ctx *web.Context)  {
+func (c *BarController) Get(ctx *web.Context)  {
 
 	// decrypt jwt token
 	ti := ctx.Values().Get("jwt")

@@ -21,14 +21,33 @@ import (
 	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
 	"github.com/hidevopsio/hiboot/pkg/utils"
+	"fmt"
+	"time"
 )
 
 func init() {
 	utils.ChangeWorkDir("../")
 }
 
-func TestBarSayHello(t *testing.T) {
-	web.NewTestApplication(t, new(BarController)).
-		Get("/bar/sayHello").
-		Expect().Status(http.StatusOK)
+func TestBarWithToken(t *testing.T) {
+	app := web.NewTestApplication(t, new(BarController))
+
+	pt, err := web.GenerateJwtToken(web.JwtMap{
+		"username": "johndoe",
+		"password": "PA$$W0RD",
+	}, 100, time.Millisecond)
+	if err == nil {
+
+		t := fmt.Sprintf("Bearer %v", string(*pt))
+
+		app.Get("/bar").
+			WithHeader("Authorization", t).
+			Expect().Status(http.StatusOK)
+
+		time.Sleep(1 * time.Second)
+
+		app.Get("/bar").
+			WithHeader("Authorization", t).
+			Expect().Status(http.StatusUnauthorized)
+	}
 }

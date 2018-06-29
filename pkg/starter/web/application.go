@@ -144,7 +144,7 @@ func (wa *Application) Init(controllers ...interface{}) error {
 	}
 
 	// Init DataSource
-	if len(wa.config.DataSources) != 0 {
+	if wa.config != nil && len(wa.config.DataSources) != 0 {
 		factory := db.DataSourceFactory{}
 		dataSources := wa.config.DataSources
 		wa.dataSources = make(DataSources)

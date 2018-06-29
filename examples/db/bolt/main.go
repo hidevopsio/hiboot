@@ -17,7 +17,15 @@ package main
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
 	_ "github.com/hidevopsio/hiboot/examples/db/bolt/controllers"
+	"github.com/hidevopsio/hiboot/pkg/utils"
 )
+
+func init() {
+
+	// Just for using the config files under examples/db/bolt
+	utils.EnsureWorkDir("examples/db/bolt")
+
+}
 
 func main() {
 	web.NewApplication().Run()
