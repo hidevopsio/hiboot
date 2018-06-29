@@ -220,7 +220,6 @@ func (wa *Application) Init(controllers ...interface{}) error {
 }
 
 func (wa *Application) initLocale() error {
-	var localeFiles []string
 	// TODO: localePath should be configurable in application.yml
 	// locale:
 	//   en-US: ./config/i18n/en-US.ini
@@ -228,23 +227,37 @@ func (wa *Application) initLocale() error {
 	// TODO: or
 	// locale:
 	//   path: ./config/i18n/
-	localePath := "./config/i18n/"
+	localePath := "config/i18n/"
 	if utils.IsPathNotExist(localePath) {
 		return &system.NotFoundError{Name: localePath}
 	}
 
-	err := filepath.Walk(localePath, utils.Visit(&localeFiles))
+	// parse language files
+	languages := make(map[string]string)
+	err := filepath.Walk(localePath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			log.Fatal(err)
+		}
+		//*files = append(*files, path)
+		lng := strings.Replace(path, localePath,"", 1)
+		lng = utils.BaseDir(lng)
+		lng = utils.Basename(lng)
+
+		if lng != "" && path != localePath + lng {
+			//languages[lng] = path
+			if languages[lng] == "" {
+				languages[lng] = path
+			} else {
+				languages[lng] = languages[lng] + ", " + path
+			}
+			log.Debugf("%v, %v", lng, languages[lng])
+		}
+		return nil
+	})
 	if err != nil {
 		return err
 	}
-	languages := make(map[string]string)
-	for _, file := range localeFiles {
-		basename := utils.Basename(file)
-		lng := utils.Filename(basename)
-		if lng != "" {
-			languages[lng] = file
-		}
-	}
+
 	globalLocale := i18n.New(i18n.Config{
 		Default:      "en-US",
 		URLParameter: "lang",

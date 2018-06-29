@@ -9,7 +9,7 @@ app:
     - foo
 
 logging:
-  level: debug
+  level: info
 
 dataSources:
 - type: bolt
