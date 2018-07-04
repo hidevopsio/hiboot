@@ -23,6 +23,15 @@ import (
 	"path/filepath"
 )
 
+func TestChangeWorkDir(t *testing.T) {
+	wd1 := GetWorkDir()
+	ChangeWorkDir("..")
+	wd2 := GetWorkDir()
+	ChangeWorkDir(wd1)
+
+	assert.NotEqual(t, wd1, wd2)
+}
+
 func TestGetWorkingDir(t *testing.T) {
 	wd := GetWorkDir()
 	expected, err := os.Getwd()
