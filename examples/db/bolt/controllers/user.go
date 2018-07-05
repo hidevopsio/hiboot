@@ -10,7 +10,7 @@ import (
 type UserController struct {
 	web.Controller
 
-	UserService *services.UserService `component:"service"`
+	UserService *services.UserService `inject:"userService"`
 }
 
 func init() {

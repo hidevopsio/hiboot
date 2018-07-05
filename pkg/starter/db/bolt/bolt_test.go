@@ -21,14 +21,16 @@ func TestBoltCrd(t *testing.T) {
 	err := b.Open(dataSource)
 	assert.Equal(t, nil, err)
 
-	err = b.Put([]byte(testBucket), []byte(testKey), []byte(testValue))
+	b.SetNamespace(testBucket)
+
+	err = b.Put([]byte(testKey), []byte(testValue))
 	assert.Equal(t, nil, err)
 
-	val, err := b.Get([]byte(testBucket), []byte(testKey))
+	val, err := b.Get([]byte(testKey))
 	assert.Equal(t, nil, err)
 	assert.Equal(t, testValue, string(val))
 
-	err = b.Delete([]byte(testBucket), []byte(testKey))
+	err = b.Delete([]byte(testKey))
 	assert.Equal(t, nil, err)
 
 }

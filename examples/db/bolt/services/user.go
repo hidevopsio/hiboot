@@ -9,7 +9,7 @@ import (
 )
 
 type UserService struct {
-	Repository db.KVRepository `component:"repository" dataSourceType:"bolt"`
+	Repository db.KVRepository `inject:"userRepository,dataSourceType=bolt,namespace=user"`
 }
 
 func (us *UserService) AddUser(user *domain.User) error {
@@ -18,7 +18,7 @@ func (us *UserService) AddUser(user *domain.User) error {
 	}
 	u, err := json.Marshal(user)
 	if err == nil {
-		us.Repository.Put([]byte("user"), []byte(user.Id), u)
+		us.Repository.Put([]byte(user.Id), u)
 	}
 	return err
 }
@@ -27,7 +27,7 @@ func (us *UserService) GetUser(id string) (*domain.User, error) {
 	if us.Repository == nil {
 		return nil, fmt.Errorf("repository is not injected")
 	}
-	u, err := us.Repository.Get([]byte("user"), []byte(id))
+	u, err := us.Repository.Get([]byte(id))
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +43,6 @@ func (us *UserService) DeleteUser(id string) error {
 	if us.Repository == nil {
 		return fmt.Errorf("repository is not injected")
 	}
-	return us.Repository.Delete([]byte("user"), []byte(id))
+	return us.Repository.Delete([]byte(id))
 }
 
