@@ -30,4 +30,5 @@ func TestCrdRequest(t *testing.T) {
 	app.Delete("/user").
 		WithQuery("id", "1").
 		Expect().Status(http.StatusOK)
+
 }

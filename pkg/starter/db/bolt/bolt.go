@@ -9,9 +9,10 @@ import (
 )
 
 type Bolt struct {
-	DB *boltdb.DB
-	BK *boltdb.Bucket
-	BS *boltdb.BucketStats
+	DB        *boltdb.DB
+	BK        *boltdb.Bucket
+	BS        *boltdb.BucketStats
+	namespace []byte
 }
 
 type DataSource struct {
@@ -19,6 +20,10 @@ type DataSource struct {
 	Database string        `json:"database"`
 	Mode     os.FileMode   `json:"mode"`
 	Timeout  int64         `json:"timeout"`
+}
+
+func (b *Bolt) SetNamespace(name string)  {
+	b.namespace = []byte(name)
 }
 
 // Open bolt database
@@ -59,11 +64,11 @@ func (b *Bolt) Close() error {
 }
 
 // Put inserts a key:value pair into the database
-func (b *Bolt) Put(bucket, key, value []byte) error {
+func (b *Bolt) Put(key, value []byte) error {
 	//dbPath := bt.db.Path()
 	//log.Println("DB Info: ", reflect.TypeOf(dbPath), dbPath)
 	err := b.DB.Update(func(tx *boltdb.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists(bucket)
+		bucket, err := tx.CreateBucketIfNotExists(b.namespace)
 		if err != nil {
 			return err
 		}
@@ -77,9 +82,9 @@ func (b *Bolt) Put(bucket, key, value []byte) error {
 }
 
 // Get retrieves a key:value pair from the database
-func (b *Bolt) Get(bucket, key []byte) (result []byte, err error)  {
+func (b *Bolt) Get(key []byte) (result []byte, err error)  {
 	b.DB.View(func(tx *boltdb.Tx) error {
-		b := tx.Bucket(bucket)
+		b := tx.Bucket(b.namespace)
 		if b != nil {
 			v := b.Get(key)
 			if v != nil {
@@ -95,10 +100,10 @@ func (b *Bolt) Get(bucket, key []byte) (result []byte, err error)  {
 }
 
 // DeleteKey removes a key:value pair from the database
-func (b *Bolt) Delete(bucket, key []byte) (err error) {
+func (b *Bolt) Delete(key []byte) (err error) {
 
 	err = b.DB.Update(func(tx *boltdb.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists(bucket)
+		bucket, err := tx.CreateBucketIfNotExists(b.namespace)
 		if err != nil {
 			return err
 		}

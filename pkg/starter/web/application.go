@@ -27,6 +27,7 @@ import (
 	"github.com/kataras/iris/core/router"
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/i18n"
+	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"github.com/hidevopsio/hiboot/pkg/log"
@@ -51,7 +52,6 @@ type ApplicationInterface interface {
 	Run()
 }
 
-type DataSources map[string]interface{}
 
 type Application struct {
 	app    *iris.Application
@@ -59,8 +59,8 @@ type Application struct {
 	jwtEnabled bool
 	workDir string
 	httpMethods []string
-	dataSources DataSources
-	inject Inject
+	dataSources map[string]interface{}
+	instances map[string]interface{}
 }
 
 type Health struct {
@@ -147,7 +147,7 @@ func (wa *Application) Init(controllers ...interface{}) error {
 	if wa.config != nil && len(wa.config.DataSources) != 0 {
 		factory := db.DataSourceFactory{}
 		dataSources := wa.config.DataSources
-		wa.dataSources = make(DataSources)
+		wa.dataSources = make(map[string]interface{})
 		for _, dataSourceConfig := range dataSources {
 			dataSourceType := dataSourceConfig["type"].(string)
 			//log.Debug(dataSourceType)
@@ -161,6 +161,8 @@ func (wa *Application) Init(controllers ...interface{}) error {
 			wa.dataSources[dataSourceType] = dataSource
 		}
 	}
+
+	wa.instances = make(map[string]interface{})
 
 	// Init JWT
 	err = InitJwt(wa.workDir)
@@ -328,7 +330,7 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 		}
 
 		// inject component
-		err := wa.inject.IntoObject(field, wa.dataSources)
+		err := inject.IntoObject(field, wa.dataSources, wa.instances)
 		if err != nil {
 			return err
 		}
