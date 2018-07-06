@@ -27,12 +27,12 @@ import (
 	"github.com/kataras/iris/core/router"
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/i18n"
+	"github.com/kataras/iris/middleware/logger"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/starter/db"
-	"github.com/kataras/iris/middleware/logger"
 )
 
 const (
