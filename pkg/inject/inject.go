@@ -12,6 +12,7 @@ import (
 const (
 	injectIdentifier = "inject"
 	dataSourceType = "dataSourceType"
+	namespace = "namespace"
 )
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
@@ -51,7 +52,7 @@ func IntoObject(object reflect.Value, dataSources, instances map[string]interfac
 					if dataSource != nil {
 						instances[instanceName] = dataSource
 						ds := dataSource.(db.DataSourceInterface)
-						ds.SetNamespace(tags["namespace"])
+						ds.SetNamespace(tags[namespace])
 						val := reflect.ValueOf(dataSource)
 						fieldObj.Set(val)
 						log.Debugf("Injected repository %v into %v.%v", val, obj.Type(), f.Name)
