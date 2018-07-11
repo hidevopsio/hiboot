@@ -43,6 +43,9 @@ const (
 	AuthTypeJwt     = "jwt"
 
 	initMethodName  = "Init"
+
+	BeforeMethod    = "Before"
+	AfterMethod     = "After"
 )
 
 type ApplicationInterface interface {
@@ -358,13 +361,22 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 		numOfMethod := field.NumMethod()
 		//log.Debug("methods: ", numOfMethod)
 
-		beforeMethod, ok := fieldType.MethodByName("Before")
+		beforeMethod, ok := fieldType.MethodByName(BeforeMethod)
 		var party iris.Party
 		if ok {
 			//log.Debug("contextPath: ", contextMapping)
 			//log.Debug("beforeMethod.Name: ", beforeMethod.Name)
 			party = app.Party(contextMapping, func(ctx context.Context) {
 				wa.handle(beforeMethod, controller, ctx.(*Context))
+			})
+		} else {
+			party = app.Party(contextMapping)
+		}
+
+		afterMethod, ok := fieldType.MethodByName(AfterMethod)
+		if ok {
+			party.Done(func(ctx context.Context) {
+				wa.handle(afterMethod, controller, ctx.(*Context))
 			})
 		}
 
@@ -380,21 +392,15 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 
 			// check if it's valid http method
 			if utils.StringInSlice(httpMethod, wa.httpMethods) {
-				if party == nil {
-					relativePath := filepath.Join(contextMapping, apiContextMapping)
-					//log.Debug("relativePath: ", relativePath)
-					app.Handle(httpMethod, relativePath, func(ctx context.Context) {
-						wa.handle(method, controller, ctx.(*Context))
-					})
-				} else {
-					//log.Debug("contextMapping: ", apiContextMapping)
-					party.Handle(httpMethod, apiContextMapping, func(ctx context.Context) {
-						wa.handle(method, controller, ctx.(*Context))
-					})
-				}
+
+				//log.Debug("contextMapping: ", apiContextMapping)
+				party.Handle(httpMethod, apiContextMapping, func(ctx context.Context) {
+					wa.handle(method, controller, ctx.(*Context))
+					ctx.Next()
+				})
+
 			}
 		}
-
 	}
 	return nil
 }
