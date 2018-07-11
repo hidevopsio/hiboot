@@ -93,3 +93,7 @@ func (c *FooController) Get(ctx *web.Context) {
 			Age: foo.Age })
 	}
 }
+
+func (c *FooController) After(ctx *web.Context) {
+	log.Debug("FooController.After")
+}

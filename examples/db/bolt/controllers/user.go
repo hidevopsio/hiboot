@@ -26,7 +26,6 @@ func (c *UserController) Post(ctx *web.Context) {
 
 		ctx.ResponseBody("success", user)
 	}
-
 }
 
 func (c *UserController) Get(ctx *web.Context) {

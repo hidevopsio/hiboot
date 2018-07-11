@@ -134,7 +134,7 @@ func TestHelloWorldLocale(t *testing.T)  {
 
 	// test cn-ZH
 	ta.Get("/").
-		WithHeader("Accept-Language", "cn-ZH").
+		WithHeader("Accept-Language", "zh-CN").
 		Expect().Status(http.StatusOK).
 		Body().Contains("成功")
 
