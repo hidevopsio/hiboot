@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package copier
 
 import (
 	"reflect"
@@ -35,20 +35,20 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 
 	// Return is from value is invalid
 	if !from.IsValid() {
-		return
+		return errors.New("copy source is invalid")
 	}
 
 	// Just set it if possible to assign
 	if from.Type().AssignableTo(to.Type()) {
 		to.Set(from)
-		return
+		return nil
 	}
 
 	fromType := reflector.IndirectType(from.Type())
 	toType := reflector.IndirectType(to.Type())
 
 	if fromType.Kind() != reflect.Struct || toType.Kind() != reflect.Struct {
-		return
+		return errors.New("source or target type is not struct")
 	}
 
 	if to.Kind() == reflect.Slice {
@@ -135,5 +135,5 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 			}
 		}
 	}
-	return
+	return nil
 }
