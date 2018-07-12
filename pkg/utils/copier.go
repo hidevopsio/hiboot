@@ -84,7 +84,7 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 				// has field
 				if toField := dest.FieldByName(name); toField.IsValid() {
 					if toField.CanSet() {
-						if !reflector.Set(toField, fromField) {
+						if !reflector.Copy(toField, fromField) {
 							if err := Copy(toField.Addr().Interface(), fromField.Interface()); err != nil {
 								return err
 							}
@@ -121,7 +121,7 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 				if toField := dest.FieldByName(name); toField.IsValid() && toField.CanSet() {
 					values := fromMethod.Call([]reflect.Value{})
 					if len(values) >= 1 {
-						reflector.Set(toField, values[0])
+						reflector.Copy(toField, values[0])
 					}
 				}
 			}
