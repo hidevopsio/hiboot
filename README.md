@@ -1,7 +1,7 @@
 # hiboot
 
 [![Build Status](https://travis-ci.org/hidevopsio/hiboot.svg?branch=master)](https://travis-ci.org/hidevopsio/hiboot) 
-[![Coverage Status](https://coveralls.io/repos/github/hidevopsio/hiboot/badge.svg?branch=master)](https://coveralls.io/github/hidevopsio/hiboot?branch=master)
+[![codecov](https://codecov.io/gh/hidevopsio/hiboot/branch/master/graph/badge.svg)](https://codecov.io/gh/hidevopsio/hiboot)
 [![Licensed under Apache License version 2.0](hiboot.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 'hiboot' is a web application framework written in Go. 
