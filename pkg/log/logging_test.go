@@ -18,10 +18,40 @@ package log
 import (
 	"testing"
 	"github.com/kataras/golog"
+	"io"
+	"github.com/kataras/pio"
 )
+
+func TestNewLine(t *testing.T) {
+	NewLine("\n")
+}
+
+func TestReset(t *testing.T) {
+	Reset()
+}
+
+func TestSetOutput(t *testing.T) {
+	var w io.Writer
+	SetOutput(w)
+}
+
+func TestAddOutput(t *testing.T) {
+	var w io.Writer
+	AddOutput(w)
+}
+
+func TestSetPrefix(t *testing.T) {
+	SetPrefix("[TEST]")
+	Info("test SetPrefix")
+}
 
 func TestLogPrint(t *testing.T) {
 	Print("testing ...")
+}
+
+func TestSetTimeFormat(t *testing.T) {
+	SetTimeFormat("[2006-01-02 15:04]")
+	Info("TestSetTimeFormat")
 }
 
 func TestLogPrintln(t *testing.T) {
@@ -71,4 +101,43 @@ func TestLogErrorInfo(t *testing.T)  {
 func TestLogErrorf(t *testing.T)  {
 	SetLevel(DebugLevel)
 	Errorf("testing %v", "...")
+}
+
+func TestInstall(t *testing.T) {
+	var l golog.ExternalLogger
+	Install(l)
+}
+
+func TestInstallStd(t *testing.T) {
+	var l golog.StdLogger
+	InstallStd(l)
+}
+
+func TestHandle(t *testing.T) {
+	Handle(func(value *golog.Log) (handled bool) {
+		return true
+	})
+}
+
+func TestHijack(t *testing.T) {
+	Hijack(func(ctx *pio.Ctx) {
+		Info("Hijack")
+	})
+}
+
+func TestScan(t *testing.T) {
+	var r io.Reader
+	Scan(r)
+}
+
+func TestChild(t *testing.T) {
+	Child("TestChild")
+}
+
+func TestFatal(t *testing.T) {
+
+}
+
+func TestFatalf(t *testing.T) {
+
 }
