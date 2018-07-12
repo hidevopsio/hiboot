@@ -44,7 +44,7 @@ func TestBarWithToken(t *testing.T) {
 			WithHeader("Authorization", t).
 			Expect().Status(http.StatusOK)
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 
 		app.Get("/bar").
 			WithHeader("Authorization", t).
