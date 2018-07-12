@@ -30,7 +30,7 @@ func NewReflectType(st interface{}) interface{} {
 }
 
 
-func Set(to, from reflect.Value) bool {
+func Copy(to, from reflect.Value) bool {
 	if from.IsValid() {
 		if to.Kind() == reflect.Ptr {
 			//set `to` to nil if from is nil
@@ -51,7 +51,7 @@ func Set(to, from reflect.Value) bool {
 				return false
 			}
 		} else if from.Kind() == reflect.Ptr {
-			return Set(to, from.Elem())
+			return Copy(to, from.Elem())
 		} else {
 			return false
 		}
