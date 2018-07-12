@@ -42,7 +42,6 @@ func TestAddOutput(t *testing.T) {
 
 func TestSetPrefix(t *testing.T) {
 	SetPrefix("[TEST]")
-	Info("test SetPrefix")
 }
 
 func TestLogPrint(t *testing.T) {
