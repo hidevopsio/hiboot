@@ -38,3 +38,10 @@ func TestFooPost(t *testing.T) {
 		WithJSON(FooRequest{Name: "Mike", Age: 18}).
 		Expect().Status(http.StatusOK)
 }
+
+func TestFooLogin(t *testing.T) {
+	GetTestApplication(t).
+		Post("/foo/login").
+		WithJSON(UserRequest{Username: "mike", Password: "daDg83t"}).
+		Expect().Status(http.StatusOK)
+}
