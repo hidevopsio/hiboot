@@ -36,8 +36,8 @@ func GetWorkDir() string {
 }
 
 
-func GetRelativePath(skip int) string {
-	_, path, _, _ := runtime.Caller(skip)
+func GetRelativePath(level int) string {
+	_, path, _, _ := runtime.Caller(level)
 
 	return filepath.Dir(path)
 }
@@ -109,6 +109,16 @@ func BaseDir(s string) string {
 	}
 	return s
 }
+
+
+func DirName(s string) string {
+	n := strings.LastIndexByte(s, '/')
+	if n > 0 {
+		return s[n + 1:]
+	}
+	return s
+}
+
 
 func EnsureWorkDir(path string) string  {
 	if ! strings.Contains(GetWorkDir(), path) {

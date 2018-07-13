@@ -23,6 +23,8 @@ import (
 	"path/filepath"
 )
 
+const testPath = "/a/b/c.txt"
+
 func TestChangeWorkDir(t *testing.T) {
 	wd1 := GetWorkDir()
 	ChangeWorkDir("..")
@@ -37,6 +39,26 @@ func TestGetWorkingDir(t *testing.T) {
 	expected, err := os.Getwd()
 	assert.Equal(t, nil, err)
 	assert.Equal(t, expected, wd)
+}
+
+func TestGetRelativePath(t *testing.T) {
+	path := GetRelativePath(1)
+
+	assert.Equal(t, "utils", DirName(path))
+}
+
+func TestIsPathNotExist(t *testing.T) {
+	assert.Equal(t, true, IsPathNotExist("/TestNotExistPath"))
+}
+
+func TestCreateFile(t *testing.T) {
+	err := CreateFile(os.TempDir(), "test.txt")
+	assert.Equal(t, nil, err)
+
+	bytesToWrite := "hello"
+	b, err := WriterFile(os.TempDir(), "test.txt", []byte(bytesToWrite))
+	assert.Equal(t, nil, err)
+	assert.Equal(t, len(bytesToWrite), b)
 }
 
 func TestWriteFile(t *testing.T) {
@@ -62,4 +84,30 @@ func TestListFiles(t *testing.T) {
 	for _, file := range files {
 		log.Println(file)
 	}
+}
+
+func TestBasename(t *testing.T) {
+	b := Basename(testPath)
+	assert.Equal(t, "/a/b/c", b)
+}
+
+func TestFilename(t *testing.T) {
+	b := Filename(testPath)
+	assert.Equal(t, "c.txt", b)
+}
+
+func TestBaseDir(t *testing.T) {
+	b := BaseDir(testPath)
+	assert.Equal(t, "/a/b", b)
+}
+
+func TestDirName(t *testing.T) {
+	b := DirName("/a/b")
+	assert.Equal(t, "b", b)
+}
+
+func TestEnsureWorkDir(t *testing.T) {
+	wd := GetWorkDir()
+	d := EnsureWorkDir("pkg/utils")
+	assert.Equal(t, wd, d)
 }

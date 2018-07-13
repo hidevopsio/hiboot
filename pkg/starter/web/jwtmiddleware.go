@@ -1,7 +1,7 @@
 package web
 
 import (
-	jwtmiddleware "github.com/iris-contrib/middleware/jwt"
+	mj "github.com/iris-contrib/middleware/jwt"
 	"net/http"
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris"
@@ -11,7 +11,7 @@ import (
 )
 
 type JwtMiddleware struct {
-	jwtmiddleware.Middleware
+	mj.Middleware
 }
 
 // Serve the middleware's action
@@ -19,7 +19,7 @@ func (m *JwtMiddleware) Serve(ctx context.Context) {
 	if err := m.CheckJWT(ctx); err != nil {
 		c := ctx.(*Context)
 		c.ResponseError(err.Error(), http.StatusUnauthorized)
-		ctx.StopExecution()
+		c.StopExecution()
 		return
 	}
 	// If everything ok then call next.
@@ -66,7 +66,6 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 	}
 
 	// Now parse the token
-
 	parsedToken, err := jwt.Parse(token, m.Config.ValidationKeyGetter)
 	// Check if there was an error in parsing...
 	if err != nil {
@@ -99,26 +98,26 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 
 
 // New constructs a new Secure instance with supplied options.
-func NewJwtMiddlware(cfg ...jwtmiddleware.Config) *JwtMiddleware {
+func NewJwtMiddleware(cfg ...mj.Config) *JwtMiddleware {
 
-	var c jwtmiddleware.Config
+	var c mj.Config
 	if len(cfg) == 0 {
-		c = jwtmiddleware.Config{}
+		c = mj.Config{}
 	} else {
 		c = cfg[0]
 	}
 
 	if c.ContextKey == "" {
-		c.ContextKey = jwtmiddleware.DefaultContextKey
+		c.ContextKey = mj.DefaultContextKey
 	}
 
 	if c.ErrorHandler == nil {
-		c.ErrorHandler = jwtmiddleware.OnError
+		c.ErrorHandler = mj.OnError
 	}
 
 	if c.Extractor == nil {
-		c.Extractor = jwtmiddleware.FromAuthHeader
+		c.Extractor = mj.FromAuthHeader
 	}
 
-	return &JwtMiddleware{jwtmiddleware.Middleware{Config: c}}
+	return &JwtMiddleware{mj.Middleware{Config: c}}
 }

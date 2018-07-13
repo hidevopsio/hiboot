@@ -18,9 +18,12 @@ package log
 import (
 	"testing"
 	"github.com/kataras/golog"
-	"io"
 	"github.com/kataras/pio"
 )
+
+func init() {
+
+}
 
 func TestNewLine(t *testing.T) {
 	NewLine("\n")
@@ -30,76 +33,76 @@ func TestReset(t *testing.T) {
 	Reset()
 }
 
-func TestSetOutput(t *testing.T) {
-	var w io.Writer
-	SetOutput(w)
-}
+//func TestSetOutput(t *testing.T) {
+//	var w io.Writer
+//	SetOutput(w)
+//}
 
-func TestAddOutput(t *testing.T) {
-	var w io.Writer
-	AddOutput(w)
-}
+//func TestAddOutput(t *testing.T) {
+//	var w io.Writer
+//	AddOutput(w)
+//}
 
 func TestSetPrefix(t *testing.T) {
 	SetPrefix("[TEST]")
 }
 
 func TestLogPrint(t *testing.T) {
-	//Print("testing ...")
+	Print("testing ...")
 }
 
 func TestSetTimeFormat(t *testing.T) {
 	SetTimeFormat("[2006-01-02 15:04]")
-	//Info("TestSetTimeFormat")
+	Info("TestSetTimeFormat")
 }
 
 func TestLogPrintln(t *testing.T) {
-	//Println("testing ...")
+	Println("testing ...")
 }
 
 func TestLogf(t *testing.T) {
-	//Logf(golog.DebugLevel,"testing %v", "...")
+	Logf(golog.DebugLevel,"testing %v", "...")
 }
 
 func TestLogDebug(t *testing.T)  {
 	SetLevel(DebugLevel)
-	//Debug("testing ...")
+	Debug("testing ...")
 }
 
 func TestLogDebugf(t *testing.T)  {
 	SetLevel(DebugLevel)
-	//Debugf("testing %v", "...")
+	Debugf("testing %v", "...")
 }
 
 
 func TestLogInfo(t *testing.T)  {
 	SetLevel(DebugLevel)
-	//Info("testing ...")
+	Info("testing ...")
 }
 
 func TestLogInfof(t *testing.T)  {
 	SetLevel(DebugLevel)
-	//Infof("testing %v", "...")
+	Infof("testing %v", "...")
 }
 
 func TestWarnInfo(t *testing.T)  {
 	SetLevel(DebugLevel)
-	//Warn("testing ...")
+	Warn("testing ...")
 }
 
 func TestLogWarnf(t *testing.T)  {
 	SetLevel(DebugLevel)
-	//Warnf("testing %v", "...")
+	Warnf("testing %v", "...")
 }
 
 func TestLogErrorInfo(t *testing.T)  {
 	SetLevel(DebugLevel)
-	//Error("testing ...")
+	Error("testing ...")
 }
 
 func TestLogErrorf(t *testing.T)  {
 	SetLevel(DebugLevel)
-	//Errorf("testing %v", "...")
+	Errorf("testing %v", "...")
 }
 
 func TestInstall(t *testing.T) {
@@ -120,17 +123,12 @@ func TestHandle(t *testing.T) {
 
 func TestHijack(t *testing.T) {
 	Hijack(func(ctx *pio.Ctx) {
-		//Info("Hijack")
+		Info("Hijack")
 	})
 }
 
-func TestScan(t *testing.T) {
-	//var r io.Reader
-	//Scan(r)
-}
-
 func TestChild(t *testing.T) {
-	//Child("TestChild")
+	Child("TestChild")
 }
 
 func TestFatal(t *testing.T) {
@@ -140,3 +138,8 @@ func TestFatal(t *testing.T) {
 func TestFatalf(t *testing.T) {
 
 }
+
+//func TestScan(t *testing.T) {
+//	var r io.Reader
+//	Scan(r)
+//}
