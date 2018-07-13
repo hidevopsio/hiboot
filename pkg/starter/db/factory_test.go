@@ -11,4 +11,7 @@ func TestFactory(t *testing.T) {
 	db, err := factory.New(DataSourceTypeBolt)
 	assert.Equal(t, nil, err)
 	assert.NotEqual(t, nil, db)
+
+	db, err = factory.New("xxx")
+	assert.Equal(t, "database is not implemented", err.Error())
 }
