@@ -26,6 +26,11 @@ func TestCrdRequest(t *testing.T) {
 		WithQuery("id", "1").
 		Expect().Status(http.StatusOK)
 
+	// Then Get User
+	app.Get("/user").
+		WithQuery("id", "9999").
+		Expect().Status(http.StatusNotFound)
+
 	// Finally Delete User
 	app.Delete("/user").
 		WithQuery("id", "1").

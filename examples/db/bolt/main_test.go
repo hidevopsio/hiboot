@@ -1,7 +1,12 @@
 package main
 
-import "testing"
+import (
+	"testing"
+	"os"
+)
 
-func TestApp(t *testing.T) {
-
+func TestMain(m *testing.M) {
+	go func() {
+		os.Exit(m.Run())
+	}()
 }
