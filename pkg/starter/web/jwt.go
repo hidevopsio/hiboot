@@ -76,7 +76,7 @@ func InitJwt(wd string) error  {
 		return err
 	}
 
-	jwtHandler = NewJwtMiddlware(jwtmiddleware.Config{
+	jwtHandler = NewJwtMiddleware(jwtmiddleware.Config{
 		ValidationKeyGetter: func(token *jwtgo.Token) (interface{}, error) {
 			//log.Debug(token)
 			return verifyKey, nil
