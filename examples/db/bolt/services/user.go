@@ -32,7 +32,7 @@ func (us *UserService) GetUser(id string) (*domain.User, error) {
 		return nil, err
 	}
 	if len(u) == 0 {
-		return nil, fmt.Errorf("user not found")
+		return nil, fmt.Errorf("user is not found")
 	}
 	var user domain.User
 	err = json.Unmarshal(u, &user)
