@@ -4,8 +4,8 @@ import (
 	"time"
 	"os"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/mitchellh/mapstructure"
 	boltdb "github.com/boltdb/bolt"
+	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
 )
 
 type Bolt struct {
@@ -30,17 +30,7 @@ func (b *Bolt) SetNamespace(name string)  {
 func (b *Bolt) Open(dataSource interface{}) error {
 
 	var ds DataSource
-	config := &mapstructure.DecoderConfig{
-		WeaklyTypedInput: true,
-		Result:           &ds,
-	}
-
-	decoder, err := mapstructure.NewDecoder(config)
-	if err != nil {
-		return err
-	}
-
-	err = decoder.Decode(dataSource)
+	err := mapstruct.Decode(&ds, dataSource)
 	if err != nil {
 		return err
 	}

@@ -15,6 +15,10 @@ const (
 	namespace = "namespace"
 )
 
+func init() {
+	log.SetLevel(log.DebugLevel)
+}
+
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
 func IntoObject(object reflect.Value, dataSources, instances map[string]interface{}) error  {
 	for _, f := range reflector.DeepFields(object.Type()) {
@@ -30,19 +34,19 @@ func IntoObject(object reflect.Value, dataSources, instances map[string]interfac
 			}
 		}
 		instanceName := args[0]
+
+		obj := reflector.Indirect(object)
+
+		var fieldObj reflect.Value
+		if obj.IsValid() {
+			fieldObj = obj.FieldByName(f.Name)
+		}
+		ft := f.Type
+		if f.Type.Kind() == reflect.Ptr {
+			ft = ft.Elem()
+		}
+		//log.Debugf("+ %v, %v, %v", object.Type(), fieldObj.Type(), ft)
 		if instanceName != "" {
-			obj := reflector.Indirect(object)
-
-			var fieldObj reflect.Value
-			if obj.IsValid() {
-				fieldObj = obj.FieldByName(f.Name)
-			}
-			ft := f.Type
-			if f.Type.Kind() == reflect.Ptr {
-				ft = ft.Elem()
-			}
-			//log.Debugf("+ %v, %v, %v", object.Type(), fieldObj.Type(), ft)
-
 			if fieldObj.CanSet() {
 				// parse tag and instantiate filed
 				dst := tags[dataSourceType]
@@ -67,11 +71,11 @@ func IntoObject(object reflect.Value, dataSources, instances map[string]interfac
 					log.Debugf("Injected service %v into %v.%v", o, obj.Type(), f.Name)
 				}
 			}
-
-			if obj.Kind() == reflect.Struct && fieldObj.IsValid() && fieldObj.CanSet() {
-				IntoObject(fieldObj, dataSources, instances)
-			}
-			//log.Debugf("- %v, %v", object.Type(), fieldObj.Type())
+		}
+		//log.Debugf("- kind: %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type())
+		//log.Debugf("isValid: %v, canSet: %v", fieldObj.IsValid(), fieldObj.CanSet())
+		if obj.Kind() == reflect.Struct && fieldObj.IsValid() && fieldObj.CanSet() {
+			IntoObject(fieldObj, dataSources, instances)
 		}
 	}
 

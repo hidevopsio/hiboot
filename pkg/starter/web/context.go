@@ -22,7 +22,7 @@ import (
 	"github.com/kataras/iris/middleware/i18n"
 	"fmt"
 	"errors"
-	"github.com/mitchellh/mapstructure"
+	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
 )
 
 type ContextInterface interface {
@@ -114,26 +114,10 @@ func (ctx *Context) RequestParams(data interface{}) error {
 
 		values := ctx.URLParams()
 		if values == nil {
-			return errors.New("An empty form passed on ReadForm")
+			return errors.New("an empty form passed on ReadForm")
 		}
 
-		config := &mapstructure.DecoderConfig{
-			WeaklyTypedInput: true,
-			Result:           data,
-		}
-
-		decoder, err := mapstructure.NewDecoder(config)
-		if err != nil {
-			panic(err)
-		}
-
-		err = decoder.Decode(values)
-		if err != nil {
-			panic(err)
-		}
-
-		return err
-
+		return mapstruct.Decode(data, values)
 	})
 }
 
