@@ -22,6 +22,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/utils"
+	"fmt"
 )
 
 type UserRequest struct {
@@ -61,7 +62,7 @@ func (c *FooController) Before(ctx *Context)  {
 }
 
 func (c *FooController) PostLogin(ctx *Context)  {
-	log.Debug("FooController.SayHello")
+	log.Debug("FooController.Login")
 
 	userRequest := &UserRequest{}
 	if ctx.RequestBody(userRequest) == nil {
@@ -80,8 +81,8 @@ func (c *FooController) PostLogin(ctx *Context)  {
 	}
 }
 
-func (c *FooController) PostSayHello(ctx *Context)  {
-	log.Debug("FooController.SayHello")
+func (c *FooController) Post(ctx *Context)  {
+	log.Debug("FooController.Post")
 
 	foo := &FooRequest{}
 	if ctx.RequestBody(foo) == nil {
@@ -112,8 +113,8 @@ type BarController struct{
 	JwtController
 }
 
-func (c *BarController) GetSayHello(ctx *Context)  {
-	log.Debug("BarController.SayHello")
+func (c *BarController) Get(ctx *Context)  {
+	log.Debug("BarController.Get")
 
 	ctx.ResponseBody("Success", &Bar{Greeting: "hello bar"})
 
@@ -177,13 +178,33 @@ func TestWebApplication(t *testing.T)  {
 		Expect().Status(http.StatusOK).
 		Body().Contains("Success")
 
-	ta.Post("/foo/sayHello").
+	ta.Post("/foo").
 		WithJSON(&FooRequest{Name: "John"}).
 		Expect().Status(http.StatusOK).
 		Body().Contains("Success")
 
-	ta.Get("/bar/sayHello").
+	ta.Get("/bar").
 		Expect().Status(http.StatusUnauthorized)
+
+	// test jwt
+	pt, err := GenerateJwtToken(JwtMap{
+		"username": "johndoe",
+		"password": "PA$$W0RD",
+	}, 100, time.Millisecond)
+	if err == nil {
+
+		t := fmt.Sprintf("Bearer %v", string(*pt))
+
+		ta.Get("/bar").
+			WithHeader("Authorization", t).
+			Expect().Status(http.StatusOK)
+
+		time.Sleep(2 * time.Second)
+
+		ta.Get("/bar").
+			WithHeader("Authorization", t).
+			Expect().Status(http.StatusUnauthorized)
+	}
 
 	ta.Put("/foo").Expect().Status(http.StatusOK)
 	ta.Patch("/foo").Expect().Status(http.StatusOK)

@@ -20,7 +20,7 @@ func init() {
 }
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
-func IntoObject(object reflect.Value, dataSources, instances map[string]interface{}) error  {
+func IntoObject(object reflect.Value, dataSources, instances map[string]interface{}) {
 	for _, f := range reflector.DeepFields(object.Type()) {
 		//log.Debugf("parent: %v, name: %v, type: %v, tag: %v", object.Elem().Type(), f.Name, f.Type, f.Tag)
 		injectTag := f.Tag.Get(injectIdentifier)
@@ -78,8 +78,6 @@ func IntoObject(object reflect.Value, dataSources, instances map[string]interfac
 			IntoObject(fieldObj, dataSources, instances)
 		}
 	}
-
-	return nil
 }
 
 

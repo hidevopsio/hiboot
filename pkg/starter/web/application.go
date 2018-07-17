@@ -339,10 +339,7 @@ func (wa *Application) register(controllers []interface{}, auths ...string) erro
 		}
 
 		// inject component
-		err := inject.IntoObject(field, wa.dataSources, wa.instances)
-		if err != nil {
-			return err
-		}
+		inject.IntoObject(field, wa.dataSources, wa.instances)
 
 		// get context mapping
 		cp := fieldValue.FieldByName("ContextMapping")
