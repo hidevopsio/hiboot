@@ -11,6 +11,10 @@ func TestLowerFirst(t *testing.T) {
 	ns := LowerFirst(s)
 
 	assert.Equal(t, "foo", ns)
+
+	es := LowerFirst("")
+
+	assert.Equal(t, "", es)
 }
 
 func TestUpperFirst(t *testing.T) {
