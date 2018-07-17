@@ -18,7 +18,7 @@ func Decode(to interface{}, from interface{}) error  {
 	}
 
 	if from == nil {
-		return fmt.Errorf("parameters should not be nil")
+		return fmt.Errorf("parameters of mapstruct.Decode must not be nil")
 	}
 
 	return decoder.Decode(from)

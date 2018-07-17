@@ -27,8 +27,8 @@ func TestDecode(t *testing.T) {
 		assert.Equal(t, "result must be a pointer", err.Error())
 	})
 
-	t.Run("should return parameters should not be nil", func(t *testing.T) {
+	t.Run("should return parameters of mapstruct.Decode must not be nill", func(t *testing.T) {
 		err := Decode(&foo, nil)
-		assert.Equal(t, "parameters should not be nil", err.Error())
+		assert.Equal(t, "parameters of mapstruct.Decode must not be nil", err.Error())
 	})
 }
