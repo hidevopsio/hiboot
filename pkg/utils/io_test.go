@@ -25,6 +25,11 @@ import (
 
 const testPath = "/a/b/c.txt"
 
+func init() {
+	log.SetLevel(log.DebugLevel)
+}
+
+
 func TestChangeWorkDir(t *testing.T) {
 	wd1 := GetWorkDir()
 	ChangeWorkDir("..")
@@ -65,10 +70,15 @@ func TestWriteFile(t *testing.T) {
 	in := "hello, world"
 	buf := bytes.NewBufferString(in)
 	path := filepath.Join(os.TempDir(), "foo")
+	err := os.RemoveAll(path) // remove it first
+	assert.Equal(t, nil, err)
 	log.Println("path: ", path)
-	n, err := WriterFile(path, "bar.txt", buf.Bytes())
+	n, err := WriterFile(path, "test.txt", buf.Bytes())
 	assert.Equal(t, nil, err)
 	assert.Equal(t, len(in), n)
+
+	n, err = WriterFile("/should-not-have-access-permission", "test.txt", buf.Bytes())
+	assert.Equal(t, "mkdir /should-not-have-access-permission: permission denied", err.Error())
 }
 
 func TestListFiles(t *testing.T) {
@@ -78,36 +88,69 @@ func TestListFiles(t *testing.T) {
 	err := filepath.Walk(root, Visit(&files))
 	assert.Equal(t, nil, err)
 
-	if err != nil {
-		panic(err)
-	}
 	for _, file := range files {
-		log.Println(file)
+		log.Debug(file)
 	}
+
+	err = filepath.Walk("/dir-does-not-exist", Visit(&files))
+	assert.Contains(t, err.Error(), "no such file or directory")
 }
 
 func TestBasename(t *testing.T) {
 	b := Basename(testPath)
 	assert.Equal(t, "/a/b/c", b)
+
+	b = Basename(".a/b/c")
+	assert.Equal(t, ".a/b/c", b)
+
+	b = Basename(".a")
+	assert.Equal(t, ".a", b)
 }
 
 func TestFilename(t *testing.T) {
 	b := Filename(testPath)
 	assert.Equal(t, "c.txt", b)
+
+	b = Filename("test.txt")
+	assert.Equal(t, "test.txt", b)
+
+	b = Filename("/test.txt")
+	assert.Equal(t, "test.txt", b)
 }
 
 func TestBaseDir(t *testing.T) {
 	b := BaseDir(testPath)
 	assert.Equal(t, "/a/b", b)
+
+	b = BaseDir("/a/b/c")
+	assert.Equal(t, "/a/b", b)
+
+	b = BaseDir("/a")
+	assert.Equal(t, "/", b)
+
+	b = BaseDir("a/b")
+	assert.Equal(t, "a", b)
+
+	b = BaseDir("a")
+	assert.Equal(t, "a", b)
 }
 
 func TestDirName(t *testing.T) {
-	b := DirName("/a/b")
-	assert.Equal(t, "b", b)
+	d := DirName("/a/b")
+	assert.Equal(t, "b", d)
+
+	d = DirName("/a")
+	assert.Equal(t, "a", d)
+
+	d = DirName("a")
+	assert.Equal(t, "a", d)
 }
 
 func TestEnsureWorkDir(t *testing.T) {
 	wd := GetWorkDir()
-	d := EnsureWorkDir("pkg/utils")
+	d := EnsureWorkDir("")
 	assert.Equal(t, wd, d)
+
+	d = EnsureWorkDir(wd + "/..")
+	assert.NotEqual(t, wd, d)
 }

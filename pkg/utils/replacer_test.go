@@ -34,22 +34,50 @@ type Foo struct {
 	Name    string
 	Project string
 	Bar     Bar
+	List    []string
+	SubBars []SubBar
 }
 
 type SubBar struct {
 	Name string
+	Age int
 }
 
 func TestParseReferences(t *testing.T) {
-	s := []string{
-		"name",
+
+	testCases := []struct {
+		name     string
+		src      interface{}
+		vars     []string
+		expected string
+
+	} {
+		{
+			name: "test string",
+			src:  &SubBar{Name: "bar"},
+			vars: []string{
+				"name",
+			},
+			expected: "bar",
+		},
+		{
+			name: "test int",
+			src:  &SubBar{Age: 18},
+			vars: []string{
+				"age",
+			},
+			expected: "18",
+		},
+
 	}
 
-	b := &SubBar{Name: "bar"}
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			ref := ParseReferences(testCase.src, testCase.vars)
+			assert.Equal(t, testCase.expected, ref)
+		})
+	}
 
-	ref, err := ParseReferences(b, s)
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "bar", ref)
 }
 
 func TestParseVariableName(t *testing.T) {
@@ -77,9 +105,7 @@ func TestReplaceStringVariables(t *testing.T) {
 		},
 	}
 
-	s, err := ReplaceStringVariables(f.Bar.Name, f)
-
-	assert.Equal(t, nil, err)
+	s := ReplaceStringVariables(f.Bar.Name, f)
 	assert.Equal(t, "Hello foo", s)
 }
 
@@ -121,6 +147,14 @@ func TestReplaceVariable(t *testing.T) {
 					"name": "${name}",
 					"age": 18,
 				},
+			},
+		},
+		List: []string{
+			"${bar.name} of ${Foo}",
+		},
+		SubBars: []SubBar{
+			{
+				Name: "${bar.name}",
 			},
 		},
 	}
@@ -167,11 +201,24 @@ func TestReplaceReferences(t *testing.T) {
 			},
 		},
 	}
-	res, err := ParseReferences(f, []string{"name"})
-	assert.Equal(t, nil, err)
-	log.Println("res: ", res)
 
-	res, err = ParseReferences(f, []string{"bar", "name"})
-	assert.Equal(t, nil, err)
-	log.Println("res: ", res)
+	t.Run("should find top level reference, then replace it", func(t *testing.T) {
+		res := ParseReferences(f, []string{"name"})
+		assert.Equal(t, "foo", res)
+	})
+
+	t.Run("should find sub reference, then replace it", func(t *testing.T) {
+		res := ParseReferences(f, []string{"bar", "name"})
+		assert.Equal(t, "my name is ${BAR}", res)
+	})
+
+	t.Run("should return empty string when object is empty", func(t *testing.T) {
+		res := ParseReferences(&Foo{}, []string{""})
+		assert.Equal(t, "", res)
+	})
+
+	t.Run("should return empty string when varName is nil", func(t *testing.T) {
+		res := ParseReferences(f, nil)
+		assert.Equal(t, "", res)
+	})
 }

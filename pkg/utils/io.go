@@ -18,7 +18,6 @@ import (
 	"runtime"
 	"os"
 	"path/filepath"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"strings"
 )
 
@@ -79,7 +78,7 @@ func WriterFile(path, filename string, in []byte) (int, error) {
 func Visit(files *[]string) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		*files = append(*files, path)
 		return nil
@@ -95,25 +94,27 @@ func Basename(s string) string {
 }
 
 func Filename(s string) string {
-	n := strings.LastIndexByte(s, '/')
-	if n > 0 {
+	n := strings.LastIndexByte(s, filepath.Separator)
+	if n >= 0 {
 		return s[n + 1:]
 	}
 	return s
 }
 
 func BaseDir(s string) string {
-	n := strings.LastIndexByte(s, '/')
+	n := strings.LastIndexByte(s, filepath.Separator)
 	if n > 0 {
 		return s[:n]
+	} else if n == 0 {
+		return s[:n + 1]
 	}
 	return s
 }
 
 
 func DirName(s string) string {
-	n := strings.LastIndexByte(s, '/')
-	if n > 0 {
+	n := strings.LastIndexByte(s, filepath.Separator)
+	if n >= 0 {
 		return s[n + 1:]
 	}
 	return s
@@ -121,8 +122,10 @@ func DirName(s string) string {
 
 
 func EnsureWorkDir(path string) string  {
-	if ! strings.Contains(GetWorkDir(), path) {
+	wd := GetWorkDir()
+	if ! strings.Contains(wd, path) {
 		ChangeWorkDir(path)
+		wd = GetWorkDir()
 	}
-	return GetWorkDir()
+	return wd
 }

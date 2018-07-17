@@ -1,8 +1,12 @@
 package mapstruct
 
-import "github.com/mitchellh/mapstructure"
+import (
+	"github.com/mitchellh/mapstructure"
+	"fmt"
+)
 
 func Decode(to interface{}, from interface{}) error  {
+
 	config := &mapstructure.DecoderConfig{
 		WeaklyTypedInput: true,
 		Result:           to,
@@ -13,10 +17,9 @@ func Decode(to interface{}, from interface{}) error  {
 		return err
 	}
 
-	err = decoder.Decode(from)
-	if err != nil {
-		return err
+	if from == nil {
+		return fmt.Errorf("parameters should not be nil")
 	}
 
-	return nil
+	return decoder.Decode(from)
 }

@@ -18,7 +18,41 @@ import (
 	"reflect"
 	"errors"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"database/sql"
 )
+
+
+func copy(to, from reflect.Value) bool {
+	if from.IsValid() && to.IsValid() {
+		if to.Kind() == reflect.Ptr {
+			//set `to` to nil if from is nil
+			if from.Kind() == reflect.Ptr && from.IsNil() {
+				to.Set(reflect.Zero(to.Type()))
+				return true
+			} else if to.IsNil() {
+				to.Set(reflect.New(to.Type().Elem()))
+			}
+			to = to.Elem()
+		}
+
+		if from.Type().ConvertibleTo(to.Type()) {
+			to.Set(from.Convert(to.Type()))
+		} else if scanner, ok := to.Addr().Interface().(sql.Scanner); ok {
+			err := scanner.Scan(from.Interface())
+			if err != nil {
+				return false
+			}
+		} else if from.Kind() == reflect.Ptr {
+			return copy(to, from.Elem())
+		} else {
+			return false
+		}
+	} else {
+		return false
+	}
+	return true
+}
+
 
 // Copy copy things
 func Copy(toValue interface{}, fromValue interface{}) (err error) {
@@ -84,7 +118,7 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 				// has field
 				if toField := dest.FieldByName(name); toField.IsValid() {
 					if toField.CanSet() {
-						if !reflector.Copy(toField, fromField) {
+						if !copy(toField, fromField) {
 							if err := Copy(toField.Addr().Interface(), fromField.Interface()); err != nil {
 								return err
 							}
@@ -121,7 +155,7 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 				if toField := dest.FieldByName(name); toField.IsValid() && toField.CanSet() {
 					values := fromMethod.Call([]reflect.Value{})
 					if len(values) >= 1 {
-						reflector.Copy(toField, values[0])
+						copy(toField, values[0])
 					}
 				}
 			}

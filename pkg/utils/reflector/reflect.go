@@ -16,10 +16,7 @@ package reflector
 
 import (
 	"reflect"
-	"database/sql"
 	"errors"
-	"strings"
-	"fmt"
 )
 
 func NewReflectType(st interface{}) interface{} {
@@ -29,48 +26,17 @@ func NewReflectType(st interface{}) interface{} {
 	return cp
 }
 
-
-func Copy(to, from reflect.Value) bool {
-	if from.IsValid() {
-		if to.Kind() == reflect.Ptr {
-			//set `to` to nil if from is nil
-			if from.Kind() == reflect.Ptr && from.IsNil() {
-				to.Set(reflect.Zero(to.Type()))
-				return true
-			} else if to.IsNil() {
-				to.Set(reflect.New(to.Type().Elem()))
-			}
-			to = to.Elem()
-		}
-
-		if from.Type().ConvertibleTo(to.Type()) {
-			to.Set(from.Convert(to.Type()))
-		} else if scanner, ok := to.Addr().Interface().(sql.Scanner); ok {
-			err := scanner.Scan(from.Interface())
-			if err != nil {
-				return false
-			}
-		} else if from.Kind() == reflect.Ptr {
-			return Copy(to, from.Elem())
-		} else {
-			return false
-		}
-	}
-	return true
-}
-
-
 func Validate(toValue interface{}) (*reflect.Value, error) {
 
 	to := Indirect(reflect.ValueOf(toValue))
 
-	if !to.CanAddr() {
-		return nil, errors.New("value is unaddressable")
-	}
-
 	// Return is from value is invalid
 	if !to.IsValid() {
 		return nil, errors.New("value is not valid")
+	}
+
+	if !to.CanAddr() {
+		return nil, errors.New("value is unaddressable")
 	}
 
 	return &to, nil
@@ -113,33 +79,6 @@ func GetFieldValue(f interface{}, name string) reflect.Value {
 	fv := reflect.Indirect(r).FieldByName(name)
 
 	return fv
-}
-
-func ParseReferences(st interface{}, varName []string) (string, error) {
-	var parent interface{}
-	parent = st
-	for _, vn := range varName {
-		capitalizedVarName := strings.Title(vn)
-		field := GetFieldValue(parent, capitalizedVarName)
-
-		k := GetKind(field)
-		switch k {
-		case reflect.String:
-			fv := fmt.Sprintf("%v", field.Interface())
-			return fv, nil
-		case reflect.Int:
-			fv := fmt.Sprintf("%v", field.Interface())
-			return fv, nil
-		case reflect.Invalid:
-			return "", nil
-		default:
-			// check if field is ptr
-			parent = field.Addr().Interface()
-		}
-
-	}
-
-	return "", nil
 }
 
 func GetKind(val reflect.Value) reflect.Kind {
