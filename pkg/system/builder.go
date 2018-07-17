@@ -25,6 +25,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"bytes"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"errors"
 )
 
 type Builder struct {
@@ -69,7 +70,7 @@ func (b *Builder) Build() (interface{}, error) {
 	name := b.Name + "-" + b.Profile
 	// allow the empty of the profile
 	if b.Profile == "" || b.isFileNotExist(filepath.Join(b.Path, name) + ".") {
-		return conf, nil
+		return conf, errors.New("file is not found")
 	}
 
 	confReplacer, err := b.Read(name)

@@ -15,19 +15,21 @@
 package web
 
 import (
-	"time"
-	jwtgo "github.com/dgrijalva/jwt-go"
-	jwtmiddleware "github.com/iris-contrib/middleware/jwt"
 	"crypto/rsa"
-	"io/ioutil"
-	"github.com/hidevopsio/hiboot/pkg/utils"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/system"
 	"fmt"
+	"io/ioutil"
+	"time"
+
+	jwtgo "github.com/dgrijalva/jwt-go"
+	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/utils"
+	jwtmiddleware "github.com/iris-contrib/middleware/jwt"
 )
 
+// JwtMap is the JWT map
 type JwtMap map[string]interface{}
 
+// Token is the token string
 type Token string
 
 const (
@@ -42,19 +44,14 @@ var (
 	jwtEnabled bool
 )
 
-func fatal(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
 
-func InitJwt(wd string) error  {
+// InitJwt init JWT, it read config/ssl/rsa and config/ssl/rsa.pub
+func InitJwt(wd string) error {
 
 	// check if key exist
 	if utils.IsPathNotExist(wd + privateKeyPath) {
 		return &system.NotFoundError{Name: wd + privateKeyPath}
 	}
-
 
 	signBytes, err := ioutil.ReadFile(wd + privateKeyPath)
 	if err != nil {
@@ -92,15 +89,7 @@ func InitJwt(wd string) error  {
 	return nil
 }
 
-
-func GetSignKey() *rsa.PrivateKey {
-	return signKey
-}
-
-func GetJwtHandler() *JwtMiddleware {
-	return jwtHandler
-}
-
+// GenerateJwtToken generates JWT token with specified exired time
 func GenerateJwtToken(payload JwtMap, expired int64, unit time.Duration) (*Token, error) {
 	if jwtEnabled {
 		claim := jwtgo.MapClaims{

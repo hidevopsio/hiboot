@@ -14,12 +14,13 @@
 
 package web
 
-
+// Controller is the web base controller
 type Controller struct {
 	ContextMapping string
 	AuthType       string
 }
 
-func (c *Controller) Init()  {
+// Init web controller
+func (c *Controller) Init() {
 	c.AuthType = AuthTypeAnon
 }

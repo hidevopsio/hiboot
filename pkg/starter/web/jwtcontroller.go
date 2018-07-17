@@ -15,19 +15,23 @@
 package web
 
 import (
-	"github.com/dgrijalva/jwt-go"
 	"fmt"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
+// JwtController is the base web controller that enabled JWT
 type JwtController struct {
 	Controller
 }
 
-func (c *JwtController) Init()  {
+// Init init JWT controller, it set auth type to AuthTypeJwt
+func (c *JwtController) Init() {
 	c.Controller.Init()
 	c.AuthType = AuthTypeJwt
 }
 
-func (c *JwtController) ParseToken(claims jwt.MapClaims, prop string) string  {
+// ParseToken is an util that parsing JWT token from jwt.MapClaims
+func (c *JwtController) ParseToken(claims jwt.MapClaims, prop string) string {
 	return fmt.Sprintf("%v", claims[prop])
 }

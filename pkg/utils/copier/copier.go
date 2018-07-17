@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Notes: this source code is originally copied from github.com/jinzhu/copier
+
 package copier
 
 import (
@@ -22,7 +24,7 @@ import (
 )
 
 
-func copy(to, from reflect.Value) bool {
+func set(to, from reflect.Value) bool {
 	if from.IsValid() && to.IsValid() {
 		if to.Kind() == reflect.Ptr {
 			//set `to` to nil if from is nil
@@ -43,7 +45,7 @@ func copy(to, from reflect.Value) bool {
 				return false
 			}
 		} else if from.Kind() == reflect.Ptr {
-			return copy(to, from.Elem())
+			return set(to, from.Elem())
 		} else {
 			return false
 		}
@@ -69,20 +71,20 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 
 	// Return is from value is invalid
 	if !from.IsValid() {
-		return errors.New("copy source is invalid")
+		return
 	}
 
 	// Just set it if possible to assign
 	if from.Type().AssignableTo(to.Type()) {
 		to.Set(from)
-		return nil
+		return
 	}
 
 	fromType := reflector.IndirectType(from.Type())
 	toType := reflector.IndirectType(to.Type())
 
 	if fromType.Kind() != reflect.Struct || toType.Kind() != reflect.Struct {
-		return errors.New("source or target type is not struct")
+		return
 	}
 
 	if to.Kind() == reflect.Slice {
@@ -118,7 +120,7 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 				// has field
 				if toField := dest.FieldByName(name); toField.IsValid() {
 					if toField.CanSet() {
-						if !copy(toField, fromField) {
+						if !set(toField, fromField) {
 							if err := Copy(toField.Addr().Interface(), fromField.Interface()); err != nil {
 								return err
 							}
@@ -155,7 +157,7 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 				if toField := dest.FieldByName(name); toField.IsValid() && toField.CanSet() {
 					values := fromMethod.Call([]reflect.Value{})
 					if len(values) >= 1 {
-						copy(toField, values[0])
+						set(toField, values[0])
 					}
 				}
 			}
@@ -169,5 +171,5 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 			}
 		}
 	}
-	return nil
+	return
 }
