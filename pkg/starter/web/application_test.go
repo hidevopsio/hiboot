@@ -227,7 +227,9 @@ func TestNewApplication(t *testing.T) {
 
 	t.Run("should get application config", func(t *testing.T) {
 		config := wa.Config()
-		assert.NotEqual(t, "", config.App.Name)
+		if config != nil {
+			assert.NotEqual(t, "", config.App.Name)
+		}
 	})
 
 	//t.Run("should not init application without controller", func(t *testing.T) {
