@@ -153,6 +153,8 @@ func (wa *Application) Init(controllers ...interface{}) error {
 	} else {
 		log.SetLevel(log.DebugLevel)
 	}
+	log.Debugf("working dir: %v", wa.workDir)
+	log.Debug(wa.config)
 
 	// Init DataSource
 	if wa.config != nil && len(wa.config.DataSources) != 0 {
