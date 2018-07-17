@@ -15,24 +15,25 @@
 package web
 
 import (
-	"os"
+	"crypto/rsa"
 	"fmt"
+	"net/http"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
-	"net/http"
-	"crypto/rsa"
-	"path/filepath"
+
 	"github.com/fatih/camelcase"
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/core/router"
-	"github.com/kataras/iris/context"
-	"github.com/kataras/iris/middleware/i18n"
-	"github.com/kataras/iris/middleware/logger"
 	"github.com/hidevopsio/hiboot/pkg/inject"
-	"github.com/hidevopsio/hiboot/pkg/system"
-	"github.com/hidevopsio/hiboot/pkg/utils"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/starter/db"
+	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/utils"
+	"github.com/kataras/iris"
+	"github.com/kataras/iris/context"
+	"github.com/kataras/iris/core/router"
+	"github.com/kataras/iris/middleware/i18n"
+	"github.com/kataras/iris/middleware/logger"
 )
 
 const (
@@ -42,12 +43,13 @@ const (
 	AuthTypeAnon    = "anon"
 	AuthTypeJwt     = "jwt"
 
-	initMethodName  = "Init"
+	initMethodName = "Init"
 
-	BeforeMethod    = "Before"
-	AfterMethod     = "After"
+	BeforeMethod = "Before"
+	AfterMethod  = "After"
 )
 
+// ApplicationInterface is the interface of web application
 type ApplicationInterface interface {
 	Init()
 	Config() *system.Configuration
@@ -55,17 +57,18 @@ type ApplicationInterface interface {
 	Run()
 }
 
-
+// Application is the struct of web Application
 type Application struct {
-	app    *iris.Application
-	config *system.Configuration
-	jwtEnabled bool
-	workDir string
+	app         *iris.Application
+	config      *system.Configuration
+	jwtEnabled  bool
+	workDir     string
 	httpMethods []string
 	dataSources map[string]interface{}
-	instances map[string]interface{}
+	instances   map[string]interface{}
 }
 
+// Health is the health check struct
 type Health struct {
 	Status string `json:"status"`
 }
@@ -77,13 +80,16 @@ const (
 )
 
 var (
+	// Controllers global controllers contrainer
 	Controllers []interface{}
 )
 
+// Config returns application config
 func (wa *Application) Config() *system.Configuration {
 	return wa.config
 }
 
+// Run run web application
 func (wa *Application) Run() {
 	serverPort := ":8080"
 	if wa.config != nil && wa.config.Server.Port != 0 {
@@ -111,10 +117,12 @@ func (wa *Application) handle(method reflect.Method, object interface{}, ctx *Co
 	method.Func.Call(inputs)
 }
 
-func Add(controller interface{})  {
+// Add add controller to controllers container
+func Add(controller interface{}) {
 	Controllers = append(Controllers, controller)
 }
 
+// Init init web application
 func (wa *Application) Init(controllers ...interface{}) error {
 
 	wa.workDir = utils.GetWorkDir()
@@ -202,7 +210,6 @@ func (wa *Application) Init(controllers ...interface{}) error {
 
 	wa.app.Use(customLogger)
 
-
 	// The only one Required:
 	// here is how you define how your own context will
 	// be created and acquired from the iris' generic context pool.
@@ -218,7 +225,6 @@ func (wa *Application) Init(controllers ...interface{}) error {
 		log.Warn(err)
 	}
 
-
 	healthHandler(wa.app)
 
 	if len(controllers) == 0 {
@@ -228,7 +234,7 @@ func (wa *Application) Init(controllers ...interface{}) error {
 		}
 	}
 
-	if ! wa.jwtEnabled {
+	if !wa.jwtEnabled {
 		err := wa.register(controllers, AuthTypeAnon, AuthTypeDefault, AuthTypeJwt)
 		if err != nil {
 			return err
@@ -270,11 +276,11 @@ func (wa *Application) initLocale() error {
 			log.Fatal(err)
 		}
 		//*files = append(*files, path)
-		lng := strings.Replace(path, localePath,"", 1)
+		lng := strings.Replace(path, localePath, "", 1)
 		lng = utils.BaseDir(lng)
 		lng = utils.Basename(lng)
 
-		if lng != "" && path != localePath + lng {
+		if lng != "" && path != localePath+lng {
 			//languages[lng] = path
 			if languages[lng] == "" {
 				languages[lng] = path
@@ -300,7 +306,7 @@ func (wa *Application) initLocale() error {
 	return nil
 }
 
-func (wa *Application) register(controllers []interface{}, auths... string) error {
+func (wa *Application) register(controllers []interface{}, auths ...string) error {
 	app := wa.app
 	for _, c := range controllers {
 		field := reflect.ValueOf(c)
@@ -323,12 +329,12 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 
 		fieldValue := field.Elem()
 		fieldAuth := fieldValue.FieldByName("AuthType")
-		if ! fieldAuth.IsValid() {
+		if !fieldAuth.IsValid() {
 			return &system.InvalidControllerError{Name: fieldName}
 		}
 		a := fmt.Sprintf("%v", fieldAuth.Interface())
 		//log.Debug("authType: ", a)
-		if ! utils.StringInSlice(a, auths) {
+		if !utils.StringInSlice(a, auths) {
 			continue
 		}
 
@@ -340,7 +346,7 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 
 		// get context mapping
 		cp := fieldValue.FieldByName("ContextMapping")
-		if ! cp.IsValid() {
+		if !cp.IsValid() {
 			return &system.InvalidControllerError{Name: fieldName}
 		}
 		contextMapping := fmt.Sprintf("%v", cp.Interface())
@@ -405,13 +411,7 @@ func (wa *Application) register(controllers []interface{}, auths... string) erro
 	return nil
 }
 
-
-func (wa *Application) createApplication(controllers []interface{}) error {
-	err := wa.Init(controllers)
-	log.Debugf("workDir: %v", wa.workDir)
-	return err
-}
-
+// NewApplication create new web application instance and init it
 func NewApplication(controllers ...interface{}) *Application {
 	wa := new(Application)
 	err := wa.Init(controllers...)
@@ -421,4 +421,3 @@ func NewApplication(controllers ...interface{}) *Application {
 	}
 	return wa
 }
-

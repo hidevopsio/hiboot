@@ -15,25 +15,29 @@
 package web
 
 import (
-	"testing"
 	"net/http"
-	"github.com/iris-contrib/httpexpect"
-	"github.com/stretchr/testify/assert"
-	"github.com/kataras/iris/httptest"
+	"testing"
+
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/iris-contrib/httpexpect"
+	"github.com/kataras/iris/httptest"
+	"github.com/stretchr/testify/assert"
 )
 
+// TestApplicationInterface the test web application interface for unit test only
 type TestApplicationInterface interface {
 	ApplicationInterface
 	NewTestServer(t *testing.T) *httpexpect.Expect
 }
 
+// TestApplication the test web application for unit test only
 type TestApplication struct {
 	Application
 	expect *httpexpect.Expect
 }
 
-func NewTestApplication(t *testing.T, controllers... interface{}) *TestApplication {
+// NewTestApplication returns the new test application
+func NewTestApplication(t *testing.T, controllers ...interface{}) *TestApplication {
 	log.SetLevel(log.DebugLevel)
 	ta := new(TestApplication)
 	err := ta.Init(controllers...)
@@ -42,31 +46,37 @@ func NewTestApplication(t *testing.T, controllers... interface{}) *TestApplicati
 	return ta
 }
 
-func (wa *TestApplication) RunTestServer(t *testing.T) *httpexpect.Expect {
-	return httptest.New(t, wa.app)
+// RunTestServer run the test server
+func (ta *TestApplication) RunTestServer(t *testing.T) *httpexpect.Expect {
+	return httptest.New(t, ta.app)
 }
 
+// Request request for unit test
 func (ta *TestApplication) Request(method, path string, pathargs ...interface{}) *httpexpect.Request {
 	return ta.expect.Request(method, path, pathargs...)
 }
 
-
+// Post wrap of Request with POST method
 func (ta *TestApplication) Post(path string, pathargs ...interface{}) *httpexpect.Request {
 	return ta.expect.Request(http.MethodPost, path, pathargs...)
 }
 
+// Put wrap of Request with Put method
 func (ta *TestApplication) Put(path string, pathargs ...interface{}) *httpexpect.Request {
 	return ta.expect.Request(http.MethodPut, path, pathargs...)
 }
 
+// Patch wrap of Request with Patch method
 func (ta *TestApplication) Patch(path string, pathargs ...interface{}) *httpexpect.Request {
 	return ta.expect.Request(http.MethodPatch, path, pathargs...)
 }
 
+// Get wrap of Request with Get method
 func (ta *TestApplication) Get(path string, pathargs ...interface{}) *httpexpect.Request {
 	return ta.expect.Request(http.MethodGet, path, pathargs...)
 }
 
+// Delete wrap of Request with Delete method
 func (ta *TestApplication) Delete(path string, pathargs ...interface{}) *httpexpect.Request {
 	return ta.expect.Request(http.MethodDelete, path, pathargs...)
 }

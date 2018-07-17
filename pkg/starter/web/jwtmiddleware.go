@@ -1,17 +1,19 @@
 package web
 
 import (
-	mj "github.com/iris-contrib/middleware/jwt"
-	"net/http"
-	"github.com/kataras/iris/context"
-	"github.com/kataras/iris"
 	"fmt"
+	"net/http"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	mwjwt "github.com/iris-contrib/middleware/jwt"
+	"github.com/kataras/iris"
+	"github.com/kataras/iris/context"
 )
 
+// JwtMiddleware derrived from github.com/iris-contrib/middleware/jwt/Middleware
 type JwtMiddleware struct {
-	mj.Middleware
+	mwjwt.Middleware
 }
 
 // Serve the middleware's action
@@ -25,7 +27,6 @@ func (m *JwtMiddleware) Serve(ctx context.Context) {
 	// If everything ok then call next.
 	ctx.Next()
 }
-
 
 // CheckJWT the main functionality, checks for token
 func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
@@ -96,28 +97,27 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 	return nil
 }
 
+// NewJwtMiddleware New constructs a new Secure instance with supplied options.
+func NewJwtMiddleware(cfg ...mwjwt.Config) *JwtMiddleware {
 
-// New constructs a new Secure instance with supplied options.
-func NewJwtMiddleware(cfg ...mj.Config) *JwtMiddleware {
-
-	var c mj.Config
+	var c mwjwt.Config
 	if len(cfg) == 0 {
-		c = mj.Config{}
+		c = mwjwt.Config{}
 	} else {
 		c = cfg[0]
 	}
 
 	if c.ContextKey == "" {
-		c.ContextKey = mj.DefaultContextKey
+		c.ContextKey = mwjwt.DefaultContextKey
 	}
 
 	if c.ErrorHandler == nil {
-		c.ErrorHandler = mj.OnError
+		c.ErrorHandler = mwjwt.OnError
 	}
 
 	if c.Extractor == nil {
-		c.Extractor = mj.FromAuthHeader
+		c.Extractor = mwjwt.FromAuthHeader
 	}
 
-	return &JwtMiddleware{mj.Middleware{Config: c}}
+	return &JwtMiddleware{mwjwt.Middleware{Config: c}}
 }

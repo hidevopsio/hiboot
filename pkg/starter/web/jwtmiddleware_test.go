@@ -2,15 +2,15 @@ package web
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"testing"
 )
 
 var (
-	jm *JwtMiddleware
+	jwtMw *JwtMiddleware
 	ctx FakeContext
 )
 
 type FakeContext struct {
-
 }
 
 func (c *FakeContext) Next()  {
@@ -24,5 +24,8 @@ func (c *FakeContext) StopExecution()  {
 func init() {
 	log.SetLevel(log.DebugLevel)
 
-	jm = new(JwtMiddleware)
+	jwtMw = new(JwtMiddleware)
+}
+
+func TestCheckJWT(t *testing.T) {
 }

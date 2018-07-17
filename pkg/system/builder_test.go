@@ -17,10 +17,10 @@ package system
 import (
 	"testing"
 	"github.com/hidevopsio/hiboot/pkg/utils"
-	"github.com/magiconair/properties/assert"
 	"path/filepath"
 	"os"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/stretchr/testify/assert"
 )
 
 func init() {
@@ -44,6 +44,57 @@ func TestBuilderBuild(t *testing.T) {
 	assert.Equal(t, "hiboot", c.App.Name)
 
 	log.Print(c)
+}
+
+func TestFileDoesNotExist(t *testing.T) {
+
+	b := &Builder{
+		Path:       filepath.Join(utils.GetWorkDir(), "config"),
+		Name:       "application",
+		FileType:   "yaml",
+		Profile:    "does-not-exist",
+		ConfigType: Configuration{},
+	}
+
+	_, err := b.Build()
+	assert.Contains(t, err.Error(), "not found")
+}
+
+
+func TestProfileIsEmpty(t *testing.T) {
+
+	b := &Builder{
+		Path:       filepath.Join(utils.GetWorkDir(), "config"),
+		Name:       "application",
+		FileType:   "yaml",
+		Profile:    "",
+		ConfigType: Configuration{},
+	}
+
+	_, err := b.Build()
+	assert.Contains(t, err.Error(), "not found")
+}
+
+
+
+func TestWithoutReplacer(t *testing.T) {
+
+	path := filepath.Join(utils.GetWorkDir(), "config")
+	testProfile := "xxx"
+	appConfig := "application"
+	FileType := "yaml"
+	testFile := appConfig + "-" + testProfile + ".yml"
+	b := &Builder{
+		Path:       path,
+		Name:       appConfig,
+		FileType:   FileType,
+		Profile:    testProfile,
+		ConfigType: Configuration{},
+	}
+	utils.CreateFile(path, testFile)
+	_, err := b.Build()
+	os.Remove(filepath.Join(path, testFile))
+	assert.Equal(t, nil, err)
 }
 
 

@@ -15,14 +15,15 @@
 package web
 
 import (
-	"github.com/kataras/iris/context"
+	"errors"
+	"fmt"
+	"net/http"
+
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/utils"
-	"net/http"
-	"github.com/kataras/iris/middleware/i18n"
-	"fmt"
-	"errors"
 	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
+	"github.com/kataras/iris/context"
+	"github.com/kataras/iris/middleware/i18n"
 )
 
 type ContextInterface interface {
@@ -33,34 +34,32 @@ type ContextInterface interface {
 	ResponseError(message string, code int)
 }
 
-// Create your own custom Context, put any fields you wanna need.
+// Context Create your own custom Context, put any fields you wanna need.
 type Context struct {
 	// Optional Part 1: embed (optional but required if you don't want to override all context's methods)
-	context.Context // it's the context/context.go#context struct but you don't need to know it.
+	// it's the context/context.go#context struct but you don't need to know it.
+	context.Context
 	ContextInterface
-
 }
 
 var _ context.Context = &Context{} // optionally: validate on compile-time if Context implements context.Context.
 
-
-// The only one important if you will override the Context
+// Do: The only one important if you will override the Context
 // with an embedded context.Context inside it.
 // Required in order to run the handlers via this "*Context".
 func (ctx *Context) Do(handlers context.Handlers) {
 	context.Do(ctx, handlers)
 }
 
-// The second one important if you will override the Context
+// Next: The second one important if you will override the Context
 // with an embedded context.Context inside it.
 // Required in order to run the chain of handlers via this "*Context".
 func (ctx *Context) Next() {
 	context.Next(ctx)
 }
 
-// Override any context's method you want...
+// HTML Override any context's method you want...
 // [...]
-
 func (ctx *Context) HTML(htmlContents string) (int, error) {
 	ctx.Application().Logger().Infof("Executing .HTML function from Context")
 
@@ -68,8 +67,7 @@ func (ctx *Context) HTML(htmlContents string) (int, error) {
 	return ctx.WriteString(htmlContents)
 }
 
-
-// get RequestBody
+// RequestEx get RequestBody
 func (ctx *Context) RequestEx(data interface{}, cb func() error) error {
 	if cb == nil {
 		return fmt.Errorf("callback func can't be nil")
@@ -88,8 +86,7 @@ func (ctx *Context) RequestEx(data interface{}, cb func() error) error {
 	return nil
 }
 
-
-// get RequestBody
+// RequestBody get RequestBody
 func (ctx *Context) RequestBody(data interface{}) error {
 
 	return ctx.RequestEx(data, func() error {
@@ -97,8 +94,7 @@ func (ctx *Context) RequestBody(data interface{}) error {
 	})
 }
 
-
-// get RequestFrom
+// RequestForm get RequestFrom
 func (ctx *Context) RequestForm(data interface{}) error {
 
 	return ctx.RequestEx(data, func() error {
@@ -106,8 +102,7 @@ func (ctx *Context) RequestForm(data interface{}) error {
 	})
 }
 
-
-// get RequestParams
+// RequestParams get RequestParams
 func (ctx *Context) RequestParams(data interface{}) error {
 
 	return ctx.RequestEx(data, func() error {
@@ -129,30 +124,27 @@ func (ctx *Context) translate(message string) string {
 	return message
 }
 
-// set response
+// ResponseBody set response
 func (ctx *Context) ResponseBody(message string, data interface{}) {
 
 	// TODO: check if data is a string, should we translate it?
 
 	response := &model.Response{
 		Code:    ctx.GetStatusCode(),
-		Message: ctx.translate(message), 	//TODO: Handle i18n
+		Message: ctx.translate(message), //TODO: Handle i18n
 		Data:    data,
 	}
 
 	ctx.JSON(response)
 }
 
-// set response
+// Response Errorset response
 func (ctx *Context) ResponseError(message string, code int) {
 	response := &model.Response{
 		Code:    code,
-		Message: ctx.translate(message), 	//TODO: Handle i18n
+		Message: ctx.translate(message), //TODO: Handle i18n
 	}
 
 	ctx.StatusCode(code)
 	ctx.JSON(response)
 }
-
-
-
