@@ -55,9 +55,10 @@ func TestFileDoesNotExist(t *testing.T) {
 		Profile:    "does-not-exist",
 		ConfigType: Configuration{},
 	}
-
-	_, err := b.Build()
-	assert.Contains(t, err.Error(), "not found")
+	t.Run("use default profile if custom profile does not exist", func(t *testing.T) {
+		_, err := b.Build()
+		assert.Equal(t, nil, err)
+	})
 }
 
 
@@ -71,8 +72,10 @@ func TestProfileIsEmpty(t *testing.T) {
 		ConfigType: Configuration{},
 	}
 
-	_, err := b.Build()
-	assert.Contains(t, err.Error(), "not found")
+	t.Run("use default profile if custom profile does not exist", func(t *testing.T) {
+		_, err := b.Build()
+		assert.Equal(t, nil, err)
+	})
 }
 
 
