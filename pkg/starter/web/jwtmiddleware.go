@@ -7,7 +7,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	mwjwt "github.com/iris-contrib/middleware/jwt"
-	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 )
 
@@ -31,7 +30,7 @@ func (m *JwtMiddleware) Serve(ctx context.Context) {
 // CheckJWT the main functionality, checks for token
 func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 	if !m.Config.EnableAuthOnOptions {
-		if ctx.Method() == iris.MethodOptions {
+		if ctx.Method() == http.MethodOptions {
 			return nil
 		}
 	}

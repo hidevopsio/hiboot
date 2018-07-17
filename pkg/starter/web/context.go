@@ -26,7 +26,7 @@ import (
 	"github.com/kataras/iris/middleware/i18n"
 )
 
-type ContextInterface interface {
+type ExtendedContext interface {
 	RequestEx(data interface{}, cb func() error) error
 	RequestBody(data interface{}) error
 	RequestForm(data interface{}) error
@@ -34,12 +34,17 @@ type ContextInterface interface {
 	ResponseError(message string, code int)
 }
 
+type ApplicationContext interface {
+	context.Context
+	ExtendedContext
+}
+
 // Context Create your own custom Context, put any fields you wanna need.
 type Context struct {
 	// Optional Part 1: embed (optional but required if you don't want to override all context's methods)
 	// it's the context/context.go#context struct but you don't need to know it.
 	context.Context
-	ContextInterface
+	ExtendedContext
 }
 
 var _ context.Context = &Context{} // optionally: validate on compile-time if Context implements context.Context.
