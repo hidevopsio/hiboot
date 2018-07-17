@@ -6,11 +6,14 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
 	"github.com/hidevopsio/hiboot/examples/db/bolt/domain"
 	"github.com/hidevopsio/hiboot/pkg/utils"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 
 func init() {
-	utils.ChangeWorkDir("../")
+	log.SetLevel(log.DebugLevel)
+	wd := utils.EnsureWorkDir("..")
+	log.Debug("working dir is ", wd)
 }
 
 func TestCrdRequest(t *testing.T) {
