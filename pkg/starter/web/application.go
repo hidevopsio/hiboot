@@ -15,7 +15,6 @@
 package web
 
 import (
-	"crypto/rsa"
 	"fmt"
 	"net/http"
 	"os"
@@ -34,7 +33,6 @@ import (
 	"github.com/kataras/iris/middleware/i18n"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/hidevopsio/hiboot/pkg/starter"
-	"errors"
 )
 
 const (
@@ -53,8 +51,7 @@ const (
 // ApplicationInterface is the interface of web application
 type ApplicationInterface interface {
 	Init()
-	Config() *system.Configuration
-	GetSignKey() *rsa.PrivateKey
+	Config() *starter.SystemConfiguration
 	Run()
 }
 
@@ -137,11 +134,15 @@ func (wa *Application) Init(controllers ...interface{}) error {
 
 	wa.autoConfiguration = starter.GetInstance()
 	wa.autoConfiguration.Build()
+
 	config := wa.autoConfiguration.Configuration(starter.System)
-	if config == nil {
-		return errors.New("system configuration not found")
+	if config != nil {
+		//return errors.New("system configuration not found")
+		wa.config = config.(*starter.SystemConfiguration)
+	} else {
+		log.Warnf("no application config files in %v", filepath.Join(wa.workDir, "config"))
 	}
-	wa.config = config.(*starter.SystemConfiguration)
+
 	wa.instances = wa.autoConfiguration.Instances()
 
 	// Init JWT

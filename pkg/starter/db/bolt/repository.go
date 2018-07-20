@@ -3,14 +3,9 @@ package bolt
 import "errors"
 
 type RepositoryInterface interface {
-	SetName(name string)
-	Name() string
-	SetDataSource(dataSource interface{})
-	DataSource() interface{}
 	Put(key, value []byte) error
 	Get(key []byte) (result []byte, err error)
 	Delete(key []byte) (err error)
-	Close() (err error)
 }
 
 type Repository struct {

@@ -13,7 +13,7 @@ func TestNewBolt(t *testing.T) {
 		Timeout: 1,
 	}
 
-	boltRepo := configuration.NewRepository()
+	boltRepo := configuration.NewRepository("foo")
 	bolt := boltRepo.DataSource().(*Bolt)
 	assert.NotEqual(t, (*Bolt)(nil), bolt)
 	bolt.Close()
