@@ -2,6 +2,7 @@ package bolt
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter"
+	"github.com/hidevopsio/hiboot/pkg/starter/db"
 )
 
 type Configuration struct {
@@ -19,7 +20,7 @@ func (c *Configuration) dataSource() *Bolt {
 	return bolt
 }
 
-func (c *Configuration) NewRepository(name string) RepositoryInterface {
+func (c *Configuration) NewRepository(name string) db.Repository {
 	repo := new(Repository)
 	repo.SetDataSource(c.dataSource())
 	repo.SetName(name)
