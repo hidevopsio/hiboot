@@ -26,7 +26,6 @@ import (
 	"github.com/fatih/camelcase"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/starter/db"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"github.com/kataras/iris"
@@ -34,6 +33,8 @@ import (
 	"github.com/kataras/iris/core/router"
 	"github.com/kataras/iris/middleware/i18n"
 	"github.com/kataras/iris/middleware/logger"
+	"github.com/hidevopsio/hiboot/pkg/starter"
+	"errors"
 )
 
 const (
@@ -59,13 +60,14 @@ type ApplicationInterface interface {
 
 // Application is the struct of web Application
 type Application struct {
-	app         *iris.Application
-	config      *system.Configuration
-	jwtEnabled  bool
-	workDir     string
-	httpMethods []string
-	dataSources map[string]interface{}
-	instances   map[string]interface{}
+	app               *iris.Application
+	config            *starter.SystemConfiguration
+	jwtEnabled        bool
+	workDir           string
+	httpMethods       []string
+	dataSources       map[string]interface{}
+	instances         map[string]interface{}
+	autoConfiguration *starter.AutoConfiguration
 }
 
 // Health is the health check struct
@@ -73,19 +75,13 @@ type Health struct {
 	Status string `json:"status"`
 }
 
-const (
-	application = "application"
-	config      = "config"
-	yaml        = "yaml"
-)
-
 var (
 	// Controllers global controllers contrainer
 	Controllers []interface{}
 )
 
 // Config returns application config
-func (wa *Application) Config() *system.Configuration {
+func (wa *Application) Config() *starter.SystemConfiguration {
 	return wa.config
 }
 
@@ -139,46 +135,17 @@ func (wa *Application) Init(controllers ...interface{}) error {
 		http.MethodTrace,
 	}
 
-	builder := &system.Builder{
-		Path:       filepath.Join(wa.workDir, config),
-		Name:       application,
-		FileType:   yaml,
-		Profile:    os.Getenv("APP_PROFILES_ACTIVE"),
-		ConfigType: system.Configuration{},
+	wa.autoConfiguration = starter.GetInstance()
+	wa.autoConfiguration.Build()
+	config := wa.autoConfiguration.Configuration(starter.System)
+	if config == nil {
+		return errors.New("system configuration not found")
 	}
-	cp, err := builder.Build()
-	if err == nil {
-		wa.config = cp.(*system.Configuration)
-		log.SetLevel(wa.config.Logging.Level)
-	} else {
-		log.SetLevel(log.DebugLevel)
-	}
-	log.Debugf("working dir: %v", wa.workDir)
-	log.Debug(wa.config)
-
-	// Init DataSource
-	if wa.config != nil && len(wa.config.DataSources) != 0 {
-		factory := db.DataSourceFactory{}
-		dataSources := wa.config.DataSources
-		wa.dataSources = make(map[string]interface{})
-		for _, dataSourceConfig := range dataSources {
-			dataSourceType := dataSourceConfig["type"].(string)
-			//log.Debug(dataSourceType)
-			dataSource, err := factory.New(dataSourceType)
-			if err == nil {
-				err = dataSource.Open(dataSourceConfig)
-				if err != nil {
-					return err
-				}
-			}
-			wa.dataSources[dataSourceType] = dataSource
-		}
-	}
-
-	wa.instances = make(map[string]interface{})
+	wa.config = config.(*starter.SystemConfiguration)
+	wa.instances = wa.autoConfiguration.Instances()
 
 	// Init JWT
-	err = InitJwt(wa.workDir)
+	err := InitJwt(wa.workDir)
 	if err != nil {
 		wa.jwtEnabled = false
 		log.Warn(err.Error())
@@ -341,7 +308,7 @@ func (wa *Application) register(controllers []interface{}, auths ...string) erro
 		}
 
 		// inject component
-		inject.IntoObject(field, wa.dataSources, wa.instances)
+		inject.IntoObject(field)
 
 		// get context mapping
 		cp := fieldValue.FieldByName("ContextMapping")

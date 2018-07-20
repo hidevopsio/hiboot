@@ -3,13 +3,13 @@ package services
 
 import (
 	"encoding/json"
-	"github.com/hidevopsio/hiboot/pkg/starter/db"
 	"github.com/hidevopsio/hiboot/examples/db/bolt/domain"
 	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/starter/db/bolt"
 )
 
 type UserService struct {
-	Repository db.KVRepository `inject:"userRepository,dataSourceType=bolt,namespace=user"`
+	Repository bolt.RepositoryInterface `inject:"userRepository,dataSourceType=bolt,namespace=user"`
 }
 
 func (us *UserService) AddUser(user *domain.User) error {

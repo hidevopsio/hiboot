@@ -25,6 +25,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"bytes"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"errors"
 )
 
 type Builder struct {
@@ -79,6 +80,22 @@ func (b *Builder) Build() (interface{}, error) {
 
 	mergo.Merge(conf, confReplacer, mergo.WithOverride, mergo.WithAppendSlice)
 
+	return conf, nil
+}
+
+
+// build config file
+func (b *Builder) BuildWitProfile() (interface{}, error) {
+	name := b.Name + "-" + b.Profile
+	// allow the empty of the profile
+	if b.Profile == "" || b.isFileNotExist(filepath.Join(b.Path, name) + ".") {
+		return nil, errors.New("config file does not exist")
+	}
+
+	conf, err := b.Read(name)
+	if err != nil {
+		return nil, err
+	}
 	return conf, nil
 }
 

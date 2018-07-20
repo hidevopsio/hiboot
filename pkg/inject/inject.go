@@ -5,7 +5,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"strings"
-	"github.com/hidevopsio/hiboot/pkg/starter/db"
+	"github.com/hidevopsio/hiboot/pkg/starter"
 )
 
 
@@ -19,8 +19,40 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 }
 
+func newRepository(c interface{}, repoName string) interface{}  {
+	cv := reflect.ValueOf(c)
+
+	configType := cv.Type()
+	log.Debug("type: ", configType)
+	name := configType.Elem().Name()
+	log.Debug("fieldName: ", name)
+
+	// call Init
+	numOfMethod := cv.NumMethod()
+	log.Debug("methods: ", numOfMethod)
+
+	method := cv.MethodByName("NewRepository")
+
+	numIn := method.Type().NumIn()
+	if numIn == 1 {
+		argv := make([]reflect.Value, numIn)
+		argv[0] = reflect.ValueOf(repoName)
+		retVal := method.Call(argv)
+		instance := retVal[0].Interface()
+		log.Debugf("instantiated: %v", instance)
+		return instance
+	}
+
+	return nil
+}
+
+
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
-func IntoObject(object reflect.Value, dataSources, instances map[string]interface{}) {
+func IntoObject(object reflect.Value) {
+	ac := starter.GetInstance()
+	configurations := ac.Configurations()
+	instances := ac.Instances()
+
 	for _, f := range reflector.DeepFields(object.Type()) {
 		//log.Debugf("parent: %v, name: %v, type: %v, tag: %v", object.Elem().Type(), f.Name, f.Type, f.Tag)
 		injectTag := f.Tag.Get(injectIdentifier)
@@ -52,12 +84,10 @@ func IntoObject(object reflect.Value, dataSources, instances map[string]interfac
 				dst := tags[dataSourceType]
 				switch  {
 				case dst != "":
-					dataSource := dataSources[dst]
-					if dataSource != nil {
-						instances[instanceName] = dataSource
-						ds := dataSource.(db.DataSourceInterface)
-						ds.SetNamespace(tags[namespace])
-						val := reflect.ValueOf(dataSource)
+					cfs := configurations[dst]
+					if cfs != nil {
+						repo := newRepository(cfs, tags[namespace])
+						val := reflect.ValueOf(repo)
 						fieldObj.Set(val)
 						log.Debugf("Injected repository %v into %v.%v", val, obj.Type(), f.Name)
 					}
@@ -75,7 +105,7 @@ func IntoObject(object reflect.Value, dataSources, instances map[string]interfac
 		//log.Debugf("- kind: %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type())
 		//log.Debugf("isValid: %v, canSet: %v", fieldObj.IsValid(), fieldObj.CanSet())
 		if obj.Kind() == reflect.Struct && fieldObj.IsValid() && fieldObj.CanSet() {
-			IntoObject(fieldObj, dataSources, instances)
+			IntoObject(fieldObj)
 		}
 	}
 }
