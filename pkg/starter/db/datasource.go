@@ -5,3 +5,4 @@ type DataSourceInterface interface {
 	Close() error
 	SetNamespace(name string)
 }
+

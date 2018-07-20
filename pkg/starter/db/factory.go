@@ -1,7 +1,6 @@
 package db
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/starter/db/bolt"
 	"fmt"
 )
 
@@ -14,10 +13,10 @@ type DataSourceFactory struct {
 
 }
 
-func (dsf *DataSourceFactory) New(dataSourceType string) (DataSourceInterface, error)  {
-	switch dataSourceType {
-	case DataSourceTypeBolt:
-		return new(bolt.Bolt), nil
-	}
+func (dsf *DataSourceFactory) NewRepository(dataSourceType string, name string) (Repository, error)  {
+	//switch dataSourceType {
+	//case DataSourceTypeBolt:
+	//	return , nil
+	//}
 	return nil, fmt.Errorf("database is not implemented")
 }

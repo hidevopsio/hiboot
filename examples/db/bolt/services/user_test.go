@@ -44,7 +44,7 @@ func TestAddUser(t *testing.T) {
 	assert.Equal(t, nil, err)
 }
 
-func TestGetUserUser(t *testing.T) {
+func TestGetUser(t *testing.T) {
 	u, err := userService.GetUser("1")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "John Doe", u.Name)

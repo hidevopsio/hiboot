@@ -1,0 +1,7 @@
+# config file for testing
+# filename should be application-bolt.yml
+
+bolt:
+  database: hi.db # database file path, e.g. /var/lib/data/hi.db or relative path hi.db
+  mode: 0600 # database file permission
+  timeout: 1 # connection timeout in second
