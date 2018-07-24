@@ -5,23 +5,23 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/starter/db"
 )
 
-type Configuration struct {
-	BoltProperties Properties `mapstructure:"bolt"`
+type configuration struct {
+	BoltProperties properties `mapstructure:"bolt"`
 }
 
 func init() {
-	starter.Add("bolt", Configuration{})
+	starter.Add("bolt", configuration{})
 }
 
-func (c *Configuration) dataSource() *Bolt {
+func (c *configuration) dataSource() *bolt {
 	bolt := GetInstance()
 	bolt.Open(&c.BoltProperties)
 
 	return bolt
 }
 
-func (c *Configuration) NewRepository(name string) db.Repository {
-	repo := new(Repository)
+func (c *configuration) NewRepository(name string) db.Repository {
+	repo := new(repository)
 	repo.SetDataSource(c.dataSource())
 	repo.SetName(name)
 	return repo

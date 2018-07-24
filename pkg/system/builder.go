@@ -25,7 +25,6 @@ import (
 	"gopkg.in/yaml.v2"
 	"bytes"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"errors"
 )
 
 type Builder struct {
@@ -85,11 +84,11 @@ func (b *Builder) Build() (interface{}, error) {
 
 
 // build config file
-func (b *Builder) BuildWitProfile() (interface{}, error) {
+func (b *Builder) BuildWithProfile() (interface{}, error) {
 	name := b.Name + "-" + b.Profile
 	// allow the empty of the profile
 	if b.Profile == "" || b.isFileNotExist(filepath.Join(b.Path, name) + ".") {
-		return nil, errors.New("config file does not exist")
+		return reflector.NewReflectType(b.ConfigType), nil
 	}
 
 	conf, err := b.Read(name)

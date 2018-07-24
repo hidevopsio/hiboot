@@ -6,15 +6,15 @@ import (
 )
 
 func TestNewBolt(t *testing.T) {
-	configuration := new(Configuration)
-	configuration.BoltProperties = Properties{
+	configuration := new(configuration)
+	configuration.BoltProperties = properties{
 		Database: "test.db",
 		Mode: 0600,
 		Timeout: 1,
 	}
 
 	boltRepo := configuration.NewRepository("foo")
-	bolt := boltRepo.DataSource().(*Bolt)
-	assert.NotEqual(t, (*Bolt)(nil), bolt)
+	bolt := boltRepo.DataSource().(*bolt)
+	assert.NotEqual(t, nil, bolt)
 	bolt.Close()
 }

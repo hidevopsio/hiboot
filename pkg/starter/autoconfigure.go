@@ -52,14 +52,22 @@ type SystemConfiguration struct {
 	DataSources []DataSource `mapstructure:"dataSources"`
 }
 
+type AutoConfiguration interface {
+	Build()
+	Instantiate(configuration interface{})
+	Configurations() map[string]interface{}
+	Configuration(name string) interface{}
+	Instances() map[string]interface{}
+	Instance(name string) interface{}
+}
 
-type AutoConfiguration struct {
+type autoConfiguration struct {
 	configurations map[string]interface{}
 	instances map[string]interface{}
 }
 
 var (
-	configuration  *AutoConfiguration
+	configuration  *autoConfiguration
 	configurations map[string]interface{}
 	once sync.Once
 )
@@ -68,10 +76,9 @@ func init() {
 	configurations = make(map[string]interface{})
 }
 
-
-func GetInstance() *AutoConfiguration {
+func GetAutoConfiguration() AutoConfiguration {
 	once.Do(func() {
-		configuration = new(AutoConfiguration)
+		configuration = new(autoConfiguration)
 		configuration.configurations = make(map[string]interface{})
 		configuration.instances = make(map[string]interface{})
 	})
@@ -82,7 +89,7 @@ func Add(name string, conf interface{})  {
 	configurations[name] = conf
 }
 
-func (c *AutoConfiguration) Build()  {
+func (c *autoConfiguration) Build()  {
 
 	workDir := utils.GetWorkDir()
 
@@ -101,7 +108,7 @@ func (c *AutoConfiguration) Build()  {
 	for name, configType := range configurations {
 		builder.ConfigType = configType
 		builder.Profile = name
-		cf, err := builder.BuildWitProfile()
+		cf, err := builder.BuildWithProfile()
 		if err == nil {
 			// create instances
 			c.Instantiate(cf)
@@ -111,7 +118,7 @@ func (c *AutoConfiguration) Build()  {
 	}
 }
 
-func (c *AutoConfiguration) Instantiate(configuration interface{})  {
+func (c *autoConfiguration) Instantiate(configuration interface{})  {
 	cv := reflect.ValueOf(configuration)
 
 	configType := cv.Type()
@@ -140,18 +147,18 @@ func (c *AutoConfiguration) Instantiate(configuration interface{})  {
 	}
 }
 
-func (c *AutoConfiguration) Configurations() map[string]interface{} {
+func (c *autoConfiguration) Configurations() map[string]interface{} {
 	return c.configurations
 }
 
-func (c *AutoConfiguration) Configuration(name string) interface{} {
+func (c *autoConfiguration) Configuration(name string) interface{} {
 	return c.configurations[name]
 }
 
-func (c *AutoConfiguration) Instances() map[string]interface{} {
+func (c *autoConfiguration) Instances() map[string]interface{} {
 	return c.instances
 }
 
-func (c *AutoConfiguration) Instance(name string) interface{} {
+func (c *autoConfiguration) Instance(name string) interface{} {
 	return c.instances[name]
 }

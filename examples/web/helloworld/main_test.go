@@ -27,3 +27,8 @@ func TestController(t *testing.T) {
 		Get("/").
 		Expect().Status(http.StatusOK)
 }
+
+func TestRunMain(t *testing.T) {
+	go main()
+}
+

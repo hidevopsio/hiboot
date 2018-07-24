@@ -46,6 +46,30 @@ func TestBuilderBuild(t *testing.T) {
 	log.Print(c)
 }
 
+
+func TestBuilderBuildWithProfile(t *testing.T) {
+
+	b := &Builder{
+		Path:       filepath.Join(utils.GetWorkDir(), "config"),
+		Name:       "application",
+		FileType:   "yaml",
+		Profile:    "local",
+		ConfigType: Configuration{},
+	}
+
+	cp, err := b.BuildWithProfile()
+	assert.Equal(t, nil, err)
+
+	c := cp.(*Configuration)
+	assert.Equal(t, int32(8080), c.Server.Port)
+	log.Print(c)
+
+	b.Profile = ""
+	cp, err = b.BuildWithProfile()
+	assert.Equal(t, nil, err)
+
+}
+
 func TestFileDoesNotExist(t *testing.T) {
 
 	b := &Builder{

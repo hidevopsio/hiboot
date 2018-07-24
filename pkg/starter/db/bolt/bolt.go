@@ -8,24 +8,24 @@ import (
 	"sync"
 )
 
-type Bolt struct {
+type bolt struct {
 	DB        *boltdb.DB
 	BK        *boltdb.Bucket
 	BS        *boltdb.BucketStats
 }
 
-var instance *Bolt
+var instance *bolt
 var once sync.Once
 
-func GetInstance() *Bolt {
+func GetInstance() *bolt {
 	once.Do(func() {
-		instance = &Bolt{}
+		instance = &bolt{}
 	})
 	return instance
 }
 
 // Open bolt database
-func (b *Bolt) Open(properties *Properties) error {
+func (b *bolt) Open(properties *properties) error {
 
 	if b.DB != nil {
 		return nil
@@ -50,14 +50,14 @@ func (b *Bolt) Open(properties *Properties) error {
 }
 
 // Close database
-func (b *Bolt) Close() error {
+func (b *bolt) Close() error {
 	err := b.DB.Close()
 	b.DB = nil
 	return err
 }
 
 // Put inserts a key:value pair into the database
-func (b *Bolt) Put(bucket, key, value []byte) error {
+func (b *bolt) Put(bucket, key, value []byte) error {
 	//dbPath := bt.db.Path()
 	//log.Println("DB Info: ", reflect.TypeOf(dbPath), dbPath)
 	err := b.DB.Update(func(tx *boltdb.Tx) error {
@@ -75,7 +75,7 @@ func (b *Bolt) Put(bucket, key, value []byte) error {
 }
 
 // Get retrieves a key:value pair from the database
-func (b *Bolt) Get(bucket, key []byte) (result []byte, err error)  {
+func (b *bolt) Get(bucket, key []byte) (result []byte, err error)  {
 	b.DB.View(func(tx *boltdb.Tx) error {
 		b := tx.Bucket(bucket)
 		if b != nil {
@@ -93,7 +93,7 @@ func (b *Bolt) Get(bucket, key []byte) (result []byte, err error)  {
 }
 
 // DeleteKey removes a key:value pair from the database
-func (b *Bolt) Delete(bucket, key []byte) (err error) {
+func (b *bolt) Delete(bucket, key []byte) (err error) {
 
 	err = b.DB.Update(func(tx *boltdb.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists(bucket)

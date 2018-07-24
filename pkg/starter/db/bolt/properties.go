@@ -2,7 +2,7 @@ package bolt
 
 import "os"
 
-type Properties struct {
+type properties struct {
 	Database string      `json:"database"`
 	Mode     os.FileMode `json:"mode"`
 	Timeout  int64       `json:"timeout"`

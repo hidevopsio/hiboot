@@ -45,7 +45,7 @@ func TestBuild(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, n, len(fakeContent))
 
-	config := GetInstance()
+	config := GetAutoConfiguration()
 	config.Build()
 
 	fc := config.Configuration("fake").(*FakeConfiguration)
