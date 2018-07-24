@@ -14,7 +14,7 @@ var (
 
 func TestRepositoryCrd(t *testing.T) {
 
-	properties := &Properties{
+	properties := &properties{
 		Database: "test.db",
 		Mode: 0600,
 		Timeout: 2,
@@ -27,7 +27,7 @@ func TestRepositoryCrd(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 
-	r := &Repository{}
+	r := &repository{}
 	r.SetDataSource(b)
 
 	r.SetName(testBucket)
@@ -50,11 +50,11 @@ func TestRepositoryCrd(t *testing.T) {
 	})
 
 	// close bolt database
-	r.DataSource().(*Bolt).Close()
+	r.DataSource().(*bolt).Close()
 }
 
 func TestRepositoryWithNilDataSource(t *testing.T) {
-	r := &Repository{}
+	r := &repository{}
 
 	t.Run("should put data into bolt database", func(t *testing.T) {
 		err := r.Put(testKey, testValue)

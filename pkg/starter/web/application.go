@@ -64,7 +64,7 @@ type Application struct {
 	httpMethods       []string
 	dataSources       map[string]interface{}
 	instances         map[string]interface{}
-	autoConfiguration *starter.AutoConfiguration
+	autoConfiguration starter.AutoConfiguration
 }
 
 // Health is the health check struct
@@ -132,7 +132,7 @@ func (wa *Application) Init(controllers ...interface{}) error {
 		http.MethodTrace,
 	}
 
-	wa.autoConfiguration = starter.GetInstance()
+	wa.autoConfiguration = starter.GetAutoConfiguration()
 	wa.autoConfiguration.Build()
 
 	config := wa.autoConfiguration.Configuration(starter.System)

@@ -10,7 +10,7 @@ func TestBoltCrd(t *testing.T) {
 	testKey := []byte("hello")
 	testValue := []byte("world")
 
-	properties := &Properties{
+	properties := &properties{
 		Database: "test.db",
 		Mode: 0600,
 		Timeout: 1,
@@ -46,7 +46,7 @@ func TestBoltErrorHandling(t *testing.T) {
 
 	b := GetInstance()
 
-	properties := &Properties{
+	properties := &properties{
 		Database: "test.db",
 		Mode: 0600,
 		Timeout: 2,

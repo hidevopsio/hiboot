@@ -13,10 +13,17 @@ const (
 	injectIdentifier = "inject"
 	dataSourceType = "dataSourceType"
 	namespace = "namespace"
+	table = "table"
 )
+
+var (
+	autoConfiguration starter.AutoConfiguration
+)
+
 
 func init() {
 	log.SetLevel(log.DebugLevel)
+	autoConfiguration = starter.GetAutoConfiguration()
 }
 
 func newRepository(c interface{}, repoName string) interface{}  {
@@ -46,12 +53,11 @@ func newRepository(c interface{}, repoName string) interface{}  {
 	return nil
 }
 
-
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
 func IntoObject(object reflect.Value) {
-	ac := starter.GetInstance()
-	configurations := ac.Configurations()
-	instances := ac.Instances()
+
+	configurations := autoConfiguration.Configurations()
+	instances := autoConfiguration.Instances()
 
 	for _, f := range reflector.DeepFields(object.Type()) {
 		//log.Debugf("parent: %v, name: %v, type: %v, tag: %v", object.Elem().Type(), f.Name, f.Type, f.Tag)
@@ -78,28 +84,39 @@ func IntoObject(object reflect.Value) {
 			ft = ft.Elem()
 		}
 		//log.Debugf("+ %v, %v, %v", object.Type(), fieldObj.Type(), ft)
-		if instanceName != "" {
-			if fieldObj.CanSet() {
+		if instanceName != "" && fieldObj.CanSet() {
+			// first, find if object is already instantiated
+			fo := instances[instanceName]
+			if fo == nil {
 				// parse tag and instantiate filed
 				dst := tags[dataSourceType]
-				switch  {
+				switch {
 				case dst != "":
 					cfs := configurations[dst]
 					if cfs != nil {
-						repo := newRepository(cfs, tags[namespace])
-						val := reflect.ValueOf(repo)
-						fieldObj.Set(val)
-						log.Debugf("Injected repository %v into %v.%v", val, obj.Type(), f.Name)
+						name := tags[namespace]
+						if name == "" {
+							name = tags[table]
+						}
+						if name == "" {
+							log.Warn("please specify namespace or table for the repository")
+							break
+						}
+						fo = newRepository(cfs, tags[namespace])
+						instances[instanceName] = fo
 					}
 
 				default:
 					o := reflect.New(ft)
-					instances[instanceName] = o.Interface()
-					//log.Debug(fieldObj, o)
-					fieldObj.Set(o)
-					//log.Debug(fieldObj, o)
-					log.Debugf("Injected service %v into %v.%v", o, obj.Type(), f.Name)
+					fo = o.Interface()
+					instances[instanceName] = fo
 				}
+			}
+			// set field object
+			if fo != nil {
+				fov := reflect.ValueOf(fo)
+				fieldObj.Set(fov)
+				log.Debugf("Injected %v(%v) into %v.%v", fov, fov.Type(), obj.Type(), f.Name)
 			}
 		}
 		//log.Debugf("- kind: %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type())

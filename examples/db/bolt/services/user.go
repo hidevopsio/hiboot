@@ -9,7 +9,7 @@ import (
 )
 
 type UserService struct {
-	Repository bolt.RepositoryInterface `inject:"userRepository,dataSourceType=bolt,namespace=user"`
+	Repository bolt.Repository `inject:"userRepository,dataSourceType=bolt,namespace=user"`
 }
 
 func (us *UserService) AddUser(user *domain.User) error {
