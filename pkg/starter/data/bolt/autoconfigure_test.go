@@ -7,7 +7,7 @@ import (
 
 func TestNewBolt(t *testing.T) {
 	configuration := new(configuration)
-	configuration.BoltProperties = properties{
+	configuration.Bolt = properties{
 		Database: "test.db",
 		Mode: 0600,
 		Timeout: 1,
