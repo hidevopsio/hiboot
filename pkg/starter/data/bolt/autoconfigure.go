@@ -6,7 +6,9 @@ import (
 )
 
 type configuration struct {
-	BoltProperties properties `mapstructure:"bolt"`
+	// the properties member name must be Bolt if the mapstructure is bolt,
+	// so that the reference can be parsed
+	Bolt properties `mapstructure:"bolt"`
 }
 
 func init() {
@@ -15,7 +17,7 @@ func init() {
 
 func (c *configuration) dataSource() *bolt {
 	bolt := GetInstance()
-	bolt.Open(&c.BoltProperties)
+	bolt.Open(&c.Bolt)
 
 	return bolt
 }
