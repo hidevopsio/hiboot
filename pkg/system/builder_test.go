@@ -23,6 +23,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type profiles struct {
+	Include []string `json:"include"`
+	Active  string   `json:"active"`
+}
+
+type app struct {
+	Project        string   `json:"project"`
+	Name           string   `json:"name"`
+	Profiles       profiles `json:"profiles"`
+	DataSourceType string   `json:"data_source_type"`
+}
+
+type server struct {
+	Port int32 `json:"port"`
+}
+
+type logging struct {
+	Level string `json:"level"`
+}
+
+type Configuration struct {
+	App         app          `mapstructure:"app"`
+	Server      server       `mapstructure:"server"`
+	Logging     logging      `mapstructure:"logging"`
+}
+
 func init() {
 	utils.ChangeWorkDir("../../")
 }
@@ -44,6 +70,30 @@ func TestBuilderBuild(t *testing.T) {
 	assert.Equal(t, "hiboot", c.App.Name)
 
 	log.Print(c)
+}
+
+
+func TestBuilderBuildWithProfile(t *testing.T) {
+
+	b := &Builder{
+		Path:       filepath.Join(utils.GetWorkDir(), "config"),
+		Name:       "application",
+		FileType:   "yaml",
+		Profile:    "local",
+		ConfigType: Configuration{},
+	}
+
+	cp, err := b.BuildWithProfile()
+	assert.Equal(t, nil, err)
+
+	c := cp.(*Configuration)
+	assert.Equal(t, int32(8080), c.Server.Port)
+	log.Print(c)
+
+	b.Profile = ""
+	cp, err = b.BuildWithProfile()
+	assert.Equal(t, nil, err)
+
 }
 
 func TestFileDoesNotExist(t *testing.T) {
@@ -125,11 +175,11 @@ func TestBuilderSave(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	c := &Configuration{
-		App: App{
+		App: app{
 			Name: "foo",
 			Project: "bar",
 		},
-		Server: Server{
+		Server: server{
 			Port: 8080,
 		},
 	}

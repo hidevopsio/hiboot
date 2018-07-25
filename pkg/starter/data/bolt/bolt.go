@@ -2,42 +2,43 @@ package bolt
 
 import (
 	"time"
-	"os"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	boltdb "github.com/boltdb/bolt"
-	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
+	"errors"
+	"sync"
 )
 
-type Bolt struct {
+type bolt struct {
 	DB        *boltdb.DB
 	BK        *boltdb.Bucket
 	BS        *boltdb.BucketStats
-	namespace []byte
 }
 
-type DataSource struct {
-	Type     string        `json:"type"`
-	Database string        `json:"database"`
-	Mode     os.FileMode   `json:"mode"`
-	Timeout  int64         `json:"timeout"`
-}
+var instance *bolt
+var once sync.Once
 
-func (b *Bolt) SetNamespace(name string)  {
-	b.namespace = []byte(name)
+func GetInstance() *bolt {
+	once.Do(func() {
+		instance = &bolt{}
+	})
+	return instance
 }
 
 // Open bolt database
-func (b *Bolt) Open(dataSource interface{}) error {
+func (b *bolt) Open(properties *properties) error {
 
-	var ds DataSource
-	err := mapstruct.Decode(&ds, dataSource)
-	if err != nil {
-		return err
+	if b.DB != nil {
+		return nil
 	}
 
-	b.DB, err = boltdb.Open(ds.Database,
-		ds.Mode,
-		&boltdb.Options{Timeout: time.Duration(ds.Timeout) * time.Second},
+	if properties == nil {
+		return errors.New("properties must not be nil")
+	}
+
+	var err error
+	b.DB, err = boltdb.Open(properties.Database,
+		properties.Mode,
+		&boltdb.Options{Timeout: time.Duration(properties.Timeout) * time.Second},
 	)
 
 	if err != nil {
@@ -49,16 +50,18 @@ func (b *Bolt) Open(dataSource interface{}) error {
 }
 
 // Close database
-func (b *Bolt) Close() error {
-	return b.DB.Close()
+func (b *bolt) Close() error {
+	err := b.DB.Close()
+	b.DB = nil
+	return err
 }
 
 // Put inserts a key:value pair into the database
-func (b *Bolt) Put(key, value []byte) error {
+func (b *bolt) Put(bucket, key, value []byte) error {
 	//dbPath := bt.db.Path()
 	//log.Println("DB Info: ", reflect.TypeOf(dbPath), dbPath)
 	err := b.DB.Update(func(tx *boltdb.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists(b.namespace)
+		bucket, err := tx.CreateBucketIfNotExists(bucket)
 		if err != nil {
 			return err
 		}
@@ -72,9 +75,9 @@ func (b *Bolt) Put(key, value []byte) error {
 }
 
 // Get retrieves a key:value pair from the database
-func (b *Bolt) Get(key []byte) (result []byte, err error)  {
+func (b *bolt) Get(bucket, key []byte) (result []byte, err error)  {
 	b.DB.View(func(tx *boltdb.Tx) error {
-		b := tx.Bucket(b.namespace)
+		b := tx.Bucket(bucket)
 		if b != nil {
 			v := b.Get(key)
 			if v != nil {
@@ -90,10 +93,10 @@ func (b *Bolt) Get(key []byte) (result []byte, err error)  {
 }
 
 // DeleteKey removes a key:value pair from the database
-func (b *Bolt) Delete(key []byte) (err error) {
+func (b *bolt) Delete(bucket, key []byte) (err error) {
 
 	err = b.DB.Update(func(tx *boltdb.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists(b.namespace)
+		bucket, err := tx.CreateBucketIfNotExists(bucket)
 		if err != nil {
 			return err
 		}

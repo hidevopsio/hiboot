@@ -2,18 +2,17 @@ package services
 
 import (
 	"testing"
-	"github.com/hidevopsio/hiboot/examples/db/bolt/domain"
+	"github.com/hidevopsio/hiboot/examples/data/bolt/domain"
 	"github.com/stretchr/testify/assert"
 	"encoding/json"
 	"errors"
+	"github.com/hidevopsio/hiboot/pkg/starter/data"
 )
 
 var userService *UserService
 
-type FakeRepository struct {}
-
-func (r *FakeRepository) Put(key, value []byte) error  {
-	return nil
+type FakeRepository struct {
+	data.BaseKVRepository
 }
 
 func (r *FakeRepository) Get(key []byte) ([]byte, error)  {
@@ -30,10 +29,6 @@ func (r *FakeRepository) Get(key []byte) ([]byte, error)  {
 	return u, err
 }
 
-func (r *FakeRepository) Delete(key []byte) error {
-	return nil
-}
-
 func init() {
 	userService = &UserService{Repository: &FakeRepository{}}
 }
@@ -44,7 +39,7 @@ func TestAddUser(t *testing.T) {
 	assert.Equal(t, nil, err)
 }
 
-func TestGetUserUser(t *testing.T) {
+func TestGetUser(t *testing.T) {
 	u, err := userService.GetUser("1")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "John Doe", u.Name)

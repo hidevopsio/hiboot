@@ -53,6 +53,7 @@ func init() {
 	utils.ChangeWorkDir("../../../")
 	Add(new(FooController))
 	Add(new(BarController))
+	Add(new(FoobarController))
 }
 
 func (c *FooController) Before(ctx *Context)  {
@@ -120,6 +121,26 @@ func (c *BarController) Get(ctx *Context)  {
 
 }
 
+type FoobarController struct {
+	Controller
+}
+
+func (c *FoobarController) Post(ctx *Context)  {
+	foo := &FooRequest{}
+	err := ctx.RequestForm(foo)
+	if err == nil {
+		ctx.ResponseBody("Success", &FooResponse{Greeting: "hello, " + foo.Name})
+	} else {
+		ctx.ResponseError(err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (c *FoobarController) Get(ctx *Context)  {
+	foo := &FooRequest{}
+	if ctx.RequestParams(foo) == nil {
+		ctx.ResponseBody("Success", &FooResponse{Greeting: "hello, " + foo.Name})
+	}
+}
 
 // Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
 // the lower cased foo will be the context mapping of the controller
@@ -185,6 +206,16 @@ func TestWebApplication(t *testing.T)  {
 
 	ta.Get("/bar").
 		Expect().Status(http.StatusUnauthorized)
+
+	// test request form
+	ta.Post("/foobar").
+		WithFormField("name", "John Doe").
+		Expect().Status(http.StatusInternalServerError)
+
+	//  test request query
+	ta.Get("/foobar").
+		WithQuery("name", "John Doe").
+		Expect().Status(http.StatusOK)
 
 	// test jwt
 	pt, err := GenerateJwtToken(JwtMap{

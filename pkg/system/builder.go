@@ -27,6 +27,11 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 )
 
+type Env struct {
+	Name  string
+	Value string
+}
+
 type Builder struct {
 	Path       string
 	Name       string
@@ -79,6 +84,22 @@ func (b *Builder) Build() (interface{}, error) {
 
 	mergo.Merge(conf, confReplacer, mergo.WithOverride, mergo.WithAppendSlice)
 
+	return conf, nil
+}
+
+
+// build config file
+func (b *Builder) BuildWithProfile() (interface{}, error) {
+	name := b.Name + "-" + b.Profile
+	// allow the empty of the profile
+	if b.Profile == "" || b.isFileNotExist(filepath.Join(b.Path, name) + ".") {
+		return reflector.NewReflectType(b.ConfigType), nil
+	}
+
+	conf, err := b.Read(name)
+	if err != nil {
+		return nil, err
+	}
 	return conf, nil
 }
 
