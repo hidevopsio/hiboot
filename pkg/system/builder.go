@@ -27,6 +27,11 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 )
 
+type Env struct {
+	Name  string
+	Value string
+}
+
 type Builder struct {
 	Path       string
 	Name       string

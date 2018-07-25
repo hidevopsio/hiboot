@@ -2,10 +2,10 @@
 package services
 
 import (
-	"encoding/json"
-	"github.com/hidevopsio/hiboot/examples/db/bolt/domain"
 	"fmt"
-	"github.com/hidevopsio/hiboot/pkg/starter/db/bolt"
+	"encoding/json"
+	"github.com/hidevopsio/hiboot/examples/data/bolt/domain"
+	"github.com/hidevopsio/hiboot/pkg/starter/data/bolt"
 )
 
 type UserService struct {

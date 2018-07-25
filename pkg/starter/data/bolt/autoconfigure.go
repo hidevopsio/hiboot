@@ -2,10 +2,11 @@ package bolt
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter"
-	"github.com/hidevopsio/hiboot/pkg/starter/db"
+	"github.com/hidevopsio/hiboot/pkg/starter/data"
 )
 
 type configuration struct {
+	data.Configuration
 	BoltProperties properties `mapstructure:"bolt"`
 }
 
@@ -20,7 +21,7 @@ func (c *configuration) dataSource() *bolt {
 	return bolt
 }
 
-func (c *configuration) NewRepository(name string) db.Repository {
+func (c *configuration) NewRepository(name string) data.Repository {
 	repo := new(repository)
 	repo.SetDataSource(c.dataSource())
 	repo.SetName(name)

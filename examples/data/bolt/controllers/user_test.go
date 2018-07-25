@@ -4,7 +4,7 @@ import (
 	"testing"
 	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
-	"github.com/hidevopsio/hiboot/examples/db/bolt/domain"
+	"github.com/hidevopsio/hiboot/examples/data/bolt/domain"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"github.com/hidevopsio/hiboot/pkg/log"
 )

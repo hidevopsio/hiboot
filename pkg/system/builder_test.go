@@ -23,6 +23,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type profiles struct {
+	Include []string `json:"include"`
+	Active  string   `json:"active"`
+}
+
+type app struct {
+	Project        string   `json:"project"`
+	Name           string   `json:"name"`
+	Profiles       profiles `json:"profiles"`
+	DataSourceType string   `json:"data_source_type"`
+}
+
+type server struct {
+	Port int32 `json:"port"`
+}
+
+type logging struct {
+	Level string `json:"level"`
+}
+
+type Configuration struct {
+	App         app          `mapstructure:"app"`
+	Server      server       `mapstructure:"server"`
+	Logging     logging      `mapstructure:"logging"`
+}
+
 func init() {
 	utils.ChangeWorkDir("../../")
 }
@@ -149,11 +175,11 @@ func TestBuilderSave(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	c := &Configuration{
-		App: App{
+		App: app{
 			Name: "foo",
 			Project: "bar",
 		},
-		Server: Server{
+		Server: server{
 			Port: 8080,
 		},
 	}
