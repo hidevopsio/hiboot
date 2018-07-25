@@ -21,6 +21,7 @@ import (
 	"os"
 	"regexp"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 // ParseVariables parse reference and env variables
@@ -41,14 +42,29 @@ func ReplaceStringVariables(source string, t interface{}) string {
 		varFullName := match[0]
 		// replace references
 		varName := match[1]
+
+		// check if it contains default value
+		var defaultValue string
+		n := strings.Index(varName, ":")
+		if n > 0 {
+			defaultValue = varName[n + 1:]
+			varName = varName[:n]
+			log.Debugf("name: %v, default value: %v", varName, defaultValue)
+		}
+
 		vars := strings.SplitN(varName, ".", -1)
 		refValue := ParseReferences(t, vars)
+		if refValue == "" && defaultValue != "" {
+			refValue = defaultValue
+		}
 		// replace env
-		envValue := os.Getenv(varName)
 		if refValue != "" {
 			source = strings.Replace(source, varFullName, refValue, -1)
 		}
-		source = strings.Replace(source, varFullName, envValue, -1)
+		envValue := os.Getenv(varName)
+		if envValue != "" {
+			source = strings.Replace(source, varFullName, envValue, -1)
+		}
 	}
 	return source
 }

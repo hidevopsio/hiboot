@@ -22,13 +22,14 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
 )
 
+func TestRunMain(t *testing.T) {
+	go main()
+}
+
 func TestController(t *testing.T) {
 	web.NewTestApplication(t, new(Controller)).
 		Get("/").
 		Expect().Status(http.StatusOK)
 }
 
-func TestRunMain(t *testing.T) {
-	go main()
-}
 

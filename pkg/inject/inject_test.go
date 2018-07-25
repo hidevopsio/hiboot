@@ -16,7 +16,7 @@ type fakeRepository struct {
 	data.BaseKVRepository
 }
 
-type fakeConfiguration struct{
+type fakeConfiguration struct {
 }
 
 func (c *fakeConfiguration) NewRepository(name string) data.Repository {
@@ -25,10 +25,18 @@ func (c *fakeConfiguration) NewRepository(name string) data.Repository {
 	return repo
 }
 
-type fooConfiguration struct{
+// FooUser an instance fooUser is injectable with tag `inject:"fooUser"`
+func (c *fakeConfiguration) FooUser() *user {
+	u := new(user)
+	u.Name = "foo"
+	return u
+}
+
+type fooConfiguration struct {
 }
 
 type fooService struct {
+	FooUser       *user           `inject:"fooUser"`
 	FooRepository data.Repository `inject:"fooRepository,dataSourceType=foo,table=foo"`
 }
 
@@ -37,9 +45,10 @@ type barService struct {
 }
 
 type userService struct {
-	User           *user           `inject:"user"`
+	User           *user             `inject:"user"`
+	FooUser        *user             `inject:"fooUser"`
 	UserRepository data.KVRepository `inject:"userRepository,dataSourceType=fake,namespace=user"`
-	Url            string          `value:"${fake.url:http://localhost:8080}"`
+	Url            string            `value:"${fake.url:http://localhost:8080}"`
 }
 
 type fooBarService struct {
@@ -47,7 +56,7 @@ type fooBarService struct {
 }
 
 type foobarRecursiveInject struct {
-	Foobar *fooBarService `inject:"foobarService"`
+	FoobarService *fooBarService `inject:"foobarService"`
 }
 
 type recursiveInject struct {
@@ -71,6 +80,7 @@ func TestInject(t *testing.T) {
 		err := IntoObject(reflect.ValueOf(us))
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, (*user)(nil), us.User)
+		assert.Equal(t, "foo", us.FooUser.Name)
 		assert.NotEqual(t, (*fakeRepository)(nil), us.UserRepository)
 	})
 
@@ -80,10 +90,10 @@ func TestInject(t *testing.T) {
 		assert.Equal(t, "method NewRepository(name string) is not implemented", err.Error())
 	})
 
-
 	t.Run("should not inject repository with invalid configuration", func(t *testing.T) {
 		fs := new(fooService)
 		err := IntoObject(reflect.ValueOf(fs))
+		assert.Equal(t, "foo", fs.FooUser.Name)
 		assert.Equal(t, "method NewRepository(name string) is not implemented", err.Error())
 	})
 

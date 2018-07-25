@@ -6,7 +6,6 @@ import (
 )
 
 type configuration struct {
-	data.Configuration
 	BoltProperties properties `mapstructure:"bolt"`
 }
 

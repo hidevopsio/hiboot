@@ -109,6 +109,19 @@ func TestReplaceStringVariables(t *testing.T) {
 	assert.Equal(t, "Hello foo", s)
 }
 
+
+func TestReplaceStringVariablesWithDefaultValue(t *testing.T) {
+	f := &Foo{
+		Name: "foo",
+		Bar: Bar{
+			Name: "Hello ${foo.name:foo:bar}",
+		},
+	}
+
+	s := ReplaceStringVariables(f.Bar.Name, f)
+	assert.Equal(t, "Hello foo:bar", s)
+}
+
 func TestReplaceMap(t *testing.T) {
 	b := &Bar{
 		Name:    "bar",
