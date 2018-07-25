@@ -5,7 +5,8 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"strings"
-	"github.com/hidevopsio/hiboot/pkg/starter/db"
+	"github.com/hidevopsio/hiboot/pkg/starter"
+	"errors"
 )
 
 
@@ -13,14 +14,54 @@ const (
 	injectIdentifier = "inject"
 	dataSourceType = "dataSourceType"
 	namespace = "namespace"
+	table = "table"
 )
+
+var (
+	autoConfiguration starter.AutoConfiguration
+)
+
 
 func init() {
 	log.SetLevel(log.DebugLevel)
+	autoConfiguration = starter.GetAutoConfiguration()
+}
+
+func newRepository(c interface{}, repoName string) (interface{}, error)  {
+	cv := reflect.ValueOf(c)
+
+	configType := cv.Type()
+	log.Debug("type: ", configType)
+	name := configType.Elem().Name()
+	log.Debug("fieldName: ", name)
+
+	// call Init
+	numOfMethod := cv.NumMethod()
+	log.Debug("methods: ", numOfMethod)
+
+	method := cv.MethodByName("NewRepository")
+
+	if method.IsValid() {
+		numIn := method.Type().NumIn()
+		if numIn == 1 {
+			argv := make([]reflect.Value, numIn)
+			argv[0] = reflect.ValueOf(repoName)
+			retVal := method.Call(argv)
+			instance := retVal[0].Interface()
+			log.Debugf("instantiated: %v", instance)
+			return instance, nil
+		}
+	}
+
+	return nil, errors.New("method NewRepository(name string) is not implemented")
 }
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
-func IntoObject(object reflect.Value, dataSources, instances map[string]interface{}) {
+func IntoObject(object reflect.Value) error {
+    var err error
+	configurations := autoConfiguration.Configurations()
+	instances := autoConfiguration.Instances()
+
 	for _, f := range reflector.DeepFields(object.Type()) {
 		//log.Debugf("parent: %v, name: %v, type: %v, tag: %v", object.Elem().Type(), f.Name, f.Type, f.Tag)
 		injectTag := f.Tag.Get(injectIdentifier)
@@ -46,38 +87,53 @@ func IntoObject(object reflect.Value, dataSources, instances map[string]interfac
 			ft = ft.Elem()
 		}
 		//log.Debugf("+ %v, %v, %v", object.Type(), fieldObj.Type(), ft)
-		if instanceName != "" {
-			if fieldObj.CanSet() {
+		if instanceName != "" && fieldObj.CanSet() {
+			// first, find if object is already instantiated
+			fo := instances[instanceName]
+			if fo == nil {
 				// parse tag and instantiate filed
 				dst := tags[dataSourceType]
-				switch  {
+				switch {
 				case dst != "":
-					dataSource := dataSources[dst]
-					if dataSource != nil {
-						instances[instanceName] = dataSource
-						ds := dataSource.(db.DataSourceInterface)
-						ds.SetNamespace(tags[namespace])
-						val := reflect.ValueOf(dataSource)
-						fieldObj.Set(val)
-						log.Debugf("Injected repository %v into %v.%v", val, obj.Type(), f.Name)
+					cfs := configurations[dst]
+					if cfs != nil {
+						name := tags[namespace]
+						if name == "" {
+							name = tags[table]
+						}
+						if name == "" {
+							return errors.New("namespace or table name does not specified")
+						}
+						fo, err = newRepository(cfs, tags[namespace])
+						if err != nil {
+							return err
+						}
+						instances[instanceName] = fo
 					}
 
 				default:
 					o := reflect.New(ft)
-					instances[instanceName] = o.Interface()
-					//log.Debug(fieldObj, o)
-					fieldObj.Set(o)
-					//log.Debug(fieldObj, o)
-					log.Debugf("Injected service %v into %v.%v", o, obj.Type(), f.Name)
+					fo = o.Interface()
+					instances[instanceName] = fo
 				}
+			}
+			// set field object
+			if fo != nil {
+				fov := reflect.ValueOf(fo)
+				fieldObj.Set(fov)
+				log.Debugf("Injected %v(%v) into %v.%v", fov, fov.Type(), obj.Type(), f.Name)
 			}
 		}
 		//log.Debugf("- kind: %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type())
 		//log.Debugf("isValid: %v, canSet: %v", fieldObj.IsValid(), fieldObj.CanSet())
 		if obj.Kind() == reflect.Struct && fieldObj.IsValid() && fieldObj.CanSet() {
-			IntoObject(fieldObj, dataSources, instances)
+			err := IntoObject(fieldObj)
+			if err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 

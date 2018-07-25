@@ -174,7 +174,7 @@ func TestParseVariables(t *testing.T) {
 	os.Setenv("FOO", "foo")
 	os.Setenv("BAR", "bar")
 	os.Setenv("foo.bar", "fb")
-	source := "the-${FOO}-${BAR}-${foo.bar}-env"
+	source := "the-${FOO}-${BAR}-${foo.bar}-env-${url:http://localhost:8080}-${foo.bar:${nested.prop1}-${nested.prop2}}"
 
 	re := regexp.MustCompile(`\$\{(.*?)\}`)
 
@@ -185,6 +185,11 @@ func TestParseVariables(t *testing.T) {
 	assert.Equal(t, "FOO", matches[0][1])
 	assert.Equal(t, "${BAR}", matches[1][0])
 	assert.Equal(t, "BAR", matches[1][1])
+
+	for i, v := range matches {
+		log.Debugf("%v, %v -> %v", i, v[0], v[1])
+	}
+
 }
 
 func TestReplaceReferences(t *testing.T) {
@@ -222,3 +227,4 @@ func TestReplaceReferences(t *testing.T) {
 		assert.Equal(t, "", res)
 	})
 }
+

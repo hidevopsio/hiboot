@@ -3,8 +3,8 @@ package controllers
 import (
 	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
-	"github.com/hidevopsio/hiboot/examples/db/bolt/domain"
-	"github.com/hidevopsio/hiboot/examples/db/bolt/services"
+	"github.com/hidevopsio/hiboot/examples/data/bolt/domain"
+	"github.com/hidevopsio/hiboot/examples/data/bolt/services"
 )
 
 type UserController struct {

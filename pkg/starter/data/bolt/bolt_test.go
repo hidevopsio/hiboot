@@ -6,38 +6,36 @@ import (
 )
 
 func TestBoltCrd(t *testing.T) {
-	testBucket := "test-bucket"
-	testKey := "hello"
-	testValue := "world"
-	
-	dataSource := make(map[string]interface{})
+	testBucket := []byte("test-bucket")
+	testKey := []byte("hello")
+	testValue := []byte("world")
 
-	dataSource["database"] = "test.db"
-	dataSource["mode"] = 0600
-	dataSource["timeout"] = 2
+	properties := &properties{
+		Database: "test.db",
+		Mode: 0600,
+		Timeout: 1,
+	}
 
-	b := &Bolt{}
+	b := GetInstance()
 
 	t.Run("should open bolt database", func(t *testing.T) {
-		err := b.Open(dataSource)
+		err := b.Open(properties)
 		assert.Equal(t, nil, err)
 	})
 
-	b.SetNamespace(testBucket)
-
 	t.Run("should put data into bolt database", func(t *testing.T) {
-		err := b.Put([]byte(testKey), []byte(testValue))
+		err := b.Put(testBucket, testKey, testValue)
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should get data into bolt database", func(t *testing.T) {
-		val, err := b.Get([]byte(testKey))
+		val, err := b.Get(testBucket, testKey)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, testValue, string(val))
+		assert.Equal(t, testValue, val)
 	})
 
 	t.Run("should delete data into bolt database", func(t *testing.T) {
-		err := b.Delete([]byte(testKey))
+		err := b.Delete(testBucket, testKey)
 		assert.Equal(t, nil, err)
 	})
 	// close bolt database
@@ -46,21 +44,31 @@ func TestBoltCrd(t *testing.T) {
 
 func TestBoltErrorHandling(t *testing.T) {
 
-	b := &Bolt{}
+	b := GetInstance()
 
-	dataSource := make(map[string]interface{})
-
-	dataSource["database"] = "test.db"
-	dataSource["mode"] = 0600
-	dataSource["timeout"] = 2
+	properties := &properties{
+		Database: "test.db",
+		Mode: 0600,
+		Timeout: 2,
+	}
 
 	t.Run("should return error if dataSource input is nil ", func(t *testing.T) {
 		err := b.Open(nil)
-		assert.Equal(t, "parameters of mapstruct.Decode must not be nil", err.Error())
+		assert.Equal(t, "properties must not be nil", err.Error())
 	})
 
 	t.Run("should return error ", func(t *testing.T) {
-		err := b.Open(dataSource)
+
+		err := b.Open(properties)
+		assert.Equal(t, nil, err)
+		b.Close()
+	})
+
+	t.Run("should return error ", func(t *testing.T) {
+
+		err := b.Open(properties)
+		assert.Equal(t, nil, err)
+		err = b.Open(properties)
 		assert.Equal(t, nil, err)
 		b.Close()
 	})
