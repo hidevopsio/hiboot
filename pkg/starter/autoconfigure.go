@@ -104,6 +104,7 @@ func (c *autoConfiguration) Build()  {
 	if err == nil {
 		c.configurations[System] = defaultConfig
 	}
+	utils.Replace(defaultConfig, defaultConfig)
 
 	for name, configType := range configurations {
 		builder.ConfigType = configType
@@ -115,6 +116,9 @@ func (c *autoConfiguration) Build()  {
 			// save configuration
 			c.configurations[name] = cf
 		}
+		// replace references and environment variables
+		utils.Replace(cf, defaultConfig)
+		utils.Replace(cf, cf)
 	}
 }
 
@@ -140,9 +144,12 @@ func (c *autoConfiguration) Instantiate(configuration interface{})  {
 			argv := make([]reflect.Value, numIn)
 			argv[0] = reflect.ValueOf(configuration)
 			retVal := method.Func.Call(argv)
-			instance := retVal[0].Interface()
-			log.Debugf("instantiated: %v", instance)
-			c.instances[utils.LowerFirst(methodName)] = instance
+			// save instance
+			if retVal[0].CanInterface() {
+				instance := retVal[0].Interface()
+				log.Debugf("instantiated: %v", instance)
+				c.instances[utils.LowerFirst(methodName)] = instance
+			}
 		}
 	}
 }

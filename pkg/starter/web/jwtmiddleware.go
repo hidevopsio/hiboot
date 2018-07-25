@@ -40,14 +40,14 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 
 	// If debugging is turned on, log the outcome
 	if err != nil {
-		log.Errorf("Error extracting JWT: %v", err)
+		log.Errorf("error extracting JWT: %v", err)
 	} else {
-		log.Debugf("Token extracted: %s", token)
+		log.Debugf("token extracted: %s", token)
 	}
 
 	// If an error occurs, call the error handler and return an error
 	if err != nil {
-		return fmt.Errorf("Error extracting token: %v", err)
+		return fmt.Errorf("error extracting token: %v", err)
 	}
 
 	// If the token is empty...
@@ -70,7 +70,7 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 	// Check if there was an error in parsing...
 	if err != nil {
 		log.Debugf("Error parsing token: %v", err)
-		return fmt.Errorf("Error parsing token: %v", err)
+		return fmt.Errorf("error parsing token: %v", err)
 	}
 
 	if m.Config.SigningMethod != nil && m.Config.SigningMethod.Alg() != parsedToken.Header["alg"] {
@@ -78,13 +78,13 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 			m.Config.SigningMethod.Alg(),
 			parsedToken.Header["alg"])
 		log.Debugf("Error validating token algorithm: %s", message)
-		return fmt.Errorf("Error validating token algorithm: %s", message)
+		return fmt.Errorf("error validating token algorithm: %s", message)
 	}
 
 	// Check if the parsed token is valid...
 	if !parsedToken.Valid {
 		log.Debug("Token is invalid")
-		return fmt.Errorf("Token is invalid")
+		return fmt.Errorf("token is invalid")
 	}
 
 	log.Debugf("JWT: %v", parsedToken)

@@ -19,11 +19,33 @@ import (
 	"testing"
 	"github.com/kataras/golog"
 	"github.com/kataras/pio"
+	"os"
+	"time"
 )
 
 func init() {
 
 }
+
+func TestScan(t *testing.T) {
+	f := newLogFile("foo.log")
+	defer f.Close()
+
+	SetOutput(f)
+
+	b := newLogFile("bar.log")
+	defer f.Close()
+	AddOutput(b)
+
+	_ = Scan(os.Stdin)
+	// type and enter one or more sentences to your console,
+	// wait 10 seconds and open the .txt file.
+	<-time.After(1 * time.Second)
+
+	os.Remove("foo.log")
+	os.Remove("bar.log")
+}
+
 
 func TestNewLine(t *testing.T) {
 	NewLine("\n")
@@ -139,7 +161,12 @@ func TestFatalf(t *testing.T) {
 
 }
 
-//func TestScan(t *testing.T) {
-//	var r io.Reader
-//	Scan(r)
-//}
+func newLogFile(filename string) *os.File {
+	// open an output file, this will append to the today's file if server restarted.
+	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+
+	return f
+}

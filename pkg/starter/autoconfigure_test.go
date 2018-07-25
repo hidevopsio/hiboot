@@ -11,10 +11,12 @@ import (
 
 type FakeProperties struct {
 	Name string
+	Nickname string
+	Username string
 }
 
 type FakeConfiguration struct {
-	FakeProperties FakeProperties `mapstructure:"fake"`
+	Fake FakeProperties `mapstructure:"fake"`
 }
 
 type Foo struct {
@@ -29,7 +31,7 @@ func init() {
 
 func (c *FakeConfiguration) Foo() *Foo {
 	f := new(Foo)
-	f.Name = c.FakeProperties.Name
+	f.Name = c.Fake.Name
 
 	return f
 }
@@ -40,7 +42,9 @@ func TestBuild(t *testing.T) {
 
 	fakeContent :=
 		"fake:\n" +
-		"  name: foo\n"
+		"  name: foo\n" +
+		"  nickname: ${app.name} ${fake.name}\n" +
+		"  username: ${unknown.name:bar}\n"
 	n, err := utils.WriterFile(configPath, fakeFile, []byte(fakeContent))
 	assert.Equal(t, nil, err)
 	assert.Equal(t, n, len(fakeContent))
@@ -49,7 +53,10 @@ func TestBuild(t *testing.T) {
 	config.Build()
 
 	fc := config.Configuration("fake").(*FakeConfiguration)
-	assert.Equal(t, "foo", fc.FakeProperties.Name)
+
+	assert.Equal(t, "hiboot foo", fc.Fake.Nickname)
+	assert.Equal(t, "bar", fc.Fake.Username)
+	assert.Equal(t, "foo", fc.Fake.Name)
 	assert.Equal(t, "foo", config.Instances()["foo"].(*Foo).Name)
 
 	os.Remove(filepath.Join(configPath, fakeFile))
