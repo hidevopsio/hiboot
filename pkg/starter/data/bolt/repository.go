@@ -2,17 +2,15 @@ package bolt
 
 import (
 	"errors"
-	"github.com/hidevopsio/hiboot/pkg/starter/db"
+	"github.com/hidevopsio/hiboot/pkg/starter/data"
 )
 
 type Repository interface {
-	Put(key, value []byte) error
-	Get(key []byte) (result []byte, err error)
-	Delete(key []byte) (err error)
+	data.KVRepository
 }
 
 type repository struct {
-	db.BaseRepository
+	data.BaseKVRepository
 }
 
 var NilPointError = errors.New("dataSource is nil")

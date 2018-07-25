@@ -6,6 +6,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"strings"
 	"github.com/hidevopsio/hiboot/pkg/starter"
+	"errors"
 )
 
 
@@ -26,7 +27,7 @@ func init() {
 	autoConfiguration = starter.GetAutoConfiguration()
 }
 
-func newRepository(c interface{}, repoName string) interface{}  {
+func newRepository(c interface{}, repoName string) (interface{}, error)  {
 	cv := reflect.ValueOf(c)
 
 	configType := cv.Type()
@@ -40,22 +41,24 @@ func newRepository(c interface{}, repoName string) interface{}  {
 
 	method := cv.MethodByName("NewRepository")
 
-	numIn := method.Type().NumIn()
-	if numIn == 1 {
-		argv := make([]reflect.Value, numIn)
-		argv[0] = reflect.ValueOf(repoName)
-		retVal := method.Call(argv)
-		instance := retVal[0].Interface()
-		log.Debugf("instantiated: %v", instance)
-		return instance
+	if method.IsValid() {
+		numIn := method.Type().NumIn()
+		if numIn == 1 {
+			argv := make([]reflect.Value, numIn)
+			argv[0] = reflect.ValueOf(repoName)
+			retVal := method.Call(argv)
+			instance := retVal[0].Interface()
+			log.Debugf("instantiated: %v", instance)
+			return instance, nil
+		}
 	}
 
-	return nil
+	return nil, errors.New("method NewRepository(name string) is not implemented")
 }
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
-func IntoObject(object reflect.Value) {
-
+func IntoObject(object reflect.Value) error {
+    var err error
 	configurations := autoConfiguration.Configurations()
 	instances := autoConfiguration.Instances()
 
@@ -99,10 +102,12 @@ func IntoObject(object reflect.Value) {
 							name = tags[table]
 						}
 						if name == "" {
-							log.Warn("please specify namespace or table for the repository")
-							break
+							return errors.New("namespace or table name does not specified")
 						}
-						fo = newRepository(cfs, tags[namespace])
+						fo, err = newRepository(cfs, tags[namespace])
+						if err != nil {
+							return err
+						}
 						instances[instanceName] = fo
 					}
 
@@ -122,9 +127,13 @@ func IntoObject(object reflect.Value) {
 		//log.Debugf("- kind: %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type())
 		//log.Debugf("isValid: %v, canSet: %v", fieldObj.IsValid(), fieldObj.CanSet())
 		if obj.Kind() == reflect.Struct && fieldObj.IsValid() && fieldObj.CanSet() {
-			IntoObject(fieldObj)
+			err := IntoObject(fieldObj)
+			if err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 

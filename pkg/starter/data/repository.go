@@ -1,4 +1,4 @@
-package db
+package data
 
 type Repository interface {
 	SetName(name string)
