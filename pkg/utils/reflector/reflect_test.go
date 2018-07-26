@@ -133,3 +133,17 @@ func TestValidateReflectType(t *testing.T) {
 	})
 
 }
+
+func TestGetName(t *testing.T) {
+	n, err := GetName(new(Foo))
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "Foo", n)
+
+	n, err = GetName(Foo{})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "Foo", n)
+
+	n, err = GetLowerCaseName(new(Foo))
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "foo", n)
+}

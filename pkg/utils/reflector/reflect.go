@@ -17,6 +17,7 @@ package reflector
 import (
 	"reflect"
 	"errors"
+	"strings"
 )
 
 func NewReflectType(st interface{}) interface{} {
@@ -123,4 +124,21 @@ func ValidateReflectType(obj interface{}, callback func(value *reflect.Value, re
 	}
 
 	return err
+}
+
+func GetName(data interface{}) (string, error)  {
+	dv := Indirect(reflect.ValueOf(data))
+
+	// Return is from value is invalid
+	if !dv.IsValid() {
+		return "", errors.New("value is not valid")
+	}
+	name := dv.Type().Name()
+	return name, nil
+}
+
+func GetLowerCaseName(data interface{}) (string, error) {
+	name, err := GetName(data)
+	name = strings.ToLower(name)
+	return name, err
 }

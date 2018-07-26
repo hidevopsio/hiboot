@@ -23,7 +23,7 @@ import (
 func init() {
 
 	// Just for using the config files under examples/db/bolt
-	utils.EnsureWorkDir("examples/db/bolt")
+	utils.EnsureWorkDir("examples/data/bolt")
 
 }
 
