@@ -1,4 +1,4 @@
-package domain
+package model
 
 type User struct {
 	Id string `json:"id" validate:"required"`

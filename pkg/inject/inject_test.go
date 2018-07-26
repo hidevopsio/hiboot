@@ -21,7 +21,7 @@ type fakeConfiguration struct {
 
 func (c *fakeConfiguration) NewRepository(name string) data.Repository {
 	repo := new(fakeRepository)
-	repo.SetName(name)
+	repo.SetDataSource(new(fakeRepository))
 	return repo
 }
 

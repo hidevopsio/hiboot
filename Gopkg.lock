@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "cloud.google.com/go"
+  packages = ["civil"]
+  revision = "aad3f485ee528456e0768f20397b4d9dd941e755"
+  version = "v0.25.0"
+
+[[projects]]
   name = "github.com/BurntSushi/toml"
   packages = ["."]
   revision = "b26d9c308763d68093482582cea63d69be07a0f0"
@@ -36,6 +42,12 @@
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/denisenkom/go-mssqldb"
+  packages = [".","internal/cp"]
+  revision = "242fa5aa1b45aeb9fcdfeee88822982e3f548e22"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -78,6 +90,12 @@
   name = "github.com/gavv/monotime"
   packages = ["."]
   revision = "6f8212e8d10df7383609d3c377ca08884d8f3ec0"
+
+[[projects]]
+  name = "github.com/go-sql-driver/mysql"
+  packages = ["."]
+  revision = "d523deb1b23d913de5bdada721a6071e71283618"
+  version = "v1.4.0"
 
 [[projects]]
   branch = "master"
@@ -134,6 +152,18 @@
   version = "v10"
 
 [[projects]]
+  name = "github.com/jinzhu/gorm"
+  packages = [".","dialects/mssql","dialects/mysql","dialects/postgres","dialects/sqlite"]
+  revision = "6ed508ec6a4ecb3531899a69cbc746ccf65a4166"
+  version = "v1.9.1"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/jinzhu/inflection"
+  packages = ["."]
+  revision = "04140366298a54a039076d798123ffa108fff46c"
+
+[[projects]]
   branch = "master"
   name = "github.com/json-iterator/go"
   packages = ["."]
@@ -188,6 +218,12 @@
   version = "v1.1"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/lib/pq"
+  packages = [".","hstore","oid"]
+  revision = "90697d60dd844d5ef6ff15135d0203f65d2f53b8"
+
+[[projects]]
   name = "github.com/magiconair/properties"
   packages = [".","assert"]
   revision = "c3beff4c2358b44d0493c7dda585e7db7ff28ae6"
@@ -204,6 +240,12 @@
   packages = ["."]
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
   version = "v0.0.3"
+
+[[projects]]
+  name = "github.com/mattn/go-sqlite3"
+  packages = ["."]
+  revision = "25ecb14adfc7543176f7d85291ec7dba82c6f7e4"
+  version = "v1.9.0"
 
 [[projects]]
   branch = "master"
@@ -352,7 +394,7 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["acme","acme/autocert"]
+  packages = ["acme","acme/autocert","md4"]
   revision = "d6449816ce06963d9d136eee5a56fca5b0616e7e"
 
 [[projects]]
@@ -372,6 +414,12 @@
   packages = ["collate","collate/build","internal/colltab","internal/gen","internal/tag","internal/triegen","internal/ucd","language","secure/bidirule","transform","unicode/bidi","unicode/cldr","unicode/norm","unicode/rangetable"]
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
+
+[[projects]]
+  name = "google.golang.org/appengine"
+  packages = ["cloudsql"]
+  revision = "b1f26356af11148e710935ed1ac8a7f5702c7612"
+  version = "v1.1.0"
 
 [[projects]]
   name = "gopkg.in/AlecAivazis/survey.v1"
@@ -406,6 +454,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "246ca8b82078a00ca43faeb2779cf8a340ad82091a4e99417302230b27d906d9"
+  inputs-digest = "169fb2a80767fbf8ee6faddde2d67114b9ec10ac6672979abae07d4c1ec8b935"
   solver-name = "gps-cdcl"
   solver-version = 1

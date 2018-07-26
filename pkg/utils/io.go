@@ -19,11 +19,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
-func ChangeWorkDir(workdir string) {
+func ChangeWorkDir(workDir string) error {
 
-	os.Chdir(workdir)
+	return os.Chdir(workDir)
 
 }
 
@@ -124,7 +125,10 @@ func DirName(s string) string {
 func EnsureWorkDir(path string) string  {
 	wd := GetWorkDir()
 	if ! strings.Contains(wd, path) {
-		ChangeWorkDir(path)
+		err := ChangeWorkDir(path)
+		if err != nil {
+			log.Error(err)
+		}
 		wd = GetWorkDir()
 	}
 	return wd

@@ -3,39 +3,28 @@ package services
 
 import (
 	"fmt"
-	"encoding/json"
-	"github.com/hidevopsio/hiboot/examples/data/bolt/domain"
+	"github.com/hidevopsio/hiboot/examples/data/bolt/model"
 	"github.com/hidevopsio/hiboot/pkg/starter/data/bolt"
 )
 
 type UserService struct {
-	Repository bolt.Repository `inject:"userRepository,dataSourceType=bolt,namespace=user"`
+	Repository bolt.Repository `inject:"boltRepository"`
 }
 
-func (us *UserService) AddUser(user *domain.User) error {
+func (us *UserService) AddUser(user *model.User) error {
 	if us.Repository == nil {
 		return fmt.Errorf("repository is not injected")
 	}
-	u, err := json.Marshal(user)
-	if err == nil {
-		us.Repository.Put([]byte(user.Id), u)
-	}
-	return err
+
+	return us.Repository.Put(user)
 }
 
-func (us *UserService) GetUser(id string) (*domain.User, error) {
+func (us *UserService) GetUser(id string) (*model.User, error) {
 	if us.Repository == nil {
 		return nil, fmt.Errorf("repository is not injected")
 	}
-	u, err := us.Repository.Get([]byte(id))
-	if err != nil {
-		return nil, err
-	}
-	if len(u) == 0 {
-		return nil, fmt.Errorf("user is not found")
-	}
-	var user domain.User
-	err = json.Unmarshal(u, &user)
+	var user model.User
+	err := us.Repository.Get(id, &user)
 	return &user, err
 }
 
@@ -43,6 +32,6 @@ func (us *UserService) DeleteUser(id string) error {
 	if us.Repository == nil {
 		return fmt.Errorf("repository is not injected")
 	}
-	return us.Repository.Delete([]byte(id))
+	return us.Repository.Delete(id, &model.User{})
 }
 

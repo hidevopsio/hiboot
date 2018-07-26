@@ -107,18 +107,22 @@ func (c *autoConfiguration) Build()  {
 	utils.Replace(defaultConfig, defaultConfig)
 
 	for name, configType := range configurations {
+		// inject properties
 		builder.ConfigType = configType
 		builder.Profile = name
 		cf, err := builder.BuildWithProfile()
+
+		// replace references and environment variables
+		utils.Replace(cf, defaultConfig)
+		utils.Replace(cf, cf)
+
+		// instantiation
 		if err == nil {
 			// create instances
 			c.Instantiate(cf)
 			// save configuration
 			c.configurations[name] = cf
 		}
-		// replace references and environment variables
-		utils.Replace(cf, defaultConfig)
-		utils.Replace(cf, cf)
 	}
 }
 
