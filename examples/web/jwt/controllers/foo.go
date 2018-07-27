@@ -18,7 +18,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"time"
-	"net/http"
 )
 
 type UserRequest struct {
@@ -57,18 +56,14 @@ func (c *FooController) PostLogin(ctx *web.Context) {
 
 	userRequest := &UserRequest{}
 	if ctx.RequestBody(userRequest) == nil {
-		jwtToken, err := web.GenerateJwtToken(web.JwtMap{
+		jwtToken, _ := web.GenerateJwtToken(web.JwtMap{
 			"username": userRequest.Username,
 			"password": userRequest.Password,
 		}, 10, time.Minute)
 
 		//log.Debugf("token: %v", *jwtToken)
 
-		if err == nil {
-			ctx.ResponseBody("success", jwtToken)
-		} else {
-			ctx.ResponseError(err.Error(), http.StatusInternalServerError)
-		}
+		ctx.ResponseBody("success", jwtToken)
 	}
 }
 

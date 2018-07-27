@@ -143,7 +143,7 @@ func TestGetName(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "Foo", n)
 
-	n, err = GetLowerCaseName(new(Foo))
+	n, err = GetLowerCaseObjectName(new(Foo))
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "foo", n)
 }

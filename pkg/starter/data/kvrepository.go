@@ -22,7 +22,7 @@ func (r *BaseKVRepository) getKey(value interface{}, id string) string  {
 	return ""
 }
 
-func (r *BaseKVRepository) Parse(params []interface{}) ([]byte, []byte, interface{}, error) {
+func (r *BaseKVRepository) Parse(params ...interface{}) ([]byte, []byte, interface{}, error) {
 	var key string
 	var value interface{}
 	if len(params) == 2 {
@@ -39,7 +39,7 @@ func (r *BaseKVRepository) Parse(params []interface{}) ([]byte, []byte, interfac
 		}
 	}
 
-	bucket, err := reflector.GetLowerCaseName(value)
+	bucket, err := reflector.GetLowerCaseObjectName(value)
 	if err != nil {
 		return nil, nil, nil, err
 	}

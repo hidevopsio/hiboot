@@ -28,3 +28,16 @@ func TestDataSource(t *testing.T) {
 	// close bolt database
 	d.Close()
 }
+
+
+func TestDataSourceWithEmptyFile(t *testing.T) {
+
+	properties := &properties{
+		Timeout: 2,
+	}
+	d := GetDataSource()
+	t.Run("should open bolt database", func(t *testing.T) {
+		err := d.Open(properties)
+		assert.NotEqual(t, nil, err)
+	})
+}

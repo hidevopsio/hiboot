@@ -8,7 +8,7 @@ import (
 type configuration struct {
 	// the properties member name must be Gorm if the mapstructure is gorm,
 	// so that the reference can be parsed
-	Gorm properties `mapstructure:"gorm"`
+	GormProperties properties `mapstructure:"gorm"`
 }
 
 func init() {
@@ -16,15 +16,16 @@ func init() {
 }
 
 func (c *configuration) dataSource() DataSource {
-	ds := GetDataSource()
-	if ! ds.IsOpened() {
-		ds.Open(&c.Gorm)
+	dataSource := GetDataSource()
+	if ! dataSource.IsOpened() {
+		dataSource.Open(&c.GormProperties)
 	}
-	return ds
+	return dataSource
 }
 
+// GormRepository method name must be unique
 func (c *configuration) GormRepository() data.Repository {
-	repo := GetRepository()
-	repo.SetDataSource(c.dataSource())
-	return repo
+	repository := GetRepository()
+	repository.SetDataSource(c.dataSource())
+	return repository
 }

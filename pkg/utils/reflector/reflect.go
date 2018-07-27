@@ -20,6 +20,8 @@ import (
 	"strings"
 )
 
+var InvalidInputError = errors.New("input is invalid")
+
 func NewReflectType(st interface{}) interface{} {
 	ct := reflect.TypeOf(st)
 	co := reflect.New(ct)
@@ -131,13 +133,13 @@ func GetName(data interface{}) (string, error)  {
 
 	// Return is from value is invalid
 	if !dv.IsValid() {
-		return "", errors.New("value is not valid")
+		return "", InvalidInputError
 	}
 	name := dv.Type().Name()
 	return name, nil
 }
 
-func GetLowerCaseName(data interface{}) (string, error) {
+func GetLowerCaseObjectName(data interface{}) (string, error) {
 	name, err := GetName(data)
 	name = strings.ToLower(name)
 	return name, err

@@ -43,6 +43,11 @@ type SubBar struct {
 	Age int
 }
 
+
+type FooBar struct {
+	TheSubBar    SubBar `mapstructure:"foo"`
+}
+
 func TestParseReferences(t *testing.T) {
 
 	testCases := []struct {
@@ -138,6 +143,9 @@ func TestReplaceMap(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "bar", b.SubMap["name"])
 	assert.Equal(t, "nested bar", b.SubMap["nestedMap"].(map[string]interface{})["name"])
+
+	err = ReplaceMap(nil, nil)
+	assert.Equal(t, NilPointerError, err)
 }
 
 
@@ -241,3 +249,15 @@ func TestReplaceReferences(t *testing.T) {
 	})
 }
 
+func TestGetReferenceValue(t *testing.T) {
+	fb := &FooBar{TheSubBar: SubBar{Name: "bar", Age: 18}}
+	val := GetReferenceValue(fb, "foo")
+	log.Debugf("%v : %v", fb.TheSubBar, val.Interface())
+	assert.Equal(t, fb.TheSubBar, val.Interface())
+}
+
+func TestGetMatches(t *testing.T) {
+	mcs := GetMatches("should find ${app.name} and ${app.role} here")
+	assert.Equal(t, "app.name", mcs[0][1])
+	assert.Equal(t, "app.role", mcs[1][1])
+}

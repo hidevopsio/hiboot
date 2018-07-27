@@ -6,22 +6,37 @@ import (
 	"reflect"
 	"github.com/hidevopsio/hiboot/pkg/starter/data"
 	"github.com/hidevopsio/hiboot/pkg/starter"
+	"github.com/hidevopsio/hiboot/pkg/utils"
+	"path/filepath"
+	"os"
 )
 
 type user struct {
 	Name string
+	App  string
 }
 
 type fakeRepository struct {
 	data.BaseKVRepository
 }
 
-type fakeConfiguration struct {
+type fakeProperties struct {
+	Name     string
+	Nickname string
+	Username string
+	Url      string
 }
 
-func (c *fakeConfiguration) NewRepository(name string) data.Repository {
+type fakeConfiguration struct {
+	Properties fakeProperties `mapstructure:"fake"`
+}
+
+type fakeDataSource struct {
+}
+
+func (c *fakeConfiguration) FakeRepository() data.Repository {
 	repo := new(fakeRepository)
-	repo.SetDataSource(new(fakeRepository))
+	repo.SetDataSource(new(fakeDataSource))
 	return repo
 }
 
@@ -36,23 +51,29 @@ type fooConfiguration struct {
 }
 
 type fooService struct {
-	FooUser       *user           `inject:"fooUser"`
-	FooRepository data.Repository `inject:"fooRepository,dataSourceType=foo,table=foo"`
+	FooUser       *user           `inject:"fooUser,name=foo"`
+	FooRepository data.Repository `inject:"fooRepository"`
+}
+
+type hibootService struct {
+	HibootUser *user `inject:"hibootUser,name=${app.name}"`
 }
 
 type barService struct {
-	FooRepository data.Repository `inject:"barRepository,dataSourceType=foo"`
+	FooRepository data.Repository `inject:"barRepository"`
 }
 
 type userService struct {
-	User           *user             `inject:"user"`
-	FooUser        *user             `inject:"fooUser"`
-	UserRepository data.KVRepository `inject:"userRepository,dataSourceType=fake,namespace=user"`
-	Url            string            `value:"${fake.url:http://localhost:8080}"`
+	User       *user           `inject:"user"`
+	FooUser    *user           `inject:"fooUser,name=foo"`
+	FakeUser   *user           `inject:"fakeUser,name=${fake.name},app=${app.name}"`
+	Repository data.Repository `inject:"fakeRepository"`
+	DefaultUrl string          `value:"${fake.defaultUrl:http://localhost:8080}"`
+	Url        string          `value:"${fake.url}"`
 }
 
 type fooBarService struct {
-	FooBarRepository data.KVRepository `inject:"foobarRepository,dataSourceType=foo,namespace=foobar"`
+	FooBarRepository data.Repository `inject:"foobarRepository"`
 }
 
 type foobarRecursiveInject struct {
@@ -63,7 +84,28 @@ type recursiveInject struct {
 	UserService *userService
 }
 
+var (
+	appName = "hiboot"
+	fakeName = "fake"
+	fooName = "foo"
+	fakeUrl = "http://fake.com/api/foo"
+	defaultUrl = "http://localhost:8080"
+)
+
 func init() {
+	utils.EnsureWorkDir("../..")
+
+	configPath := filepath.Join(utils.GetWorkDir(), "config")
+	fakeFile := "application-fake.yaml"
+	os.Remove(filepath.Join(configPath, fakeFile))
+	fakeContent :=
+		"fake:" +
+		"\n  name: " + fakeName +
+		"\n  nickname: ${app.name} ${fake.name}\n" +
+		"\n  username: ${unknown.name:bar}\n" +
+		"\n  url: " + fakeUrl
+	utils.WriterFile(configPath, fakeFile, []byte(fakeContent))
+
 	starter.Add("fake", fakeConfiguration{})
 	starter.Add("foo", fooConfiguration{})
 	starter.GetAutoConfiguration().Build()
@@ -80,27 +122,38 @@ func TestInject(t *testing.T) {
 		err := IntoObject(reflect.ValueOf(us))
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, (*user)(nil), us.User)
-		assert.Equal(t, "foo", us.FooUser.Name)
-		assert.NotEqual(t, (*fakeRepository)(nil), us.UserRepository)
+		assert.Equal(t, fooName, us.FooUser.Name)
+		assert.Equal(t, fakeName, us.FakeUser.Name)
+		assert.Equal(t, appName, us.FakeUser.App)
+		assert.Equal(t, fakeUrl, us.Url)
+		assert.Equal(t, defaultUrl, us.DefaultUrl)
+		assert.NotEqual(t, (*fakeRepository)(nil), us.Repository)
 	})
 
-	t.Run("should not inject foobar repository", func(t *testing.T) {
+	t.Run("should not inject unimplemented interface into FooBarRepository", func(t *testing.T) {
 		fb := new(foobarRecursiveInject)
 		err := IntoObject(reflect.ValueOf(fb))
-		assert.Equal(t, "method NewRepository(name string) is not implemented", err.Error())
+		assert.Contains(t, err.Error(), "data.Repository is not implemented")
 	})
 
-	t.Run("should not inject repository with invalid configuration", func(t *testing.T) {
+	t.Run("should not inject unimplemented interface into FooRepository", func(t *testing.T) {
 		fs := new(fooService)
 		err := IntoObject(reflect.ValueOf(fs))
 		assert.Equal(t, "foo", fs.FooUser.Name)
-		assert.Equal(t, "method NewRepository(name string) is not implemented", err.Error())
+		assert.Contains(t, err.Error(), "data.Repository is not implemented")
 	})
 
-	t.Run("should not inject repository with invalid repository name", func(t *testing.T) {
+	t.Run("should not inject system property into object", func(t *testing.T) {
+		fs := new(hibootService)
+		err := IntoObject(reflect.ValueOf(fs))
+		assert.Equal(t, nil, err)
+		assert.Equal(t, appName, fs.HibootUser.Name)
+	})
+
+	t.Run("should not inject unimplemented interface into BarRepository", func(t *testing.T) {
 		bs := new(barService)
 		err := IntoObject(reflect.ValueOf(bs))
-		assert.Equal(t, "namespace or table name does not specified", err.Error())
+		assert.Contains(t, err.Error(), "data.Repository is not implemented")
 	})
 
 	t.Run("should inject recursively", func(t *testing.T) {
@@ -108,6 +161,6 @@ func TestInject(t *testing.T) {
 		err := IntoObject(reflect.ValueOf(ps))
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, (*user)(nil), ps.UserService.User)
-		assert.NotEqual(t, (*fakeRepository)(nil), ps.UserService.UserRepository)
+		assert.NotEqual(t, (*fakeRepository)(nil), ps.UserService.Repository)
 	})
 }
