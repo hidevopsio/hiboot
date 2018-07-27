@@ -1,12 +1,17 @@
-package gorm
+package adapter
 
 import (
 	"database/sql"
 	"github.com/jinzhu/gorm"
+	"errors"
 )
 
-type DBAdapter interface {
+type Gorm interface {
 	Open(dialect string, args ...interface{}) (db *gorm.DB, err error)
+	Close() error
+}
+
+type DB interface {
 	AddError(err error) error
 	AddForeignKey(field string, dest string, onDelete string, onUpdate string) *gorm.DB
 	AddIndex(indexName string, columns ...string) *gorm.DB
@@ -86,4 +91,22 @@ type DBAdapter interface {
 	UpdateColumns(values interface{}) *gorm.DB
 	Updates(values interface{}, ignoreProtectedAttrs ...bool) *gorm.DB
 	Where(query interface{}, args ...interface{}) *gorm.DB
+}
+
+type GormDataSource struct {
+	db *gorm.DB
+}
+
+var DatabaseIsNotOpenedError = errors.New("database is not opened")
+
+func (d *GormDataSource) Open(dialect string, args ...interface{}) (db *gorm.DB, err error) {
+	d.db, err = gorm.Open(dialect, args...)
+	return d.db, err
+}
+
+func (d *GormDataSource) Close() error {
+	if d.db != nil {
+		return d.db.Close()
+	}
+	return DatabaseIsNotOpenedError
 }
