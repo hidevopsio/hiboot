@@ -27,7 +27,7 @@ func (r *FakeRepository) Get(params ...interface{}) error  {
 }
 
 func init() {
-	userService = &UserService{Repository: &FakeRepository{}}
+	userService = &UserService{BoltRepository: &FakeRepository{}}
 }
 
 func TestAddUser(t *testing.T) {

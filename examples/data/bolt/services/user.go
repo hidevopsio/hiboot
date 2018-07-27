@@ -8,30 +8,31 @@ import (
 )
 
 type UserService struct {
-	Repository bolt.Repository `inject:"boltRepository"`
+	// will inject BoltRepository that configured in github.com/hidevopsio/hiboot/pkg/starter/data/bolt
+	BoltRepository bolt.Repository `inject:""`
 }
 
 func (us *UserService) AddUser(user *model.User) error {
-	if us.Repository == nil {
+	if us.BoltRepository == nil {
 		return fmt.Errorf("repository is not injected")
 	}
 
-	return us.Repository.Put(user)
+	return us.BoltRepository.Put(user)
 }
 
 func (us *UserService) GetUser(id string) (*model.User, error) {
-	if us.Repository == nil {
+	if us.BoltRepository == nil {
 		return nil, fmt.Errorf("repository is not injected")
 	}
 	var user model.User
-	err := us.Repository.Get(id, &user)
+	err := us.BoltRepository.Get(id, &user)
 	return &user, err
 }
 
 func (us *UserService) DeleteUser(id string) error {
-	if us.Repository == nil {
+	if us.BoltRepository == nil {
 		return fmt.Errorf("repository is not injected")
 	}
-	return us.Repository.Delete(id, &model.User{})
+	return us.BoltRepository.Delete(id, &model.User{})
 }
 

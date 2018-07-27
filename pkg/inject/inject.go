@@ -54,12 +54,12 @@ func replaceReferences(val string) string  {
 	return replacedVal
 }
 
-func parseInjectTag(tagValue string) (string, map[string]interface{}) {
+func parseInjectTag(tagValue string) map[string]interface{} {
 
 	tags := make(map[string]interface{}) // ? map[string]string
 
 	args := strings.Split(tagValue, ",")
-	for _, v := range args[1:] {
+	for _, v := range args {
 		//log.Debug(v)
 		kv := strings.Split(v, "=")
 		if len(kv) == 2 {
@@ -71,7 +71,7 @@ func parseInjectTag(tagValue string) (string, map[string]interface{}) {
 		}
 	}
 
-	return args[0], tags
+	return tags
 }
 
 func parseValue(valueTag string) string  {
@@ -101,33 +101,35 @@ func IntoObject(object reflect.Value) error {
 		if f.Type.Kind() == reflect.Ptr {
 			ft = ft.Elem()
 		}
-
-		valueTag := f.Tag.Get(valueIdentifier)
-		value := parseValue(valueTag)
-		if value != "" {
-			injectedObject = value
+		valueTag, ok := f.Tag.Lookup(valueIdentifier)
+		if ok {
+			//log.Debugf("value tag: %v, %v", valueTag, ok)
+			injectedObject = parseValue(valueTag)
 		} else {
-			injectTag := f.Tag.Get(injectIdentifier)
-			instanceName, tags := parseInjectTag(injectTag)
+			injectTag, ok := f.Tag.Lookup(injectIdentifier)
+			if ok {
+				//log.Debugf("inject tag: %v, %v", injectTag, ok)
+				instanceName := f.Name
+				tags := parseInjectTag(injectTag)
 
-			//log.Debugf("+ %v, %v, %v", object.Type(), fieldObj.Type(), ft)
-			if instanceName != "" {
+				//log.Debugf("+ %v, %v, %v", object.Type(), fieldObj.Type(), ft)
 				// first, find if object is already instantiated
 				injectedObject = instances[instanceName]
 				//log.Debugf("field kind: %v", ft.Kind())
-				if injectedObject == nil && ft.Kind() == reflect.Interface {
-					return errors.New("interface " + ft.PkgPath() + "." + ft.Name() + " is not implemented in " + obj.Type().Name())
-				}
-				if injectedObject == nil && ft.Kind() != reflect.Interface {
-					// if object is not exist, then instantiate new object
-					// parse tag and instantiate filed
-					o := reflect.New(ft)
-					injectedObject = o.Interface()
-					// inject field value
-					if len(tags) != 0 {
-						mapstruct.Decode(injectedObject, tags)
+				if injectedObject == nil {
+					if ft.Kind() == reflect.Interface {
+						return errors.New("interface " + ft.PkgPath() + "." + ft.Name() + " is not implemented in " + obj.Type().Name())
+					} else {
+						// if object is not exist, then instantiate new object
+						// parse tag and instantiate filed
+						o := reflect.New(ft)
+						injectedObject = o.Interface()
+						// inject field value
+						if len(tags) != 0 {
+							mapstruct.Decode(injectedObject, tags)
+						}
+						instances[instanceName] = injectedObject
 					}
-					instances[instanceName] = injectedObject
 				}
 			}
 		}
@@ -136,7 +138,7 @@ func IntoObject(object reflect.Value) error {
 		if injectedObject != nil && fieldObj.CanSet() {
 			fov := reflect.ValueOf(injectedObject)
 			fieldObj.Set(fov)
-			log.Infof("Injected %v.(%v) into %v.%v", injectedObject, fov.Type(), obj.Type(), f.Name)
+			log.Debugf("Injected %v.(%v) into %v.%v", injectedObject, fov.Type(), obj.Type(), f.Name)
 		}
 
 		//log.Debugf("- kind: %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type())

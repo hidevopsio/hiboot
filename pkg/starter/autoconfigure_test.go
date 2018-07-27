@@ -16,7 +16,7 @@ type FakeProperties struct {
 }
 
 type FakeConfiguration struct {
-	Fake FakeProperties `mapstructure:"fake"`
+	FakeProperties FakeProperties `mapstructure:"fake"`
 }
 
 type Foo struct {
@@ -31,7 +31,7 @@ func init() {
 
 func (c *FakeConfiguration) Foo() *Foo {
 	f := new(Foo)
-	f.Name = c.Fake.Name
+	f.Name = c.FakeProperties.Name
 
 	return f
 }
@@ -55,8 +55,8 @@ func TestBuild(t *testing.T) {
 	assert.NotEqual(t, nil, fci)
 	fc := fci.(*FakeConfiguration)
 
-	assert.Equal(t, "hiboot foo", fc.Fake.Nickname)
-	assert.Equal(t, "bar", fc.Fake.Username)
-	assert.Equal(t, "foo", fc.Fake.Name)
-	assert.Equal(t, "foo", config.Instances()["foo"].(*Foo).Name)
+	assert.Equal(t, "hiboot foo", fc.FakeProperties.Nickname)
+	assert.Equal(t, "bar", fc.FakeProperties.Username)
+	assert.Equal(t, "foo", fc.FakeProperties.Name)
+	assert.Equal(t, "foo", config.Instances()["Foo"].(*Foo).Name)
 }

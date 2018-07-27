@@ -51,33 +51,33 @@ type fooConfiguration struct {
 }
 
 type fooService struct {
-	FooUser       *user           `inject:"fooUser,name=foo"`
-	FooRepository data.Repository `inject:"fooRepository"`
+	FooUser       *user           `inject:"name=foo"`
+	FooRepository data.Repository `inject:""`
 }
 
 type hibootService struct {
-	HibootUser *user `inject:"hibootUser,name=${app.name}"`
+	HibootUser *user `inject:"name=${app.name}"`
 }
 
 type barService struct {
-	FooRepository data.Repository `inject:"barRepository"`
+	FooRepository data.Repository `inject:""`
 }
 
 type userService struct {
-	User       *user           `inject:"user"`
-	FooUser    *user           `inject:"fooUser,name=foo"`
-	FakeUser   *user           `inject:"fakeUser,name=${fake.name},app=${app.name}"`
-	Repository data.Repository `inject:"fakeRepository"`
-	DefaultUrl string          `value:"${fake.defaultUrl:http://localhost:8080}"`
-	Url        string          `value:"${fake.url}"`
+	User           *user           `inject:""`
+	FooUser        *user           `inject:"name=foo"`
+	FakeUser       *user           `inject:"name=${fake.name},app=${app.name}"`
+	FakeRepository data.Repository `inject:""`
+	DefaultUrl     string          `value:"${fake.defaultUrl:http://localhost:8080}"`
+	Url            string          `value:"${fake.url}"`
 }
 
 type fooBarService struct {
-	FooBarRepository data.Repository `inject:"foobarRepository"`
+	FooBarRepository data.Repository `inject:""`
 }
 
 type foobarRecursiveInject struct {
-	FoobarService *fooBarService `inject:"foobarService"`
+	FoobarService *fooBarService `inject:""`
 }
 
 type recursiveInject struct {
@@ -85,10 +85,10 @@ type recursiveInject struct {
 }
 
 var (
-	appName = "hiboot"
-	fakeName = "fake"
-	fooName = "foo"
-	fakeUrl = "http://fake.com/api/foo"
+	appName    = "hiboot"
+	fakeName   = "fake"
+	fooName    = "foo"
+	fakeUrl    = "http://fake.com/api/foo"
 	defaultUrl = "http://localhost:8080"
 )
 
@@ -100,10 +100,10 @@ func init() {
 	os.Remove(filepath.Join(configPath, fakeFile))
 	fakeContent :=
 		"fake:" +
-		"\n  name: " + fakeName +
-		"\n  nickname: ${app.name} ${fake.name}\n" +
-		"\n  username: ${unknown.name:bar}\n" +
-		"\n  url: " + fakeUrl
+			"\n  name: " + fakeName +
+			"\n  nickname: ${app.name} ${fake.name}\n" +
+			"\n  username: ${unknown.name:bar}\n" +
+			"\n  url: " + fakeUrl
 	utils.WriterFile(configPath, fakeFile, []byte(fakeContent))
 
 	starter.Add("fake", fakeConfiguration{})
@@ -127,7 +127,7 @@ func TestInject(t *testing.T) {
 		assert.Equal(t, appName, us.FakeUser.App)
 		assert.Equal(t, fakeUrl, us.Url)
 		assert.Equal(t, defaultUrl, us.DefaultUrl)
-		assert.NotEqual(t, (*fakeRepository)(nil), us.Repository)
+		assert.NotEqual(t, (*fakeRepository)(nil), us.FakeRepository)
 	})
 
 	t.Run("should not inject unimplemented interface into FooBarRepository", func(t *testing.T) {
@@ -161,6 +161,6 @@ func TestInject(t *testing.T) {
 		err := IntoObject(reflect.ValueOf(ps))
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, (*user)(nil), ps.UserService.User)
-		assert.NotEqual(t, (*fakeRepository)(nil), ps.UserService.Repository)
+		assert.NotEqual(t, (*fakeRepository)(nil), ps.UserService.FakeRepository)
 	})
 }
