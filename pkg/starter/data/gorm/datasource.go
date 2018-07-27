@@ -1,33 +1,36 @@
 package gorm
 
 import (
-	"github.com/jinzhu/gorm"
+	"fmt"
+	"errors"
+	"sync"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
-	"fmt"
-	"errors"
-	"sync"
+	"github.com/hidevopsio/hiboot/pkg/starter/data/gorm/adapter"
 )
 
 type DataSource interface {
 	Open(p *properties) error
 	IsOpened() bool
 	Close() error
-	DB() *gorm.DB
+	DB() adapter.DB
 }
 
 type dataSource struct {
-	db *gorm.DB
+	gorm adapter.Gorm
+	db adapter.DB
 }
 
+var DatabaseIsNotOpenedError = errors.New("database is not opened")
 var ds *dataSource
 var dsOnce sync.Once
 
 func GetDataSource() DataSource {
 	dsOnce.Do(func() {
 		ds = new(dataSource)
+		ds.gorm = new(adapter.GormDataSource)
 	})
 	return ds
 }
@@ -37,10 +40,10 @@ func (d *dataSource) Open(p *properties) error {
 	source := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=%v&parseTime=%v&loc=%v",
 		p.Username, p.Password, p.Host, p.Port,  p.Database, p.Charset, p.ParseTime, p.Loc)
 
-	d.db, err = gorm.Open(p.Type, source)
+	d.db, err = d.gorm.Open(p.Type, source)
 
 	if err != nil {
-		defer d.db.Close()
+		defer d.gorm.Close()
 		return err
 	}
 
@@ -53,14 +56,14 @@ func (d *dataSource) IsOpened() bool {
 
 func (d *dataSource) Close() error {
 	if d.db != nil {
-		err := d.db.Close()
+		err := d.gorm.Close()
 		d.db = nil
 		return err
 	}
-	return errors.New("database is not opened")
+	return DatabaseIsNotOpenedError
 }
 
-func (d *dataSource) DB() *gorm.DB {
+func (d *dataSource) DB() adapter.DB {
 	return d.db
 }
 

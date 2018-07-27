@@ -3,7 +3,7 @@ package gorm
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter/data"
 	"sync"
-	"github.com/jinzhu/gorm"
+	"github.com/hidevopsio/hiboot/pkg/starter/data/gorm/adapter"
 )
 
 type Repository interface {
@@ -13,7 +13,7 @@ type Repository interface {
 type repository struct {
 	data.BaseRepository
 	dataSource DataSource
-	db *gorm.DB
+	db adapter.DB
 }
 
 var repo *repository
