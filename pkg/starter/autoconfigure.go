@@ -161,11 +161,10 @@ func (c *autoConfiguration) Instantiate(configuration interface{})  {
 			if retVal[0].CanInterface() {
 				instance := retVal[0].Interface()
 				//log.Debugf("instantiated: %v", instance)
-				instanceName := utils.LowerFirst(methodName)
-				if c.instances[instanceName] != nil {
-					log.Fatalf("method name %v is already taken!", instanceName)
+				if c.instances[methodName] != nil {
+					log.Fatalf("method name %v is already taken!", methodName)
 				}
-				c.instances[instanceName] = instance
+				c.instances[methodName] = instance
 			}
 		}
 	}
