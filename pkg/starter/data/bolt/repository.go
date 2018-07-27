@@ -29,11 +29,11 @@ func GetRepository() *repository {
 	return repo
 }
 
-func (r *repository) parse(params []interface{}) ([]byte, []byte, interface{}, error)  {
+func (r *repository) parse(params ...interface{}) ([]byte, []byte, interface{}, error)  {
 	if r.db == nil {
 		return nil, nil, nil, data.InvalidDataSourceError
 	}
-	return r.Parse(params)
+	return r.Parse(params...)
 }
 
 // Open bolt database
@@ -57,7 +57,7 @@ func (r *repository) CloseDataSource() error {
 
 // Put inserts a key:value pair into the database
 func (r *repository) Put(params ...interface{}) error {
-	bucketName, key, value, err := r.parse(params)
+	bucketName, key, value, err := r.parse(params...)
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func (r *repository) Put(params ...interface{}) error {
 
 // Get retrieves a key:value pair from the database
 func (r *repository) Get(params ...interface{}) error {
-	bucketName, key, value, err := r.parse(params)
+	bucketName, key, value, err := r.parse(params...)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (r *repository) Get(params ...interface{}) error {
 
 // Delete removes a key:value pair from the database
 func (r *repository) Delete(params ...interface{}) error {
-	bucketName, key, _, err := r.parse(params)
+	bucketName, key, _, err := r.parse(params...)
 	if err != nil {
 		return err
 	}

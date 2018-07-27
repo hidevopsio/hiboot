@@ -8,7 +8,7 @@ import (
 
 func TestConfiguration(t *testing.T) {
 	configuration := new(configuration)
-	configuration.Gorm = properties{
+	configuration.GormProperties = properties{
 		Type:      "mysql",
 		Host:      "mysql-dev",
 		Port:      "3306",

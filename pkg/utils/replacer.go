@@ -21,8 +21,11 @@ import (
 	"os"
 	"regexp"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"github.com/hidevopsio/hiboot/pkg/log"
+	"errors"
 )
+
+var NilPointerError = errors.New("nil pointer error")
+var compiledRegExp = regexp.MustCompile(`\$\{(.*?)\}`)
 
 // ParseVariables parse reference and env variables
 func ParseVariables(src string, re *regexp.Regexp) [][]string {
@@ -33,10 +36,13 @@ func ParseVariables(src string, re *regexp.Regexp) [][]string {
 	return matches
 }
 
+func GetMatches(source string) [][]string  {
+	return ParseVariables(source, compiledRegExp)
+}
+
 // ReplaceStringVariables replace reference and env variables
 func ReplaceStringVariables(source string, t interface{}) string {
-	re := regexp.MustCompile(`\$\{(.*?)\}`)
-	matches := ParseVariables(source, re)
+	matches := ParseVariables(source, compiledRegExp)
 
 	for _, match := range matches {
 		varFullName := match[0]
@@ -49,7 +55,7 @@ func ReplaceStringVariables(source string, t interface{}) string {
 		if n > 0 {
 			defaultValue = varName[n + 1:]
 			varName = varName[:n]
-			log.Debugf("name: %v, default value: %v", varName, defaultValue)
+			//log.Debugf("name: %v, default value: %v", varName, defaultValue)
 		}
 
 		vars := strings.SplitN(varName, ".", -1)
@@ -77,13 +83,28 @@ func GetFieldValue(f interface{}, name string) reflect.Value {
 	return fv
 }
 
+func GetReferenceValue(object interface{}, name string) reflect.Value {
+	capitalizedVarName := strings.Title(name)
+	retVal := GetFieldValue(object, capitalizedVarName)
+
+	if ! retVal.IsValid() {
+		for _, field := range reflector.DeepFields(reflect.TypeOf(object)) {
+			if field.Tag.Get("mapstructure") == name {
+				retVal = GetFieldValue(object, field.Name)
+				break
+			}
+		}
+	}
+
+	return retVal
+}
+
 // ParseReferences parse the variable references
 func ParseReferences(st interface{}, varName []string) string {
 	var parent interface{}
 	parent = st
 	for _, vn := range varName {
-		capitalizedVarName := strings.Title(vn)
-		field := GetFieldValue(parent, capitalizedVarName)
+		field := GetReferenceValue(parent, vn)
 
 		k := reflector.GetKind(field)
 		switch k {
@@ -104,6 +125,9 @@ func ParseReferences(st interface{}, varName []string) string {
 
 // ReplaceMap replace references and env variables
 func ReplaceMap(m map[string]interface{}, root interface{}) error {
+	if root == nil {
+		return NilPointerError
+	}
 	for k, v := range m {
 		// log.Println(k, ": ", v)
 		vt := reflect.TypeOf(v)

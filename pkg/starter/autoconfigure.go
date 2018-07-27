@@ -86,6 +86,9 @@ func GetAutoConfiguration() AutoConfiguration {
 }
 
 func Add(name string, conf interface{})  {
+	if configurations[name] != nil {
+		log.Fatalf("configuration name %v is already taken!", name)
+	}
 	configurations[name] = conf
 }
 
@@ -103,6 +106,8 @@ func (c *autoConfiguration) Build()  {
 	defaultConfig, err := builder.Build()
 	if err == nil {
 		c.configurations[System] = defaultConfig
+	} else {
+		log.Warn(err)
 	}
 	utils.Replace(defaultConfig, defaultConfig)
 
@@ -112,16 +117,20 @@ func (c *autoConfiguration) Build()  {
 		builder.Profile = name
 		cf, err := builder.BuildWithProfile()
 
-		// replace references and environment variables
-		utils.Replace(cf, defaultConfig)
-		utils.Replace(cf, cf)
+		if cf == nil {
+			log.Warnf("failed to build %v configuration with error %v", name, err)
+		} else {
+			// replace references and environment variables
+			utils.Replace(cf, defaultConfig)
+			utils.Replace(cf, cf)
 
-		// instantiation
-		if err == nil {
-			// create instances
-			c.Instantiate(cf)
-			// save configuration
-			c.configurations[name] = cf
+			// instantiation
+			if err == nil {
+				// create instances
+				c.Instantiate(cf)
+				// save configuration
+				c.configurations[name] = cf
+			}
 		}
 	}
 }
@@ -130,18 +139,18 @@ func (c *autoConfiguration) Instantiate(configuration interface{})  {
 	cv := reflect.ValueOf(configuration)
 
 	configType := cv.Type()
-	log.Debug("type: ", configType)
-	name := configType.Elem().Name()
-	log.Debug("fieldName: ", name)
+	//log.Debug("type: ", configType)
+	//name := configType.Elem().Name()
+	//log.Debug("fieldName: ", name)
 
 	// call Init
 	numOfMethod := cv.NumMethod()
-	log.Debug("methods: ", numOfMethod)
+	//log.Debug("methods: ", numOfMethod)
 
 	for mi := 0; mi < numOfMethod; mi++ {
 		method := configType.Method(mi)
 		methodName := method.Name
-		log.Debugf("method: %v", methodName)
+		//log.Debugf("method: %v", methodName)
 		numIn := method.Type.NumIn()
 		// only 1 arg is supported so far
 		if numIn == 1 {
@@ -151,8 +160,12 @@ func (c *autoConfiguration) Instantiate(configuration interface{})  {
 			// save instance
 			if retVal[0].CanInterface() {
 				instance := retVal[0].Interface()
-				log.Debugf("instantiated: %v", instance)
-				c.instances[utils.LowerFirst(methodName)] = instance
+				//log.Debugf("instantiated: %v", instance)
+				instanceName := utils.LowerFirst(methodName)
+				if c.instances[instanceName] != nil {
+					log.Fatalf("method name %v is already taken!", instanceName)
+				}
+				c.instances[instanceName] = instance
 			}
 		}
 	}

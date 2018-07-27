@@ -8,7 +8,7 @@ import (
 type configuration struct {
 	// the properties member name must be Bolt if the mapstructure is bolt,
 	// so that the reference can be parsed
-	Bolt properties `mapstructure:"bolt"`
+	BoltProperties properties `mapstructure:"bolt"`
 }
 
 func init() {
@@ -18,7 +18,7 @@ func init() {
 func (c *configuration) dataSource() DataSource {
 	dataSource := GetDataSource()
 	if ! dataSource.IsOpened() {
-		err := dataSource.Open(&c.Bolt)
+		err := dataSource.Open(&c.BoltProperties)
 		if err != nil {
 			log.Error(err.Error())
 		}
@@ -31,3 +31,4 @@ func (c *configuration) BoltRepository() Repository {
 	repository.SetDataSource(c.dataSource())
 	return repository
 }
+
