@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"os"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/starter/data/gorm/adapter"
 )
 
 type User struct {
@@ -36,24 +37,16 @@ func TestDataSourceOpen(t *testing.T) {
 		Loc:       "Asia%2FShanghai",
 	}
 	dataSource := new(dataSource)
+	dataSource.gorm = new(adapter.FakeDataSource)
+
+	t.Run("should report error when close database if it's not opened", func(t *testing.T) {
+		err := dataSource.Close()
+		assert.Equal(t, DatabaseIsNotOpenedError, err)
+	})
 
 	t.Run("should open database", func(t *testing.T) {
 		err := dataSource.Open(gorm)
 		assert.Equal(t, nil, err)
-
-		user := User{ID: 1, Username: "John Doe", Password: "321abc", Age: 18, Gender: 1}
-		db := dataSource.DB()
-
-		var users []User
-		db.Find(&users)
-		log.Debug(users)
-
-		db.NewRecord(user)
-		db.Create(&user)
-
-		u := &User{}
-		db.First(u)
-		log.Debug(u)
 	})
 
 	t.Run("should close database", func(t *testing.T) {
