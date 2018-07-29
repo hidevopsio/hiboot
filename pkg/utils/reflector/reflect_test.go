@@ -4,11 +4,17 @@ import (
 	"testing"
 	"github.com/stretchr/testify/assert"
 	"reflect"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 type Foo struct{
 	Name string
 	Age int
+	nickname string
+}
+
+func (f *Foo) Init(name string)  {
+	f.Name = name
 }
 
 type Bar struct{
@@ -19,6 +25,38 @@ type Bar struct{
 type Baz struct {
 	Foo
 	Bar Bar
+}
+
+func init() {
+	log.SetLevel(log.DebugLevel)
+}
+
+func TestConstructor(t *testing.T) {
+	objVal := reflect.ValueOf(&Foo{})
+
+	objType := objVal.Type()
+	log.Debug("type: ", objType)
+	objName := objType.Elem().Name()
+	log.Debug("name: ", objName)
+
+	object := objVal.Interface()
+	log.Debug("object: ", object)
+
+	// call Init
+	method, ok := objType.MethodByName("Init")
+	if ok {
+		methodType := method.Type
+		numIn := methodType.NumIn()
+		inputs := make([]reflect.Value, numIn)
+		for i := 0; i < numIn; i++ {
+			t := methodType.In(i)
+
+
+			log.Debugf("%v: %v %v", i, t.Name(), t)
+		}
+		inputs[0] = reflect.ValueOf(object)
+		//method.Func.Call(inputs)
+	}
 }
 
 func TestNewReflectType(t *testing.T) {
@@ -51,7 +89,7 @@ func TestDeepFields(t *testing.T) {
 	baz.Name = "foo"
 	bt := reflect.TypeOf(baz)
 	df := DeepFields(bt)
-	assert.Equal(t, 3, len(df))
+	assert.Equal(t, 4, len(df))
 	assert.Equal(t, "Name", df[0].Name)
 	assert.Equal(t, "Age", df[1].Name)
 }
@@ -76,6 +114,33 @@ func TestGetFieldValue(t *testing.T) {
 	foo := &Foo{Name: "foo"}
 	fv := GetFieldValue(foo, "Name")
 	assert.Equal(t, "foo", fv.Interface())
+}
+
+func TestSetFieldValue(t *testing.T) {
+	foo := &Foo{}
+	value := "foo"
+	t.Run("should set field value", func(t *testing.T) {
+		// set field object
+		err := SetFieldValue(foo, "Name", value)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "foo", value)
+	})
+
+	t.Run("should not set invalid object", func(t *testing.T) {
+		x := 123
+		err := SetFieldValue(x, "Name", 321)
+		assert.Equal(t, InvalidInputError, err)
+	})
+
+	t.Run("should not set invalid object", func(t *testing.T) {
+		err := SetFieldValue((*Foo)(nil), "Name", value)
+		assert.Equal(t, InvalidInputError, err)
+	})
+
+	t.Run("should not set invalid object", func(t *testing.T) {
+		err := SetFieldValue(foo, "nickname", value)
+		assert.Equal(t, FieldCanNotBeSetError, err)
+	})
 }
 
 func TestGetKind(t *testing.T) {
@@ -135,15 +200,27 @@ func TestValidateReflectType(t *testing.T) {
 }
 
 func TestGetName(t *testing.T) {
-	n, err := GetName(new(Foo))
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "Foo", n)
 
-	n, err = GetName(Foo{})
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "Foo", n)
+	t.Run("should get struct name by pointer", func(t *testing.T) {
+		n, err := GetName(new(Foo))
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "Foo", n)
+	})
 
-	n, err = GetLowerCaseObjectName(new(Foo))
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "foo", n)
+	t.Run("should get struct name", func(t *testing.T) {
+		n, err := GetName(Foo{})
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "Foo", n)
+	})
+
+	t.Run("should get struct name by lower case", func(t *testing.T) {
+		n, err := GetLowerCaseObjectName(new(Foo))
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "foo", n)
+	})
+
+	t.Run("should return InvalidInputError if input is nil", func(t *testing.T) {
+		_, err := GetLowerCaseObjectName((*Foo)(nil))
+		assert.Equal(t, InvalidInputError, err)
+	})
 }

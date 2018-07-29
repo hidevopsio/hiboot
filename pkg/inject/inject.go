@@ -28,7 +28,7 @@ func init() {
 }
 
 func replaceReferences(val string) string  {
-	var replacedVal string
+	retVal := val
 	systemConfig := autoConfiguration.Configuration(starter.System)
 
 	matches := utils.GetMatches(val)
@@ -44,14 +44,14 @@ func replaceReferences(val string) string  {
 				config = systemConfig
 			}
 			if config != nil {
-				replacedVal = utils.ReplaceStringVariables(val, config)
-				if replacedVal != val {
+				retVal = utils.ReplaceStringVariables(val, config)
+				if retVal != val {
 					break
 				}
 			}
 		}
 	}
-	return replacedVal
+	return retVal
 }
 
 func parseInjectTag(tagValue string) map[string]interface{} {
@@ -91,12 +91,9 @@ func IntoObject(object reflect.Value) error {
 	for _, f := range reflector.DeepFields(object.Type()) {
 		//log.Debugf("parent: %v, name: %v, type: %v, tag: %v", object.Elem().Type(), f.Name, f.Type, f.Tag)
 		// check if object has value field to be injected
-		var fieldObj reflect.Value
 		var injectedObject interface{}
 		obj := reflector.Indirect(object)
-		if obj.IsValid() {
-			fieldObj = obj.FieldByName(f.Name)
-		}
+
 		ft := f.Type
 		if f.Type.Kind() == reflect.Ptr {
 			ft = ft.Elem()
@@ -112,7 +109,6 @@ func IntoObject(object reflect.Value) error {
 				instanceName := f.Name
 				tags := parseInjectTag(injectTag)
 
-				//log.Debugf("+ %v, %v, %v", object.Type(), fieldObj.Type(), ft)
 				// first, find if object is already instantiated
 				injectedObject = instances[instanceName]
 				//log.Debugf("field kind: %v", ft.Kind())
@@ -133,8 +129,11 @@ func IntoObject(object reflect.Value) error {
 				}
 			}
 		}
-
 		// set field object
+		var fieldObj reflect.Value
+		if obj.IsValid() {
+			fieldObj = obj.FieldByName(f.Name)
+		}
 		if injectedObject != nil && fieldObj.CanSet() {
 			fov := reflect.ValueOf(injectedObject)
 			fieldObj.Set(fov)

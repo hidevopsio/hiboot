@@ -1,5 +1,5 @@
 
-package services
+package service
 
 import (
 	"fmt"
@@ -8,8 +8,12 @@ import (
 )
 
 type UserService struct {
-	// will inject BoltRepository that configured in github.com/hidevopsio/hiboot/pkg/starter/data/bolt
 	BoltRepository bolt.Repository `inject:""`
+}
+
+// will inject BoltRepository that configured in github.com/hidevopsio/hiboot/pkg/starter/data/bolt
+func (us *UserService) Init(boltRepository bolt.Repository)  {
+	us.BoltRepository = boltRepository
 }
 
 func (us *UserService) AddUser(user *model.User) error {

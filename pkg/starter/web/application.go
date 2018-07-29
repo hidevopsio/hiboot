@@ -33,11 +33,13 @@ import (
 	"github.com/kataras/iris/middleware/i18n"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/hidevopsio/hiboot/pkg/starter"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 )
 
 const (
 	pathSep = "/"
 
+	AuthType        = "AuthType"
 	AuthTypeDefault = ""
 	AuthTypeAnon    = "anon"
 	AuthTypeJwt     = "jwt"
@@ -56,15 +58,16 @@ type ApplicationInterface interface {
 }
 
 // Application is the struct of web Application
+// TODO: application should be singleton and private
 type Application struct {
 	app               *iris.Application
 	config            *starter.SystemConfiguration
 	jwtEnabled        bool
 	workDir           string
 	httpMethods       []string
-	dataSources       map[string]interface{}
-	instances         map[string]interface{}
 	autoConfiguration starter.AutoConfiguration
+	anonControllers []interface{}
+	jwtControllers  []interface{}
 }
 
 // Health is the health check struct
@@ -73,8 +76,8 @@ type Health struct {
 }
 
 var (
-	// Controllers global controllers contrainer
-	Controllers []interface{}
+	// controllers global controllers container
+	webControllers []interface{}
 )
 
 // Config returns application config
@@ -103,16 +106,39 @@ func healthHandler(app *iris.Application) *router.Route {
 
 func (wa *Application) handle(method reflect.Method, object interface{}, ctx *Context) {
 	//log.Debug("NumIn: ", method.Type.NumIn())
-	inputs := make([]reflect.Value, method.Type.NumIn())
+	numIn := method.Type.NumIn()
+	inputs := make([]reflect.Value, numIn)
 
 	inputs[0] = reflect.ValueOf(object)
-	inputs[1] = reflect.ValueOf(ctx)
+	if numIn == 2 {
+		inputs[1] = reflect.ValueOf(ctx)
+	} else {
+		reflector.SetFieldValue(object, "Ctx", ctx)
+	}
 	method.Func.Call(inputs)
 }
 
 // Add add controller to controllers container
-func Add(controller interface{}) {
-	Controllers = append(Controllers, controller)
+func Add(controllers ...interface{}) {
+	webControllers = append(webControllers, controllers...)
+}
+
+func (wa *Application) add(controllers ...interface{})  {
+	for _, controller := range controllers {
+		authType := AuthTypeAnon
+		authTypeMethod := reflect.ValueOf(controller).MethodByName("AuthType")
+		if authTypeMethod.IsValid() {
+			results := authTypeMethod.Call([]reflect.Value{})
+			authType = fmt.Sprintf("%v", results[0].Interface())
+		}
+
+		// separate jwt controllers from anon
+		if authType == AuthTypeJwt {
+			wa.jwtControllers = append(wa.jwtControllers, controller)
+		} else {
+			wa.anonControllers = append(wa.anonControllers, controller)
+		}
+	}
 }
 
 // Init init web application
@@ -142,8 +168,6 @@ func (wa *Application) Init(controllers ...interface{}) error {
 	} else {
 		log.Warnf("no application config files in %v", filepath.Join(wa.workDir, "config"))
 	}
-
-	wa.instances = wa.autoConfiguration.Instances()
 
 	// Init JWT
 	err := InitJwt(wa.workDir)
@@ -196,31 +220,30 @@ func (wa *Application) Init(controllers ...interface{}) error {
 	}
 
 	healthHandler(wa.app)
-
 	if len(controllers) == 0 {
-		controllers = Controllers
-		if len(controllers) == 0 {
-			return &system.NotFoundError{Name: "controller"}
-		}
+		wa.add(webControllers...)
+	} else {
+		wa.add(controllers...)
 	}
 
-	if !wa.jwtEnabled {
-		err := wa.register(controllers, AuthTypeAnon, AuthTypeDefault, AuthTypeJwt)
-		if err != nil {
-			return err
-		}
-	} else {
-		err := wa.register(controllers, AuthTypeAnon, AuthTypeDefault)
-		if err != nil {
-			return err
-		}
+	if len(wa.anonControllers) == 0 &&
+		len(wa.jwtControllers) == 0 {
+		return &system.NotFoundError{Name: "controller"}
+	}
 
-		wa.app.Use(jwtHandler.Serve)
+	// first register anon controllers
+	err = wa.register(wa.anonControllers)
+	if err != nil {
+		return err
+	}
 
-		err = wa.register(controllers, AuthTypeJwt)
-		if err != nil {
-			return err
-		}
+	// then use jwt
+	wa.app.Use(jwtHandler.Serve)
+
+	// finally register jwt controllers
+	err = wa.register(wa.jwtControllers)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -276,7 +299,7 @@ func (wa *Application) initLocale() error {
 	return nil
 }
 
-func (wa *Application) register(controllers []interface{}, auths ...string) error {
+func (wa *Application) register(controllers []interface{}) error {
 	app := wa.app
 	for _, c := range controllers {
 		field := reflect.ValueOf(c)
@@ -289,30 +312,21 @@ func (wa *Application) register(controllers []interface{}, auths ...string) erro
 		controller := field.Interface()
 		//log.Debug("controller: ", controller)
 
-		// call Init
-		initMethod, ok := fieldType.MethodByName(initMethodName)
-		if ok {
-			inputs := make([]reflect.Value, initMethod.Type.NumIn())
-			inputs[0] = reflect.ValueOf(controller)
-			initMethod.Func.Call(inputs)
-		}
-
-		fieldValue := field.Elem()
-		fieldAuth := fieldValue.FieldByName("AuthType")
-		if !fieldAuth.IsValid() {
-			return &system.InvalidControllerError{Name: fieldName}
-		}
-		a := fmt.Sprintf("%v", fieldAuth.Interface())
-		//log.Debug("authType: ", a)
-		if !utils.StringInSlice(a, auths) {
-			continue
-		}
-
 		// inject component
 		err := inject.IntoObject(field)
 		if err != nil {
 			return err
 		}
+
+		//// call Init
+		//initMethod, ok := fieldType.MethodByName(initMethodName)
+		//if ok {
+		//	inputs := make([]reflect.Value, initMethod.Type.NumIn())
+		//	inputs[0] = reflect.ValueOf(controller)
+		//	initMethod.Func.Call(inputs)
+		//}
+
+		fieldValue := field.Elem()
 
 		// get context mapping
 		cp := fieldValue.FieldByName("ContextMapping")

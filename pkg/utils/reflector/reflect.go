@@ -21,6 +21,7 @@ import (
 )
 
 var InvalidInputError = errors.New("input is invalid")
+var FieldCanNotBeSetError = errors.New("field can not be set")
 
 func NewReflectType(st interface{}) interface{} {
 	ct := reflect.TypeOf(st)
@@ -82,6 +83,32 @@ func GetFieldValue(f interface{}, name string) reflect.Value {
 	fv := reflect.Indirect(r).FieldByName(name)
 
 	return fv
+}
+
+
+func SetFieldValue(object interface{}, name string, value interface{}) error  {
+
+	obj := Indirect(reflect.ValueOf(object))
+
+	if ! obj.IsValid()  {
+		return InvalidInputError
+	}
+
+	if obj.Kind() != reflect.Struct {
+		return InvalidInputError
+	}
+
+	fieldObj := obj.FieldByName(name)
+
+	if ! fieldObj.CanSet() {
+		return FieldCanNotBeSetError
+	}
+
+	fov := reflect.ValueOf(value)
+	fieldObj.Set(fov)
+
+	//log.Debugf("Set %v.(%v) into %v.%v", value, fov.Type(), obj.Type(), name)
+	return nil
 }
 
 func GetKind(val reflect.Value) reflect.Kind {
