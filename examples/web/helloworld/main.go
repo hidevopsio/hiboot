@@ -25,9 +25,9 @@ type Controller struct {
 
 // Line 6-8: Get method, the context mapping of this method is '/' by default
 // the Method name Get means that the http request method is GET
-func (c *Controller) Get(ctx *web.Context) {
+func (c *Controller) Get() {
 	// response JSON object
-	ctx.ResponseBody("success", "hello hiboot")
+	c.Ctx.ResponseBody("success", "hello hiboot")
 }
 
 // Line 9-11: main function
