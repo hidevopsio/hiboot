@@ -25,10 +25,8 @@ type JwtController struct {
 	Controller
 }
 
-// Init init JWT controller, it set auth type to AuthTypeJwt
-func (c *JwtController) Init() {
-	c.Controller.Init()
-	c.AuthType = AuthTypeJwt
+func (c *JwtController) AuthType() string  {
+	return "jwt"
 }
 
 // ParseToken is an util that parsing JWT token from jwt.MapClaims

@@ -47,26 +47,27 @@ type FooController struct{
 	Controller
 }
 
+type ExampleController struct{
+	Controller
+}
+
 type InvalidController struct {}
 
 func init() {
+	log.SetLevel(log.DebugLevel)
 	utils.ChangeWorkDir("../../../")
-	Add(new(FooController))
-	Add(new(BarController))
-	Add(new(FoobarController))
 }
 
-func (c *FooController) Before(ctx *Context)  {
+func (c *FooController) Before()  {
 	log.Debug("FooController.Before")
 
-	ctx.Next()
+	c.Ctx.Next()
 }
 
-func (c *FooController) PostLogin(ctx *Context)  {
+func (c *FooController) PostLogin()  {
 	log.Debug("FooController.Login")
-
 	userRequest := &UserRequest{}
-	if ctx.RequestBody(userRequest) == nil {
+	if c.Ctx.RequestBody(userRequest) == nil {
 		jwtToken, err := GenerateJwtToken(JwtMap{
 			"username": userRequest.Username,
 			"password": userRequest.Password,
@@ -75,36 +76,36 @@ func (c *FooController) PostLogin(ctx *Context)  {
 		log.Debugf("token: %v", jwtToken)
 
 		if err == nil {
-			ctx.ResponseBody("Success", jwtToken)
+			c.Ctx.ResponseBody("Success", jwtToken)
 		} else {
-			ctx.ResponseError(err.Error(), http.StatusInternalServerError)
+			c.Ctx.ResponseError(err.Error(), http.StatusInternalServerError)
 		}
 	}
 }
 
-func (c *FooController) Post(ctx *Context)  {
+func (c *FooController) Post()  {
 	log.Debug("FooController.Post")
 
 	foo := &FooRequest{}
-	if ctx.RequestBody(foo) == nil {
-		ctx.ResponseBody("Success", &FooResponse{Greeting: "hello, " + foo.Name})
+	if c.Ctx.RequestBody(foo) == nil {
+		c.Ctx.ResponseBody("Success", &FooResponse{Greeting: "hello, " + foo.Name})
 	}
 }
 
 
-func (c *FooController) Put(ctx *Context)  {
+func (c *FooController) Put()  {
 	log.Debug("FooController.Put")
 }
 
-func (c *FooController) Patch(ctx *Context)  {
+func (c *FooController) Patch()  {
 	log.Debug("FooController.Patch")
 }
 
-func (c *FooController) Delete(ctx *Context)  {
+func (c *FooController) Delete()  {
 	log.Debug("FooController.Delete")
 }
 
-func (c *FooController) After(ctx *Context)  {
+func (c *FooController) After()  {
 	log.Debug("FooController.After")
 
 }
@@ -114,10 +115,10 @@ type BarController struct{
 	JwtController
 }
 
-func (c *BarController) Get(ctx *Context)  {
+func (c *BarController) Get()  {
 	log.Debug("BarController.Get")
 
-	ctx.ResponseBody("Success", &Bar{Greeting: "hello bar"})
+	c.Ctx.ResponseBody("Success", &Bar{Greeting: "hello bar"})
 
 }
 
@@ -125,20 +126,20 @@ type FoobarController struct {
 	Controller
 }
 
-func (c *FoobarController) Post(ctx *Context)  {
+func (c *FoobarController) Post()  {
 	foo := &FooRequest{}
-	err := ctx.RequestForm(foo)
+	err := c.Ctx.RequestForm(foo)
 	if err == nil {
-		ctx.ResponseBody("Success", &FooResponse{Greeting: "hello, " + foo.Name})
+		c.Ctx.ResponseBody("Success", &FooResponse{Greeting: "hello, " + foo.Name})
 	} else {
-		ctx.ResponseError(err.Error(), http.StatusInternalServerError)
+		c.Ctx.ResponseError(err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func (c *FoobarController) Get(ctx *Context)  {
+func (c *FoobarController) Get()  {
 	foo := &FooRequest{}
-	if ctx.RequestParams(foo) == nil {
-		ctx.ResponseBody("Success", &FooResponse{Greeting: "hello, " + foo.Name})
+	if c.Ctx.RequestParams(foo) == nil {
+		c.Ctx.ResponseBody("Success", &FooResponse{Greeting: "hello, " + foo.Name})
 	}
 }
 
@@ -147,73 +148,66 @@ func (c *FoobarController) Get(ctx *Context)  {
 // context mapping can be overwritten by FooController.ContextMapping
 type HelloController struct{
 	Controller
-}
-
-func (c *HelloController) Init()  {
-	c.ContextMapping = "/"
+	ContextMapping string `value:"/"`
 }
 
 // Get hello
 // The first word of method is the http method GET, the rest is the context mapping hello
 // in this method, the name Get means that the method context mapping is '/'
-func (c *HelloController) Get(ctx *Context)  {
+func (c *HelloController) Get()  {
 
-	ctx.ResponseBody("success", "Hello, World")
-}
-
-func TestHelloWorld(t *testing.T)  {
-
-	// create new test server
-	NewTestApplication(t, new(HelloController)).
-		Get("/").
-		Expect().Status(http.StatusOK).
-		Body().Contains("Success")
-}
-
-func TestHelloWorldLocale(t *testing.T)  {
-	// create new test server
-	ta := NewTestApplication(t, new(HelloController))
-
-	// test cn-ZH
-	ta.Get("/").
-		WithHeader("Accept-Language", "zh-CN").
-		Expect().Status(http.StatusOK).
-		Body().Contains("成功")
-
-	// test en-US
-	ta.Request("GET", "/").
-		WithHeader("Accept-Language", "en-US").
-		Expect().
-		Status(http.StatusOK).
-		Body().Contains("Success")
+	c.Ctx.ResponseBody("success", "Hello, World")
 }
 
 func TestWebApplication(t *testing.T)  {
+	app := NewTestApplication(t, new(HelloController), new(FooController), new(BarController), new(FoobarController))
 
-	ta := NewTestApplication(t)
+	t.Run("should response 200 when GET /", func(t *testing.T) {
+		app.
+			Get("/").
+			Expect().Status(http.StatusOK).
+			Body().Contains("Success")
+	})
 
-	ta.Get("/health").Expect().Status(http.StatusOK)
+	t.Run("should response 成功 with language zh-CN", func(t *testing.T) {
+		// test cn-ZH
+		app.Get("/").
+			WithHeader("Accept-Language", "zh-CN").
+			Expect().Status(http.StatusOK).
+			Body().Contains("成功")
+	})
 
-	ta.Post("/foo/login").
+	t.Run("should response Success with language en-US", func(t *testing.T) {
+		// test en-US
+		app.Request("GET", "/").
+			WithHeader("Accept-Language", "en-US").
+			Expect().
+			Status(http.StatusOK).
+			Body().Contains("Success")
+	})
+
+	app.Get("/health").Expect().Status(http.StatusOK)
+
+	app.Post("/foo/login").
 		WithJSON(&UserRequest{Username: "johndoe", Password: "iHop91#15"}).
 		Expect().Status(http.StatusOK).
 		Body().Contains("Success")
 
-	ta.Post("/foo").
+	app.Post("/foo").
 		WithJSON(&FooRequest{Name: "John"}).
 		Expect().Status(http.StatusOK).
 		Body().Contains("Success")
 
-	ta.Get("/bar").
+	app.Get("/bar").
 		Expect().Status(http.StatusUnauthorized)
 
 	// test request form
-	ta.Post("/foobar").
+	app.Post("/foobar").
 		WithFormField("name", "John Doe").
 		Expect().Status(http.StatusInternalServerError)
 
 	//  test request query
-	ta.Get("/foobar").
+	app.Get("/foobar").
 		WithQuery("name", "John Doe").
 		Expect().Status(http.StatusOK)
 
@@ -226,20 +220,20 @@ func TestWebApplication(t *testing.T)  {
 
 		t := fmt.Sprintf("Bearer %v", string(*pt))
 
-		ta.Get("/bar").
+		app.Get("/bar").
 			WithHeader("Authorization", t).
 			Expect().Status(http.StatusOK)
 
 		time.Sleep(2 * time.Second)
 
-		ta.Get("/bar").
+		app.Get("/bar").
 			WithHeader("Authorization", t).
 			Expect().Status(http.StatusUnauthorized)
 	}
 
-	ta.Put("/foo").Expect().Status(http.StatusOK)
-	ta.Patch("/foo").Expect().Status(http.StatusOK)
-	ta.Delete("/foo").Expect().Status(http.StatusOK)
+	app.Put("/foo").Expect().Status(http.StatusOK)
+	app.Patch("/foo").Expect().Status(http.StatusOK)
+	app.Delete("/foo").Expect().Status(http.StatusOK)
 }
 
 func TestInvalidController(t *testing.T)  {
@@ -250,21 +244,25 @@ func TestInvalidController(t *testing.T)  {
 }
 
 func TestNewApplication(t *testing.T) {
-	var wa *Application
+	var app *Application
+
+	//t.Run("should return no controller error", func(t *testing.T) {
+	//	NewApplication()
+	//})
+
+	Add(new(ExampleController))
+
+	wa := NewApplication()
 	t.Run("should init web application", func(t *testing.T) {
-		wa = NewApplication(new(FooController))
+		log.Debugf("### web application: %v", app)
 		assert.NotEqual(t, nil, wa.app)
 	})
 
 	t.Run("should get application config", func(t *testing.T) {
 		config := wa.Config()
-		if config != nil {
-			assert.NotEqual(t, "", config.App.Name)
-		}
+		assert.NotEqual(t, nil, config)
+		assert.NotEqual(t, "", config.App.Name)
 	})
 
-	//t.Run("should not init application without controller", func(t *testing.T) {
-	//	wa := NewApplication()
-	//	assert.NotEqual(t, nil, wa.app)
-	//})
+
 }

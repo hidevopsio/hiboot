@@ -16,7 +16,7 @@ package main
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
-	_ "github.com/hidevopsio/hiboot/examples/data/bolt/controllers"
+	_ "github.com/hidevopsio/hiboot/examples/data/bolt/controller"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 )
 

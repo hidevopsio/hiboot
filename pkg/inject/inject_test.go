@@ -51,7 +51,7 @@ type fooConfiguration struct {
 }
 
 type fooService struct {
-	FooUser       *user           `inject:"name=foo"`
+	FooUser       *user           `inject:"name=foo"` // TODO: should be able to change the instance name, e.g. `inject:"bazUser"`
 	FooRepository data.Repository `inject:""`
 }
 
