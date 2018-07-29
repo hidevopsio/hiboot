@@ -21,6 +21,7 @@ import (
 )
 
 var InvalidInputError = errors.New("input is invalid")
+var InvalidMethodError = errors.New("method is invalid")
 var FieldCanNotBeSetError = errors.New("field can not be set")
 
 func NewReflectType(st interface{}) interface{} {
@@ -170,4 +171,21 @@ func GetLowerCaseObjectName(data interface{}) (string, error) {
 	name, err := GetName(data)
 	name = strings.ToLower(name)
 	return name, err
+}
+
+func HasField(object interface{}, name string) bool  {
+	r := reflect.ValueOf(object)
+	fv := reflect.Indirect(r).FieldByName(name)
+
+	return fv.IsValid()
+}
+
+func CallMethodByName(object interface{}, name string) (interface{}, error)  {
+	objVal := reflect.ValueOf(object)
+	method := objVal.MethodByName(name)
+	if method.IsValid() {
+		results := method.Call([]reflect.Value{})
+		return results[0].Interface(), nil
+	}
+	return nil, InvalidMethodError
 }

@@ -17,6 +17,10 @@ func (f *Foo) Init(name string)  {
 	f.Name = name
 }
 
+func (f *Foo) Nickname() string  {
+	return "foo"
+}
+
 type Bar struct{
 	Name string
 	Age int
@@ -29,6 +33,16 @@ type Baz struct {
 
 func init() {
 	log.SetLevel(log.DebugLevel)
+}
+
+func TestLookupField(t *testing.T) {
+	t.Run("should find anonymous field on Baz", func(t *testing.T) {
+		assert.Equal(t, true, HasField(&Baz{}, "Foo"))
+	})
+
+	t.Run("should not find anonymous field on Foo", func(t *testing.T) {
+		assert.Equal(t, false, HasField(&Bar{}, "Foo"))
+	})
 }
 
 func TestConstructor(t *testing.T) {
@@ -223,4 +237,18 @@ func TestGetName(t *testing.T) {
 		_, err := GetLowerCaseObjectName((*Foo)(nil))
 		assert.Equal(t, InvalidInputError, err)
 	})
+}
+
+func TestCallMethodByName(t *testing.T) {
+	t.Run("should call method by name", func(t *testing.T) {
+		res, err := CallMethodByName(&Foo{}, "Nickname")
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "foo", res)
+	})
+
+	t.Run("should call method by name", func(t *testing.T) {
+		_, err := CallMethodByName(&Foo{}, "NotExistMethod")
+		assert.Equal(t, InvalidMethodError, err)
+	})
+
 }

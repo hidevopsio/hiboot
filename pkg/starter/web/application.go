@@ -34,6 +34,7 @@ import (
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/hidevopsio/hiboot/pkg/starter"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/model"
 )
 
 const (
@@ -66,8 +67,8 @@ type Application struct {
 	workDir           string
 	httpMethods       []string
 	autoConfiguration starter.AutoConfiguration
-	anonControllers []interface{}
-	jwtControllers  []interface{}
+	anonControllers   []interface{}
+	jwtControllers    []interface{}
 }
 
 // Health is the health check struct
@@ -107,15 +108,77 @@ func healthHandler(app *iris.Application) *router.Route {
 func (wa *Application) handle(method reflect.Method, object interface{}, ctx *Context) {
 	//log.Debug("NumIn: ", method.Type.NumIn())
 	numIn := method.Type.NumIn()
+	numOut := method.Type.NumOut()
 	inputs := make([]reflect.Value, numIn)
-
 	inputs[0] = reflect.ValueOf(object)
-	if numIn == 2 {
-		inputs[1] = reflect.ValueOf(ctx)
-	} else {
-		reflector.SetFieldValue(object, "Ctx", ctx)
+	var reqErr error
+	if numIn >= 2 {
+		// switch input type
+		// find if the input type contains specific identifier RequestBody,RequestParams,RequestForm
+		// then create new request instance
+		// after that, call ctx.RequestBody() parse request
+		requestType := reflector.IndirectType(method.Type.In(1))
+		reqVal := reflect.New(requestType)
+		var request interface{}
+		request = reqVal.Interface()
+		result, err := reflector.CallMethodByName(request, "RequestType")
+		if err == nil {
+			rt := fmt.Sprintf("%v", result)
+			switch rt {
+			case model.RequestTypeForm:
+				reqErr = ctx.RequestForm(request)
+			case model.RequestTypeParams:
+				reqErr = ctx.RequestParams(request)
+			default:
+				reqErr = ctx.RequestBody(request)
+			}
+			inputs[1] = reqVal
+		} else {
+			inputs[1] = reflect.ValueOf(ctx)
+		}
+		fmt.Printf("\nMethod: %v\nKind: %v\nName: %v\n-----------", method.Name, requestType.Kind(), requestType.Name())
 	}
-	method.Func.Call(inputs)
+
+	var respErr error
+	var results []reflect.Value
+	if reqErr == nil {
+		reflector.SetFieldValue(object, "Ctx", ctx)
+		results = method.Func.Call(inputs)
+		if numOut == 1 {
+			result := results[0]
+			if result.Kind() == reflect.String && result.CanInterface() {
+				ctx.ResponseString(result.Interface().(string))
+			}
+		} else if numOut >= 2 {
+			if method.Type.Out(1).Name() == "error" {
+				if results[1].Kind() == reflect.Struct {
+					fmt.Println(results[1].Type(), " ", results[1].Type().Name())
+				}
+				if results[1].IsNil() {
+					respErr = nil
+				} else {
+					respErr = results[1].Interface().(error)
+				}
+			}
+			responseTypeName := method.Type.Out(0).Name()
+			var response model.Response
+			switch responseTypeName {
+			case "Response":
+				response = results[0].Interface().(model.Response)
+				if respErr == nil {
+					response.Code = http.StatusOK
+					response.Message = "success"
+				} else {
+					if response.Code == 0 {
+						response.Code = http.StatusInternalServerError
+					}
+					// TODO: output error message directly? how about i18n
+					response.Message = respErr.Error()
+				}
+			}
+			ctx.JSON(response)
+		}
+	}
 }
 
 // Add add controller to controllers container
@@ -123,15 +186,13 @@ func Add(controllers ...interface{}) {
 	webControllers = append(webControllers, controllers...)
 }
 
-func (wa *Application) add(controllers ...interface{})  {
+func (wa *Application) add(controllers ...interface{}) {
 	for _, controller := range controllers {
 		authType := AuthTypeAnon
-		authTypeMethod := reflect.ValueOf(controller).MethodByName("AuthType")
-		if authTypeMethod.IsValid() {
-			results := authTypeMethod.Call([]reflect.Value{})
-			authType = fmt.Sprintf("%v", results[0].Interface())
+		result, err := reflector.CallMethodByName(controller, "AuthType")
+		if err == nil {
+			authType = fmt.Sprintf("%v", result)
 		}
-
 		// separate jwt controllers from anon
 		if authType == AuthTypeJwt {
 			wa.jwtControllers = append(wa.jwtControllers, controller)
