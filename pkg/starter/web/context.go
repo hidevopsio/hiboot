@@ -129,6 +129,12 @@ func (ctx *Context) translate(message string) string {
 	return message
 }
 
+
+// ResponseBody set response
+func (ctx *Context) ResponseString(data string) {
+	ctx.WriteString(ctx.translate(data))
+}
+
 // ResponseBody set response
 func (ctx *Context) ResponseBody(message string, data interface{}) {
 

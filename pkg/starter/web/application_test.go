@@ -23,19 +23,33 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/model"
 )
 
 type UserRequest struct {
-	Username string
-	Password string
+	model.RequestBody
+	Username string	`validate:"required"`
+	Password string	`validate:"required"`
 }
 
 type FooRequest struct {
+	model.RequestBody
 	Name string
 }
 
-type FooResponse struct {
-	Greeting string
+type BarRequest struct {
+	model.RequestParams
+	Name string
+}
+
+type FoobarRequestForm struct {
+	model.RequestForm
+	Name string
+}
+
+type FoobarRequestParams struct {
+	model.RequestParams
+	Name string
 }
 
 type Bar struct {
@@ -64,32 +78,32 @@ func (c *FooController) Before()  {
 	c.Ctx.Next()
 }
 
-func (c *FooController) PostLogin()  {
+func (c *FooController) PostLogin(request *UserRequest) (response model.Response, err error)  {
 	log.Debug("FooController.Login")
-	userRequest := &UserRequest{}
-	if c.Ctx.RequestBody(userRequest) == nil {
-		jwtToken, err := GenerateJwtToken(JwtMap{
-			"username": userRequest.Username,
-			"password": userRequest.Password,
-		}, 10, time.Minute)
 
-		log.Debugf("token: %v", jwtToken)
+	// you make validate username and password first
 
-		if err == nil {
-			c.Ctx.ResponseBody("Success", jwtToken)
-		} else {
-			c.Ctx.ResponseError(err.Error(), http.StatusInternalServerError)
-		}
-	}
+	jwtToken, err := GenerateJwtToken(JwtMap{
+		"username": request.Username,
+		"password": request.Password,
+	}, 10, time.Minute)
+
+	response.Data = jwtToken
+
+	return response, err
 }
 
-func (c *FooController) Post()  {
+func (c *FooController) Post(request *FooRequest) (response model.Response, err error)  {
 	log.Debug("FooController.Post")
 
-	foo := &FooRequest{}
-	if c.Ctx.RequestBody(foo) == nil {
-		c.Ctx.ResponseBody("Success", &FooResponse{Greeting: "hello, " + foo.Name})
-	}
+	response.Data = "Hello, " + request.Name
+
+	return response, nil
+}
+
+func (c *FooController) Get() string  {
+	log.Debug("FooController.Post")
+	return "hello"
 }
 
 
@@ -107,7 +121,6 @@ func (c *FooController) Delete()  {
 
 func (c *FooController) After()  {
 	log.Debug("FooController.After")
-
 }
 
 // BarController
@@ -115,32 +128,30 @@ type BarController struct{
 	JwtController
 }
 
-func (c *BarController) Get()  {
+func (c *BarController) Get(request *BarRequest) (response model.Response, err error)  {
 	log.Debug("BarController.Get")
 
-	c.Ctx.ResponseBody("Success", &Bar{Greeting: "hello bar"})
+	response.Data = "Hello, " + request.Name
 
+	return response, nil
 }
 
 type FoobarController struct {
 	Controller
 }
 
-func (c *FoobarController) Post()  {
-	foo := &FooRequest{}
-	err := c.Ctx.RequestForm(foo)
-	if err == nil {
-		c.Ctx.ResponseBody("Success", &FooResponse{Greeting: "hello, " + foo.Name})
-	} else {
-		c.Ctx.ResponseError(err.Error(), http.StatusInternalServerError)
-	}
+func (c *FoobarController) Post(request *FoobarRequestForm) (response model.Response, err error)  {
+
+	response.Data = "Hello, " + request.Name
+
+	return
 }
 
-func (c *FoobarController) Get()  {
-	foo := &FooRequest{}
-	if c.Ctx.RequestParams(foo) == nil {
-		c.Ctx.ResponseBody("Success", &FooResponse{Greeting: "hello, " + foo.Name})
-	}
+func (c *FoobarController) Get(request *FoobarRequestParams) (response model.Response, err error) {
+
+	response.Data = "Hello, " + request.Name
+
+	return
 }
 
 // Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
@@ -154,9 +165,8 @@ type HelloController struct{
 // Get hello
 // The first word of method is the http method GET, the rest is the context mapping hello
 // in this method, the name Get means that the method context mapping is '/'
-func (c *HelloController) Get()  {
-
-	c.Ctx.ResponseBody("success", "Hello, World")
+func (c *HelloController) Get() string {
+	return "hello"
 }
 
 func TestWebApplication(t *testing.T)  {
@@ -165,16 +175,14 @@ func TestWebApplication(t *testing.T)  {
 	t.Run("should response 200 when GET /", func(t *testing.T) {
 		app.
 			Get("/").
-			Expect().Status(http.StatusOK).
-			Body().Contains("Success")
+			Expect().Status(http.StatusOK)
 	})
 
-	t.Run("should response 成功 with language zh-CN", func(t *testing.T) {
+	t.Run("should response 你好，世界 with language zh-CN", func(t *testing.T) {
 		// test cn-ZH
 		app.Get("/").
 			WithHeader("Accept-Language", "zh-CN").
-			Expect().Status(http.StatusOK).
-			Body().Contains("成功")
+			Expect().Status(http.StatusOK)
 	})
 
 	t.Run("should response Success with language en-US", func(t *testing.T) {
@@ -183,20 +191,28 @@ func TestWebApplication(t *testing.T)  {
 			WithHeader("Accept-Language", "en-US").
 			Expect().
 			Status(http.StatusOK).
-			Body().Contains("Success")
+			Body().Contains("Hello, World")
 	})
 
-	app.Get("/health").Expect().Status(http.StatusOK)
+	t.Run("should pass health check", func(t *testing.T) {
+		app.Get("/health").Expect().Status(http.StatusOK)
+	})
 
-	app.Post("/foo/login").
-		WithJSON(&UserRequest{Username: "johndoe", Password: "iHop91#15"}).
-		Expect().Status(http.StatusOK).
-		Body().Contains("Success")
+	t.Run("should login with username and password", func(t *testing.T) {
+		app.Post("/foo/login").
+			WithJSON(&UserRequest{Username: "johndoe", Password: "iHop91#15"}).
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should failed to pass validation", func(t *testing.T) {
+		app.Post("/foo/login").
+			WithJSON(&UserRequest{Username: "johndoe"}).
+			Expect().Status(http.StatusBadRequest)
+	})
 
 	app.Post("/foo").
 		WithJSON(&FooRequest{Name: "John"}).
-		Expect().Status(http.StatusOK).
-		Body().Contains("Success")
+		Expect().Status(http.StatusOK)
 
 	app.Get("/bar").
 		Expect().Status(http.StatusUnauthorized)

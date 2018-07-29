@@ -23,12 +23,14 @@ cd $GOPATH/src/github.com/hidevopsio/hiboot/examples/web/helloworld/
 
 
 ```go
-
 // Line 1: main package
 package main
 
 // Line 2: import web starter from hiboot
-import "github.com/hidevopsio/hiboot/pkg/starter/web"
+import (
+	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	"github.com/hidevopsio/hiboot/pkg/model"
+)
 
 // Line 3-5: RESTful Controller, derived from web.Controller. The context mapping of this controller is '/' by default
 type Controller struct {
@@ -37,9 +39,9 @@ type Controller struct {
 
 // Line 6-8: Get method, the context mapping of this method is '/' by default
 // the Method name Get means that the http request method is GET
-func (c *Controller) Get() {
-	// response JSON object
-	c.Ctx.ResponseBody("success", "hello hiboot")
+func (c *Controller) Get() string {
+	// response data
+	return "Hello world"
 }
 
 // Line 9-11: main function
@@ -47,7 +49,6 @@ func main() {
 	// create new web application and run it
 	web.NewApplication(&Controller{}).Run()
 }
-
 ```
 
 ### Let's run it
@@ -62,12 +63,8 @@ go run main.go
 curl http://localhost:8080/
 ```
 
-```bash
-{
-"code": 200,
-"message": "Success",
-"data": "hello hiboot"
-}
+```
+Hello, world
 ```
 
 ### Happy coding in go!
