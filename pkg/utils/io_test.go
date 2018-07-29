@@ -148,6 +148,10 @@ func TestDirName(t *testing.T) {
 
 func TestEnsureWorkDir(t *testing.T) {
 	wd := GetWorkDir()
+
+	x := EnsureWorkDir("dir-does-not-exist")
+	assert.Equal(t, wd, x)
+
 	d := EnsureWorkDir("")
 	assert.Equal(t, wd, d)
 
