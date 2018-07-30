@@ -1,9 +1,9 @@
 package model
 
 var (
-	RequestTypeBody = "body"
-	RequestTypeParams = "params"
-	RequestTypeForm = "form"
+	RequestTypeBody = "RequestBody"
+	RequestTypeParams = "RequestParams"
+	RequestTypeForm = "RequestForm"
 )
 
 type RequestBody struct {
