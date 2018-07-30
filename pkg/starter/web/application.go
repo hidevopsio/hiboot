@@ -124,11 +124,11 @@ func (wa *Application) handle(method reflect.Method, object interface{}, ctx *Co
 
 		// TODO: evaluate the performance with below two solution
 		inputs[1] = reqVal
-		if field, ok := requestType.FieldByName("RequestForm"); ok && field.Anonymous {
+		if field, ok := requestType.FieldByName(model.RequestTypeForm); ok && field.Anonymous {
 			reqErr = ctx.RequestForm(request)
-		} else if field, ok := requestType.FieldByName("RequestParams"); ok && field.Anonymous {
+		} else if field, ok := requestType.FieldByName(model.RequestTypeParams); ok && field.Anonymous {
 			reqErr = ctx.RequestParams(request)
-		} else if field, ok := requestType.FieldByName("RequestBody"); ok && field.Anonymous {
+		} else if field, ok := requestType.FieldByName(model.RequestTypeBody); ok && field.Anonymous {
 			reqErr = ctx.RequestBody(request)
 		} else {
 			// assume that ctx is presented if it does not find above requests
