@@ -189,3 +189,9 @@ func CallMethodByName(object interface{}, name string) (interface{}, error)  {
 	}
 	return nil, InvalidMethodError
 }
+
+func HasEmbeddedField(object interface{}, name string) bool {
+	typ := IndirectType(reflect.TypeOf(object))
+	field, ok := typ.FieldByName(name)
+	return field.Anonymous && ok
+}

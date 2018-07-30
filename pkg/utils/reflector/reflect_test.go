@@ -252,3 +252,103 @@ func TestCallMethodByName(t *testing.T) {
 	})
 
 }
+
+type Embedded struct{}
+type PtrEmbedded struct{}
+
+type hidden struct{}
+
+type Test struct {
+	Embedded
+	hidden
+	*PtrEmbedded
+	Exportedvalue int
+	unexported    string
+	A struct { A int }
+}
+
+func TestEmbedded(t *testing.T) {
+	testCases := []struct {
+		name      string
+		source    interface{}
+		fieldName string
+		ok        bool
+		private   bool
+		anonymous bool
+	} {
+		{
+			name:      "Should find Embedded field by name",
+			source:    Test{},
+			fieldName: "Embedded",
+			ok:        true,
+			private:   false,
+			anonymous: true,
+		},
+		{
+			name:      "Should find Embedded field by name",
+			source:    &Test{},
+			fieldName: "Embedded",
+			ok:        true,
+			private:   false,
+			anonymous: true,
+		},
+		{
+			name:      "Should find hidden field by name",
+			source:    Test{},
+			fieldName: "hidden",
+			ok:        true,
+			private:   true,
+			anonymous: true,
+		},
+		{
+			name:      "Should find PtrEmbedded field by name",
+			source:    Test{},
+			fieldName: "PtrEmbedded",
+			ok:        true,
+			private:   false,
+			anonymous: true,
+		},
+		{
+			name:      "Should find Exportedvalue field by name",
+			source:    Test{},
+			fieldName: "Exportedvalue",
+			ok:        true,
+			private:   false,
+			anonymous: false,
+		},
+		{
+			name:      "Should find unexported field by name",
+			source:    Test{},
+			fieldName: "unexported",
+			ok:        true,
+			private:   true,
+			anonymous: false,
+		},
+		{
+			name:      "Should find A field by name",
+			source:    Test{},
+			fieldName: "A",
+			ok:        true,
+			private:   false,
+			anonymous: false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		typ := IndirectType(reflect.TypeOf(testCase.source))
+		t.Run(testCase.name, func(t *testing.T) {
+			field, ok := typ.FieldByName(testCase.fieldName)
+			exported := field.PkgPath != ""
+			assert.Equal(t, testCase.ok, ok)
+			assert.Equal(t, testCase.private, exported)
+			assert.Equal(t, testCase.anonymous, field.Anonymous)
+			assert.Equal(t, testCase.fieldName, field.Name)
+		})
+
+		t.Run(testCase.name, func(t *testing.T) {
+			ok := HasEmbeddedField(testCase.source, testCase.fieldName)
+			assert.Equal(t, testCase.anonymous, ok)
+		})
+	}
+}
+
