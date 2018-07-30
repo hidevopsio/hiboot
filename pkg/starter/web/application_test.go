@@ -102,10 +102,15 @@ func (c *FooController) Post(request *FooRequest) (response model.Response, err 
 }
 
 func (c *FooController) Get() string  {
-	log.Debug("FooController.Post")
+	log.Debug("FooController.Get")
 	return "hello"
 }
 
+// GetHello we can also pass ctx to controller action
+func (c *FooController) GetHello(ctx *Context) string  {
+	log.Debug("FooController.GetHello")
+	return "hello"
+}
 
 func (c *FooController) Put()  {
 	log.Debug("FooController.Put")
@@ -211,6 +216,10 @@ func TestWebApplication(t *testing.T)  {
 	})
 
 	app.Post("/foo").
+		WithJSON(&FooRequest{Name: "John"}).
+		Expect().Status(http.StatusOK)
+
+	app.Get("/foo/hello").
 		WithJSON(&FooRequest{Name: "John"}).
 		Expect().Status(http.StatusOK)
 

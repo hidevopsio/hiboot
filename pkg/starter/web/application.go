@@ -121,22 +121,37 @@ func (wa *Application) handle(method reflect.Method, object interface{}, ctx *Co
 		reqVal := reflect.New(requestType)
 		var request interface{}
 		request = reqVal.Interface()
-		result, err := reflector.CallMethodByName(request, "RequestType")
-		if err == nil {
-			rt := fmt.Sprintf("%v", result)
-			switch rt {
-			case model.RequestTypeForm:
-				reqErr = ctx.RequestForm(request)
-			case model.RequestTypeParams:
-				reqErr = ctx.RequestParams(request)
-			default:
-				reqErr = ctx.RequestBody(request)
-			}
-			inputs[1] = reqVal
+
+		// TODO: evaluate the performance with below two solution
+		inputs[1] = reqVal
+		if field, ok := requestType.FieldByName("RequestForm"); ok && field.Anonymous {
+			reqErr = ctx.RequestForm(request)
+		} else if field, ok := requestType.FieldByName("RequestParams"); ok && field.Anonymous {
+			reqErr = ctx.RequestParams(request)
+		} else if field, ok := requestType.FieldByName("RequestBody"); ok && field.Anonymous {
+			reqErr = ctx.RequestBody(request)
 		} else {
+			// assume that ctx is presented if it does not find above requests
 			inputs[1] = reflect.ValueOf(ctx)
 		}
-		fmt.Printf("\nMethod: %v\nKind: %v\nName: %v\n-----------", method.Name, requestType.Kind(), requestType.Name())
+
+		//result, err := reflector.CallMethodByName(request, "RequestType")
+		//if err == nil {
+		//	rt := fmt.Sprintf("%v", result)
+		//	switch rt {
+		//	case model.RequestTypeForm:
+		//		reqErr = ctx.RequestForm(request)
+		//	case model.RequestTypeParams:
+		//		reqErr = ctx.RequestParams(request)
+		//	default:
+		//		reqErr = ctx.RequestBody(request)
+		//	}
+		//	inputs[1] = reqVal
+		//} else {
+		//	inputs[1] = reflect.ValueOf(ctx)
+		//}
+
+		//fmt.Printf("\nMethod: %v\nKind: %v\nName: %v\n-----------", method.Name, requestType.Kind(), requestType.Name())
 	}
 
 	var respErr error
