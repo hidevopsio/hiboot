@@ -26,11 +26,11 @@ func TestResponse(t *testing.T)  {
 	response = new(BaseResponse)
 
 	response.SetCode(200)
-	assert.Equal(t, 200, response.Code())
+	assert.Equal(t, 200, response.GetCode())
 
 	response.SetMessage("Hello world")
-	assert.Equal(t, "Hello world", response.Message())
+	assert.Equal(t, "Hello world", response.GetMessage())
 
 	response.SetData("example")
-	assert.Equal(t, "example", response.Data())
+	assert.Equal(t, "example", response.GetData())
 }

@@ -31,14 +31,15 @@ type response struct {
 }
 
 type handler struct {
-	controller interface{}
-	method     reflect.Method
-	inputs     []reflect.Value
-	numIn      int
-	numOut     int
-	pathParams []string
-	requests   []request
-	responses  []response
+	controller      interface{}
+	method          reflect.Method
+	inputs          []reflect.Value
+	numIn           int
+	numOut          int
+	pathParams      []string
+	requests        []request
+	responses       []response
+	lenOfPathParams int
 }
 
 func (h *handler) parse(method reflect.Method, object interface{}, path string) {
@@ -107,6 +108,7 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 			}
 		}
 	}
+	h.lenOfPathParams = lenOfPathParams
 
 	h.responses = make([]response, h.numOut)
 	for i := 0; i < h.numOut; i++ {
@@ -123,10 +125,15 @@ func (h *handler) call(ctx *Context) {
 	var request interface{}
 	var reqErr error
 	var err error
-	hasPathParam := len(h.pathParams) != 0
-	path := ctx.Path()
-	//log.Debugf("path: %v", path)
-	pvs := strings.SplitN(path, "/", -1)
+	var path string
+	var pvs []string
+
+	if h.lenOfPathParams != 0 {
+		path = ctx.Path()
+		//log.Debugf("path: %v", path)
+		pvs = strings.SplitN(path, "/", -1)
+	}
+
 	for i := 1; i < h.numIn; i++ {
 		req := h.requests[i]
 		request = req.iVal.Interface()
@@ -150,7 +157,7 @@ func (h *handler) call(ctx *Context) {
 
 			h.inputs[i] = reflect.ValueOf(request)
 			break
-		} else if hasPathParam {
+		} else if h.lenOfPathParams != 0 {
 			strVal := pvs[req.pathIdx]
 			var val interface{}
 			switch req.typeName {
@@ -218,7 +225,6 @@ func (h *handler) call(ctx *Context) {
 					}
 				}
 			}
-			// TODO: no response even it has values?
 			ctx.JSON(response)
 		}
 	}
