@@ -2,7 +2,7 @@ package service
 
 import (
 	"testing"
-	"github.com/hidevopsio/hiboot/examples/data/bolt/model"
+	"github.com/hidevopsio/hiboot/examples/data/bolt/entity"
 	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/starter/data"
 )
@@ -17,7 +17,7 @@ func (r *FakeRepository) Get(params ...interface{}) error  {
 	if len(params) == 2 {
 		key := params[0].(string)
 		if key == "1" {
-			u := params[1].(*model.User)
+			u := params[1].(*entity.User)
 			u.Name = "John Doe"
 			u.Age = 18
 		}
@@ -27,11 +27,12 @@ func (r *FakeRepository) Get(params ...interface{}) error  {
 }
 
 func init() {
-	userService = &UserService{BoltRepository: &FakeRepository{}}
+	userService = new(UserService)
+	userService.Init(&FakeRepository{})
 }
 
 func TestAddUser(t *testing.T) {
-	user := &model.User{Name: "John Doe", Age: 18}
+	user := &entity.User{Name: "John Doe", Age: 18}
 	err := userService.AddUser(user)
 	assert.Equal(t, nil, err)
 }
@@ -46,18 +47,4 @@ func TestGetUser(t *testing.T) {
 func TestDeleteUser(t *testing.T) {
 	err := userService.DeleteUser("")
 	assert.Equal(t, nil, err)
-}
-
-func TestNilRepository(t *testing.T) {
-	errMsg := "repository is not injected"
-	us := &UserService{}
-
-	err := us.AddUser(nil)
-	assert.Equal(t, errMsg, err.Error())
-
-	_, err = us.GetUser("")
-	assert.Equal(t, errMsg, err.Error())
-
-	err = us.DeleteUser("")
-	assert.Equal(t, errMsg, err.Error())
 }

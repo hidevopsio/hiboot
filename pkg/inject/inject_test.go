@@ -34,15 +34,21 @@ type fakeConfiguration struct {
 type fakeDataSource struct {
 }
 
-func (c *fakeConfiguration) FakeRepository() data.Repository {
+type FakeRepository data.Repository
+
+type FooUser struct {
+	Name string
+}
+
+func (c *fakeConfiguration) FakeRepository() FakeRepository {
 	repo := new(fakeRepository)
 	repo.SetDataSource(new(fakeDataSource))
 	return repo
 }
 
 // FooUser an instance fooUser is injectable with tag `inject:"fooUser"`
-func (c *fakeConfiguration) FooUser() *user {
-	u := new(user)
+func (c *fakeConfiguration) FooUser() *FooUser {
+	u := new(FooUser)
 	u.Name = "foo"
 	return u
 }
@@ -51,8 +57,8 @@ type fooConfiguration struct {
 }
 
 type fooService struct {
-	FooUser       *user           `inject:"name=foo"` // TODO: should be able to change the instance name, e.g. `inject:"bazUser"`
-	FooRepository data.Repository `inject:""`
+	FooUser       *FooUser       `inject:"name=foo"` // TODO: should be able to change the instance name, e.g. `inject:"bazUser"`
+	FooRepository FakeRepository `inject:""`
 }
 
 type hibootService struct {
@@ -60,20 +66,20 @@ type hibootService struct {
 }
 
 type barService struct {
-	FooRepository data.Repository `inject:""`
+	FooRepository FakeRepository `inject:""`
 }
 
 type userService struct {
-	User           *user           `inject:""`
-	FooUser        *user           `inject:"name=foo"`
-	FakeUser       *user           `inject:"name=${fake.name},app=${app.name}"`
-	FakeRepository data.Repository `inject:""`
-	DefaultUrl     string          `value:"${fake.defaultUrl:http://localhost:8080}"`
-	Url            string          `value:"${fake.url}"`
+	FooUser        *FooUser       `inject:"name=foo"`
+	User           *user          `inject:""`
+	FakeUser       *user          `inject:"name=${fake.name},app=${app.name}"`
+	FakeRepository FakeRepository `inject:""`
+	DefaultUrl     string         `value:"${fake.defaultUrl:http://localhost:8080}"`
+	Url            string         `value:"${fake.url}"`
 }
 
 type fooBarService struct {
-	FooBarRepository data.Repository `inject:""`
+	FooBarRepository FakeRepository `inject:""`
 }
 
 type foobarRecursiveInject struct {
@@ -82,6 +88,12 @@ type foobarRecursiveInject struct {
 
 type recursiveInject struct {
 	UserService *userService
+}
+
+type MethodInjectionService struct {
+	fooUser    *FooUser
+	barUser	   *user
+	repository FakeRepository
 }
 
 var (
@@ -111,12 +123,28 @@ func init() {
 	starter.GetAutoConfiguration().Build()
 }
 
+// Init automatically inject FooUser and FakeRepository that instantiated in fakeConfiguration
+func (s *MethodInjectionService) Init(fooUser *FooUser, barUser *user, repository FakeRepository)  {
+	s.fooUser = fooUser
+	s.barUser = barUser
+	s.repository = repository
+}
+
 func TestNotInject(t *testing.T) {
 	baz := new(userService)
 	assert.Equal(t, (*user)(nil), baz.User)
 }
 
 func TestInject(t *testing.T) {
+	t.Run("should inject through method", func(t *testing.T) {
+		s := new(MethodInjectionService)
+		err := IntoObject(reflect.ValueOf(s))
+		assert.Equal(t, nil, err)
+		assert.NotEqual(t, (*FooUser)(nil), s.fooUser)
+		assert.NotEqual(t, (*user)(nil), s.barUser)
+		assert.NotEqual(t, (FakeRepository)(nil), s.repository)
+	})
+
 	t.Run("should inject repository", func(t *testing.T) {
 		us := new(userService)
 		err := IntoObject(reflect.ValueOf(us))
@@ -133,14 +161,14 @@ func TestInject(t *testing.T) {
 	t.Run("should not inject unimplemented interface into FooBarRepository", func(t *testing.T) {
 		fb := new(foobarRecursiveInject)
 		err := IntoObject(reflect.ValueOf(fb))
-		assert.Contains(t, err.Error(), "data.Repository is not implemented")
+		assert.Contains(t, err.Error(), "FakeRepository is not implemented")
 	})
 
 	t.Run("should not inject unimplemented interface into FooRepository", func(t *testing.T) {
 		fs := new(fooService)
 		err := IntoObject(reflect.ValueOf(fs))
 		assert.Equal(t, "foo", fs.FooUser.Name)
-		assert.Contains(t, err.Error(), "data.Repository is not implemented")
+		assert.Contains(t, err.Error(), "FakeRepository is not implemented")
 	})
 
 	t.Run("should not inject system property into object", func(t *testing.T) {
@@ -153,7 +181,7 @@ func TestInject(t *testing.T) {
 	t.Run("should not inject unimplemented interface into BarRepository", func(t *testing.T) {
 		bs := new(barService)
 		err := IntoObject(reflect.ValueOf(bs))
-		assert.Contains(t, err.Error(), "data.Repository is not implemented")
+		assert.Contains(t, err.Error(), "FakeRepository is not implemented")
 	})
 
 	t.Run("should inject recursively", func(t *testing.T) {

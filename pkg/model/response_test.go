@@ -17,7 +17,20 @@ package model
 
 import (
 	"testing"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestResponse(t *testing.T)  {
+	var response Response
+
+	response = new(BaseResponse)
+
+	response.SetCode(200)
+	assert.Equal(t, 200, response.Code())
+
+	response.SetMessage("Hello world")
+	assert.Equal(t, "Hello world", response.Message())
+
+	response.SetData("example")
+	assert.Equal(t, "example", response.Data())
 }

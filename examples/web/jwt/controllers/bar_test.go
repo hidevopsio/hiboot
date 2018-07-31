@@ -38,17 +38,20 @@ func TestBarWithToken(t *testing.T) {
 	}, 100, time.Millisecond)
 	if err == nil {
 
-		t := fmt.Sprintf("Bearer %v", string(*pt))
-
-		app.Get("/bar").
-			WithHeader("Authorization", t).
-			Expect().Status(http.StatusOK)
+		token := fmt.Sprintf("Bearer %v", string(*pt))
+		t.Run("should pass with jwt token", func(t *testing.T) {
+			app.Get("/bar").
+				WithHeader("Authorization", token).
+				Expect().Status(http.StatusOK)
+		})
 
 		time.Sleep(2 * time.Second)
 
-		app.Get("/bar").
-			WithHeader("Authorization", t).
-			Expect().Status(http.StatusUnauthorized)
+		t.Run("should not pass with expired jwt token", func(t *testing.T) {
+			app.Get("/bar").
+				WithHeader("Authorization", token).
+				Expect().Status(http.StatusUnauthorized)
+		})
 	}
 }
 

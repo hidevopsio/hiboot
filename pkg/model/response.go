@@ -15,8 +15,41 @@
 
 package model
 
-type Response struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+type Response interface {
+	SetCode(code int)
+	Code() int
+	SetMessage(message string)
+	Message() string
+	SetData(data interface{})
+	Data() interface{}
+}
+
+type BaseResponse struct {
+	code    int
+	message string
+	data    interface{}
+}
+
+func (r *BaseResponse) SetCode(code int)  {
+	r.code = code
+}
+
+func (r *BaseResponse) Code() int {
+	return r.code
+}
+
+func (r *BaseResponse) SetMessage(message string)  {
+	r.message = message
+}
+
+func (r *BaseResponse) Message() string {
+	return r.message
+}
+
+func (r *BaseResponse) SetData(data interface{})  {
+	r.data = data
+}
+
+func (r *BaseResponse) Data() interface{} {
+	return r.data
 }
