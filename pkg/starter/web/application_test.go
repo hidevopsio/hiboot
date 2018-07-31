@@ -102,7 +102,6 @@ func (c *FooController) Post(request *FooRequest) (response model.Response, err 
 		return response, errors.New("only John is illegal name in this test")
 	}
 	response.SetData("Hello, " + request.Name)
-
 	return
 }
 
@@ -217,7 +216,8 @@ func TestWebApplication(t *testing.T)  {
 	t.Run("should login with username and password", func(t *testing.T) {
 		app.Post("/foo/login").
 			WithJSON(&UserRequest{Username: "johndoe", Password: "iHop91#15"}).
-			Expect().Status(http.StatusOK)
+			Expect().Status(http.StatusOK).
+			Body().NotEqual("")
 	})
 
 	t.Run("should failed to pass validation", func(t *testing.T) {
@@ -229,7 +229,8 @@ func TestWebApplication(t *testing.T)  {
 	t.Run("should return success after POST /foo", func(t *testing.T) {
 		app.Post("/foo").
 			WithJSON(&FooRequest{Name: "John"}).
-			Expect().Status(http.StatusOK)
+			Expect().Status(http.StatusOK).
+			Body().Contains("Hello")
 	})
 
 	t.Run("should return StatusInternalServerError after POST /foo with illegal name", func(t *testing.T) {
@@ -242,7 +243,8 @@ func TestWebApplication(t *testing.T)  {
 	t.Run("should return success after GET /foo/hello", func(t *testing.T) {
 		app.Get("/foo/hello").
 			WithJSON(&FooRequest{Name: "John"}).
-			Expect().Status(http.StatusOK)
+			Expect().Status(http.StatusOK).
+			Body().Equal("Hello, World")
 	})
 
 

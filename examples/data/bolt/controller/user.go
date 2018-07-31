@@ -25,10 +25,10 @@ func (c *UserController) Init(userService *service.UserService) {
 
 // Post /user
 func (c *UserController) Post(user *entity.User) (model.Response, error) {
-	c.userService.AddUser(user)
+	err := c.userService.AddUser(user)
 	response := new(model.BaseResponse)
 	response.SetData(user)
-	return response, nil
+	return response, err
 }
 
 // Get /user/{id}
