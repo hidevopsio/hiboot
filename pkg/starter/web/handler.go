@@ -205,19 +205,20 @@ func (h *handler) call(ctx *Context) {
 					response = results[0].Interface().(model.Response)
 					if respErr == nil {
 						response.SetCode(http.StatusOK)
-						response.SetMessage("success")
+						response.SetMessage(ctx.translate("success"))
 					} else {
-						if response.Code() == 0 {
+						if response.GetCode() == 0 {
 							response.SetCode(http.StatusInternalServerError)
 						}
 						// TODO: output error message directly? how about i18n
-						response.SetMessage(respErr.Error())
+						response.SetMessage(ctx.translate(respErr.Error()))
 
 						// TODO: configurable status code in application.yml
-						ctx.StatusCode(response.Code())
+						ctx.StatusCode(response.GetCode())
 					}
 				}
 			}
+			// TODO: no response even it has values?
 			ctx.JSON(response)
 		}
 	}
