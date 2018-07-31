@@ -107,8 +107,8 @@ func (c *FooController) Post(request *FooRequest) (response model.Response, err 
 }
 
 // GET /foo/{id}
-func (c *FooController) GetById(id string) string  {
-	log.Debug("FooController.Get")
+func (c *FooController) GetById(id int) string  {
+	log.Debug("FooController.Get by id: %v", id)
 	return "hello"
 }
 
@@ -124,13 +124,15 @@ func (c *FooController) PutByIdNameAge(id int, name string, age int) error {
 	return nil
 }
 
-func (c *FooController) Patch()  {
+func (c *FooController) PatchById(id int) error {
 	log.Debug("FooController.Patch")
+	return nil
 }
 
 // DELETE /foo/{id}
-func (c *FooController) DeleteById(id string)  {
+func (c *FooController) DeleteById(id int) error {
 	log.Debug("FooController.Delete ", id)
+	return nil
 }
 
 func (c *FooController) After()  {
@@ -201,7 +203,7 @@ func TestWebApplication(t *testing.T)  {
 
 	t.Run("should response Success with language en-US", func(t *testing.T) {
 		// test en-US
-		app.Request("GET", "/").
+		app.Get("/").
 			WithHeader("Accept-Language", "en-US").
 			Expect().
 			Status(http.StatusOK).
@@ -293,9 +295,23 @@ func TestWebApplication(t *testing.T)  {
 			WithPath("name", "Mike").
 			WithPath("age", 18).
 			Expect().Status(http.StatusOK)
+	})
 
-		//app.Patch("/foo").Expect().Status(http.StatusOK)
-		//app.Delete("/foo").Expect().Status(http.StatusOK)
+	t.Run("should Get foo by id", func(t *testing.T) {
+		app.Get("/foo/{id}").
+			WithPath("id", 123).
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should Patch foo by id", func(t *testing.T) {
+		app.Patch("/foo/{id}").
+			WithPath("id", 456).
+			Expect().Status(http.StatusOK)
+	})
+	t.Run("should Delete foo by id", func(t *testing.T) {
+		app.Delete("/foo/{id}").
+			WithPath("id", 789).
+			Expect().Status(http.StatusOK)
 	})
 }
 
