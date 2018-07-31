@@ -50,15 +50,15 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 	h.inputs = make([]reflect.Value, h.numIn)
 	h.inputs[0] = reflect.ValueOf(object)
 
-	log.Debugf("method: %v", method.Name)
+	//log.Debugf("method: %v", method.Name)
 
 	// TODO: should parse all of below request and response during router register to improve performance
 	pps := strings.SplitN(path, "/", -1)
-	log.Debug(pps)
+	//log.Debug(pps)
 	pp := utils.ParseVariables(path, compiledRegExp)
 	h.pathParams = make([]string, len(pp))
 	for i, pathParam := range pp {
-		log.Debugf("pathParm: %v", pathParam[1])
+		//log.Debugf("pathParm: %v", pathParam[1])
 		h.pathParams[i] = pathParam[1]
 	}
 
@@ -114,7 +114,7 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 		h.responses[i].typ = typ
 		h.responses[i].kind = typ.Kind()
 		h.responses[i].typeName = typ.Name()
-		log.Debug(h.responses[i])
+		//log.Debug(h.responses[i])
 	}
 }
 
@@ -125,7 +125,7 @@ func (h *handler) call(ctx *Context) {
 	var err error
 	hasPathParam := len(h.pathParams) != 0
 	path := ctx.Path()
-	log.Debugf("path: %v", path)
+	//log.Debugf("path: %v", path)
 	pvs := strings.SplitN(path, "/", -1)
 	for i := 1; i < h.numIn; i++ {
 		req := h.requests[i]
@@ -166,7 +166,8 @@ func (h *handler) call(ctx *Context) {
 
 			h.inputs[i] = reflect.ValueOf(val)
 		} else {
-			log.Debug("xx")
+			log.Warn("Not implemented!")
+			return
 		}
 	}
 
@@ -197,6 +198,7 @@ func (h *handler) call(ctx *Context) {
 			switch h.responses[0].typeName {
 			case "Response":
 				if results[0].Interface() == nil {
+					// TODO: add unit test
 					log.Warn("response is nil")
 					return
 				} else {
