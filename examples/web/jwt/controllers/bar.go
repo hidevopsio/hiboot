@@ -36,7 +36,6 @@ func init()  {
 }
 
 func (c *BarController) Get(ctx *web.Context)  {
-	ctx.Application()
 	// decrypt jwt token
 	ti := ctx.Values().Get("jwt")
 	var token *jwt.Token

@@ -2,41 +2,32 @@
 package service
 
 import (
-	"fmt"
-	"github.com/hidevopsio/hiboot/examples/data/bolt/model"
+	"github.com/hidevopsio/hiboot/examples/data/bolt/entity"
 	"github.com/hidevopsio/hiboot/pkg/starter/data/bolt"
 )
 
+type BoltRepository bolt.Repository
+
 type UserService struct {
-	BoltRepository bolt.Repository `inject:""`
+	repository BoltRepository
 }
 
 // will inject BoltRepository that configured in github.com/hidevopsio/hiboot/pkg/starter/data/bolt
-func (us *UserService) Init(boltRepository bolt.Repository)  {
-	us.BoltRepository = boltRepository
+func (s *UserService) Init(repository BoltRepository)  {
+	s.repository = repository
 }
 
-func (us *UserService) AddUser(user *model.User) error {
-	if us.BoltRepository == nil {
-		return fmt.Errorf("repository is not injected")
-	}
-
-	return us.BoltRepository.Put(user)
+func (s *UserService) AddUser(user *entity.User) error {
+	return s.repository.Put(user)
 }
 
-func (us *UserService) GetUser(id string) (*model.User, error) {
-	if us.BoltRepository == nil {
-		return nil, fmt.Errorf("repository is not injected")
-	}
-	var user model.User
-	err := us.BoltRepository.Get(id, &user)
+func (s *UserService) GetUser(id string) (*entity.User, error) {
+	var user entity.User
+	err := s.repository.Get(id, &user)
 	return &user, err
 }
 
-func (us *UserService) DeleteUser(id string) error {
-	if us.BoltRepository == nil {
-		return fmt.Errorf("repository is not injected")
-	}
-	return us.BoltRepository.Delete(id, &model.User{})
+func (s *UserService) DeleteUser(id string) error {
+	return s.repository.Delete(id, &entity.User{})
 }
 

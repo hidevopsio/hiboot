@@ -139,22 +139,20 @@ func (ctx *Context) ResponseString(data string) {
 func (ctx *Context) ResponseBody(message string, data interface{}) {
 
 	// TODO: check if data is a string, should we translate it?
-
-	response := &model.Response{
-		Code:    ctx.GetStatusCode(),
-		Message: ctx.translate(message), //TODO: Handle i18n
-		Data:    data,
-	}
+	response := new(model.BaseResponse)
+	response.SetCode(ctx.GetStatusCode())
+	response.SetMessage(ctx.translate(message))
+	response.SetData(data)
 
 	ctx.JSON(response)
 }
 
 // Response Errorset response
 func (ctx *Context) ResponseError(message string, code int) {
-	response := &model.Response{
-		Code:    code,
-		Message: ctx.translate(message), //TODO: Handle i18n
-	}
+
+	response := new(model.BaseResponse)
+	response.SetCode(code)
+	response.SetMessage(ctx.translate(message))
 
 	ctx.StatusCode(code)
 	ctx.JSON(response)

@@ -24,6 +24,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/model"
+	"errors"
 )
 
 type UserRequest struct {
@@ -87,21 +88,26 @@ func (c *FooController) PostLogin(request *UserRequest) (response model.Response
 		"username": request.Username,
 		"password": request.Password,
 	}, 10, time.Minute)
+	response = new(model.BaseResponse)
+	response.SetData(jwtToken)
 
-	response.Data = jwtToken
-
-	return response, err
+	return
 }
 
 func (c *FooController) Post(request *FooRequest) (response model.Response, err error)  {
 	log.Debug("FooController.Post")
 
-	response.Data = "Hello, " + request.Name
+	response = new(model.BaseResponse)
+	if request.Name != "John" {
+		return response, errors.New("only John is illegal name in this test")
+	}
+	response.SetData("Hello, " + request.Name)
 
-	return response, nil
+	return
 }
 
-func (c *FooController) Get() string  {
+// GET /foo/{id}
+func (c *FooController) GetById(id string) string  {
 	log.Debug("FooController.Get")
 	return "hello"
 }
@@ -112,16 +118,19 @@ func (c *FooController) GetHello(ctx *Context) string  {
 	return "hello"
 }
 
-func (c *FooController) Put()  {
-	log.Debug("FooController.Put")
+// PUT /foo/{id}/{name}/{age}
+func (c *FooController) PutByIdNameAge(id int, name string, age int) error {
+	log.Debugf("FooController.Put %v %v %v", id, name, age)
+	return nil
 }
 
 func (c *FooController) Patch()  {
 	log.Debug("FooController.Patch")
 }
 
-func (c *FooController) Delete()  {
-	log.Debug("FooController.Delete")
+// DELETE /foo/{id}
+func (c *FooController) DeleteById(id string)  {
+	log.Debug("FooController.Delete ", id)
 }
 
 func (c *FooController) After()  {
@@ -135,8 +144,8 @@ type BarController struct{
 
 func (c *BarController) Get(request *BarRequest) (response model.Response, err error)  {
 	log.Debug("BarController.Get")
-
-	response.Data = "Hello, " + request.Name
+	response = new(model.BaseResponse)
+	response.SetData("Hello, " + request.Name)
 
 	return response, nil
 }
@@ -146,15 +155,15 @@ type FoobarController struct {
 }
 
 func (c *FoobarController) Post(request *FoobarRequestForm) (response model.Response, err error)  {
-
-	response.Data = "Hello, " + request.Name
+	response = new(model.BaseResponse)
+	response.SetData("Hello, " + request.Name)
 
 	return
 }
 
 func (c *FoobarController) Get(request *FoobarRequestParams) (response model.Response, err error) {
-
-	response.Data = "Hello, " + request.Name
+	response = new(model.BaseResponse)
+	response.SetData("Hello, " + request.Name)
 
 	return
 }
@@ -215,50 +224,79 @@ func TestWebApplication(t *testing.T)  {
 			Expect().Status(http.StatusBadRequest)
 	})
 
-	app.Post("/foo").
-		WithJSON(&FooRequest{Name: "John"}).
-		Expect().Status(http.StatusOK)
+	t.Run("should return success after POST /foo", func(t *testing.T) {
+		app.Post("/foo").
+			WithJSON(&FooRequest{Name: "John"}).
+			Expect().Status(http.StatusOK)
+	})
 
-	app.Get("/foo/hello").
-		WithJSON(&FooRequest{Name: "John"}).
-		Expect().Status(http.StatusOK)
+	t.Run("should return StatusInternalServerError after POST /foo with illegal name", func(t *testing.T) {
+		app.Post("/foo").
+			WithJSON(&FooRequest{Name: "Illegal name"}).
+			Expect().Status(http.StatusInternalServerError)
+	})
 
-	app.Get("/bar").
-		Expect().Status(http.StatusUnauthorized)
 
-	// test request form
-	app.Post("/foobar").
-		WithFormField("name", "John Doe").
-		Expect().Status(http.StatusInternalServerError)
+	t.Run("should return success after GET /foo/hello", func(t *testing.T) {
+		app.Get("/foo/hello").
+			WithJSON(&FooRequest{Name: "John"}).
+			Expect().Status(http.StatusOK)
+	})
 
-	//  test request query
-	app.Get("/foobar").
-		WithQuery("name", "John Doe").
-		Expect().Status(http.StatusOK)
 
-	// test jwt
-	pt, err := GenerateJwtToken(JwtMap{
-		"username": "johndoe",
-		"password": "PA$$W0RD",
-	}, 100, time.Millisecond)
-	if err == nil {
-
-		t := fmt.Sprintf("Bearer %v", string(*pt))
-
+	t.Run("should return http.StatusUnauthorized after GET /bar", func(t *testing.T) {
 		app.Get("/bar").
-			WithHeader("Authorization", t).
+			Expect().Status(http.StatusUnauthorized)
+	})
+
+	t.Run("should return http.StatusInternalServerError when input form field validation failed", func(t *testing.T) {
+		// test request form
+		app.Post("/foobar").
+			WithFormField("name", "John Doe").
+			Expect().Status(http.StatusInternalServerError)
+	})
+
+	t.Run("should return (http.StatusOK on /foobar", func(t *testing.T) {
+		//  test request query
+		app.Get("/foobar").
+			WithQuery("name", "John Doe").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should return http.StatusOK on /bar with jwt token", func(t *testing.T) {
+
+		// test jwt
+		pt, err := GenerateJwtToken(JwtMap{
+			"username": "johndoe",
+			"password": "PA$$W0RD",
+		}, 100, time.Millisecond)
+		if err == nil {
+
+			t := fmt.Sprintf("Bearer %v", string(*pt))
+
+			app.Get("/bar").
+				WithHeader("Authorization", t).
+				Expect().Status(http.StatusOK)
+
+			time.Sleep(2 * time.Second)
+
+			app.Get("/bar").
+				WithHeader("Authorization", t).
+				Expect().Status(http.StatusUnauthorized)
+		}
+	})
+
+
+	t.Run("should return http.StatusOK on /foo with PUT, PATCH, DELETE methods", func(t *testing.T) {
+		app.Put("/foo/{id}/{name}/{age}").
+			WithPath("id", 123456).
+			WithPath("name", "Mike").
+			WithPath("age", 18).
 			Expect().Status(http.StatusOK)
 
-		time.Sleep(2 * time.Second)
-
-		app.Get("/bar").
-			WithHeader("Authorization", t).
-			Expect().Status(http.StatusUnauthorized)
-	}
-
-	app.Put("/foo").Expect().Status(http.StatusOK)
-	app.Patch("/foo").Expect().Status(http.StatusOK)
-	app.Delete("/foo").Expect().Status(http.StatusOK)
+		//app.Patch("/foo").Expect().Status(http.StatusOK)
+		//app.Delete("/foo").Expect().Status(http.StatusOK)
+	})
 }
 
 func TestInvalidController(t *testing.T)  {
@@ -289,5 +327,5 @@ func TestNewApplication(t *testing.T) {
 		assert.NotEqual(t, "", config.App.Name)
 	})
 
-
+	go wa.Run()
 }

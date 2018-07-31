@@ -19,11 +19,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 
-	"github.com/fatih/camelcase"
-	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils"
@@ -34,7 +31,7 @@ import (
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/hidevopsio/hiboot/pkg/starter"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"github.com/hidevopsio/hiboot/pkg/model"
+	"regexp"
 )
 
 const (
@@ -69,6 +66,7 @@ type Application struct {
 	autoConfiguration starter.AutoConfiguration
 	anonControllers   []interface{}
 	jwtControllers    []interface{}
+	dispatcher		  dispatcher
 }
 
 // Health is the health check struct
@@ -79,6 +77,7 @@ type Health struct {
 var (
 	// controllers global controllers container
 	webControllers []interface{}
+	compiledRegExp = regexp.MustCompile(`\{(.*?)\}`)
 )
 
 // Config returns application config
@@ -103,97 +102,6 @@ func healthHandler(app *iris.Application) *router.Route {
 		}
 		ctx.JSON(health)
 	})
-}
-
-func (wa *Application) handle(method reflect.Method, object interface{}, ctx *Context) {
-	//log.Debug("NumIn: ", method.Type.NumIn())
-	numIn := method.Type.NumIn()
-	numOut := method.Type.NumOut()
-	inputs := make([]reflect.Value, numIn)
-	inputs[0] = reflect.ValueOf(object)
-	var reqErr error
-	if numIn >= 2 {
-		// switch input type
-		// find if the input type contains specific identifier RequestBody,RequestParams,RequestForm
-		// then create new request instance
-		// after that, call ctx.RequestBody() parse request
-		requestType := reflector.IndirectType(method.Type.In(1))
-		reqVal := reflect.New(requestType)
-		var request interface{}
-		request = reqVal.Interface()
-
-		// TODO: evaluate the performance with below two solution
-		inputs[1] = reqVal
-		if field, ok := requestType.FieldByName(model.RequestTypeForm); ok && field.Anonymous {
-			reqErr = ctx.RequestForm(request)
-		} else if field, ok := requestType.FieldByName(model.RequestTypeParams); ok && field.Anonymous {
-			reqErr = ctx.RequestParams(request)
-		} else if field, ok := requestType.FieldByName(model.RequestTypeBody); ok && field.Anonymous {
-			reqErr = ctx.RequestBody(request)
-		} else {
-			// assume that ctx is presented if it does not find above requests
-			inputs[1] = reflect.ValueOf(ctx)
-		}
-
-		//result, err := reflector.CallMethodByName(request, "RequestType")
-		//if err == nil {
-		//	rt := fmt.Sprintf("%v", result)
-		//	switch rt {
-		//	case model.RequestTypeForm:
-		//		reqErr = ctx.RequestForm(request)
-		//	case model.RequestTypeParams:
-		//		reqErr = ctx.RequestParams(request)
-		//	default:
-		//		reqErr = ctx.RequestBody(request)
-		//	}
-		//	inputs[1] = reqVal
-		//} else {
-		//	inputs[1] = reflect.ValueOf(ctx)
-		//}
-
-		//fmt.Printf("\nMethod: %v\nKind: %v\nName: %v\n-----------", method.Name, requestType.Kind(), requestType.Name())
-	}
-
-	var respErr error
-	var results []reflect.Value
-	if reqErr == nil {
-		reflector.SetFieldValue(object, "Ctx", ctx)
-		results = method.Func.Call(inputs)
-		if numOut == 1 {
-			result := results[0]
-			if result.Kind() == reflect.String && result.CanInterface() {
-				ctx.ResponseString(result.Interface().(string))
-			}
-		} else if numOut >= 2 {
-			if method.Type.Out(1).Name() == "error" {
-				if results[1].Kind() == reflect.Struct {
-					fmt.Println(results[1].Type(), " ", results[1].Type().Name())
-				}
-				if results[1].IsNil() {
-					respErr = nil
-				} else {
-					respErr = results[1].Interface().(error)
-				}
-			}
-			responseTypeName := method.Type.Out(0).Name()
-			var response model.Response
-			switch responseTypeName {
-			case "Response":
-				response = results[0].Interface().(model.Response)
-				if respErr == nil {
-					response.Code = http.StatusOK
-					response.Message = "success"
-				} else {
-					if response.Code == 0 {
-						response.Code = http.StatusInternalServerError
-					}
-					// TODO: output error message directly? how about i18n
-					response.Message = respErr.Error()
-				}
-			}
-			ctx.JSON(response)
-		}
-	}
 }
 
 // Add add controller to controllers container
@@ -308,7 +216,7 @@ func (wa *Application) Init(controllers ...interface{}) error {
 	}
 
 	// first register anon controllers
-	err = wa.register(wa.anonControllers)
+	err = wa.dispatcher.register(wa.app, wa.anonControllers)
 	if err != nil {
 		return err
 	}
@@ -317,7 +225,7 @@ func (wa *Application) Init(controllers ...interface{}) error {
 	wa.app.Use(jwtHandler.Serve)
 
 	// finally register jwt controllers
-	err = wa.register(wa.jwtControllers)
+	err = wa.dispatcher.register(wa.app, wa.jwtControllers)
 	if err != nil {
 		return err
 	}
@@ -372,102 +280,6 @@ func (wa *Application) initLocale() error {
 
 	wa.app.Use(globalLocale)
 
-	return nil
-}
-
-func (wa *Application) register(controllers []interface{}) error {
-	app := wa.app
-	for _, c := range controllers {
-		field := reflect.ValueOf(c)
-
-		fieldType := field.Type()
-		//log.Debug("fieldType: ", fieldType)
-		fieldName := fieldType.Elem().Name()
-		//log.Debug("fieldName: ", fieldName)
-
-		controller := field.Interface()
-		//log.Debug("controller: ", controller)
-
-		// inject component
-		err := inject.IntoObject(field)
-		if err != nil {
-			return err
-		}
-
-		//// call Init
-		//initMethod, ok := fieldType.MethodByName(initMethodName)
-		//if ok {
-		//	inputs := make([]reflect.Value, initMethod.Type.NumIn())
-		//	inputs[0] = reflect.ValueOf(controller)
-		//	initMethod.Func.Call(inputs)
-		//}
-
-		fieldValue := field.Elem()
-
-		// get context mapping
-		cp := fieldValue.FieldByName("ContextMapping")
-		if !cp.IsValid() {
-			return &system.InvalidControllerError{Name: fieldName}
-		}
-		contextMapping := fmt.Sprintf("%v", cp.Interface())
-
-		// parse method
-		fieldNames := camelcase.Split(fieldName)
-		controllerName := ""
-		if len(fieldNames) >= 2 {
-			controllerName = strings.Replace(fieldName, fieldNames[len(fieldNames)-1], "", 1)
-			controllerName = utils.LowerFirst(controllerName)
-		}
-		//log.Debug("controllerName: ", controllerName)
-		// use controller's prefix as context mapping
-		if contextMapping == "" {
-			contextMapping = pathSep + controllerName
-		}
-
-		numOfMethod := field.NumMethod()
-		//log.Debug("methods: ", numOfMethod)
-
-		beforeMethod, ok := fieldType.MethodByName(BeforeMethod)
-		var party iris.Party
-		if ok {
-			//log.Debug("contextPath: ", contextMapping)
-			//log.Debug("beforeMethod.Name: ", beforeMethod.Name)
-			party = app.Party(contextMapping, func(ctx context.Context) {
-				wa.handle(beforeMethod, controller, ctx.(*Context))
-			})
-		} else {
-			party = app.Party(contextMapping)
-		}
-
-		afterMethod, ok := fieldType.MethodByName(AfterMethod)
-		if ok {
-			party.Done(func(ctx context.Context) {
-				wa.handle(afterMethod, controller, ctx.(*Context))
-			})
-		}
-
-		for mi := 0; mi < numOfMethod; mi++ {
-			method := fieldType.Method(mi)
-			methodName := method.Name
-			//log.Debug("method: ", methodName)
-
-			ctxMap := camelcase.Split(methodName)
-			httpMethod := strings.ToUpper(ctxMap[0])
-			apiContextMapping := strings.Replace(methodName, ctxMap[0], "", 1)
-			apiContextMapping = pathSep + utils.LowerFirst(apiContextMapping)
-
-			// check if it's valid http method
-			if utils.StringInSlice(httpMethod, wa.httpMethods) {
-
-				//log.Debug("contextMapping: ", apiContextMapping)
-				party.Handle(httpMethod, apiContextMapping, func(ctx context.Context) {
-					wa.handle(method, controller, ctx.(*Context))
-					ctx.Next()
-				})
-
-			}
-		}
-	}
 	return nil
 }
 

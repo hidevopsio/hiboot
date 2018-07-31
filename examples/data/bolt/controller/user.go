@@ -3,58 +3,52 @@ package controller
 import (
 	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
-	"github.com/hidevopsio/hiboot/examples/data/bolt/model"
+	"github.com/hidevopsio/hiboot/pkg/model"
+	"github.com/hidevopsio/hiboot/examples/data/bolt/entity"
 	"github.com/hidevopsio/hiboot/examples/data/bolt/service"
 )
 
 //hi: RestController
 type UserController struct {
 	web.Controller
-
-	UserService *service.UserService `inject:""`
+	userService *service.UserService
 }
 
 func init() {
 	web.Add(new(UserController))
 }
 
-//hi: Constructor Injection
+// Init inject userService automatically
 func (c *UserController) Init(userService *service.UserService) {
-	c.UserService = userService
+	c.userService = userService
 }
 
-//hi: method=POST
-func (c *UserController) Post() {
-
-	user := &model.User{}
-	err := c.Ctx.RequestBody(user)
-	if err == nil {
-		c.UserService.AddUser(user)
-
-		c.Ctx.ResponseBody("success", user)
-	}
+// Post /user
+func (c *UserController) Post(user *entity.User) (model.Response, error) {
+	c.userService.AddUser(user)
+	response := new(model.BaseResponse)
+	response.SetData(user)
+	return response, nil
 }
 
-func (c *UserController) Get() {
-
-	id := c.Ctx.URLParam("id")
-
-	user, err := c.UserService.GetUser(id)
+// Get /user/{id}
+func (c *UserController) GetById(id string) (model.Response, error) {
+	user, err := c.userService.GetUser(id)
+	response := new(model.BaseResponse)
 	if err != nil {
-		c.Ctx.ResponseError(err.Error(), http.StatusNotFound)
+		response.SetCode(http.StatusNotFound)
 	} else {
-		c.Ctx.ResponseBody("success", user)
+		response.SetData(user)
 	}
+	return response, err
 }
 
-func (c *UserController) Delete() {
-
-	id := c.Ctx.URLParam("id")
-
-	err := c.UserService.DeleteUser(id)
+// Delete /user/{id}
+func (c *UserController) DeleteById(id string) (model.Response, error) {
+	err := c.userService.DeleteUser(id)
+	response := new(model.BaseResponse)
 	if err != nil {
-		c.Ctx.ResponseError(err.Error(), http.StatusInternalServerError)
-	} else {
-		c.Ctx.ResponseBody("success", nil)
+		response.SetCode(http.StatusNotFound)
 	}
+	return response, err
 }

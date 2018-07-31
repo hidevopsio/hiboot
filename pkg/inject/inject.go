@@ -15,11 +15,13 @@ import (
 const (
 	injectIdentifier = "inject"
 	valueIdentifier = "value"
+	initMethodName = "Init"
 )
 
 var (
 	autoConfiguration starter.AutoConfiguration
 	NotImplementedError = errors.New("interface is not implemented")
+	InvalidMethodError = errors.New("invalid method error")
 )
 
 func init() {
@@ -87,12 +89,13 @@ func parseValue(valueTag string) string  {
 func IntoObject(object reflect.Value) error {
     var err error
 	instances := autoConfiguration.Instances()
+	obj := reflector.Indirect(object)
 
+	// field injection
 	for _, f := range reflector.DeepFields(object.Type()) {
 		//log.Debugf("parent: %v, name: %v, type: %v, tag: %v", object.Elem().Type(), f.Name, f.Type, f.Tag)
 		// check if object has value field to be injected
 		var injectedObject interface{}
-		obj := reflector.Indirect(object)
 
 		ft := f.Type
 		if f.Type.Kind() == reflect.Ptr {
@@ -140,7 +143,7 @@ func IntoObject(object reflect.Value) error {
 			log.Debugf("Injected %v.(%v) into %v.%v", injectedObject, fov.Type(), obj.Type(), f.Name)
 		}
 
-		//log.Debugf("- kind: %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type())
+		//log.Debugf("- kind: %v, %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type(), f.Name)
 		//log.Debugf("isValid: %v, canSet: %v", fieldObj.IsValid(), fieldObj.CanSet())
 		if obj.Kind() == reflect.Struct && fieldObj.IsValid() && fieldObj.CanSet() {
 			err = IntoObject(fieldObj)
@@ -149,6 +152,41 @@ func IntoObject(object reflect.Value) error {
 			}
 		}
 	}
+
+	// method injection
+	// Init, Setter
+	method := object.MethodByName(initMethodName)
+	if method.IsValid() {
+
+		numIn := method.Type().NumIn()
+		inputs := make([]reflect.Value, numIn)
+		for i := 0; i < numIn; i++ {
+			inType := reflector.IndirectType(method.Type().In(i))
+			var paramValue reflect.Value
+			inTypeName := inType.Name()
+			inst := instances[inTypeName]
+			if inst == nil {
+				paramValue = reflect.New(inType)
+				inst = paramValue.Interface()
+				instances[inTypeName] = inst
+			} else {
+				paramValue = reflect.ValueOf(inst)
+			}
+			inputs[i] = paramValue
+
+			//log.Debugf("inType: %v, name: %v, instance: %v", inType, inTypeName, inst)
+			//log.Debugf("kind: %v == %v, %v, %v ", obj.Kind(), reflect.Struct, paramValue.IsValid(), paramValue.CanSet())
+			if obj.Kind() == reflect.Struct && paramValue.IsValid() {
+				err = IntoObject(paramValue)
+				if err != nil {
+					return err
+				}
+			}
+		}
+		// finally call Init method to inject
+		method.Call(inputs)
+	}
+
 	return nil
 }
 
