@@ -184,8 +184,20 @@ func (c *HelloController) Get() string {
 	return "hello"
 }
 
+// Get /all
+func (c *HelloController) GetAll() {
+	c.Ctx.ResponseBody("success", nil)
+}
+
 func TestWebApplication(t *testing.T)  {
 	app := NewTestApplication(t, new(HelloController), new(FooController), new(BarController), new(FoobarController))
+
+	t.Run("should response 200 when GET /all", func(t *testing.T) {
+		app.
+			Get("/all").
+			Expect().Status(http.StatusOK).
+			Body().Contains("Success")
+	})
 
 	t.Run("should response 200 when GET /", func(t *testing.T) {
 		app.
