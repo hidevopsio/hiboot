@@ -186,7 +186,22 @@ func (c *HelloController) Get() string {
 
 // Get /all
 func (c *HelloController) GetAll() {
-	c.Ctx.ResponseBody("success", nil)
+
+	data := []struct{
+		Name string
+		Age int
+	}{
+		{
+			Name: "John Doe",
+			Age: 18,
+		},
+		{
+			Name: "Zhang San",
+			Age: 25,
+		},
+	}
+
+	c.Ctx.ResponseBody("success", data)
 }
 
 func TestWebApplication(t *testing.T)  {
@@ -196,7 +211,7 @@ func TestWebApplication(t *testing.T)  {
 		app.
 			Get("/all").
 			Expect().Status(http.StatusOK).
-			Body().Contains("Success")
+			Body().Contains("Success").Contains("John Doe").Contains("Zhang San")
 	})
 
 	t.Run("should response 200 when GET /", func(t *testing.T) {
@@ -205,11 +220,12 @@ func TestWebApplication(t *testing.T)  {
 			Expect().Status(http.StatusOK)
 	})
 
-	t.Run("should response 你好，世界 with language zh-CN", func(t *testing.T) {
+	t.Run("should response 你好, 世界 with language zh-CN", func(t *testing.T) {
 		// test cn-ZH
 		app.Get("/").
 			WithHeader("Accept-Language", "zh-CN").
-			Expect().Status(http.StatusOK)
+			Expect().Status(http.StatusOK).
+			Body().Contains("你好, 世界")
 	})
 
 	t.Run("should response Success with language en-US", func(t *testing.T) {
