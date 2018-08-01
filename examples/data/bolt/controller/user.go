@@ -44,11 +44,8 @@ func (c *UserController) GetById(id string) (model.Response, error) {
 }
 
 // Delete /user/{id}
-func (c *UserController) DeleteById(id string) (model.Response, error) {
-	err := c.userService.DeleteUser(id)
-	response := new(model.BaseResponse)
-	if err != nil {
-		response.SetCode(http.StatusNotFound)
-	}
-	return response, err
+func (c *UserController) DeleteById(id string) (response model.Response, err error) {
+	err = c.userService.DeleteUser(id)
+	response = new(model.BaseResponse)
+	return
 }

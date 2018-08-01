@@ -5,7 +5,11 @@
 [![Licensed under Apache License version 2.0](hiboot.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 
-'hiboot' is a web application framework written in Go. 
+hiboot is a cloud native web application framework written in Go.
+
+hiboot is not trying to reinvent everything, it integrates [Iris](https://github.com/kataras/iris), [jwt-go](https://github.com/dgrijalva/jwt-go), [viper](https://github.com/spf13/viper), [bolt](https://github.com/boltdb/bolt), [gorm](https://github.com/jinzhu/gorm), and more. all we have to do is make it simpler, easier to use.
+
+With auto configuration, you can integrate any greate libraries easily with dependency injection support.
 
 ## Getting started
 
