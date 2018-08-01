@@ -73,6 +73,16 @@ func TestBuilderBuild(t *testing.T) {
 }
 
 
+func TestBuilderBuildWithError(t *testing.T) {
+
+	b := &Builder{
+	}
+
+	_, err := b.Build()
+	assert.Contains(t, err.Error(),"Not Found")
+
+}
+
 func TestBuilderBuildWithProfile(t *testing.T) {
 
 	b := &Builder{
@@ -148,6 +158,7 @@ func TestWithoutReplacer(t *testing.T) {
 	_, err := b.Build()
 	os.Remove(filepath.Join(path, testFile))
 	assert.Equal(t, nil, err)
+
 }
 
 
