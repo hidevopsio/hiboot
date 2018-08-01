@@ -55,6 +55,8 @@ func main() {
 ### Let's run it
 
 ```bash
+dep ensure
+
 go run main.go
 ```
 
