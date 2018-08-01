@@ -107,7 +107,7 @@ func (c *FooController) Post(request *FooRequest) (response model.Response, err 
 
 // GET /foo/{id}
 func (c *FooController) GetById(id int) string  {
-	log.Debug("FooController.Get by id: %v", id)
+	log.Debugf("FooController.Get by id: %v", id)
 	return "hello"
 }
 
