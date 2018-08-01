@@ -59,4 +59,10 @@ func TestBuild(t *testing.T) {
 	assert.Equal(t, "bar", fc.FakeProperties.Username)
 	assert.Equal(t, "foo", fc.FakeProperties.Name)
 	assert.Equal(t, "foo", config.Instances()["Foo"].(*Foo).Name)
+	assert.Equal(t, "foo", config.Instance("Foo").(*Foo).Name)
+
+	// get all configs
+	cfs := config.Configurations()
+	assert.Equal(t, 2, len(cfs))
+
 }
