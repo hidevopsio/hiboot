@@ -11,6 +11,13 @@ hiboot is not trying to reinvent everything, it integrates [Iris](https://github
 
 With auto configuration, you can integrate any other libraries easily with dependency injection support.
 
+## Features
+
+* Web MVC
+* Auto Configuration, pre-create instance with properties configs for dependency injection
+* Dependency injection with struct tag name **\`inject:""\`** or **Init** method
+
+
 ## Getting started
 
 #### Get source code
