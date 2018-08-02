@@ -166,11 +166,10 @@ func IntoObject(object reflect.Value) error {
 	if ok {
 		numIn := method.Type.NumIn()
 		inputs := make([]reflect.Value, numIn)
-		log.Debugf("method type:%v, name: %v", method.Type, method.Name)
+		log.Debugf("object: %v, method: %v", method.Type, method.Name)
 		inputs[0] = obj.Addr()
 		for i := 1; i < numIn; i++ {
 			inType := reflector.IndirectType(method.Type.In(i))
-			log.Debugf("inType: %v", inType)
 			var paramValue reflect.Value
 			inTypeName := inType.Name()
 			inst := instances[inTypeName]
