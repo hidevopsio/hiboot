@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	autoConfiguration   starter.AutoConfiguration
+	autoConfiguration   starter.Factory
 	NotImplementedError = errors.New("[inject] interface is not implemented")
 	InvalidObjectError      = errors.New("[inject] invalid object")
 	UnsupportedInjectionTypeError      = errors.New("[inject] unsupported injection type")
@@ -27,7 +27,7 @@ var (
 
 func init() {
 	log.SetLevel(log.DebugLevel)
-	autoConfiguration = starter.GetAutoConfiguration()
+	autoConfiguration = starter.GetFactory()
 }
 
 func replaceReferences(val string) interface{}  {

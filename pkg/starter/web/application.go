@@ -63,7 +63,7 @@ type Application struct {
 	jwtEnabled        bool
 	workDir           string
 	httpMethods       []string
-	autoConfiguration starter.AutoConfiguration
+	autoConfiguration starter.Factory
 	anonControllers   []interface{}
 	jwtControllers    []interface{}
 	dispatcher		  dispatcher
@@ -142,7 +142,7 @@ func (wa *Application) Init(controllers ...interface{}) error {
 		http.MethodTrace,
 	}
 
-	wa.autoConfiguration = starter.GetAutoConfiguration()
+	wa.autoConfiguration = starter.GetFactory()
 	wa.autoConfiguration.Build()
 
 	config := wa.autoConfiguration.Configuration(starter.System)

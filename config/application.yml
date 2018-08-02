@@ -6,9 +6,8 @@ app:
   name: hiboot
   profiles:
     include:
-    - foo
-    - bar
-    - baz
+    - web
+    - gorm
 
 logging:
   level: info
