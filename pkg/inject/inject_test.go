@@ -214,6 +214,11 @@ func TestInject(t *testing.T) {
 
 	t.Run("should inject slice value", func(t *testing.T) {
 		err := IntoObject(reflect.ValueOf((*MethodInjectionService)(nil)))
-		assert.Equal(t, NilObjectError, err)
+		assert.Equal(t, InvalidObjectError, err)
+	})
+
+	t.Run("should inject slice value", func(t *testing.T) {
+		err := IntoObject(reflect.ValueOf((*string)(nil)))
+		assert.Equal(t, InvalidObjectError, err)
 	})
 }
