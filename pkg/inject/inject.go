@@ -20,8 +20,9 @@ const (
 
 var (
 	autoConfiguration   starter.AutoConfiguration
-	NotImplementedError = errors.New("interface is not implemented")
-	NilObjectError      = errors.New("nil object error")
+	NotImplementedError = errors.New("[inject] interface is not implemented")
+	NilObjectError      = errors.New("[inject] nil object error")
+	InvalidObjectError      = errors.New("[inject] invalid object error")
 )
 
 func init() {
@@ -92,12 +93,12 @@ func parseValue(valueTag string) (retVal interface{})  {
 func IntoObject(object reflect.Value) error {
     var err error
 
-    if !object.IsValid() || object.IsNil() {
-    	return NilObjectError
+	obj := reflector.Indirect(object)
+	if obj.Kind() != reflect.Struct {
+		return InvalidObjectError
 	}
 
 	instances := autoConfiguration.Instances()
-	obj := reflector.Indirect(object)
 
 	// field injection
 	for _, f := range reflector.DeepFields(object.Type()) {
@@ -156,7 +157,8 @@ func IntoObject(object reflect.Value) error {
 
 		//log.Debugf("- kind: %v, %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type(), f.Name)
 		//log.Debugf("isValid: %v, canSet: %v", fieldObj.IsValid(), fieldObj.CanSet())
-		if obj.Kind() == reflect.Struct && fieldObj.IsValid() && fieldObj.CanSet() {
+		filedObject := reflect.Indirect(fieldObj)
+		if filedObject.Kind() == reflect.Struct && fieldObj.IsValid() && fieldObj.CanSet() {
 			err = IntoObject(fieldObj)
 			if err != nil {
 				return err
@@ -188,7 +190,8 @@ func IntoObject(object reflect.Value) error {
 
 			//log.Debugf("inType: %v, name: %v, instance: %v", inType, inTypeName, inst)
 			//log.Debugf("kind: %v == %v, %v, %v ", obj.Kind(), reflect.Struct, paramValue.IsValid(), paramValue.CanSet())
-			if obj.Kind() == reflect.Struct && paramValue.IsValid() {
+			paramObject := reflect.Indirect(paramValue)
+			if paramObject.Kind() == reflect.Struct && paramValue.IsValid() {
 				err = IntoObject(paramValue)
 				// TODO: should add this test case
 				if err != nil {
