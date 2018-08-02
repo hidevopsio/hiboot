@@ -3,8 +3,9 @@
 app:
   profiles:
     include:
-    - web
-    - orm
+    - foo
+    - bar
+    - baz
 
 server:
   port: 8080

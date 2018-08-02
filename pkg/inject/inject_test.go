@@ -137,7 +137,7 @@ func init() {
 
 	starter.Add("fake", fakeConfiguration{})
 	starter.Add("foo", fooConfiguration{})
-	starter.GetAutoConfiguration().Build()
+	starter.GetFactory().Build()
 }
 
 // Init automatically inject FooUser and FakeRepository that instantiated in fakeConfiguration

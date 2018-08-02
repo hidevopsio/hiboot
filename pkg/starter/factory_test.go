@@ -49,20 +49,20 @@ func TestBuild(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, n, len(fakeContent))
 
-	config := GetAutoConfiguration()
-	config.Build()
-	fci := config.Configuration("fake")
+	f := GetFactory()
+	f.Build()
+	fci := f.Configuration("fake")
 	assert.NotEqual(t, nil, fci)
 	fc := fci.(*FakeConfiguration)
 
 	assert.Equal(t, "hiboot foo", fc.FakeProperties.Nickname)
 	assert.Equal(t, "bar", fc.FakeProperties.Username)
 	assert.Equal(t, "foo", fc.FakeProperties.Name)
-	assert.Equal(t, "foo", config.Instances()["Foo"].(*Foo).Name)
-	assert.Equal(t, "foo", config.Instance("Foo").(*Foo).Name)
+	assert.Equal(t, "foo", f.Instances()["Foo"].(*Foo).Name)
+	assert.Equal(t, "foo", f.Instance("Foo").(*Foo).Name)
 
 	// get all configs
-	cfs := config.Configurations()
+	cfs := f.Configurations()
 	assert.Equal(t, 2, len(cfs))
 
 }
