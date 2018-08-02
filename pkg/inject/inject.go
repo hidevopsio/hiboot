@@ -21,8 +21,8 @@ const (
 var (
 	autoConfiguration   starter.AutoConfiguration
 	NotImplementedError = errors.New("[inject] interface is not implemented")
-	NilObjectError      = errors.New("[inject] nil object error")
-	InvalidObjectError      = errors.New("[inject] invalid object error")
+	InvalidObjectError      = errors.New("[inject] invalid object")
+	UnsupportedInjectionTypeError      = errors.New("[inject] unsupported injection type")
 )
 
 func init() {
@@ -95,6 +95,7 @@ func IntoObject(object reflect.Value) error {
 
 	obj := reflector.Indirect(object)
 	if obj.Kind() != reflect.Struct {
+		log.Errorf("object: %v", object)
 		return InvalidObjectError
 	}
 
@@ -123,14 +124,9 @@ func IntoObject(object reflect.Value) error {
 
 				// first, find if object is already instantiated
 				injectedObject = instances[instanceName]
-				//log.Debugf("field kind: %v", ft.Kind())
 				if injectedObject == nil {
-					switch ft.Kind() {
-					case reflect.Interface:
-						return errors.New("interface " + ft.PkgPath() + "." + ft.Name() + " is not implemented in " + obj.Type().Name())
-					case reflect.Slice:
-						return errors.New("slice injection is not implemented")
-					default:
+					log.Debugf("field kind: %v, name: %v", ft.Kind(), ft.Name())
+					if f.Type.Kind() == reflect.Ptr {
 						// if object is not exist, then instantiate new object
 						// parse tag and instantiate filed
 						o := reflect.New(ft)
@@ -140,6 +136,8 @@ func IntoObject(object reflect.Value) error {
 							mapstruct.Decode(injectedObject, tags)
 						}
 						instances[instanceName] = injectedObject
+					} else {
+						return UnsupportedInjectionTypeError
 					}
 				}
 			}
@@ -161,6 +159,7 @@ func IntoObject(object reflect.Value) error {
 		if filedObject.Kind() == reflect.Struct && fieldObj.IsValid() && fieldObj.CanSet() {
 			err = IntoObject(fieldObj)
 			if err != nil {
+				log.Errorf("object: %v", filedObject.Type())
 				return err
 			}
 		}
@@ -172,7 +171,6 @@ func IntoObject(object reflect.Value) error {
 	if ok {
 		numIn := method.Type.NumIn()
 		inputs := make([]reflect.Value, numIn)
-		log.Debugf("object: %v, method: %v", method.Type, method.Name)
 		inputs[0] = obj.Addr()
 		for i := 1; i < numIn; i++ {
 			inType := reflector.IndirectType(method.Type.In(i))
@@ -193,8 +191,8 @@ func IntoObject(object reflect.Value) error {
 			paramObject := reflect.Indirect(paramValue)
 			if paramObject.Kind() == reflect.Struct && paramValue.IsValid() {
 				err = IntoObject(paramValue)
-				// TODO: should add this test case
 				if err != nil {
+					log.Errorf("object: %v, method: %v", method.Type, method.Name)
 					return err
 				}
 			}
