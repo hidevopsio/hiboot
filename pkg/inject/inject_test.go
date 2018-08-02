@@ -9,6 +9,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"path/filepath"
 	"os"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 type user struct {
@@ -78,6 +79,10 @@ type userService struct {
 	Url            string         `value:"${fake.url}"`
 }
 
+type sliceInjectionTestService struct {
+	Profiles         []string       `value:"${app.profiles.include}"`
+}
+
 type fooBarService struct {
 	FooBarRepository FakeRepository `inject:""`
 }
@@ -92,7 +97,7 @@ type recursiveInject struct {
 
 type MethodInjectionService struct {
 	fooUser    *FooUser
-	barUser	   *user
+	barUser    *user
 	repository FakeRepository
 }
 
@@ -124,7 +129,7 @@ func init() {
 }
 
 // Init automatically inject FooUser and FakeRepository that instantiated in fakeConfiguration
-func (s *MethodInjectionService) Init(fooUser *FooUser, barUser *user, repository FakeRepository)  {
+func (s *MethodInjectionService) Init(fooUser *FooUser, barUser *user, repository FakeRepository) {
 	s.fooUser = fooUser
 	s.barUser = barUser
 	s.repository = repository
@@ -190,5 +195,20 @@ func TestInject(t *testing.T) {
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, (*user)(nil), ps.UserService.User)
 		assert.NotEqual(t, (*fakeRepository)(nil), ps.UserService.FakeRepository)
+	})
+
+	t.Run("should not inject slice", func(t *testing.T) {
+		testSvc := struct {
+			Users []FooUser `inject:""`
+		}{}
+		err := IntoObject(reflect.ValueOf(testSvc))
+		assert.Equal(t, "slice injection is not implemented", err.Error())
+	})
+
+	t.Run("should inject slice value", func(t *testing.T) {
+		testSvc := new(sliceInjectionTestService)
+		err := IntoObject(reflect.ValueOf(testSvc))
+		assert.Equal(t, nil, err)
+		log.Debug(testSvc.Profiles)
 	})
 }

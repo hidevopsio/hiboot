@@ -29,8 +29,8 @@ func init() {
 	autoConfiguration = starter.GetAutoConfiguration()
 }
 
-func replaceReferences(val string) string  {
-	retVal := val
+func replaceReferences(val string) interface{}  {
+	var retVal interface{}
 	systemConfig := autoConfiguration.Configuration(starter.System)
 
 	matches := utils.GetMatches(val)
@@ -52,6 +52,10 @@ func replaceReferences(val string) string  {
 				}
 			}
 		}
+	}
+
+	if retVal == nil {
+		return val
 	}
 	return retVal
 }
@@ -76,8 +80,7 @@ func parseInjectTag(tagValue string) map[string]interface{} {
 	return tags
 }
 
-func parseValue(valueTag string) string  {
-	var retVal string
+func parseValue(valueTag string) (retVal interface{})  {
 	if valueTag != "" {
 		//log.Debug(valueTag)
 		retVal = replaceReferences(valueTag)
@@ -116,9 +119,12 @@ func IntoObject(object reflect.Value) error {
 				injectedObject = instances[instanceName]
 				//log.Debugf("field kind: %v", ft.Kind())
 				if injectedObject == nil {
-					if ft.Kind() == reflect.Interface {
+					switch ft.Kind() {
+					case reflect.Interface:
 						return errors.New("interface " + ft.PkgPath() + "." + ft.Name() + " is not implemented in " + obj.Type().Name())
-					} else {
+					case reflect.Slice:
+						return errors.New("slice injection is not implemented")
+					default:
 						// if object is not exist, then instantiate new object
 						// parse tag and instantiate filed
 						o := reflect.New(ft)
@@ -134,7 +140,7 @@ func IntoObject(object reflect.Value) error {
 		}
 		// set field object
 		var fieldObj reflect.Value
-		if obj.IsValid() {
+		if obj.IsValid() && obj.Kind() == reflect.Struct {
 			fieldObj = obj.FieldByName(f.Name)
 		}
 		if injectedObject != nil && fieldObj.CanSet() {
@@ -157,7 +163,6 @@ func IntoObject(object reflect.Value) error {
 	// Init, Setter
 	method := object.MethodByName(initMethodName)
 	if method.IsValid() {
-
 		numIn := method.Type().NumIn()
 		inputs := make([]reflect.Value, numIn)
 		for i := 0; i < numIn; i++ {
@@ -178,6 +183,7 @@ func IntoObject(object reflect.Value) error {
 			//log.Debugf("kind: %v == %v, %v, %v ", obj.Kind(), reflect.Struct, paramValue.IsValid(), paramValue.CanSet())
 			if obj.Kind() == reflect.Struct && paramValue.IsValid() {
 				err = IntoObject(paramValue)
+				// TODO: should add this test case
 				if err != nil {
 					return err
 				}
