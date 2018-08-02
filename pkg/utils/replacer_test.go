@@ -16,11 +16,11 @@ package utils
 
 import (
 	"testing"
-	"github.com/magiconair/properties/assert"
 	"regexp"
 	"os"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"reflect"
+	"github.com/stretchr/testify/assert"
 )
 
 type Bar struct {
@@ -112,6 +112,16 @@ func TestReplaceStringVariables(t *testing.T) {
 
 	s := ReplaceStringVariables(f.Bar.Name, f)
 	assert.Equal(t, "Hello foo", s)
+}
+
+func TestReplaceSlice(t *testing.T) {
+	testData := []string{"foo", "bar", "baz"}
+	f := &struct{Options []string}{
+		Options: testData,
+	}
+	s := ReplaceStringVariables("${options}", f)
+	assert.NotEqual(t, nil, s)
+	assert.Equal(t, testData, s)
 }
 
 
