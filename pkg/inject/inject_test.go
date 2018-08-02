@@ -211,4 +211,9 @@ func TestInject(t *testing.T) {
 		assert.Equal(t, nil, err)
 		log.Debug(testSvc.Profiles)
 	})
+
+	t.Run("should inject slice value", func(t *testing.T) {
+		err := IntoObject(reflect.ValueOf((*MethodInjectionService)(nil)))
+		assert.Equal(t, NilObjectError, err)
+	})
 }
