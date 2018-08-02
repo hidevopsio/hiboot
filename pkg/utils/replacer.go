@@ -41,7 +41,7 @@ func GetMatches(source string) [][]string  {
 }
 
 // ReplaceStringVariables replace reference and env variables
-func ReplaceStringVariables(source string, t interface{}) string {
+func ReplaceStringVariables(source string, t interface{}) interface{} {
 	matches := ParseVariables(source, compiledRegExp)
 
 	for _, match := range matches {
@@ -60,12 +60,19 @@ func ReplaceStringVariables(source string, t interface{}) string {
 
 		vars := strings.SplitN(varName, ".", -1)
 		refValue := ParseReferences(t, vars)
-		if refValue == "" && defaultValue != "" {
-			refValue = defaultValue
-		}
-		// replace env
-		if refValue != "" {
-			source = strings.Replace(source, varFullName, refValue, -1)
+		rvType := reflect.TypeOf(refValue)
+		switch rvType.Kind() {
+		case reflect.String:
+			newValue := refValue.(string)
+			if newValue == "" && defaultValue != "" {
+				newValue = defaultValue
+			}
+			// replace env
+			if newValue != "" {
+				source = strings.Replace(source, varFullName, newValue, -1)
+			}
+		case reflect.Slice:
+			return refValue
 		}
 		envValue := os.Getenv(varName)
 		if envValue != "" {
@@ -100,7 +107,7 @@ func GetReferenceValue(object interface{}, name string) reflect.Value {
 }
 
 // ParseReferences parse the variable references
-func ParseReferences(st interface{}, varName []string) string {
+func ParseReferences(st interface{}, varName []string) interface{} {
 	var parent interface{}
 	parent = st
 	for _, vn := range varName {
@@ -111,6 +118,8 @@ func ParseReferences(st interface{}, varName []string) string {
 		case reflect.String, reflect.Int, reflect.Float32:
 			fv := fmt.Sprintf("%v", field.Interface())
 			return fv
+		case reflect.Slice:
+			return field.Interface()
 		case reflect.Invalid:
 			return EmptyString
 		default:
@@ -164,7 +173,7 @@ func Replace(to interface{}, root interface{}) error {
 				} else {
 					if dv != "" && dstType == "string" && dst.IsValid() && dst.CanSet() {
 						newStr := ReplaceStringVariables(dv, root)
-						dst.SetString(newStr)
+						dst.SetString(newStr.(string))
 					}
 				}
 			} else {
@@ -183,7 +192,9 @@ func Replace(to interface{}, root interface{}) error {
 					case reflect.String:
 						fv := fmt.Sprintf("%v", fieldValue)
 						newStr := ReplaceStringVariables(fv, root)
-						dstField.SetString(newStr)
+						dstField.SetString(newStr.(string))
+					//case reflect.Slice:
+					//	log.Debug("slice")
 					case reflect.Map:
 						mi := dstField.Interface()
 						ReplaceMap(mi.(map[string]interface{}), root)

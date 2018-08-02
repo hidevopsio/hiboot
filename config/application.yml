@@ -7,6 +7,8 @@ app:
   profiles:
     include:
     - foo
+    - bar
+    - baz
 
 logging:
   level: info
