@@ -19,10 +19,9 @@ const (
 )
 
 var (
-	autoConfiguration starter.AutoConfiguration
+	autoConfiguration   starter.AutoConfiguration
 	NotImplementedError = errors.New("interface is not implemented")
-	InvalidMethodError = errors.New("invalid method error")
-	InvalidObjectError = errors.New("invalid object error")
+	NilObjectError      = errors.New("nil object error")
 )
 
 func init() {
@@ -92,6 +91,11 @@ func parseValue(valueTag string) (retVal interface{})  {
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
 func IntoObject(object reflect.Value) error {
     var err error
+
+    if !object.IsValid() || object.IsNil() {
+    	return NilObjectError
+	}
+
 	instances := autoConfiguration.Instances()
 	obj := reflector.Indirect(object)
 

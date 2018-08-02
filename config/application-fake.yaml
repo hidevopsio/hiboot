@@ -1,4 +1,7 @@
 fake:
-  name: foo
+  name: fake
   nickname: ${app.name} ${fake.name}
+
   username: ${unknown.name:bar}
+
+  url: http://fake.com/api/foo
