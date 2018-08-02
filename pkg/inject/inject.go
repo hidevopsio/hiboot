@@ -22,6 +22,7 @@ var (
 	autoConfiguration starter.AutoConfiguration
 	NotImplementedError = errors.New("interface is not implemented")
 	InvalidMethodError = errors.New("invalid method error")
+	InvalidObjectError = errors.New("invalid object error")
 )
 
 func init() {
@@ -161,12 +162,15 @@ func IntoObject(object reflect.Value) error {
 
 	// method injection
 	// Init, Setter
-	method := object.MethodByName(initMethodName)
-	if method.IsValid() {
-		numIn := method.Type().NumIn()
+	method, ok := object.Type().MethodByName(initMethodName)
+	if ok {
+		numIn := method.Type.NumIn()
 		inputs := make([]reflect.Value, numIn)
-		for i := 0; i < numIn; i++ {
-			inType := reflector.IndirectType(method.Type().In(i))
+		log.Debugf("method type:%v, name: %v", method.Type, method.Name)
+		inputs[0] = obj.Addr()
+		for i := 1; i < numIn; i++ {
+			inType := reflector.IndirectType(method.Type.In(i))
+			log.Debugf("inType: %v", inType)
 			var paramValue reflect.Value
 			inTypeName := inType.Name()
 			inst := instances[inTypeName]
@@ -190,7 +194,7 @@ func IntoObject(object reflect.Value) error {
 			}
 		}
 		// finally call Init method to inject
-		method.Call(inputs)
+		method.Func.Call(inputs)
 	}
 
 	return nil
