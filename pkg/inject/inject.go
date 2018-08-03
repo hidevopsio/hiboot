@@ -23,6 +23,7 @@ var (
 	NotImplementedError = errors.New("[inject] interface is not implemented")
 	InvalidObjectError      = errors.New("[inject] invalid object")
 	UnsupportedInjectionTypeError      = errors.New("[inject] unsupported injection type")
+	IllegalArgumentError = errors.New("[inject] input argument type can not be the same as receiver")
 )
 
 func init() {
@@ -189,6 +190,9 @@ func IntoObject(object reflect.Value) error {
 			//log.Debugf("inType: %v, name: %v, instance: %v", inType, inTypeName, inst)
 			//log.Debugf("kind: %v == %v, %v, %v ", obj.Kind(), reflect.Struct, paramValue.IsValid(), paramValue.CanSet())
 			paramObject := reflect.Indirect(paramValue)
+			if paramObject.Type() == obj.Type() {
+				return IllegalArgumentError
+			}
 			if paramObject.Kind() == reflect.Struct && paramValue.IsValid() {
 				err = IntoObject(paramValue)
 				if err != nil {

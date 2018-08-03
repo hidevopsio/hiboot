@@ -113,6 +113,18 @@ func (s *testService) Init(baz *Baz)  {
 	s.baz = baz
 }
 
+type buzz struct {
+	Name string
+}
+
+type buzzService struct {
+	bz *buzz
+}
+
+func (s *buzzService) Init(bs *buzzService, bz *buzz)  {
+	s.bz = bz
+}
+
 var (
 	appName    = "hiboot"
 	fakeName   = "fake"
@@ -237,5 +249,10 @@ func TestInject(t *testing.T) {
 	t.Run("should failed to inject with illegal struct tag", func(t *testing.T) {
 		err := IntoObject(reflect.ValueOf(new(testService)))
 		assert.Equal(t, UnsupportedInjectionTypeError, err)
+	})
+
+	t.Run("should failed to inject if the type of param and receiver are the same", func(t *testing.T) {
+		err := IntoObject(reflect.ValueOf(new(buzzService)))
+		assert.Equal(t, IllegalArgumentError, err)
 	})
 }
