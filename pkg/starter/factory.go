@@ -1,14 +1,42 @@
+// Copyright 2018 John Deng (hi.devops.io@gmail.com).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package starter
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/system"
+	"sync"
 	"github.com/hidevopsio/hiboot/pkg/utils"
+	"github.com/hidevopsio/hiboot/pkg/system"
 	"path/filepath"
 	"os"
 	"reflect"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"sync"
 )
+
+type Factory interface {
+	Build()
+	Instantiate(configuration interface{})
+	Configurations() map[string]interface{}
+	Configuration(name string) interface{}
+	Instances() map[string]interface{}
+	Instance(name string) interface{}
+}
+
+type factory struct {
+	configurations map[string]interface{}
+	instances map[string]interface{}
+}
 
 const (
 	System      = "system"
@@ -18,81 +46,33 @@ const (
 	appProfilesActive = "APP_PROFILES_ACTIVE"
 )
 
-type Profiles struct {
-	Include []string `json:"include"`
-	Active  string   `json:"active"`
-}
-
-type App struct {
-	Project        string   `json:"project"`
-	Name           string   `json:"name"`
-	Profiles       Profiles `json:"profiles"`
-	DataSourceType string   `json:"data_source_type"`
-}
-
-type Server struct {
-	Port int32 `json:"port"`
-}
-
-type Logging struct {
-	Level string `json:"level"`
-}
-
-type Env struct {
-	Name  string
-	Value string
-}
-
-type DataSource map[string]interface{}
-
-type SystemConfiguration struct {
-	App         App          `mapstructure:"app"`
-	Server      Server       `mapstructure:"server"`
-	Logging     Logging      `mapstructure:"logging"`
-	DataSources []DataSource `mapstructure:"dataSources"`
-}
-
-type AutoConfiguration interface {
-	Build()
-	Instantiate(configuration interface{})
-	Configurations() map[string]interface{}
-	Configuration(name string) interface{}
-	Instances() map[string]interface{}
-	Instance(name string) interface{}
-}
-
-type autoConfiguration struct {
-	configurations map[string]interface{}
-	instances map[string]interface{}
-}
-
 var (
-	configuration  *autoConfiguration
-	configurations map[string]interface{}
-	once sync.Once
+	bootFactory *factory
+	container   map[string]interface{}
+	once        sync.Once
 )
 
 func init() {
-	configurations = make(map[string]interface{})
+	container = make(map[string]interface{})
 }
 
-func GetAutoConfiguration() AutoConfiguration {
+func GetFactory() Factory {
 	once.Do(func() {
-		configuration = new(autoConfiguration)
-		configuration.configurations = make(map[string]interface{})
-		configuration.instances = make(map[string]interface{})
+		bootFactory = new(factory)
+		bootFactory.configurations = make(map[string]interface{})
+		bootFactory.instances = make(map[string]interface{})
 	})
-	return configuration
+	return bootFactory
 }
 
 func Add(name string, conf interface{})  {
-	if configurations[name] != nil {
+	if container[name] != nil {
 		log.Fatalf("configuration name %v is already taken!", name)
 	}
-	configurations[name] = conf
+	container[name] = conf
 }
 
-func (c *autoConfiguration) Build()  {
+func (c *factory) Build()  {
 
 	workDir := utils.GetWorkDir()
 
@@ -110,12 +90,15 @@ func (c *autoConfiguration) Build()  {
 		log.Warn(err)
 	}
 	utils.Replace(defaultConfig, defaultConfig)
+	//sysconf := defaultConfig.(*SystemConfiguration)
 
-	for name, configType := range configurations {
+	for name, configType := range container {
 		// inject properties
 		builder.ConfigType = configType
 		builder.Profile = name
 		cf, err := builder.BuildWithProfile()
+
+		// TODO: check if cf.DependsOn
 
 		if cf == nil {
 			log.Warnf("failed to build %v configuration with error %v", name, err)
@@ -125,6 +108,7 @@ func (c *autoConfiguration) Build()  {
 			utils.Replace(cf, cf)
 
 			// instantiation
+			// TODO: should check if profiles is enabled utils.StringInSlice(name, sysconf.App.Profiles.Include)
 			if err == nil {
 				// create instances
 				c.Instantiate(cf)
@@ -135,7 +119,7 @@ func (c *autoConfiguration) Build()  {
 	}
 }
 
-func (c *autoConfiguration) Instantiate(configuration interface{})  {
+func (c *factory) Instantiate(configuration interface{})  {
 	cv := reflect.ValueOf(configuration)
 
 	configType := cv.Type()
@@ -170,18 +154,18 @@ func (c *autoConfiguration) Instantiate(configuration interface{})  {
 	}
 }
 
-func (c *autoConfiguration) Configurations() map[string]interface{} {
+func (c *factory) Configurations() map[string]interface{} {
 	return c.configurations
 }
 
-func (c *autoConfiguration) Configuration(name string) interface{} {
+func (c *factory) Configuration(name string) interface{} {
 	return c.configurations[name]
 }
 
-func (c *autoConfiguration) Instances() map[string]interface{} {
+func (c *factory) Instances() map[string]interface{} {
 	return c.instances
 }
 
-func (c *autoConfiguration) Instance(name string) interface{} {
+func (c *factory) Instance(name string) interface{} {
 	return c.instances[name]
 }

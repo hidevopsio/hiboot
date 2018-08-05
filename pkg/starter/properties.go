@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package starter
 
-import (
-	"testing"
-)
-
-func TestLogDebug(t *testing.T)  {
+type Properties struct {
+	Enabled   bool   `json:"enabled"`
+	DependsOn string `json:"depends_on"`
+	Before    string `json:"before"`
+	After     string `json:"after"`
 }

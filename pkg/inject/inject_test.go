@@ -1,3 +1,17 @@
+// Copyright 2018 John Deng (hi.devops.io@gmail.com).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package inject
 
 import (
@@ -113,6 +127,18 @@ func (s *testService) Init(baz *Baz)  {
 	s.baz = baz
 }
 
+type buzz struct {
+	Name string
+}
+
+type buzzService struct {
+	bz *buzz
+}
+
+func (s *buzzService) Init(bs *buzzService, bz *buzz)  {
+	s.bz = bz
+}
+
 var (
 	appName    = "hiboot"
 	fakeName   = "fake"
@@ -137,7 +163,7 @@ func init() {
 
 	starter.Add("fake", fakeConfiguration{})
 	starter.Add("foo", fooConfiguration{})
-	starter.GetAutoConfiguration().Build()
+	starter.GetFactory().Build()
 }
 
 // Init automatically inject FooUser and FakeRepository that instantiated in fakeConfiguration
@@ -237,5 +263,10 @@ func TestInject(t *testing.T) {
 	t.Run("should failed to inject with illegal struct tag", func(t *testing.T) {
 		err := IntoObject(reflect.ValueOf(new(testService)))
 		assert.Equal(t, UnsupportedInjectionTypeError, err)
+	})
+
+	t.Run("should failed to inject if the type of param and receiver are the same", func(t *testing.T) {
+		err := IntoObject(reflect.ValueOf(new(buzzService)))
+		assert.Equal(t, nil, err)
 	})
 }

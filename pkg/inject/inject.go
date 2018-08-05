@@ -1,3 +1,17 @@
+// Copyright 2018 John Deng (hi.devops.io@gmail.com).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package inject
 
 import (
@@ -19,15 +33,16 @@ const (
 )
 
 var (
-	autoConfiguration   starter.AutoConfiguration
+	autoConfiguration   starter.Factory
 	NotImplementedError = errors.New("[inject] interface is not implemented")
 	InvalidObjectError      = errors.New("[inject] invalid object")
 	UnsupportedInjectionTypeError      = errors.New("[inject] unsupported injection type")
+	IllegalArgumentError = errors.New("[inject] input argument type can not be the same as receiver")
 )
 
 func init() {
 	log.SetLevel(log.DebugLevel)
-	autoConfiguration = starter.GetAutoConfiguration()
+	autoConfiguration = starter.GetFactory()
 }
 
 func replaceReferences(val string) interface{}  {
@@ -43,7 +58,8 @@ func replaceReferences(val string) interface{}  {
 			vars := strings.SplitN(m[1], ".", -1)
 			configName := vars[0]
 			config := autoConfiguration.Configuration(configName)
-			if config == nil && utils.GetReferenceValue(systemConfig, configName).IsValid() {
+			sysConf, err := utils.GetReferenceValue(systemConfig, configName)
+			if config == nil && err == nil && sysConf.IsValid() {
 				config = systemConfig
 			}
 			if config != nil {
@@ -156,7 +172,7 @@ func IntoObject(object reflect.Value) error {
 		//log.Debugf("- kind: %v, %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type(), f.Name)
 		//log.Debugf("isValid: %v, canSet: %v", fieldObj.IsValid(), fieldObj.CanSet())
 		filedObject := reflect.Indirect(fieldObj)
-		if filedObject.Kind() == reflect.Struct && fieldObj.IsValid() && fieldObj.CanSet() {
+		if filedObject.Kind() == reflect.Struct && fieldObj.IsValid() && fieldObj.CanSet() && filedObject.Type() != obj.Type() {
 			err = IntoObject(fieldObj)
 			if err != nil {
 				log.Errorf("object: %v", filedObject.Type())
@@ -189,7 +205,7 @@ func IntoObject(object reflect.Value) error {
 			//log.Debugf("inType: %v, name: %v, instance: %v", inType, inTypeName, inst)
 			//log.Debugf("kind: %v == %v, %v, %v ", obj.Kind(), reflect.Struct, paramValue.IsValid(), paramValue.CanSet())
 			paramObject := reflect.Indirect(paramValue)
-			if paramObject.Kind() == reflect.Struct && paramValue.IsValid() {
+			if paramObject.Type() != obj.Type() && paramObject.Kind() == reflect.Struct && paramValue.IsValid() {
 				err = IntoObject(paramValue)
 				if err != nil {
 					log.Errorf("object: %v, method: %v", method.Type, method.Name)
