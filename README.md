@@ -1,8 +1,8 @@
 # Hiboot
 
-[![Build Status](https://travis-ci.org/hidevopsio/Hiboot.svg?branch=master)](https://travis-ci.org/hidevopsio/Hiboot) 
-[![codecov](https://codecov.io/gh/hidevopsio/Hiboot/branch/master/graph/badge.svg)](https://codecov.io/gh/hidevopsio/Hiboot)
-[![Licensed under Apache License version 2.0](Hiboot.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Build Status](https://travis-ci.org/hidevopsio/hiboot.svg?branch=master)](https://travis-ci.org/hidevopsio/hiboot) 
+[![codecov](https://codecov.io/gh/hidevopsio/hiboot/branch/master/graph/badge.svg)](https://codecov.io/gh/hidevopsio/hiboot)
+[![Licensed under Apache License version 2.0](hiboot.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 ## About
 
