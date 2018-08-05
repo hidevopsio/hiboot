@@ -22,9 +22,11 @@ import (
 	"regexp"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"errors"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 var NilPointerError = errors.New("nil pointer error")
+var InvalidObjectError = errors.New("invalid object")
 var compiledRegExp = regexp.MustCompile(`\$\{(.*?)\}`)
 
 // ParseVariables parse reference and env variables
@@ -83,27 +85,30 @@ func ReplaceStringVariables(source string, t interface{}) interface{} {
 }
 
 // GetFieldValue get filed value in reflected format
-func GetFieldValue(f interface{}, name string) reflect.Value {
+func GetFieldValue(f interface{}, name string) (retVal reflect.Value, err error) {
 	r := reflect.ValueOf(f)
-	fv := reflect.Indirect(r).FieldByName(name)
-
-	return fv
+	if !r.IsNil() && r.IsValid() {
+		retVal = reflect.Indirect(r).FieldByName(name)
+	} else {
+		log.Warn("invalid value")
+		err = InvalidObjectError
+	}
+	return
 }
 
-func GetReferenceValue(object interface{}, name string) reflect.Value {
+func GetReferenceValue(object interface{}, name string) (reflect.Value, error) {
 	capitalizedVarName := strings.Title(name)
-	retVal := GetFieldValue(object, capitalizedVarName)
-
-	if ! retVal.IsValid() {
+	retVal, err := GetFieldValue(object, capitalizedVarName)
+	if err == nil {
 		for _, field := range reflector.DeepFields(reflect.TypeOf(object)) {
 			if field.Tag.Get("mapstructure") == name {
-				retVal = GetFieldValue(object, field.Name)
+				retVal, err = GetFieldValue(object, field.Name)
 				break
 			}
 		}
 	}
 
-	return retVal
+	return retVal, err
 }
 
 // ParseReferences parse the variable references
@@ -111,22 +116,22 @@ func ParseReferences(st interface{}, varName []string) interface{} {
 	var parent interface{}
 	parent = st
 	for _, vn := range varName {
-		field := GetReferenceValue(parent, vn)
-
-		k := reflector.GetKind(field)
-		switch k {
-		case reflect.String, reflect.Int, reflect.Float32:
-			fv := fmt.Sprintf("%v", field.Interface())
-			return fv
-		case reflect.Slice:
-			return field.Interface()
-		case reflect.Invalid:
-			return EmptyString
-		default:
-			// check if field is ptr
-			parent = field.Addr().Interface()
+		field, err := GetReferenceValue(parent, vn)
+		if err == nil {
+			k := reflector.GetKind(field)
+			switch k {
+			case reflect.String, reflect.Int, reflect.Float32:
+				fv := fmt.Sprintf("%v", field.Interface())
+				return fv
+			case reflect.Slice:
+				return field.Interface()
+			case reflect.Invalid:
+				return EmptyString
+			default:
+				// check if field is ptr
+				parent = field.Addr().Interface()
+			}
 		}
-
 	}
 
 	return EmptyString

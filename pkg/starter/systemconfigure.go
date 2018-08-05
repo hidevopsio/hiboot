@@ -9,7 +9,6 @@ type App struct {
 	Project        string   `json:"project"`
 	Name           string   `json:"name"`
 	Profiles       Profiles `json:"profiles"`
-	DataSourceType string   `json:"data_source_type"`
 }
 
 type Server struct {

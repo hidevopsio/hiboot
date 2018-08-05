@@ -253,6 +253,6 @@ func TestInject(t *testing.T) {
 
 	t.Run("should failed to inject if the type of param and receiver are the same", func(t *testing.T) {
 		err := IntoObject(reflect.ValueOf(new(buzzService)))
-		assert.Equal(t, IllegalArgumentError, err)
+		assert.Equal(t, nil, err)
 	})
 }

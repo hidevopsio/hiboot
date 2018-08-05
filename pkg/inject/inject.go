@@ -44,7 +44,8 @@ func replaceReferences(val string) interface{}  {
 			vars := strings.SplitN(m[1], ".", -1)
 			configName := vars[0]
 			config := autoConfiguration.Configuration(configName)
-			if config == nil && utils.GetReferenceValue(systemConfig, configName).IsValid() {
+			sysConf, err := utils.GetReferenceValue(systemConfig, configName)
+			if config == nil && err == nil && sysConf.IsValid() {
 				config = systemConfig
 			}
 			if config != nil {
@@ -157,7 +158,7 @@ func IntoObject(object reflect.Value) error {
 		//log.Debugf("- kind: %v, %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type(), f.Name)
 		//log.Debugf("isValid: %v, canSet: %v", fieldObj.IsValid(), fieldObj.CanSet())
 		filedObject := reflect.Indirect(fieldObj)
-		if filedObject.Kind() == reflect.Struct && fieldObj.IsValid() && fieldObj.CanSet() {
+		if filedObject.Kind() == reflect.Struct && fieldObj.IsValid() && fieldObj.CanSet() && filedObject.Type() != obj.Type() {
 			err = IntoObject(fieldObj)
 			if err != nil {
 				log.Errorf("object: %v", filedObject.Type())
@@ -190,10 +191,7 @@ func IntoObject(object reflect.Value) error {
 			//log.Debugf("inType: %v, name: %v, instance: %v", inType, inTypeName, inst)
 			//log.Debugf("kind: %v == %v, %v, %v ", obj.Kind(), reflect.Struct, paramValue.IsValid(), paramValue.CanSet())
 			paramObject := reflect.Indirect(paramValue)
-			if paramObject.Type() == obj.Type() {
-				return IllegalArgumentError
-			}
-			if paramObject.Kind() == reflect.Struct && paramValue.IsValid() {
+			if paramObject.Type() != obj.Type() && paramObject.Kind() == reflect.Struct && paramValue.IsValid() {
 				err = IntoObject(paramValue)
 				if err != nil {
 					log.Errorf("object: %v, method: %v", method.Type, method.Name)

@@ -96,8 +96,8 @@ func TestParseVariableName(t *testing.T) {
 func TestGetFieldValue(t *testing.T) {
 	foo := &Foo{Name: "foo"}
 
-	field := GetFieldValue(foo, "Name")
-
+	field, err := GetFieldValue(foo, "Name")
+	assert.Equal(t, nil, err)
 	assert.Equal(t, reflect.String, field.Kind())
 	assert.Equal(t, "foo", field.String())
 }
@@ -260,10 +260,18 @@ func TestReplaceReferences(t *testing.T) {
 }
 
 func TestGetReferenceValue(t *testing.T) {
-	fb := &FooBar{TheSubBar: SubBar{Name: "bar", Age: 18}}
-	val := GetReferenceValue(fb, "foo")
-	log.Debugf("%v : %v", fb.TheSubBar, val.Interface())
-	assert.Equal(t, fb.TheSubBar, val.Interface())
+	t.Run("should get reference value", func(t *testing.T) {
+		fb := &FooBar{TheSubBar: SubBar{Name: "bar", Age: 18}}
+		val, err := GetReferenceValue(fb, "foo")
+		assert.Equal(t, nil, err)
+		log.Debugf("%v : %v", fb.TheSubBar, val.Interface())
+		assert.Equal(t, fb.TheSubBar, val.Interface())
+	})
+
+	t.Run("should failed to get reference value", func(t *testing.T) {
+		_, err := GetReferenceValue((*FooBar)(nil), "foo")
+		assert.Equal(t, InvalidObjectError, err)
+	})
 }
 
 func TestGetMatches(t *testing.T) {

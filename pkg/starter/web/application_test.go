@@ -209,7 +209,7 @@ func TestWebApplication(t *testing.T)  {
 
 	t.Run("should response 200 when GET /all", func(t *testing.T) {
 		app.
-			Get("/all").
+			Request(http.MethodGet, "/all").
 			Expect().Status(http.StatusOK).
 			Body().Contains("Success").Contains("John Doe").Contains("Zhang San")
 	})
@@ -346,14 +346,14 @@ func TestWebApplication(t *testing.T)  {
 }
 
 func TestInvalidController(t *testing.T)  {
-	ta := new(TestApplication)
+	ta := new(testApplication)
 	err := ta.Init(new(InvalidController))
 	err, ok := err.(*system.InvalidControllerError)
 	assert.Equal(t, ok, true)
 }
 
 func TestNewApplication(t *testing.T) {
-	var app *Application
+	var app *application
 
 	//t.Run("should return no controller error", func(t *testing.T) {
 	//	NewApplication()
