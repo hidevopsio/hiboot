@@ -21,7 +21,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
 )
 
-func GetTestApplication(t *testing.T) *web.TestApplication {
+func GetTestApplication(t *testing.T) web.TestApplication {
 	return web.NewTestApplication(t, new(FooController))
 }
 

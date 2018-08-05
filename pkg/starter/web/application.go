@@ -49,21 +49,21 @@ const (
 )
 
 // ApplicationInterface is the interface of web application
-type ApplicationInterface interface {
-	Init()
+type Application interface {
+	Init(controllers ...interface{}) error
 	Config() *starter.SystemConfiguration
 	Run()
 }
 
 // Application is the struct of web Application
 // TODO: application should be singleton and private
-type Application struct {
+type application struct {
 	app               *iris.Application
 	config            *starter.SystemConfiguration
 	jwtEnabled        bool
 	workDir           string
 	httpMethods       []string
-	autoConfiguration starter.AutoConfiguration
+	autoConfiguration starter.Factory
 	anonControllers   []interface{}
 	jwtControllers    []interface{}
 	dispatcher		  dispatcher
@@ -81,12 +81,12 @@ var (
 )
 
 // Config returns application config
-func (wa *Application) Config() *starter.SystemConfiguration {
+func (wa *application) Config() *starter.SystemConfiguration {
 	return wa.config
 }
 
 // Run run web application
-func (wa *Application) Run() {
+func (wa *application) Run() {
 	serverPort := ":8080"
 	if wa.config != nil && wa.config.Server.Port != 0 {
 		serverPort = fmt.Sprintf(":%v", wa.config.Server.Port)
@@ -109,7 +109,7 @@ func Add(controllers ...interface{}) {
 	webControllers = append(webControllers, controllers...)
 }
 
-func (wa *Application) add(controllers ...interface{}) {
+func (wa *application) add(controllers ...interface{}) {
 	for _, controller := range controllers {
 		authType := AuthTypeAnon
 		result, err := reflector.CallMethodByName(controller, "AuthType")
@@ -126,7 +126,7 @@ func (wa *Application) add(controllers ...interface{}) {
 }
 
 // Init init web application
-func (wa *Application) Init(controllers ...interface{}) error {
+func (wa *application) Init(controllers ...interface{}) error {
 
 	wa.workDir = utils.GetWorkDir()
 
@@ -142,7 +142,7 @@ func (wa *Application) Init(controllers ...interface{}) error {
 		http.MethodTrace,
 	}
 
-	wa.autoConfiguration = starter.GetAutoConfiguration()
+	wa.autoConfiguration = starter.GetFactory()
 	wa.autoConfiguration.Build()
 
 	config := wa.autoConfiguration.Configuration(starter.System)
@@ -233,7 +233,7 @@ func (wa *Application) Init(controllers ...interface{}) error {
 	return nil
 }
 
-func (wa *Application) initLocale() error {
+func (wa *application) initLocale() error {
 	// TODO: localePath should be configurable in application.yml
 	// locale:
 	//   en-US: ./config/i18n/en-US.ini
@@ -284,8 +284,8 @@ func (wa *Application) initLocale() error {
 }
 
 // NewApplication create new web application instance and init it
-func NewApplication(controllers ...interface{}) *Application {
-	wa := new(Application)
+func NewApplication(controllers ...interface{}) *application {
+	wa := new(application)
 	err := wa.Init(controllers...)
 	if err != nil {
 		log.Error(err)
