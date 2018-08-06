@@ -22,14 +22,14 @@ With auto configuration, you can integrate any other libraries easily with depen
 
 ## Getting started
 
-This section will show you how to create and run a simplest Hiboot application. Let’s get started!
+This section will show you how to create and run a simplest hiboot application. Let’s get started!
 
 #### Get source code
 
 ```bash
 go get -u github.com/hidevopsio/hiboot
 
-cd $GOPATH/src/github.com/hidevopsio/Hiboot/examples/web/helloworld/
+cd $GOPATH/src/github.com/hidevopsio/hiboot/examples/web/helloworld/
 
 
 ```
@@ -41,8 +41,8 @@ cd $GOPATH/src/github.com/hidevopsio/Hiboot/examples/web/helloworld/
 // Line 1: main package
 package main
 
-// Line 2: import web starter from Hiboot
-import "github.com/hidevopsio/Hiboot/pkg/starter/web"
+// Line 2: import web starter from hiboot
+import "github.com/hidevopsio/hiboot/pkg/starter/web"
 
 // Line 3-5: RESTful Controller, derived from web.Controller. The context mapping of this controller is '/' by default
 type Controller struct {
