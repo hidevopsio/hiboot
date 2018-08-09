@@ -36,6 +36,8 @@ func (c *HelloCommand) Init() {
 hello -h : help
 hello -t John : say hello to John
 `
+	c.BashCompletionFunction = `
+`
 }
 
 // Run run the command
