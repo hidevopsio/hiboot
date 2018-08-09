@@ -27,7 +27,7 @@ func TestRunMain(t *testing.T) {
 }
 
 
-func TestSecondCommands(t *testing.T) {
+func TestHelloCommands(t *testing.T) {
 	helloCmd := new(HelloCommand)
 	testApp := cli.NewTestApplication(helloCmd)
 
