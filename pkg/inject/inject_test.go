@@ -270,5 +270,16 @@ func TestInject(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 
+	t.Run("should inject value and it must not be singleton", func(t *testing.T) {
+		a := &struct{TestName string `value:"test-data-from-a"`}{}
+		b := &struct{TestName string}{}
+		err := IntoObject(reflect.ValueOf(a))
+		assert.Equal(t, nil, err)
+		IntoObject(reflect.ValueOf(b))
+		assert.Equal(t, nil, err)
+
+		assert.NotEqual(t, a.TestName, b.TestName)
+	})
+
 	// TODO: should add 2 more tests
 }

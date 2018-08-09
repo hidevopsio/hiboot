@@ -13,6 +13,11 @@ func init() {
 	AddTag("inject", new(injectTag))
 }
 
+
+func (t *injectTag) IsSingleton() bool  {
+	return true
+}
+
 func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{})  {
 	properties := t.ParseProperties(tag)
 

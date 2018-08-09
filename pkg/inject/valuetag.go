@@ -12,7 +12,7 @@ func init() {
 }
 
 
-func (t *injectTag) IsSingleton() bool  {
+func (t *valueTag) IsSingleton() bool  {
 	return false
 }
 
