@@ -32,6 +32,10 @@ func (c *HelloCommand) Init() {
 	c.Use = "hello"
 	c.Short = "hello command"
 	c.Long = "run hello command for getting started"
+	c.Example = `
+hello -h : help
+hello -t John : say hello to John
+`
 }
 
 // Run run the command
