@@ -39,7 +39,7 @@ func (c *demoCommand) Init() {
 	c.Long = "Run demo command"
 }
 
-func (c *demoCommand) Handle(args []string) (err error) {
+func (c *demoCommand) Run(args []string) (err error) {
 	log.Debugf("on demo command - profile: %v, intval: %v", *c.Profile, *c.IntVal)
 	return
 }
@@ -55,7 +55,7 @@ func (c *fooCommand) Init() {
 	c.Long = "Run foo command"
 }
 
-func (c *fooCommand) Handle(args []string) (err error) {
+func (c *fooCommand) Run(args []string) (err error) {
 	log.Debug("on foo command")
 	return nil
 }
@@ -70,7 +70,7 @@ func (c *barCommand) Init() {
 	c.Long = "Run bar command"
 }
 
-func (c *barCommand) Handle(args []string) (err error) {
+func (c *barCommand) Run(args []string) (err error) {
 	log.Debug("on bar command")
 	return nil
 }
@@ -85,7 +85,7 @@ func (c *bazCommand) Init() {
 	c.Long = "Run baz command"
 }
 
-func (c *bazCommand) Handle(args []string) (err error) {
+func (c *bazCommand) Run(args []string) (err error) {
 	log.Debug("on baz command")
 	return nil
 }
@@ -123,4 +123,27 @@ func TestCliApplication(t *testing.T) {
 
 func TestNewApplication(t *testing.T) {
 	go NewApplication().Run()
+}
+
+type A struct{
+	Name string
+}
+
+func (a *A) Run(x string, y int) {
+	log.Debugf("name: %v, x: %v, y: %v", a.Name, x, y)
+}
+
+type B struct{
+	A
+}
+
+func (b *B) Run(x string)  {
+	log.Debugf("x: %v", x)
+	b.A.Run(x, 123)
+}
+
+func TestAB(t *testing.T) {
+	b := new(B)
+	b.Name = "bb"
+	b.Run("hello")
 }

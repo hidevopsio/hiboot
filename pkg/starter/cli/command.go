@@ -19,7 +19,7 @@ type Command interface {
 	SetFullName(name string) Command
 	Parent() Command
 	SetParent(p Command) Command
-	Handle(args []string) error
+	Run(args []string) error
 	Find(name string) (Command, error)
 	SetOutput(output io.Writer)
 	SetArgs(a []string)
@@ -41,7 +41,7 @@ func (c *BaseCommand) EmbeddedCommand() *cobra.Command  {
 	return &c.Command
 }
 
-func (c *BaseCommand) Handle(args []string) error {
+func (c *BaseCommand) Run(args []string) error {
 	return nil
 }
 
@@ -64,7 +64,7 @@ func (c *BaseCommand) addChild(child Command) {
 	}
 	childEmbeddedCommand := child.EmbeddedCommand()
 	childEmbeddedCommand.RunE = func(cmd *cobra.Command, args []string) error {
-		return child.Handle(args)
+		return child.Run(args)
 	}
 	child.SetParent(c)
 	c.children = append(c.children, child)
