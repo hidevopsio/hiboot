@@ -16,7 +16,7 @@ func TestCommand(t *testing.T) {
 
 		foundCmd, err := fooCmd.Find("bar")
 		assert.Equal(t, nil, err)
-		assert.Equal(t, foundCmd.Name(), barCmd.Name())
+		assert.Equal(t, foundCmd.GetName(), barCmd.GetName())
 	})
 
 	t.Run("should run handle method", func(t *testing.T) {

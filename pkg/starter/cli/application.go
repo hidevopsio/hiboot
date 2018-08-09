@@ -95,7 +95,7 @@ func (a *application) injectCommand(cmd Command)  {
 	}
 	for _, child := range cmd.Children() {
 		inject.IntoObject(reflect.ValueOf(child))
-		child.SetFullName(fullname + "." + child.Name())
+		child.SetFullName(fullname + "." + child.GetName())
 		a.injectCommand(child)
 	}
 }
@@ -141,7 +141,7 @@ func (a *application) Init(cmd ...Command) error  {
 			for _, command := range commands {
 				inject.IntoObject(reflect.ValueOf(command))
 				parent.Add(command)
-				fullname := cmdName + "." + command.Name()
+				fullname := cmdName + "." + command.GetName()
 				parentContainer[fullname] = command
 				command.SetFullName(fullname)
 			}
