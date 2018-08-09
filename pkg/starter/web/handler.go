@@ -172,7 +172,7 @@ func (h *handler) call(ctx *Context) {
 			h.inputs[i] = reflect.ValueOf(request)
 			break
 		} else if h.lenOfPathParams != 0 {
-			strVal := pvs[req.pathIdx]
+			strVal := pvs[req.pathIdx] //TODO: out of scope
 			var val interface{}
 			switch req.typeName {
 			case "int":

@@ -20,7 +20,7 @@ type rootCommand struct {
 
 func init() {
 	app := GetApplication()
-	app.SetRoot(new(rootCommand))
+	app.SetRoot(new(rootCommand).SetName("root"))
 }
 
 func (c *rootCommand) Init() {

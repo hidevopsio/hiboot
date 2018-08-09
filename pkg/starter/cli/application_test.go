@@ -17,6 +17,7 @@ package cli
 import (
 	"testing"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/stretchr/testify/assert"
 )
 
 func init() {
@@ -28,6 +29,8 @@ func init() {
 
 type demoCommand struct {
 	BaseCommand
+	Profile *string `flag:"shorthand=p,value=dev,usage=e.g. --profile=test"`
+	IntVal *int `flag:"shorthand=i,value=0,usage=e.g. --intval=1"`
 }
 
 func (c *demoCommand) Init() {
@@ -37,19 +40,12 @@ func (c *demoCommand) Init() {
 }
 
 func (c *demoCommand) Handle(args []string) (err error) {
-	log.Debug("here is demo command")
+	log.Debugf("on demo command - profile: %v, intval: %v", *c.Profile, *c.IntVal)
 	return
-}
-
-type FooFlags struct {
-	Name   string
-	IntVal int
 }
 
 type fooCommand struct {
 	BaseCommand
-	//Short string `value:"foo sub command"`
-	//Long  string `value:"Run foo sub command of command demo"`
 }
 
 
@@ -60,15 +56,13 @@ func (c *fooCommand) Init() {
 }
 
 func (c *fooCommand) Handle(args []string) (err error) {
+	log.Debug("on foo command")
 	return nil
 }
 
 type barCommand struct {
 	BaseCommand
-	//Short string `value:"bar sub command"`
-	//Long  string `value:"Run bar sub command of command foo"`
 }
-
 
 func (c *barCommand) Init() {
 	c.Use = "bar"
@@ -77,15 +71,13 @@ func (c *barCommand) Init() {
 }
 
 func (c *barCommand) Handle(args []string) (err error) {
+	log.Debug("on bar command")
 	return nil
 }
 
 type bazCommand struct {
 	BaseCommand
-	//Short string `value:"baz sub command"`
-	//Long  string `value:"Run baz sub command of command foo"`
 }
-
 
 func (c *bazCommand) Init() {
 	c.Use = "baz"
@@ -94,11 +86,41 @@ func (c *bazCommand) Init() {
 }
 
 func (c *bazCommand) Handle(args []string) (err error) {
+	log.Debug("on baz command")
 	return nil
 }
 
 // demo foo bar
-
 func TestCliApplication(t *testing.T) {
-	NewApplication().Run()
+
+	demoCmd := new(demoCommand)
+	fooCmd := new(fooCommand)
+	fooCmd.Add(new(barCommand), new(bazCommand))
+	demoCmd.Add(fooCmd)
+
+	testApp := NewTestApplication(demoCmd)
+
+	t.Run("should run demo command", func(t *testing.T) {
+		_, err := testApp.RunTest("demo", "-p", "test", "-i", "2")
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should run foo command", func(t *testing.T) {
+		_, err := testApp.RunTest("demo", "foo")
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should run bar command", func(t *testing.T) {
+		_, err := testApp.RunTest("demo", "foo", "bar")
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should run baz command", func(t *testing.T) {
+		_, err := testApp.RunTest("demo", "foo", "baz")
+		assert.Equal(t, nil, err)
+	})
+}
+
+func TestNewApplication(t *testing.T) {
+	go NewApplication().Run()
 }
