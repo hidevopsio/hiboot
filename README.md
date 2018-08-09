@@ -92,38 +92,39 @@ Writing Hiboot cli application is as simple as web application, you can take the
 e.g. flag tag dependency injection
 
 ```go
-// Line 1: main package
+
+// declare main package
 package main
 
-// Line 2-3: import cli starter and fmt
+// import cli starter and fmt
 import "github.com/hidevopsio/hiboot/pkg/starter/cli"
 import "fmt"
 
-
-type SampleCommand struct {
+// define the command
+type HelloCommand struct {
+	// embedding cli.BaseCommand in each command
 	cli.BaseCommand
-	// inject flag to profile so that you can use it on Run method
-	Name string `flag:"shorthand=n,value=world,usage=e.g. --name=world or -n world"`
+	// inject flag to Name so that you can use it on Run method, please not that the data type must be pointer
+	To *string `flag:"name=to,shorthand=t,value=world,usage=e.g. --to=world or -t world"`
 }
 
-func init() {
-  cli.AddCommand("root", new(SampleCommand))
+// Init constructor
+func (c *HelloCommand) Init() {
+	c.Use = "hello"
+	c.Short = "hello command"
+	c.Long = "run hello command for getting started"
 }
 
-func (c *SampleCommand) Init()  {
-	c.Use = "sample"
-	c.Short = "sample command"
-	c.Long = "run sample command for getting started"
-}
-
-func (c *SampleCommand) Run(args []string) error {
-	fmt.Printf("Hello, %v\n", c.Name)
+// Run run the command
+func (c *HelloCommand) Run(args []string) error {
+	fmt.Printf("Hello, %v\n", *c.To)
 	return nil
 }
 
+// main function
 func main() {
 	// create new cli application and run it
-	cli.NewApplication().Run()
+	cli.NewApplication(new(HelloCommand)).Run()
 }
 
 ```
