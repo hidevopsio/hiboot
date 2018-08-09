@@ -70,7 +70,7 @@ func IntoObject(object reflect.Value) error {
 
 	// field injection
 	for _, f := range reflector.DeepFields(object.Type()) {
-		log.Debugf("parent: %v, name: %v, type: %v, tag: %v", obj.Type(), f.Name, f.Type, f.Tag)
+		//log.Debugf("parent: %v, name: %v, type: %v, tag: %v", obj.Type(), f.Name, f.Type, f.Tag)
 		// check if object has value field to be injected
 		var injectedObject interface{}
 

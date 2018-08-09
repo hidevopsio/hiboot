@@ -18,7 +18,7 @@ type BaseTag struct {
 }
 
 func (t *BaseTag) IsSingleton() bool  {
-	return true
+	return false
 }
 
 func (t *BaseTag) replaceReferences(val string) interface{}  {

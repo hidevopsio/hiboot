@@ -14,6 +14,11 @@ func TestTag(t *testing.T) {
 		assert.NotEqual(t, nil, p)
 	})
 
+	t.Run("should get check if it's singleton", func(t *testing.T) {
+		s := tag.IsSingleton()
+		assert.Equal(t, false, s)
+	})
+
 	t.Run("should get properties", func(t *testing.T) {
 		fakeObj := struct{Name string}{}
 		objVal := reflect.ValueOf(fakeObj)

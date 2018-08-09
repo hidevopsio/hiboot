@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"strings"
 	"strconv"
+	"path/filepath"
 )
 
 type request struct {
@@ -68,6 +69,8 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 	//log.Debugf("method: %v", method.Name)
 
 	// TODO: should parse all of below request and response during router register to improve performance
+	path = filepath.Clean(path)
+	//log.Debugf("path: %v", path)
 	pps := strings.SplitN(path, "/", -1)
 	//log.Debug(pps)
 	pp := utils.ParseVariables(path, compiledRegExp)
