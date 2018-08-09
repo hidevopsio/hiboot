@@ -21,22 +21,22 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
-type fooCommand struct {
+type secondCommand struct {
 	cli.BaseCommand
 }
 
 func init() {
-	cli.AddCommand("root.first.second", new(fooCommand))
+	cli.AddCommand("root.first", new(secondCommand))
 }
 
-func (c *fooCommand) Init() {
-	c.Use = "foo"
-	c.Short = "foo command"
-	c.Long = "Run foo command"
+func (c *secondCommand) Init() {
+	c.Use = "second"
+	c.Short = "second command"
+	c.Long = "Run second command"
 }
 
-func (c *fooCommand) Run(args []string) error {
-	log.Debug("handle foo command")
+func (c *secondCommand) Run(args []string) error {
+	log.Info("handle second command")
 	return nil
 }
 

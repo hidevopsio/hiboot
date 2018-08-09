@@ -22,7 +22,7 @@ func (c *firstCommand) Init() {
 }
 
 func (c *firstCommand) Run(args []string) error {
-	log.Debugf("handle first command: profile=%v, timeout=%v", *c.Profile, *c.Timeout)
+	log.Infof("handle first command: profile=%v, timeout=%v", *c.Profile, *c.Timeout)
 	return nil
 }
 
