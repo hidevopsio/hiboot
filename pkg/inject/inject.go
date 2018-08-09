@@ -18,11 +18,8 @@ import (
 	"reflect"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"strings"
 	"github.com/hidevopsio/hiboot/pkg/starter"
 	"errors"
-	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
-	"github.com/hidevopsio/hiboot/pkg/utils"
 )
 
 
@@ -38,71 +35,25 @@ var (
 	InvalidObjectError      = errors.New("[inject] invalid object")
 	UnsupportedInjectionTypeError      = errors.New("[inject] unsupported injection type")
 	IllegalArgumentError = errors.New("[inject] input argument type can not be the same as receiver")
+
+	tagsContainer map[string]Tag
 )
 
 func init() {
 	log.SetLevel(log.DebugLevel)
 	autoConfiguration = starter.GetFactory()
+	tagsContainer = make(map[string]Tag)
 }
 
-func replaceReferences(val string) interface{}  {
-	var retVal interface{}
-	systemConfig := autoConfiguration.Configuration(starter.System)
-
-	matches := utils.GetMatches(val)
-	if len(matches) != 0 {
-		for _, m := range matches {
-			//log.Debug(m[1])
-			// default value
-
-			vars := strings.SplitN(m[1], ".", -1)
-			configName := vars[0]
-			config := autoConfiguration.Configuration(configName)
-			sysConf, err := utils.GetReferenceValue(systemConfig, configName)
-			if config == nil && err == nil && sysConf.IsValid() {
-				config = systemConfig
-			}
-			if config != nil {
-				retVal = utils.ReplaceStringVariables(val, config)
-				if retVal != val {
-					break
-				}
-			}
-		}
+// AddTag
+func AddTag(name string, tag Tag)  {
+	t := tagsContainer[name]
+	if t != nil {
+		log.Fatal("tag %v is already exist!", name)
 	}
-
-	if retVal == nil {
-		return val
+	if tag != nil {
+		tagsContainer[name] = tag
 	}
-	return retVal
-}
-
-func parseInjectTag(tagValue string) map[string]interface{} {
-
-	tags := make(map[string]interface{}) // ? map[string]string
-
-	args := strings.Split(tagValue, ",")
-	for _, v := range args {
-		//log.Debug(v)
-		kv := strings.Split(v, "=")
-		if len(kv) == 2 {
-			val := kv[1]
-			// check if val contains reference or env
-			// TODO: should lookup certain config instead of for loop
-			replacedVal := replaceReferences(val)
-			tags[kv[0]] = replacedVal
-		}
-	}
-
-	return tags
-}
-
-func parseValue(valueTag string) (retVal interface{})  {
-	if valueTag != "" {
-		//log.Debug(valueTag)
-		retVal = replaceReferences(valueTag)
-	}
-	return retVal
 }
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
@@ -119,7 +70,7 @@ func IntoObject(object reflect.Value) error {
 
 	// field injection
 	for _, f := range reflector.DeepFields(object.Type()) {
-		//log.Debugf("parent: %v, name: %v, type: %v, tag: %v", object.Elem().Type(), f.Name, f.Type, f.Tag)
+		//log.Debugf("parent: %v, name: %v, type: %v, tag: %v", obj.Type(), f.Name, f.Type, f.Tag)
 		// check if object has value field to be injected
 		var injectedObject interface{}
 
@@ -127,42 +78,32 @@ func IntoObject(object reflect.Value) error {
 		if f.Type.Kind() == reflect.Ptr {
 			ft = ft.Elem()
 		}
-		valueTag, ok := f.Tag.Lookup(valueIdentifier)
-		if ok {
-			//log.Debugf("value tag: %v, %v", valueTag, ok)
-			injectedObject = parseValue(valueTag)
-		} else {
-			injectTag, ok := f.Tag.Lookup(injectIdentifier)
-			if ok {
-				//log.Debugf("inject tag: %v, %v", injectTag, ok)
-				instanceName := f.Name
-				tags := parseInjectTag(injectTag)
 
-				// first, find if object is already instantiated
-				injectedObject = instances[instanceName]
-				if injectedObject == nil {
-					log.Debugf("field kind: %v, name: %v", ft.Kind(), ft.Name())
-					if f.Type.Kind() == reflect.Ptr {
-						// if object is not exist, then instantiate new object
-						// parse tag and instantiate filed
-						o := reflect.New(ft)
-						injectedObject = o.Interface()
-						// inject field value
-						if len(tags) != 0 {
-							mapstruct.Decode(injectedObject, tags)
-						}
-						instances[instanceName] = injectedObject
-					} else {
-						return UnsupportedInjectionTypeError
-					}
-				}
-			}
-		}
 		// set field object
 		var fieldObj reflect.Value
 		if obj.IsValid() && obj.Kind() == reflect.Struct {
 			fieldObj = obj.FieldByName(f.Name)
 		}
+
+		// TODO: assume that the f.Name of value and inject tag is not the same
+		injectedObject = instances[f.Name]
+		if injectedObject == nil {
+			for tagName, tagObject := range tagsContainer {
+				tag, ok := f.Tag.Lookup(tagName)
+				if ok {
+					injectedObject = tagObject.Decode(object, f, tag)
+					if injectedObject != nil {
+						if tagObject.IsSingleton() {
+							instances[f.Name] = injectedObject
+						}
+						// ONLY one tag should be used for dependency injection
+						break
+					}
+				}
+			}
+		}
+
+
 		if injectedObject != nil && fieldObj.CanSet() {
 			fov := reflect.ValueOf(injectedObject)
 			fieldObj.Set(fov)
@@ -172,7 +113,9 @@ func IntoObject(object reflect.Value) error {
 		//log.Debugf("- kind: %v, %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type(), f.Name)
 		//log.Debugf("isValid: %v, canSet: %v", fieldObj.IsValid(), fieldObj.CanSet())
 		filedObject := reflect.Indirect(fieldObj)
-		if filedObject.Kind() == reflect.Struct && fieldObj.IsValid() && fieldObj.CanSet() && filedObject.Type() != obj.Type() {
+		filedKind := filedObject.Kind()
+		canNested := filedKind == reflect.Struct
+		if canNested && fieldObj.IsValid() && fieldObj.CanSet() && filedObject.Type() != obj.Type() {
 			err = IntoObject(fieldObj)
 			if err != nil {
 				log.Errorf("object: %v", filedObject.Type())

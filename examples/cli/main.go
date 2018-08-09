@@ -12,37 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package gotest
+package main
 
 import (
-	"os"
-	"github.com/hidevopsio/hiboot/pkg/utils"
-	"strings"
-	"flag"
+	"github.com/hidevopsio/hiboot/pkg/starter/cli"
+	_ "github.com/hidevopsio/hiboot/examples/cli/cmd"
 )
 
-func IsRunning() bool  {
-
-	args := os.Args
-
-	//log.Println("args: ", args)
-	//log.Println("args[0]: ", args[0])
-
-	if utils.StringInSlice("-test.v", args) ||
-		strings.Contains(args[0], ".test") {
-		return true
-	}
-
-	return false
-}
-
-func ParseArgs(args []string) {
-
-	a := os.Args[1:]
-	if args != nil {
-		a = args
-	}
-
-	flag.CommandLine.Parse(a)
+func main() {
+	// create new cli application and run it
+	cli.NewApplication().Run()
 }
 
