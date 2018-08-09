@@ -13,7 +13,7 @@ type Command interface {
 	HasChild() bool
 	Children() []Command
 	Exec() error
-	Name() string
+	GetName() string
 	FullName() string
 	SetName(name string) Command
 	SetFullName(name string) Command
@@ -59,18 +59,12 @@ func (c *BaseCommand) HasChild() bool {
 	return len(c.children) > 0
 }
 
-func (c *BaseCommand) Register() {
-	c.EmbeddedCommand().RunE = func(cmd *cobra.Command, args []string) error {
-		return c.Run(args)
-	}
-}
-
 func (c *BaseCommand) Children() []Command {
 	return c.children
 }
 
 func (c *BaseCommand) addChild(child Command) {
-	if child.Name() == "" {
+	if child.GetName() == "" {
 		name := parseName(child)
 		child.SetName(name)
 	}
@@ -87,7 +81,7 @@ func (c *BaseCommand) Add(commands ...Command) Command {
 	return c
 }
 
-func (c *BaseCommand) Name() string {
+func (c *BaseCommand) GetName() string {
 	return c.name
 }
 
@@ -123,7 +117,7 @@ func (c *BaseCommand) Find(name string) (Command, error) {
 	}
 
 	for _, cmd := range c.children {
-		if name == cmd.Name() {
+		if name == cmd.GetName() {
 			return cmd, nil
 		}
 	}
