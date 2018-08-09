@@ -35,7 +35,7 @@ func (c *secondCommand) Init() {
 	c.Long = "Run second command"
 }
 
-func (c *secondCommand) Handle(args []string) error {
+func (c *secondCommand) Run(args []string) error {
 	log.Debug("handle second command")
 	return nil
 }

@@ -29,6 +29,6 @@ func (c *rootCommand) Init() {
 	c.Long = "Run root command"
 }
 
-func (c *rootCommand) Handle(args []string) error {
+func (c *rootCommand) Run(args []string) error {
 	return nil
 }

@@ -21,7 +21,7 @@ func (c *firstCommand) Init() {
 	c.Long = "Run first command"
 }
 
-func (c *firstCommand) Handle(args []string) error {
+func (c *firstCommand) Run(args []string) error {
 	log.Debugf("handle first command: profile=%v, timeout=%v", *c.Profile, *c.Timeout)
 	return nil
 }

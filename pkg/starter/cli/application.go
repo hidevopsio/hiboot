@@ -54,10 +54,13 @@ func init() {
 	commandNames = make([]string, 0)
 }
 
-func AddCommand(parentName string, commands ...Command) {
-	commandNames = append(commandNames, parentName)
+func AddCommand(parentPath string, commands ...Command) {
+	// de-duplication
+	if commandContainer[parentPath] == nil {
+		commandNames = append(commandNames, parentPath)
+	}
 	for _, command := range commands {
-		commandContainer[parentName] = append(commandContainer[parentName], command)
+		commandContainer[parentPath] = append(commandContainer[parentPath], command)
 	}
 }
 

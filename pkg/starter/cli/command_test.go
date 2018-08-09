@@ -21,7 +21,7 @@ func TestCommand(t *testing.T) {
 
 	t.Run("should run handle method", func(t *testing.T) {
 		cmd := new(BaseCommand)
-		err := cmd.Handle(nil)
+		err := cmd.Run(nil)
 		assert.Equal(t, nil, err)
 	})
 }
