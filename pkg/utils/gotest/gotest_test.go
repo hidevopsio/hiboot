@@ -17,10 +17,23 @@ package gotest
 import (
 	"testing"
 	"github.com/stretchr/testify/assert"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"flag"
 )
+
+func init() {
+	log.SetLevel(log.DebugLevel)
+}
 
 func TestIsRunning(t *testing.T) {
 	isTestRunning := IsRunning()
 
 	assert.Equal(t, true, isTestRunning)
+}
+
+func TestParseArgs(t *testing.T) {
+	args := []string{"foo", "bar", "baz"}
+	log.Debug(flag.Args())
+	ParseArgs(args)
+	log.Debug(flag.Args())
 }

@@ -15,28 +15,26 @@
 package cli
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"reflect"
 	"os"
 	"github.com/hidevopsio/hiboot/pkg/inject"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"strings"
 	"sync"
 	"runtime"
 	"path/filepath"
 	"github.com/hidevopsio/hiboot/pkg/utils/sort"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 )
 
 type Application interface {
 	Run()
-	Initialize() error
+	Init() error
 	Root() Command
 	SetRoot(root Command)
-	FindCommand(name string) Command
 }
 
 type application struct {
-	rootCommand Command
+	root Command
 }
 
 type CommandNameValue struct {
@@ -48,36 +46,12 @@ var (
 	commandContainer  map[string][]Command
 	commandNames []string
 	app *application
+	once sync.Once
 )
 
 func init() {
 	commandContainer = make(map[string][]Command)
 	commandNames = make([]string, 0)
-}
-
-
-/*
-
-root(demo)
-demo(foo)
-foo(bar, baz)
-
-demo - foo - bar
-           - baz
-
-foo.parentName = root
-bar.parentName = foo
-baz.parentName = foo
-
-*/
-
-func GetCommandName(cmd interface{}) string {
-	name, err := reflector.GetName(cmd)
-	if err == nil {
-		name = strings.Replace(name, "Command", "", -1)
-		name = strings.ToLower(name)
-	}
-	return name
 }
 
 func AddCommand(parentName string, commands ...Command) {
@@ -87,10 +61,8 @@ func AddCommand(parentName string, commands ...Command) {
 	}
 }
 
-var do sync.Once
-
 func GetApplication() Application {
-	do.Do(func() {
+	once.Do(func() {
 		app = new(application)
 		app.SetRoot(new(rootCommand))
 	})
@@ -105,66 +77,75 @@ func NewApplication() Application {
 	}
 
 	// TODO: read config file, replace basename if user specified app.name
-
 	a := GetApplication()
 	a.Root().EmbeddedCommand().Use = basename
-	a.Initialize()
+	a.Init()
 	return a
 }
 
-func (a *application) Initialize() error  {
-	// parse commands
-	parentContainer := make(map[string]Command)
-	sort.SortByLen(commandNames)
+
+func parseName(cmd Command) string {
+	name, err := reflector.GetName(cmd)
+	if err == nil {
+		name = strings.Replace(name, "Command", "", -1)
+		name = strings.ToLower(name)
+	}
+	return name
+}
+
+func (a *application) injectCommand(cmd Command)  {
 	fullname := "root"
-	parentContainer[fullname] = a.rootCommand
-	for _, cmdName := range commandNames {
-		commands := commandContainer[cmdName]
-		parent := parentContainer[cmdName]
-		for _, command := range commands {
-			inject.IntoObject(reflect.ValueOf(command))
-			command.SetName(GetCommandName(command))
-			fullname := cmdName + "." + command.Name()
-			parentContainer[fullname] = command
-			command.SetFullName(fullname)
-			parent.AddChild(command)
+	if cmd != nil {
+		fullname = cmd.FullName()
+	}
+	for _, child := range cmd.Children() {
+		inject.IntoObject(reflect.ValueOf(child))
+		child.SetFullName(fullname + "." + child.Name())
+		a.injectCommand(child)
+	}
+}
+
+func (a *application) Init() error  {
+	if a.root != nil && a.root.HasChild() {
+		a.injectCommand(a.root)
+	} else {
+		// parse commands
+		parentContainer := make(map[string]Command)
+		fullname := "root"
+		sort.SortByLen(commandNames)
+		parentContainer[fullname] = a.root
+		for _, cmdName := range commandNames {
+			commands := commandContainer[cmdName]
+			parent := parentContainer[cmdName]
+			if parent == nil {
+				parent = a.root
+			}
+			for _, command := range commands {
+				inject.IntoObject(reflect.ValueOf(command))
+				parent.Add(command)
+				fullname := cmdName + "." + command.Name()
+				parentContainer[fullname] = command
+				command.SetFullName(fullname)
+			}
 		}
 	}
 	return nil
 }
 
 func (a *application) SetRoot(root Command) {
-	a.rootCommand = root
+	a.root = root
 }
 
 func (a *application) Root() Command {
-	return a.rootCommand
+	return a.root
 }
-
-func (a *application) FindCommand(name string) Command {
-	names := strings.SplitN(name, ".", -1)
-	cmd := a.rootCommand
-	foundCmd := cmd
-	var err error
-	for i, n := range names {
-		if n == cmd.Name() {
-			cmd, err = cmd.Find(names[i + 1])
-			if err == CommandNotFoundError {
-				break
-			}
-			foundCmd = cmd
-		}
-	}
-	return foundCmd
-}
-
 
 func (a *application) Run() {
 
-	log.Debug(commandContainer)
+	//log.Debug(commandContainer)
 
-	if a.rootCommand != nil{
-		if err := a.rootCommand.Exec(); err != nil {
+	if a.root != nil{
+		if err := a.root.Exec(); err != nil {
 			os.Exit(1)
 		}
 	}

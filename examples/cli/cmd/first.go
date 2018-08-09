@@ -7,6 +7,8 @@ import (
 
 type firstCommand struct {
 	cli.BaseCommand
+	Profile *string `flag:"shorthand=p,value=dev,usage=e.g. --profile=test"`
+	Timeout *int `flag:"shorthand=t,value=1,usage=e.g. --timeout=2"`
 }
 
 func init() {
@@ -20,7 +22,7 @@ func (c *firstCommand) Init() {
 }
 
 func (c *firstCommand) Handle(args []string) error {
-	log.Debug("handle first command")
+	log.Debugf("handle first command: profile=%v, timeout=%v", *c.Profile, *c.Timeout)
 	return nil
 }
 
