@@ -28,7 +28,7 @@ import (
 
 type Application interface {
 	Run()
-	Init() error
+	Init(cmd ...Command) error
 	Root() Command
 	SetRoot(root Command)
 }
@@ -72,17 +72,9 @@ func GetApplication() Application {
 	return app
 }
 
-func NewApplication() Application {
-	basename := filepath.Base(os.Args[0])
-	if runtime.GOOS == "windows" {
-		basename = strings.ToLower(basename)
-		basename = strings.TrimSuffix(basename, ".exe")
-	}
-
-	// TODO: read config file, replace basename if user specified app.name
+func NewApplication(cmd ...Command) Application {
 	a := GetApplication()
-	a.Root().EmbeddedCommand().Use = basename
-	a.Init()
+	a.Init(cmd...)
 	return a
 }
 
@@ -108,7 +100,30 @@ func (a *application) injectCommand(cmd Command)  {
 	}
 }
 
-func (a *application) Init() error  {
+func (a *application) Init(cmd ...Command) error  {
+
+	basename := filepath.Base(os.Args[0])
+	if runtime.GOOS == "windows" {
+		basename = strings.ToLower(basename)
+		basename = strings.TrimSuffix(basename, ".exe")
+	}
+
+	var root Command
+	root = new(rootCommand)
+	numOfCmd := len(cmd)
+	if cmd != nil && numOfCmd > 0 {
+		if numOfCmd == 1 {
+			root = cmd[0]
+		} else {
+			root.Add(cmd...)
+		}
+	}
+	root.SetName("root")
+	inject.IntoObject(reflect.ValueOf(root))
+	Register(root)
+	a.SetRoot(root)
+	a.Root().EmbeddedCommand().Use = basename
+
 	if a.root != nil && a.root.HasChild() {
 		a.injectCommand(a.root)
 	} else {
@@ -146,7 +161,6 @@ func (a *application) Root() Command {
 func (a *application) Run() {
 
 	//log.Debug(commandContainer)
-
 	if a.root != nil{
 		if err := a.root.Exec(); err != nil {
 			os.Exit(1)

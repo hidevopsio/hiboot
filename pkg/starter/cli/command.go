@@ -31,13 +31,19 @@ var CommandNotFoundError = errors.New("command not found")
 
 type BaseCommand struct {
 	cobra.Command
-	name string
+	name     string
 	fullname string
-	parent Command
+	parent   Command
 	children []Command
 }
 
-func (c *BaseCommand) EmbeddedCommand() *cobra.Command  {
+func Register(c Command) {
+	c.EmbeddedCommand().RunE = func(cmd *cobra.Command, args []string) error {
+		return c.Run(args)
+	}
+}
+
+func (c *BaseCommand) EmbeddedCommand() *cobra.Command {
 	return &c.Command
 }
 
@@ -53,6 +59,12 @@ func (c *BaseCommand) HasChild() bool {
 	return len(c.children) > 0
 }
 
+func (c *BaseCommand) Register() {
+	c.EmbeddedCommand().RunE = func(cmd *cobra.Command, args []string) error {
+		return c.Run(args)
+	}
+}
+
 func (c *BaseCommand) Children() []Command {
 	return c.children
 }
@@ -62,10 +74,7 @@ func (c *BaseCommand) addChild(child Command) {
 		name := parseName(child)
 		child.SetName(name)
 	}
-	childEmbeddedCommand := child.EmbeddedCommand()
-	childEmbeddedCommand.RunE = func(cmd *cobra.Command, args []string) error {
-		return child.Run(args)
-	}
+	Register(child)
 	child.SetParent(c)
 	c.children = append(c.children, child)
 	c.AddCommand(child.EmbeddedCommand())
@@ -99,7 +108,7 @@ func (c *BaseCommand) SetFullName(name string) Command {
 	return c
 }
 
-func (c *BaseCommand) Parent() Command  {
+func (c *BaseCommand) Parent() Command {
 	return c.parent
 }
 
@@ -108,7 +117,7 @@ func (c *BaseCommand) SetParent(p Command) Command {
 	return c
 }
 
-func (c *BaseCommand) Find(name string) (Command, error)  {
+func (c *BaseCommand) Find(name string) (Command, error) {
 	if c.name == name {
 		return c, nil
 	}

@@ -281,5 +281,18 @@ func TestInject(t *testing.T) {
 		assert.NotEqual(t, a.TestName, b.TestName)
 	})
 
-	// TODO: should add 2 more tests
+	t.Run("should deduplicate tag", func(t *testing.T) {
+		err := AddTag("test", new(BaseTag))
+		assert.Equal(t, nil, err)
+		err = AddTag("test", new(BaseTag))
+		assert.Equal(t, TagIsAlreadyExistError, err)
+		err = AddTag("nil", nil)
+		assert.Equal(t, TagIsNilError, err)
+	})
+
+	t.Run("should not inject primitive type", func(t *testing.T) {
+		a := struct{TestObj *int `inject:""`}{}
+		err := IntoObject(reflect.ValueOf(&a))
+		assert.Equal(t, nil, err)
+	})
 }

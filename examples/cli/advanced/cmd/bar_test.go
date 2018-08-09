@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFooCommands(t *testing.T) {
-	fooCmd := new(fooCommand)
+func TestBarCommands(t *testing.T) {
+	fooCmd := new(barCommand)
 	secondCmd := new(secondCommand)
 	firstCmd := new(firstCommand)
 	secondCmd.Add(fooCmd)
@@ -15,7 +15,7 @@ func TestFooCommands(t *testing.T) {
 	testApp := cli.NewTestApplication(firstCmd)
 
 	t.Run("should run second command", func(t *testing.T) {
-		_, err := testApp.RunTest("first", "second", "foo")
+		_, err := testApp.RunTest("second", "bar")
 		assert.Equal(t, nil, err)
 	})
 }

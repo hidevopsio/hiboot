@@ -6,21 +6,37 @@
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
+
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package cmd
+
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter/cli"
-	_ "github.com/hidevopsio/hiboot/examples/cli/cmd"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
-func main() {
-	// create new cli application and run it
-	cli.NewApplication().Run()
+type barCommand struct {
+	cli.BaseCommand
+}
+
+func init() {
+	cli.AddCommand("root.first.second", new(barCommand))
+}
+
+func (c *barCommand) Init() {
+	c.Use = "bar"
+	c.Short = "bar command"
+	c.Long = "Run bar command"
+}
+
+func (c *barCommand) Run(args []string) error {
+	log.Info("handle bar command")
+	return nil
 }
 

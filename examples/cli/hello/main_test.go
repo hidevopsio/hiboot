@@ -6,37 +6,33 @@
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
-
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+// Line 1: main package
+package main
 
 
 import (
+	"testing"
 	"github.com/hidevopsio/hiboot/pkg/starter/cli"
-	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/stretchr/testify/assert"
 )
 
-type barCommand struct {
-	cli.BaseCommand
+func TestRunMain(t *testing.T) {
+	go main()
 }
 
-func init() {
-	cli.AddCommand("root.first.second", new(barCommand))
-}
 
-func (c *barCommand) Init() {
-	c.Use = "bar"
-	c.Short = "bar command"
-	c.Long = "Run bar command"
-}
+func TestSecondCommands(t *testing.T) {
+	helloCmd := new(HelloCommand)
+	testApp := cli.NewTestApplication(helloCmd)
 
-func (c *barCommand) Run(args []string) error {
-	log.Debug("handle bar command")
-	return nil
+	t.Run("should run hello command", func(t *testing.T) {
+		_, err := testApp.RunTest("--to", "hiboot")
+		assert.Equal(t, nil, err)
+	})
 }
-

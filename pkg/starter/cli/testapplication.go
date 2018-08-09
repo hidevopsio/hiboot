@@ -2,10 +2,6 @@ package cli
 
 import (
 	"bytes"
-	"path/filepath"
-	"os"
-	"runtime"
-	"strings"
 )
 
 type TestApplication interface {
@@ -18,21 +14,8 @@ type testApplication struct {
 }
 
 func NewTestApplication(cmd ...Command) TestApplication {
-	basename := filepath.Base(os.Args[0])
-	if runtime.GOOS == "windows" {
-		basename = strings.ToLower(basename)
-		basename = strings.TrimSuffix(basename, ".exe")
-	}
-	var ta TestApplication
-	ta = new(testApplication)
-	root := new(rootCommand)
-	root.SetName("root")
-	if cmd != nil && len(cmd) > 0 {
-		root.Add(cmd...)
-	}
-	ta.SetRoot(root)
-	ta.Root().EmbeddedCommand().Use = basename
-	ta.Init()
+	ta := new(testApplication)
+	ta.Init(cmd...)
 	return ta
 }
 

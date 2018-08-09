@@ -35,25 +35,29 @@ var (
 	InvalidObjectError      = errors.New("[inject] invalid object")
 	UnsupportedInjectionTypeError      = errors.New("[inject] unsupported injection type")
 	IllegalArgumentError = errors.New("[inject] input argument type can not be the same as receiver")
+	TagIsAlreadyExistError = errors.New("tag is already exist")
+	TagIsNilError = errors.New("tag is nil")
 
 	tagsContainer map[string]Tag
 )
 
 func init() {
-	log.SetLevel(log.DebugLevel)
 	autoConfiguration = starter.GetFactory()
 	tagsContainer = make(map[string]Tag)
 }
 
 // AddTag
-func AddTag(name string, tag Tag)  {
+func AddTag(name string, tag Tag) error {
 	t := tagsContainer[name]
 	if t != nil {
-		log.Fatal("tag %v is already exist!", name)
+		return TagIsAlreadyExistError
 	}
 	if tag != nil {
 		tagsContainer[name] = tag
+	} else {
+		return TagIsNilError
 	}
+	return nil
 }
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
@@ -102,7 +106,6 @@ func IntoObject(object reflect.Value) error {
 				}
 			}
 		}
-
 
 		if injectedObject != nil && fieldObj.CanSet() {
 			fov := reflect.ValueOf(injectedObject)

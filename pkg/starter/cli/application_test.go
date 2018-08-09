@@ -30,7 +30,7 @@ func init() {
 type demoCommand struct {
 	BaseCommand
 	Profile *string `flag:"shorthand=p,value=dev,usage=e.g. --profile=test"`
-	IntVal *int `flag:"shorthand=i,value=0,usage=e.g. --intval=1"`
+	IntVal *int `flag:"name=integer,shorthand=i,value=0,usage=e.g. --integer=1"`
 }
 
 func (c *demoCommand) Init() {
@@ -40,7 +40,7 @@ func (c *demoCommand) Init() {
 }
 
 func (c *demoCommand) Run(args []string) (err error) {
-	log.Debugf("on demo command - profile: %v, intval: %v", *c.Profile, *c.IntVal)
+	log.Debugf("on demo command - profile: %v, intVal: %v", *c.Profile, *c.IntVal)
 	return
 }
 
@@ -100,23 +100,23 @@ func TestCliApplication(t *testing.T) {
 
 	testApp := NewTestApplication(demoCmd)
 
-	t.Run("should run demo command", func(t *testing.T) {
-		_, err := testApp.RunTest("demo", "-p", "test", "-i", "2")
+	t.Run("should run root command", func(t *testing.T) {
+		_, err := testApp.RunTest("-p", "test", "-i", "2")
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should run foo command", func(t *testing.T) {
-		_, err := testApp.RunTest("demo", "foo")
+		_, err := testApp.RunTest("foo")
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should run bar command", func(t *testing.T) {
-		_, err := testApp.RunTest("demo", "foo", "bar")
+		_, err := testApp.RunTest("foo", "bar")
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should run baz command", func(t *testing.T) {
-		_, err := testApp.RunTest("demo", "foo", "baz")
+		_, err := testApp.RunTest("foo", "baz")
 		assert.Equal(t, nil, err)
 	})
 }

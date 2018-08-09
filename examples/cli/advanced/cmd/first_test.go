@@ -10,7 +10,7 @@ func TestFirstCommands(t *testing.T) {
 	testApp := cli.NewTestApplication(new(firstCommand))
 
 	t.Run("should run first command", func(t *testing.T) {
-		_, err := testApp.RunTest("first")
+		_, err := testApp.RunTest("-t", "10")
 		assert.Equal(t, nil, err)
 	})
 }
