@@ -104,7 +104,7 @@ import "fmt"
 type HelloCommand struct {
 	// embedding cli.BaseCommand in each command
 	cli.BaseCommand
-	// inject flag to Name so that you can use it on Run method, please not that the data type must be pointer
+	// inject (bind) flag to field 'To', so that it can be used on Run method, please note that the data type must be pointer
 	To *string `flag:"name=to,shorthand=t,value=world,usage=e.g. --to=world or -t world"`
 }
 
