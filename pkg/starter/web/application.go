@@ -58,15 +58,15 @@ type Application interface {
 // Application is the struct of web Application
 // TODO: application should be singleton and private
 type application struct {
-	app               *iris.Application
-	config            *starter.SystemConfiguration
-	jwtEnabled        bool
-	workDir           string
-	httpMethods       []string
-	autoConfiguration starter.Factory
-	anonControllers   []interface{}
-	jwtControllers    []interface{}
-	dispatcher		  dispatcher
+	app             *iris.Application
+	config          *starter.SystemConfiguration
+	jwtEnabled      bool
+	workDir         string
+	httpMethods     []string
+	factory         starter.Factory
+	anonControllers []interface{}
+	jwtControllers  []interface{}
+	dispatcher      dispatcher
 }
 
 // Health is the health check struct
@@ -142,13 +142,14 @@ func (wa *application) Init(controllers ...interface{}) error {
 		http.MethodTrace,
 	}
 
-	wa.autoConfiguration = starter.GetFactory()
-	wa.autoConfiguration.Build()
+	wa.factory = starter.GetFactory()
+	wa.factory.Build()
 
-	config := wa.autoConfiguration.Configuration(starter.System)
+	config := wa.factory.Configuration(starter.System)
 	if config != nil {
 		//return errors.New("system configuration not found")
 		wa.config = config.(*starter.SystemConfiguration)
+		log.SetLevel(wa.config.Logging.Level)
 	} else {
 		log.Warnf("no application config files in %v", filepath.Join(wa.workDir, "config"))
 	}

@@ -114,6 +114,7 @@ func (r *repository) Get(params ...interface{}) error {
 		}
 		return nil
 	})
+	// TODO: if result len is 0, return errors.New("no record found")
 	if err == nil {
 		err = json.Unmarshal(result, value)
 	}
