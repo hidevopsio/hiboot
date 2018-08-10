@@ -20,14 +20,12 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/starter/data/bolt"
 )
 
-type BoltRepository bolt.Repository
-
 type UserService struct {
-	repository BoltRepository
+	repository bolt.Repository
 }
 
 // will inject BoltRepository that configured in github.com/hidevopsio/hiboot/pkg/starter/data/bolt
-func (s *UserService) Init(repository BoltRepository)  {
+func (s *UserService) Init(repository bolt.Repository)  {
 	s.repository = repository
 }
 

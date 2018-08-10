@@ -20,6 +20,8 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/starter"
 	"errors"
+	"github.com/hidevopsio/hiboot/pkg/utils"
+	"strings"
 )
 
 
@@ -138,7 +140,13 @@ func IntoObject(object reflect.Value) error {
 			inType := reflector.IndirectType(method.Type.In(i))
 			var paramValue reflect.Value
 			inTypeName := inType.Name()
+			pkgName := utils.DirName(inType.PkgPath())
+			//log.Debugf("pkg: %v", pkgName)
+			// check if
 			inst := instances[inTypeName]
+			if inst == nil {
+				inst = instances[strings.Title(pkgName) + inTypeName]
+			}
 			if inst == nil {
 				paramValue = reflect.New(inType)
 				inst = paramValue.Interface()
