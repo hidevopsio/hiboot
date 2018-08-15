@@ -23,6 +23,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	"github.com/hidevopsio/hiboot/pkg/starter/data/gorm/adapter"
+	"github.com/hidevopsio/hiboot/pkg/utils/crypto/rsa"
 )
 
 type DataSource interface {
@@ -51,12 +52,21 @@ func GetDataSource() DataSource {
 
 func (d *dataSource) Open(p *properties) error {
 	var err error
+	password := p.Password
+	if p.Config.Decrypt {
+		pwd, err := rsa.DecryptBase64([]byte(password), []byte(p.Config.DecryptKey))
+		if err == nil {
+			password = string(pwd)
+		}
+	}
+
 	source := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=%v&parseTime=%v&loc=%v",
 		p.Username, p.Password, p.Host, p.Port,  p.Database, p.Charset, p.ParseTime, p.Loc)
 
 	d.db, err = d.gorm.Open(p.Type, source)
 
 	if err != nil {
+		d.db = nil
 		defer d.gorm.Close()
 		return err
 	}

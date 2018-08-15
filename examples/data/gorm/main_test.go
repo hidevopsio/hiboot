@@ -12,22 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package gorm
+package main
 
-type Config struct {
-	Decrypt    bool   `json:"decrypt"`
-	DecryptKey string `json:"decrypt_key"`
-}
+import "testing"
 
-type properties struct {
-	Type      string `json:"type"` // mysql, postgres, sqlite3, mssql,
-	Host      string `json:"host"`
-	Port      string `json:"port"`
-	Database  string `json:"database"`
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	Charset   string `json:"charset"`
-	ParseTime string `json:"parse_time"`
-	Loc       string `json:"loc"`
-	Config    Config `json:"config"`
+func TestRunMain(t *testing.T) {
+	go main()
 }

@@ -12,22 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package gorm
+package service
 
-type Config struct {
-	Decrypt    bool   `json:"decrypt"`
-	DecryptKey string `json:"decrypt_key"`
+import (
+	"github.com/hidevopsio/hiboot/pkg/starter/data"
+)
+
+var userService *UserService
+
+type FakeRepository struct {
+	data.BaseRepository
 }
 
-type properties struct {
-	Type      string `json:"type"` // mysql, postgres, sqlite3, mssql,
-	Host      string `json:"host"`
-	Port      string `json:"port"`
-	Database  string `json:"database"`
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	Charset   string `json:"charset"`
-	ParseTime string `json:"parse_time"`
-	Loc       string `json:"loc"`
-	Config    Config `json:"config"`
+func init() {
+	userService = new(UserService)
+	userService.Init(&FakeRepository{})
 }

@@ -12,22 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package gorm
+// declare main package
+package main
 
-type Config struct {
-	Decrypt    bool   `json:"decrypt"`
-	DecryptKey string `json:"decrypt_key"`
+// import cli starter and fmt
+import (
+	"github.com/hidevopsio/hiboot/pkg/starter/cli"
+	"github.com/hidevopsio/hiboot/examples/cli/crypto/cmd"
+)
+
+// main function
+func main() {
+	// create new cli application and run it
+	cli.NewApplication(new(cmd.CryptoCommand)).Run()
 }
 
-type properties struct {
-	Type      string `json:"type"` // mysql, postgres, sqlite3, mssql,
-	Host      string `json:"host"`
-	Port      string `json:"port"`
-	Database  string `json:"database"`
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	Charset   string `json:"charset"`
-	ParseTime string `json:"parse_time"`
-	Loc       string `json:"loc"`
-	Config    Config `json:"config"`
-}
+

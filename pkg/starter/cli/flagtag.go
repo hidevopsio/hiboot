@@ -36,13 +36,24 @@ func (t *flagTag) Decode(object reflect.Value, field reflect.StructField, tag st
 
 		pflags := cmd.PersistentFlags()
 
-		shorthand := properties["shorthand"].(string)
-		usage := properties["usage"].(string)
-		name := strings.ToLower(field.Name)
+		var shorthand, name, value, usage string
+
+		if properties["shorthand"] != nil {
+			shorthand = properties["shorthand"].(string)
+		}
+
+		if properties["usage"] != nil {
+			usage = properties["usage"].(string)
+		}
+
+		name = strings.ToLower(field.Name)
 		if properties["name"] != nil {
 			name = properties["name"].(string)
 		}
-		value := properties["value"].(string)
+
+		if properties["value"] != nil {
+			value = properties["value"].(string)
+		}
 		//log.Debugf("flag: %v, shorthand: %v, value: %v, usage: %v", name, shorthand, value, usage)
 		switch ft.Kind() {
 		case reflect.String:
@@ -54,6 +65,13 @@ func (t *flagTag) Decode(object reflect.Value, field reflect.StructField, tag st
 			if err == nil {
 				pflags.IntVarP(fv, name, shorthand, intVal, usage)
 			}
+		case reflect.Bool:
+			fv := retVal.(*bool)
+			bVal := false
+			if value == "true" {
+				bVal = true
+			}
+			pflags.BoolVarP(fv, name, shorthand, bVal, usage)
 		}
 	}
 

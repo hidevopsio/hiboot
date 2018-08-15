@@ -75,24 +75,32 @@ func Add(name string, conf interface{})  {
 func (c *factory) Build()  {
 
 	workDir := utils.GetWorkDir()
-
+	profile := os.Getenv(appProfilesActive)
 	builder := &system.Builder{
 		Path:       filepath.Join(workDir, config),
 		Name:       application,
 		FileType:   yaml,
-		Profile:    os.Getenv(appProfilesActive),
+		Profile:    profile,
 		ConfigType: SystemConfiguration{},
 	}
+	var sysconf *SystemConfiguration
 	defaultConfig, err := builder.Build()
 	if err == nil {
 		c.configurations[System] = defaultConfig
+		utils.Replace(defaultConfig, defaultConfig)
+		sysconf = defaultConfig.(*SystemConfiguration)
+		sysconf.App.Profiles.Active = profile
+		log.Infof("profiles{active: %v, include: %v}", sysconf.App.Profiles.Active, sysconf.App.Profiles.Include)
 	} else {
 		log.Warn(err)
 	}
-	utils.Replace(defaultConfig, defaultConfig)
-	//sysconf := defaultConfig.(*SystemConfiguration)
 
 	for name, configType := range container {
+		// TODO: should check if profiles is enabled utils.StringInSlice(name, sysconf.App.Profiles.Include)
+		//if sysconf != nil && !utils.StringInSlice(name, sysconf.App.Profiles.Include) {
+		//	continue
+		//}
+
 		// inject properties
 		builder.ConfigType = configType
 		builder.Profile = name
@@ -108,7 +116,6 @@ func (c *factory) Build()  {
 			utils.Replace(cf, cf)
 
 			// instantiation
-			// TODO: should check if profiles is enabled utils.StringInSlice(name, sysconf.App.Profiles.Include)
 			if err == nil {
 				// create instances
 				c.Instantiate(cf)

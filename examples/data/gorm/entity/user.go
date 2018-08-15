@@ -12,22 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package gorm
+package entity
 
-type Config struct {
-	Decrypt    bool   `json:"decrypt"`
-	DecryptKey string `json:"decrypt_key"`
-}
+import "github.com/hidevopsio/hiboot/pkg/model"
 
-type properties struct {
-	Type      string `json:"type"` // mysql, postgres, sqlite3, mssql,
-	Host      string `json:"host"`
-	Port      string `json:"port"`
-	Database  string `json:"database"`
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	Charset   string `json:"charset"`
-	ParseTime string `json:"parse_time"`
-	Loc       string `json:"loc"`
-	Config    Config `json:"config"`
+type User struct {
+	model.RequestBody
+	Id       string `json:"id" validate:"required"`
+	Name     string `json:"name" validate:"required"`
+	Username string `json:"name" validate:"required"`
+	Password string `json:"name" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+	Age      int    `json:"age" validate:"gte=0,lte=130"`
 }

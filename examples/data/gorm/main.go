@@ -12,22 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package gorm
+package main
 
-type Config struct {
-	Decrypt    bool   `json:"decrypt"`
-	DecryptKey string `json:"decrypt_key"`
+import (
+	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	_ "github.com/hidevopsio/hiboot/examples/data/gorm/controller"
+	"github.com/hidevopsio/hiboot/pkg/utils"
+)
+
+func init() {
+
+	// Just for using the config files under examples/db/gorm
+	utils.EnsureWorkDir("examples/data/gorm")
 }
 
-type properties struct {
-	Type      string `json:"type"` // mysql, postgres, sqlite3, mssql,
-	Host      string `json:"host"`
-	Port      string `json:"port"`
-	Database  string `json:"database"`
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	Charset   string `json:"charset"`
-	ParseTime string `json:"parse_time"`
-	Loc       string `json:"loc"`
-	Config    Config `json:"config"`
+func main() {
+	web.NewApplication().Run()
 }

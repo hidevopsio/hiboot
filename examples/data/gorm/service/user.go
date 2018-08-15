@@ -12,35 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package starter
 
-type Profiles struct {
-	Include []string `json:"include"`
-	Active  string   `json:"active" value:"${APP_PROFILES_ACTIVE:dev}"`
+package service
+
+import (
+	"github.com/hidevopsio/hiboot/examples/data/gorm/entity"
+	"github.com/hidevopsio/hiboot/pkg/starter/data/gorm"
+)
+
+
+type UserService struct {
+	repository gorm.Repository
 }
 
-type App struct {
-	Project        string   `json:"project"`
-	Name           string   `json:"name"`
-	Profiles       Profiles `json:"profiles"`
+// will inject BoltRepository that configured in github.com/hidevopsio/hiboot/pkg/starter/data/bolt
+func (s *UserService) Init(repository gorm.Repository)  {
+	s.repository = repository
 }
 
-type Server struct {
-	Port int32 `json:"port"`
+func (s *UserService) AddUser(user *entity.User) error {
+	return nil
 }
 
-type Logging struct {
-	Level string `json:"level"`
+func (s *UserService) GetUser(id string) (user *entity.User, err error) {
+	return
 }
 
-type Env struct {
-	Name  string
-	Value string
-}
-
-type SystemConfiguration struct {
-	App         App          `mapstructure:"app"`
-	Server      Server       `mapstructure:"server"`
-	Logging     Logging      `mapstructure:"logging"`
+func (s *UserService) DeleteUser(id string) (err error) {
+	return
 }
 
