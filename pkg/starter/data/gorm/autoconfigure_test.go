@@ -36,6 +36,5 @@ func TestConfiguration(t *testing.T) {
 
 	repo := configuration.GormRepository()
 	assert.NotEqual(t, nil, ds)
-	err := repo.CloseDataSource()
-	assert.Equal(t, nil, err)
+	repo.CloseDataSource()
 }

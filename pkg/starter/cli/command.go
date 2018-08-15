@@ -5,6 +5,8 @@ import (
 	"github.com/spf13/cobra"
 	"errors"
 	"io"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"strings"
 )
 
 type Command interface {
@@ -27,6 +29,10 @@ type Command interface {
 	PersistentFlags() *flag.FlagSet
 }
 
+const (
+	actionPrefix = "On"
+)
+
 var CommandNotFoundError = errors.New("command not found")
 
 type BaseCommand struct {
@@ -37,9 +43,25 @@ type BaseCommand struct {
 	children []Command
 }
 
+// dispatch method with OnAction prefix
+func dispatch(c Command, args []string) (next bool) {
+	if len(args) > 0 && args[0] != "" {
+		methodName := actionPrefix + strings.Title(args[0])
+		result, err := reflector.CallMethodByName(c, methodName, args[1:])
+		if err == nil {
+			next = result.(bool)
+		}
+	}
+	return
+}
+
 func Register(c Command) {
 	c.EmbeddedCommand().RunE = func(cmd *cobra.Command, args []string) error {
-		return c.Run(args)
+
+		if !dispatch(c, args) {
+			return c.Run(args)
+		}
+		return nil
 	}
 }
 

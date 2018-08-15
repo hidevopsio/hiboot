@@ -115,6 +115,9 @@ var DatabaseIsNotOpenedError = errors.New("database is not opened")
 
 func (d *GormDataSource) Open(dialect string, args ...interface{}) (db *gorm.DB, err error) {
 	d.db, err = gorm.Open(dialect, args...)
+	if err != nil {
+		d.db = nil
+	}
 	return d.db, err
 }
 
