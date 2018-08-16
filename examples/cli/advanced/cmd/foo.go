@@ -25,10 +25,6 @@ type fooCommand struct {
 	cli.BaseCommand
 }
 
-func init() {
-	cli.AddCommand("root.first.second", new(fooCommand))
-}
-
 func (c *fooCommand) Init() {
 	c.Use = "foo"
 	c.Short = "foo command"

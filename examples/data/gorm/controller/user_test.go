@@ -18,6 +18,11 @@ import (
 	"testing"
 	"github.com/hidevopsio/hiboot/pkg/utils"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	"net/http"
+	"github.com/hidevopsio/hiboot/examples/data/gorm/entity"
+	"github.com/hidevopsio/hiboot/pkg/utils/idgen"
+	"github.com/magiconair/properties/assert"
 )
 
 
@@ -28,34 +33,45 @@ func init() {
 }
 
 func TestCrdRequest(t *testing.T) {
-	//app := web.NewTestApplication(t, new(UserController))
+	userController := new(UserController)
+	app := web.NewTestApplication(t, userController)
 
-	//t.Run("should add user with POST request", func(t *testing.T) {
-	//	// First, let's Post User
-	//	app.Post("/user").
-	//		WithJSON(entity.User{Id: "1", Name: "Peter", Age: 18}).
-	//		Expect().Status(http.StatusOK)
-	//})
-	//
-	//t.Run("should get user with GET request", func(t *testing.T) {
-	//	// Then Get User
-	//	app.Get("/user/{id}").
-	//		WithPath("id", "1").
-	//		Expect().Status(http.StatusOK)
-	//})
-	//
-	//t.Run("should return 404 if trying to find a record that does not exist", func(t *testing.T) {
-	//	// Then Get User
-	//	app.Get("/user/{id}").
-	//		WithPath("id", "9999").
-	//		Expect().Status(http.StatusNotFound)
-	//})
-	//
-	//t.Run("should delete the record with DELETE request", func(t *testing.T) {
-	//	// Finally Delete User
-	//	app.Delete("/user/{id}").
-	//		WithPath("id", "1").
-	//		Expect().Status(http.StatusOK)
-	//})
+	id, err := idgen.Next()
+	assert.Equal(t, nil, err)
 
+	t.Run("should add user with POST request", func(t *testing.T) {
+		// First, let's Post User
+		app.Post("/user").
+			WithJSON(entity.User{
+				Id: id,
+				Name: "Bill Gates",
+				Username: "billg",
+				Password: "3948tdaD",
+				Email: "bill.gates@microsoft.com",
+				Age: 60,
+				Gender: 1,
+			}).
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should get user with GET request", func(t *testing.T) {
+		// Then Get User
+		app.Get("/user/{id}").
+			WithPath("id", id).
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should return 404 if trying to find a record that does not exist", func(t *testing.T) {
+		// Then Get User
+		app.Get("/user/{id}").
+			WithPath("id", "9999").
+			Expect().Status(http.StatusNotFound)
+	})
+
+	t.Run("should delete the record with DELETE request", func(t *testing.T) {
+		// Finally Delete User
+		app.Delete("/user/{id}").
+			WithPath("id", id).
+			Expect().Status(http.StatusOK)
+	})
 }

@@ -15,16 +15,47 @@
 package service
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/starter/data"
+	"github.com/hidevopsio/hiboot/pkg/starter/data/gorm/fake"
 )
 
 var userService *UserService
 
 type FakeRepository struct {
-	data.BaseRepository
+	fake.Repository
 }
 
 func init() {
-	userService = new(UserService)
-	userService.Init(&FakeRepository{})
+
 }
+//
+//func TestCrd(t *testing.T) {
+//	userService = new(UserService)
+//	userService.Init(&FakeRepository{})
+//
+//	user := &entity.User{
+//		Id: 1,
+//		Name: "Bill Gates",
+//		Username: "billg",
+//		Password: "3948tdaD",
+//		Email: "bill.gates@microsoft.com",
+//		Age: 60,
+//		Gender: 1,
+//	}
+//
+//	t.Run("should add user", func(t *testing.T) {
+//		err := userService.AddUser(user)
+//		assert.Equal(t, nil, err)
+//	})
+//
+//	t.Run("should get user that added above", func(t *testing.T) {
+//		u, err := userService.GetUser(1)
+//		assert.Equal(t, nil, err)
+//		assert.Equal(t, "Bill Gates", u.Name)
+//		assert.Equal(t, 60, u.Age)
+//	})
+//
+//	t.Run("should delete user", func(t *testing.T) {
+//		err := userService.DeleteUser(1)
+//		assert.Equal(t, nil, err)
+//	})
+//}

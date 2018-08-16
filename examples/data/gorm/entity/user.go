@@ -14,14 +14,16 @@
 
 package entity
 
-import "github.com/hidevopsio/hiboot/pkg/model"
-
 type User struct {
-	model.RequestBody
-	Id       string `json:"id" validate:"required"`
-	Name     string `json:"name" validate:"required"`
-	Username string `json:"name" validate:"required"`
-	Password string `json:"name" validate:"required"`
-	Email    string `json:"email" validate:"required,email"`
-	Age      int    `json:"age" validate:"gte=0,lte=130"`
+	Id       uint64   `json:"id"`
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
+	Age      uint   `json:"age"`
+	Gender   uint   `json:"gender"`
+}
+
+func (u *User) TableName() string {
+	return "user"
 }

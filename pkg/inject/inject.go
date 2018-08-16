@@ -39,6 +39,7 @@ var (
 	IllegalArgumentError = errors.New("[inject] input argument type can not be the same as receiver")
 	TagIsAlreadyExistError = errors.New("tag is already exist")
 	TagIsNilError = errors.New("tag is nil")
+	InvalidTagNameError = errors.New("invalid tag name, e.g. exampleTag")
 
 	tagsContainer map[string]Tag
 )
@@ -49,15 +50,18 @@ func init() {
 }
 
 // AddTag
-func AddTag(name string, tag Tag) error {
+func AddTag(tag Tag) error {
+	name := reflector.ParseObjectName(tag, "Tag")
+	if name == "" {
+		return InvalidTagNameError
+	}
+
 	t := tagsContainer[name]
 	if t != nil {
 		return TagIsAlreadyExistError
 	}
 	if tag != nil {
 		tagsContainer[name] = tag
-	} else {
-		return TagIsNilError
 	}
 	return nil
 }

@@ -64,8 +64,10 @@ func TestDataSourceOpen(t *testing.T) {
 	})
 
 	t.Run("should close database", func(t *testing.T) {
-		err := dataSource.Close()
-		assert.Equal(t, nil, err)
+		if dataSource.IsOpened() {
+			err := dataSource.Close()
+			assert.Equal(t, nil, err)
+		}
 	})
 
 }

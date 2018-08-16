@@ -17,9 +17,9 @@ package service
 
 import (
 	"github.com/hidevopsio/hiboot/examples/data/gorm/entity"
+	"github.com/hidevopsio/hiboot/pkg/utils/idgen"
 	"github.com/hidevopsio/hiboot/pkg/starter/data/gorm"
 )
-
 
 type UserService struct {
 	repository gorm.Repository
@@ -28,17 +28,28 @@ type UserService struct {
 // will inject BoltRepository that configured in github.com/hidevopsio/hiboot/pkg/starter/data/bolt
 func (s *UserService) Init(repository gorm.Repository)  {
 	s.repository = repository
+	repository.AutoMigrate(&entity.User{})
 }
 
-func (s *UserService) AddUser(user *entity.User) error {
-	return nil
-}
-
-func (s *UserService) GetUser(id string) (user *entity.User, err error) {
+func (s *UserService) AddUser(user *entity.User) (err error) {
+	if user.Id == 0 {
+		user.Id, err = idgen.Next()
+		if err != nil {
+			return
+		}
+	}
+	err = s.repository.Create(user).Error
 	return
 }
 
-func (s *UserService) DeleteUser(id string) (err error) {
+func (s *UserService) GetUser(id uint64) (user *entity.User, err error) {
+	user = &entity.User{}
+	err = s.repository.Where("id = ?", id).First(user).Error
+	return
+}
+
+func (s *UserService) DeleteUser(id uint64) (err error) {
+	err = s.repository.Where("id = ?", id).Delete(entity.User{}).Error
 	return
 }
 

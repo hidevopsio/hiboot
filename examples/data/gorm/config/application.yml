@@ -3,7 +3,7 @@
 
 app:
   project: examples
-  name: gorm
+  name: gorm-demo
   profiles:
     include:
     - gorm

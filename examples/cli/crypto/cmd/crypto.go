@@ -45,8 +45,9 @@ func (c *CryptoCommand) OnRsa(args []string) bool {
 	return true
 }
 
+
 // Run OnRsa for crypto command rsa
-func (c *CryptoCommand) Run(args []string) error {
-	fmt.Printf("Run command source: %v, decrypt: %v, encrypt: %v", *c.Source, *c.Decrypt, *c.Encrypt)
-	return nil
+func (c *CryptoCommand) Run(args []string) (err error) {
+	fmt.Println("please type crypto -h for help")
+	return
 }
