@@ -58,23 +58,6 @@ func Encrypt(input []byte, publicKey ...[]byte) ([]byte, error) {
 	return rsa.EncryptPKCS1v15(rand.Reader, pub, input)
 }
 
-// EncryptBase64
-func EncryptBase64(input []byte, publicKey ...[]byte) ([]byte, error) {
-	data, err := Encrypt([]byte(input), publicKey...)
-	data = base64.Encode(data)
-	return data, err
-}
-
-// DecryptBase64
-func DecryptBase64(input []byte, privateKey ...[]byte) ([]byte, error) {
-	ciphertext, err := base64.Decode(input)
-	if err == nil {
-		data, err := Decrypt(ciphertext, privateKey...)
-		return data, err
-	}
-	return nil, errors.New("wrong input format")
-}
-
 // Decrypt
 func Decrypt(ciphertext []byte, privateKey ...[]byte) ([]byte, error) {
 	// decrypt
@@ -91,5 +74,22 @@ func Decrypt(ciphertext []byte, privateKey ...[]byte) ([]byte, error) {
 		return nil, err
 	}
 	return rsa.DecryptPKCS1v15(rand.Reader, pk, ciphertext)
+}
+
+// EncryptBase64
+func EncryptBase64(input []byte, publicKey ...[]byte) ([]byte, error) {
+	data, err := Encrypt([]byte(input), publicKey...)
+	data = base64.Encode(data)
+	return data, err
+}
+
+// DecryptBase64
+func DecryptBase64(input []byte, privateKey ...[]byte) ([]byte, error) {
+	ciphertext, err := base64.Decode(input)
+	if err == nil {
+		data, err := Decrypt(ciphertext, privateKey...)
+		return data, err
+	}
+	return nil, errors.New("wrong input format")
 }
 
