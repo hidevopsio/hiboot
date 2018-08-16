@@ -24,18 +24,20 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	"github.com/hidevopsio/hiboot/pkg/starter/data/gorm/adapter"
 	"github.com/hidevopsio/hiboot/pkg/utils/crypto/rsa"
+	"strings"
+	"github.com/jinzhu/gorm"
 )
 
 type DataSource interface {
 	Open(p *properties) error
 	IsOpened() bool
 	Close() error
-	DB() adapter.DB
+	DB() *gorm.DB
 }
 
 type dataSource struct {
 	gorm adapter.Gorm
-	db adapter.DB
+	db *gorm.DB
 }
 
 var DatabaseIsNotOpenedError = errors.New("database is not opened")
@@ -60,8 +62,10 @@ func (d *dataSource) Open(p *properties) error {
 		}
 	}
 
+	databaseName := strings.Replace(p.Database, "-", "_", -1)
+
 	source := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=%v&parseTime=%v&loc=%v",
-		p.Username, p.Password, p.Host, p.Port,  p.Database, p.Charset, p.ParseTime, p.Loc)
+		p.Username, password, p.Host, p.Port,  databaseName, p.Charset, p.ParseTime, p.Loc)
 
 	d.db, err = d.gorm.Open(p.Type, source)
 
@@ -87,7 +91,7 @@ func (d *dataSource) Close() error {
 	return DatabaseIsNotOpenedError
 }
 
-func (d *dataSource) DB() adapter.DB {
+func (d *dataSource) DB() *gorm.DB {
 	return d.db
 }
 

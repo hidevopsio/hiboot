@@ -10,7 +10,7 @@ type injectTag struct {
 }
 
 func init() {
-	AddTag("inject", new(injectTag))
+	AddTag(new(injectTag))
 }
 
 

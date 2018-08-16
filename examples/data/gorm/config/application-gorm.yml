@@ -7,13 +7,10 @@ gorm:
   port: 3306
   database: ${app.name:test}
   username: demo
-  password: mjVCO4GiE9xkF2g+BaDAE14+yZv9+KdUWMAkHGCTjqzt2i9ZRaZlhEmWGQSqpnkwENXuOY6aID4fsaBpI1xR4g==
-  charset: utf-8
+  password: Duahbi3GqMmeS7ogPw743xtmsmVFiDIaNwh24BokqC1BnUIah8doCRRhVuIqtWs3tl8nHRNkEWMIbuKAo6GleN4FwSoO56B8HAxqP3Kv8Jr3A6L2bam1bglFJRDx6rRkSuX4zrO3D/35t1YSFdPKf+n2PWIEeEJI6zcULo7UVKA=
+  charset: utf8
   parseTime: True
   loc: Asia%2FShanghai
   config:
-    isDecrypt: true
-    decryptKey: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANfxgXVwy9M7sopuaodaaK/XS8BT8dYBA91sIWzWGoODt6OgDpVF4siUU+bNPGl23eyjqO1DKqR0nAJNiDrt+N8CAwEAAQ==
-
-
+    decrypt: true
 

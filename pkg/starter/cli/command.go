@@ -87,7 +87,7 @@ func (c *BaseCommand) Children() []Command {
 
 func (c *BaseCommand) addChild(child Command) {
 	if child.GetName() == "" {
-		name := parseName(child)
+		name := reflector.ParseObjectName(child, "Command")
 		child.SetName(name)
 	}
 	Register(child)

@@ -178,8 +178,14 @@ func (h *handler) call(ctx *Context) {
 			strVal := pvs[req.pathIdx] //TODO: out of scope
 			var val interface{}
 			switch req.typeName {
-			case "int":
+			case "int", "int16", "int32", "int64":
 				val, err = strconv.Atoi(strVal)
+				if err != nil {
+					log.Error(err)
+					return
+				}
+			case "uint", "uint16", "uint32", "uint64":
+				val, err = strconv.ParseUint(strVal, 10, 64)
 				if err != nil {
 					log.Error(err)
 					return

@@ -15,12 +15,24 @@
 package controller
 
 import (
-	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/examples/data/gorm/entity"
 	"github.com/hidevopsio/hiboot/examples/data/gorm/service"
+	"github.com/hidevopsio/hiboot/pkg/utils/copier"
+	"net/http"
 )
+
+type UserRequest struct {
+	model.RequestBody
+	Id       uint64 `json:"id"`
+	Name     string `json:"name" validate:"required"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+	Age      uint   `json:"age" validate:"gte=0,lte=130"`
+	Gender   uint   `json:"gender" validate:"gte=0,lte=2"`
+}
 
 // RestController
 type UserController struct {
@@ -38,27 +50,29 @@ func (c *UserController) Init(userService *service.UserService) {
 }
 
 // Post /user
-func (c *UserController) Post(user *entity.User) (model.Response, error) {
-	err := c.userService.AddUser(user)
+func (c *UserController) Post(request *UserRequest) (model.Response, error) {
+	var user entity.User
+	copier.Copy(&user, request)
+	err := c.userService.AddUser(&user)
 	response := new(model.BaseResponse)
 	response.SetData(user)
 	return response, err
 }
 
 // Get /user/{id}
-func (c *UserController) GetById(id string) (model.Response, error) {
+func (c *UserController) GetById(id uint64) (response model.Response, err error) {
 	user, err := c.userService.GetUser(id)
-	response := new(model.BaseResponse)
+	response = new(model.BaseResponse)
 	if err != nil {
 		response.SetCode(http.StatusNotFound)
 	} else {
 		response.SetData(user)
 	}
-	return response, err
+	return
 }
 
 // Delete /user/{id}
-func (c *UserController) DeleteById(id string) (response model.Response, err error) {
+func (c *UserController) DeleteById(id uint64) (response model.Response, err error) {
 	err = c.userService.DeleteUser(id)
 	response = new(model.BaseResponse)
 	return

@@ -8,7 +8,7 @@ type valueTag struct {
 
 
 func init() {
-	AddTag("value", new(valueTag))
+	AddTag(new(valueTag))
 }
 
 

@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"github.com/hidevopsio/hiboot/pkg/utils/sort"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 )
 
 type Application interface {
@@ -122,7 +123,9 @@ func (a *application) Init(cmd ...Command) error  {
 	inject.IntoObject(reflect.ValueOf(root))
 	Register(root)
 	a.SetRoot(root)
-	a.Root().EmbeddedCommand().Use = basename
+	if !gotest.IsRunning() {
+		a.Root().EmbeddedCommand().Use = basename
+	}
 
 	if a.root != nil && a.root.HasChild() {
 		a.injectCommand(a.root)

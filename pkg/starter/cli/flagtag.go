@@ -12,7 +12,7 @@ type flagTag struct {
 }
 
 func init() {
-	inject.AddTag("flag", new(flagTag))
+	inject.AddTag(new(flagTag))
 }
 
 func (t *flagTag) IsSingleton() bool  {

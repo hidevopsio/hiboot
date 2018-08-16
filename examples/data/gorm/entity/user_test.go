@@ -14,8 +14,12 @@
 
 package entity
 
-import "testing"
+import (
+	"testing"
+	"github.com/stretchr/testify/assert"
+)
 
 func TestUser(t *testing.T) {
-
+	u := new(User)
+	assert.Equal(t, "user", u.TableName())
 }

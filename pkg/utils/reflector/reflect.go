@@ -205,3 +205,14 @@ func HasEmbeddedField(object interface{}, name string) bool {
 	field, ok := typ.FieldByName(name)
 	return field.Anonymous && ok
 }
+
+
+// ParseObjectName e.g. ExampleObject => example
+func ParseObjectName(cmd interface{}, eliminator string) string {
+	name, err := GetName(cmd)
+	if err == nil {
+		name = strings.Replace(name, eliminator, "", -1)
+		name = strings.ToLower(name)
+	}
+	return name
+}
