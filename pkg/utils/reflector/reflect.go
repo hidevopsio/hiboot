@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"errors"
 	"strings"
+	"unicode"
 )
 
 var InvalidInputError = errors.New("input is invalid")
@@ -207,12 +208,20 @@ func HasEmbeddedField(object interface{}, name string) bool {
 }
 
 
+// LowerFirst lower case first character of specific string
+func lowerFirst(str string) string {
+	for i, v := range str {
+		return string(unicode.ToLower(v)) + str[i+1:]
+	}
+	return ""
+}
+
 // ParseObjectName e.g. ExampleObject => example
 func ParseObjectName(cmd interface{}, eliminator string) string {
 	name, err := GetName(cmd)
 	if err == nil {
 		name = strings.Replace(name, eliminator, "", -1)
-		name = strings.ToLower(name)
+		name = lowerFirst(name)
 	}
 	return name
 }

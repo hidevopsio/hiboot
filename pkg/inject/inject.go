@@ -37,9 +37,9 @@ var (
 	InvalidObjectError      = errors.New("[inject] invalid object")
 	UnsupportedInjectionTypeError      = errors.New("[inject] unsupported injection type")
 	IllegalArgumentError = errors.New("[inject] input argument type can not be the same as receiver")
-	TagIsAlreadyExistError = errors.New("tag is already exist")
-	TagIsNilError = errors.New("tag is nil")
-	InvalidTagNameError = errors.New("invalid tag name, e.g. exampleTag")
+	TagIsAlreadyExistError = errors.New("[inject] tag is already exist")
+	TagIsNilError = errors.New("[inject] tag is nil")
+	InvalidTagNameError = errors.New("[inject] invalid tag name, e.g. exampleTag")
 
 	tagsContainer map[string]Tag
 )
@@ -64,6 +64,18 @@ func AddTag(tag Tag) error {
 		tagsContainer[name] = tag
 	}
 	return nil
+}
+
+func getInstanceByName(instances map[string]interface{}, name string) (inst interface{}) {
+	name = utils.LowerFirst(name)
+	inst = instances[name]
+	return
+}
+
+func saveInstance(instances map[string]interface{}, name string, inst interface{}) {
+	name = utils.LowerFirst(name)
+	instances[name] = inst
+	return
 }
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
@@ -96,7 +108,7 @@ func IntoObject(object reflect.Value) error {
 		}
 
 		// TODO: assume that the f.Name of value and inject tag is not the same
-		injectedObject = instances[f.Name]
+		injectedObject = getInstanceByName(instances, f.Name)
 		if injectedObject == nil {
 			for tagName, tagObject := range tagsContainer {
 				tag, ok := f.Tag.Lookup(tagName)
@@ -104,7 +116,7 @@ func IntoObject(object reflect.Value) error {
 					injectedObject = tagObject.Decode(object, f, tag)
 					if injectedObject != nil {
 						if tagObject.IsSingleton() {
-							instances[f.Name] = injectedObject
+							saveInstance(instances, f.Name, injectedObject)
 						}
 						// ONLY one tag should be used for dependency injection
 						break
@@ -147,14 +159,18 @@ func IntoObject(object reflect.Value) error {
 			pkgName := utils.DirName(inType.PkgPath())
 			//log.Debugf("pkg: %v", pkgName)
 			// check if
-			inst := instances[inTypeName]
+			inst := getInstanceByName(instances, inTypeName)
 			if inst == nil {
-				inst = instances[strings.Title(pkgName) + inTypeName]
+				alternativeName := strings.Title(pkgName) + inTypeName
+				inst = getInstanceByName(instances, alternativeName)
 			}
 			if inst == nil {
+				if inType.Kind() == reflect.Interface {
+					return UnsupportedInjectionTypeError
+				}
 				paramValue = reflect.New(inType)
 				inst = paramValue.Interface()
-				instances[inTypeName] = inst
+				saveInstance(instances, inTypeName, inst)
 			} else {
 				paramValue = reflect.ValueOf(inst)
 			}

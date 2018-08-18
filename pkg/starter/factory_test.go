@@ -40,7 +40,7 @@ type Foo struct {
 func init() {
 	log.SetLevel(log.DebugLevel)
 	utils.EnsureWorkDir("../../")
-	Add("fake", FakeConfiguration{})
+	NewConfiguration("fake", FakeConfiguration{})
 }
 
 func (c *FakeConfiguration) Foo() *Foo {
@@ -72,8 +72,8 @@ func TestBuild(t *testing.T) {
 	assert.Equal(t, "hiboot foo", fc.FakeProperties.Nickname)
 	assert.Equal(t, "bar", fc.FakeProperties.Username)
 	assert.Equal(t, "foo", fc.FakeProperties.Name)
-	assert.Equal(t, "foo", f.Instances()["Foo"].(*Foo).Name)
-	assert.Equal(t, "foo", f.Instance("Foo").(*Foo).Name)
+	assert.Equal(t, "foo", f.Instances()["foo"].(*Foo).Name)
+	assert.Equal(t, "foo", f.Instance("foo").(*Foo).Name)
 
 	// get all configs
 	cfs := f.Configurations()

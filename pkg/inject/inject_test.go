@@ -176,8 +176,8 @@ func init() {
 			"\n  url: " + fakeUrl
 	utils.WriterFile(configPath, fakeFile, []byte(fakeContent))
 
-	starter.Add("fake", fakeConfiguration{})
-	starter.Add("foo", fooConfiguration{})
+	starter.NewConfiguration("fake", fakeConfiguration{})
+	starter.NewConfiguration("foo", fooConfiguration{})
 	starter.GetFactory().Build()
 }
 
