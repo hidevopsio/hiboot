@@ -23,7 +23,6 @@ import (
 	"runtime"
 	"path/filepath"
 	"github.com/hidevopsio/hiboot/pkg/utils/sort"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 )
 
@@ -77,16 +76,6 @@ func NewApplication(cmd ...Command) Application {
 	a := GetApplication()
 	a.Init(cmd...)
 	return a
-}
-
-
-func parseName(cmd Command) string {
-	name, err := reflector.GetName(cmd)
-	if err == nil {
-		name = strings.Replace(name, "Command", "", -1)
-		name = strings.ToLower(name)
-	}
-	return name
 }
 
 func (a *application) injectCommand(cmd Command)  {

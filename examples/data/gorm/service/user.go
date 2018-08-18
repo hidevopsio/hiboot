@@ -30,6 +30,7 @@ type UserService interface {
 }
 
 type UserServiceImpl struct {
+	// add UserService, it means that the instance of UserServiceImpl can be found by UserService
 	UserService
 	repository gorm.Repository
 }

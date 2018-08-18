@@ -29,8 +29,10 @@ func init() {
 
 type demoCommand struct {
 	BaseCommand
+	Foo *fooCommand `cmd:""`
 	Profile *string `flag:"shorthand=p,value=dev,usage=e.g. --profile=test"`
 	IntVal *int `flag:"name=integer,shorthand=i,value=0,usage=e.g. --integer=1"`
+	BoolVal *bool `flag:"name=bool,shorthand=b,value=true,usage=e.g. --bool=true or -b"`
 }
 
 func (c *demoCommand) Init() {
@@ -40,12 +42,14 @@ func (c *demoCommand) Init() {
 }
 
 func (c *demoCommand) Run(args []string) (err error) {
-	log.Debugf("on demo command - profile: %v, intVal: %v", *c.Profile, *c.IntVal)
+	log.Debugf("on demo command - profile: %v, intVal: %v, boolVal: %v", *c.Profile, *c.IntVal, *c.BoolVal)
 	return
 }
 
 type fooCommand struct {
 	BaseCommand
+	Bar *barCommand `cmd:""`
+	Baz *bazCommand `cmd:""`
 }
 
 
@@ -92,13 +96,7 @@ func (c *bazCommand) Run(args []string) (err error) {
 
 // demo foo bar
 func TestCliApplication(t *testing.T) {
-
-	demoCmd := new(demoCommand)
-	fooCmd := new(fooCommand)
-	fooCmd.Add(new(barCommand), new(bazCommand))
-	demoCmd.Add(fooCmd)
-
-	testApp := NewTestApplication(demoCmd)
+	testApp := NewTestApplication(new(demoCommand))
 
 	t.Run("should run root command", func(t *testing.T) {
 		_, err := testApp.RunTest("-p", "test", "-i", "2")
