@@ -73,8 +73,9 @@ func getInstanceByName(instances map[string]interface{}, name string, instType r
 	// if inst is nil, and the object type is an interface
 	// then try to find the instance that embedded with the interface
 	if inst == nil && instType.Kind() == reflect.Interface {
-		for _, ist := range instances {
-			if reflector.HasEmbeddedField(ist, instType.Name()) {
+		for n, ist := range instances {
+			log.Debug(n)
+			if ist != nil && reflector.HasEmbeddedField(ist, instType.Name()) {
 				inst = ist
 				break
 			}
@@ -163,6 +164,7 @@ func IntoObject(object reflect.Value) error {
 		numIn := method.Type.NumIn()
 		inputs := make([]reflect.Value, numIn)
 		inputs[0] = obj.Addr()
+		injectByMethod := true
 		for i := 1; i < numIn; i++ {
 			inType := reflector.IndirectType(method.Type.In(i))
 			var paramValue reflect.Value
@@ -176,7 +178,8 @@ func IntoObject(object reflect.Value) error {
 			}
 			if inst == nil {
 				if inType.Kind() == reflect.Interface {
-					return UnsupportedInjectionTypeError
+					injectByMethod = false
+					break
 				} else {
 					paramValue = reflect.New(inType)
 					inst = paramValue.Interface()
@@ -201,7 +204,9 @@ func IntoObject(object reflect.Value) error {
 			}
 		}
 		// finally call Init method to inject
-		method.Func.Call(inputs)
+		if injectByMethod {
+			method.Func.Call(inputs)
+		}
 	}
 
 	return nil
