@@ -25,7 +25,7 @@ type configuration struct {
 }
 
 func init() {
-	starter.Add("gorm", configuration{})
+	starter.NewConfiguration("gorm", configuration{})
 }
 
 func (c *configuration) dataSource() DataSource {
@@ -38,6 +38,7 @@ func (c *configuration) dataSource() DataSource {
 
 // GormRepository method name must be unique
 func (c *configuration) GormRepository() Repository {
-	return c.dataSource().DB()
+	dataSource := c.dataSource()
+	return dataSource.Repository()
 }
 

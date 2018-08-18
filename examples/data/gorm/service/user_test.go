@@ -15,47 +15,58 @@
 package service
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/starter/data/gorm/fake"
+	"testing"
+	"github.com/hidevopsio/hiboot/examples/data/gorm/entity"
+	"github.com/stretchr/testify/assert"
+	_"github.com/erikstmartin/go-testdb"
+	"github.com/hidevopsio/gorm"
 )
 
-var userService *UserService
-
-type FakeRepository struct {
-	fake.Repository
+var userService *UserServiceImpl
+var fakeUser = &entity.User{
+	Id: 1,
+	Name: "Bill Gates",
+	Username: "billg",
+	Password: "3948tdaD",
+	Email: "bill.gates@microsoft.com",
+	Age: 60,
+	Gender: 1,
 }
 
-func init() {
+func TestUserCrud(t *testing.T) {
+	userService = new(UserServiceImpl)
+	fakeRepository := new(gorm.FakeRepository)
+	userService.Init(fakeRepository)
 
+	t.Run("should return error if user is nil", func(t *testing.T) {
+		err := userService.AddUser((*entity.User)(nil))
+		assert.NotEqual(t, nil, err)
+	})
+
+	t.Run("should add user", func(t *testing.T) {
+		err := userService.AddUser(fakeUser)
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should generate user id", func(t *testing.T) {
+		u := &entity.User{}
+		err := userService.AddUser(u)
+		assert.Equal(t, nil, err)
+		assert.NotEqual(t, 0, u.Id)
+	})
+
+	t.Run("should get user that added above", func(t *testing.T) {
+		// call mock method mocker.First(fakeUser).Expected(nil)
+		fakeRepository.Mock("First", fakeUser).Expect(nil)
+
+		u, err := userService.GetUser(1)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "Bill Gates", u.Name)
+		assert.Equal(t, uint(60), u.Age)
+	})
+
+	t.Run("should delete user", func(t *testing.T) {
+		err := userService.DeleteUser(1)
+		assert.Equal(t, nil, err)
+	})
 }
-//
-//func TestCrd(t *testing.T) {
-//	userService = new(UserService)
-//	userService.Init(&FakeRepository{})
-//
-//	user := &entity.User{
-//		Id: 1,
-//		Name: "Bill Gates",
-//		Username: "billg",
-//		Password: "3948tdaD",
-//		Email: "bill.gates@microsoft.com",
-//		Age: 60,
-//		Gender: 1,
-//	}
-//
-//	t.Run("should add user", func(t *testing.T) {
-//		err := userService.AddUser(user)
-//		assert.Equal(t, nil, err)
-//	})
-//
-//	t.Run("should get user that added above", func(t *testing.T) {
-//		u, err := userService.GetUser(1)
-//		assert.Equal(t, nil, err)
-//		assert.Equal(t, "Bill Gates", u.Name)
-//		assert.Equal(t, 60, u.Age)
-//	})
-//
-//	t.Run("should delete user", func(t *testing.T) {
-//		err := userService.DeleteUser(1)
-//		assert.Equal(t, nil, err)
-//	})
-//}

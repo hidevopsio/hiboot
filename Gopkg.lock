@@ -63,6 +63,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/erikstmartin/go-testdb"
+  packages = ["."]
+  revision = "8d10e4a1bae52cd8b81ffdec3445890d6dccab3d"
+
+[[projects]]
+  branch = "master"
   name = "github.com/fatih/camelcase"
   packages = ["."]
   revision = "44e46d280b43ec1531bb25252440e34f1b800b65"
@@ -116,6 +122,12 @@
   revision = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/hidevopsio/gorm"
+  packages = [".","dialects/mssql","dialects/mysql","dialects/postgres","dialects/sqlite"]
+  revision = "7914960564b4f97f2adf6a87f437872aabdac7f2"
+
+[[projects]]
   name = "github.com/imdario/mergo"
   packages = ["."]
   revision = "9d5f1277e9a8ed20c3684bda8fde67c05628518c"
@@ -158,10 +170,10 @@
   version = "v10"
 
 [[projects]]
-  name = "github.com/jinzhu/gorm"
-  packages = [".","dialects/mssql","dialects/mysql","dialects/postgres","dialects/sqlite"]
-  revision = "6ed508ec6a4ecb3531899a69cbc746ccf65a4166"
-  version = "v1.9.1"
+  branch = "master"
+  name = "github.com/jinzhu/copier"
+  packages = ["."]
+  revision = "7e38e58719c33e0d44d585c4ab477a30f8cb82dd"
 
 [[projects]]
   branch = "master"
@@ -231,7 +243,7 @@
 
 [[projects]]
   name = "github.com/magiconair/properties"
-  packages = ["."]
+  packages = [".","assert"]
   revision = "c3beff4c2358b44d0493c7dda585e7db7ff28ae6"
   version = "v1.7.6"
 
@@ -328,7 +340,7 @@
 [[projects]]
   branch = "master"
   name = "github.com/sony/sonyflake"
-  packages = [".","awsutil"]
+  packages = ["."]
   revision = "fa881fb1052b152e977c41023052c2f2a1c475e9"
 
 [[projects]]
@@ -472,6 +484,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "64e371fdceec29f39073ac78c6ede02d22a202cb2ba73335d78d941c0513a171"
+  inputs-digest = "be69ce744b979e223673319407dd64f26d158a06950ec3a5b7940a1661aa4931"
   solver-name = "gps-cdcl"
   solver-version = 1

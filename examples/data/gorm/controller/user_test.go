@@ -28,8 +28,7 @@ import (
 
 func init() {
 	log.SetLevel(log.DebugLevel)
-	wd := utils.EnsureWorkDir("..")
-	log.Debugf("work dir: %v", wd)
+	utils.EnsureWorkDir("..")
 }
 
 func TestCrdRequest(t *testing.T) {

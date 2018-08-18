@@ -37,7 +37,7 @@ type UserRequest struct {
 // RestController
 type UserController struct {
 	web.Controller
-	userService *service.UserService
+	userService service.UserService
 }
 
 func init() {
@@ -45,7 +45,7 @@ func init() {
 }
 
 // Init inject userService automatically
-func (c *UserController) Init(userService *service.UserService) {
+func (c *UserController) Init(userService service.UserService) {
 	c.userService = userService
 }
 

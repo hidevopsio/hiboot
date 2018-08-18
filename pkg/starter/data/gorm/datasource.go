@@ -18,26 +18,35 @@ import (
 	"fmt"
 	"errors"
 	"sync"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	_ "github.com/jinzhu/gorm/dialects/mssql"
+	_ "github.com/hidevopsio/gorm/dialects/mysql"
+	_ "github.com/hidevopsio/gorm/dialects/postgres"
+	_ "github.com/hidevopsio/gorm/dialects/sqlite"
+	_ "github.com/hidevopsio/gorm/dialects/mssql"
 	"github.com/hidevopsio/hiboot/pkg/starter/data/gorm/adapter"
 	"github.com/hidevopsio/hiboot/pkg/utils/crypto/rsa"
 	"strings"
-	"github.com/jinzhu/gorm"
+	"github.com/hidevopsio/gorm"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
+
+type Repository interface {
+	gorm.Repository
+}
+
+type FakeRepository struct {
+	gorm.FakeRepository
+}
 
 type DataSource interface {
 	Open(p *properties) error
 	IsOpened() bool
 	Close() error
-	DB() *gorm.DB
+	Repository() gorm.Repository
 }
 
 type dataSource struct {
-	gorm adapter.Gorm
-	db *gorm.DB
+	gorm       adapter.Gorm
+	repository gorm.Repository
 }
 
 var DatabaseIsNotOpenedError = errors.New("database is not opened")
@@ -67,10 +76,11 @@ func (d *dataSource) Open(p *properties) error {
 	source := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=%v&parseTime=%v&loc=%v",
 		p.Username, password, p.Host, p.Port,  databaseName, p.Charset, p.ParseTime, p.Loc)
 
-	d.db, err = d.gorm.Open(p.Type, source)
+	d.repository, err = d.gorm.Open(p.Type, source)
 
 	if err != nil {
-		d.db = nil
+		log.Errorf("dataSource connection failed! (%v)", p)
+		d.repository = nil
 		defer d.gorm.Close()
 		return err
 	}
@@ -79,19 +89,19 @@ func (d *dataSource) Open(p *properties) error {
 }
 
 func (d *dataSource) IsOpened() bool {
-	return d.db != nil
+	return d.repository != nil
 }
 
 func (d *dataSource) Close() error {
-	if d.db != nil {
+	if d.repository != nil {
 		err := d.gorm.Close()
-		d.db = nil
+		d.repository = nil
 		return err
 	}
 	return DatabaseIsNotOpenedError
 }
 
-func (d *dataSource) DB() *gorm.DB {
-	return d.db
+func (d *dataSource) Repository() gorm.Repository {
+	return d.repository
 }
 

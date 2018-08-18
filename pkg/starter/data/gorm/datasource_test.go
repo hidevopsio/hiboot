@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"os"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/starter/data/gorm/adapter"
+	"github.com/hidevopsio/gorm"
 )
 
 type User struct {
@@ -38,6 +38,18 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 }
 
+
+type FakeDataSource struct {
+}
+
+func (d *FakeDataSource) Open(dialect string, args ...interface{}) (db gorm.Repository, err error){
+	return nil, nil
+}
+
+func (d *FakeDataSource) Close() error {
+	return nil
+}
+
 func TestDataSourceOpen(t *testing.T) {
 	gorm := &properties{
 		Type:      "mysql",
@@ -51,7 +63,7 @@ func TestDataSourceOpen(t *testing.T) {
 		Loc:       "Asia%2FShanghai",
 	}
 	dataSource := new(dataSource)
-	dataSource.gorm = new(adapter.FakeDataSource)
+	dataSource.gorm = new(FakeDataSource)
 
 	t.Run("should report error when close database if it's not opened", func(t *testing.T) {
 		err := dataSource.Close()

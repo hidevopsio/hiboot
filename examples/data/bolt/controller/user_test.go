@@ -30,6 +30,7 @@ func init() {
 }
 
 func TestCrdRequest(t *testing.T) {
+	// TODO: mock UserService
 	app := web.NewTestApplication(t, new(UserController))
 
 	t.Run("should add user with POST request", func(t *testing.T) {
