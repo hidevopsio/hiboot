@@ -95,6 +95,10 @@ type barService struct {
 	FooRepository FakeRepository `inject:""`
 }
 
+type UserService interface {
+	Get() string
+}
+
 type userService struct {
 	FooUser        *FooUser       `inject:"name=foo"`
 	User           *user          `inject:""`
@@ -102,6 +106,10 @@ type userService struct {
 	FakeRepository FakeRepository `inject:""`
 	DefaultUrl     string         `value:"${fake.defaultUrl:http://localhost:8080}"`
 	Url            string         `value:"${fake.url}"`
+}
+
+func (s *userService) Get() string {
+	return "Hello, world"
 }
 
 type sliceInjectionTestService struct {
@@ -126,15 +134,26 @@ type MethodInjectionService struct {
 	repository FakeRepository
 }
 
-type Baz struct {
+type BazService interface {
+	GetNickname() string
+}
+
+type BazImpl struct {
+	BazService
 	Name string `inject:""`
+	nickname string
+}
+
+func (s *BazImpl) GetNickname() string  {
+	return s.nickname
 }
 
 type testService struct {
-	baz *Baz
+	baz BazService
+	name string
 }
 
-func (s *testService) Init(baz *Baz)  {
+func (s *testService) Init(baz BazService)  {
 	s.baz = baz
 }
 
@@ -179,6 +198,7 @@ func init() {
 	starter.NewConfiguration("fake", fakeConfiguration{})
 	starter.NewConfiguration("foo", fooConfiguration{})
 	starter.GetFactory().Build()
+	starter.NewInstance(new(BazImpl))
 }
 
 // Init automatically inject FooUser and FakeRepository that instantiated in fakeConfiguration

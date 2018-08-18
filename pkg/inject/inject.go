@@ -66,9 +66,20 @@ func AddTag(tag Tag) error {
 	return nil
 }
 
-func getInstanceByName(instances map[string]interface{}, name string) (inst interface{}) {
+func getInstanceByName(instances map[string]interface{}, name string, instType reflect.Type) (inst interface{}) {
 	name = utils.LowerFirst(name)
 	inst = instances[name]
+
+	// if inst is nil, and the object type is an interface
+	// then try to find the instance that embedded with the interface
+	if inst == nil && instType.Kind() == reflect.Interface {
+		for _, ist := range instances {
+			if reflector.HasEmbeddedField(ist, instType.Name()) {
+				inst = ist
+				break
+			}
+		}
+	}
 	return
 }
 
@@ -108,7 +119,7 @@ func IntoObject(object reflect.Value) error {
 		}
 
 		// TODO: assume that the f.Name of value and inject tag is not the same
-		injectedObject = getInstanceByName(instances, f.Name)
+		injectedObject = getInstanceByName(instances, f.Name, f.Type)
 		if injectedObject == nil {
 			for tagName, tagObject := range tagsContainer {
 				tag, ok := f.Tag.Lookup(tagName)
@@ -158,20 +169,22 @@ func IntoObject(object reflect.Value) error {
 			inTypeName := inType.Name()
 			pkgName := utils.DirName(inType.PkgPath())
 			//log.Debugf("pkg: %v", pkgName)
-			// check if
-			inst := getInstanceByName(instances, inTypeName)
+			inst := getInstanceByName(instances, inTypeName, inType)
 			if inst == nil {
 				alternativeName := strings.Title(pkgName) + inTypeName
-				inst = getInstanceByName(instances, alternativeName)
+				inst = getInstanceByName(instances, alternativeName, inType)
 			}
 			if inst == nil {
 				if inType.Kind() == reflect.Interface {
 					return UnsupportedInjectionTypeError
+				} else {
+					paramValue = reflect.New(inType)
+					inst = paramValue.Interface()
+					saveInstance(instances, inTypeName, inst)
 				}
-				paramValue = reflect.New(inType)
-				inst = paramValue.Interface()
-				saveInstance(instances, inTypeName, inst)
-			} else {
+			}
+
+			if inst != nil {
 				paramValue = reflect.ValueOf(inst)
 			}
 			inputs[i] = paramValue
