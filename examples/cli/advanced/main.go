@@ -16,11 +16,11 @@ package main
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter/cli"
-	_ "github.com/hidevopsio/hiboot/examples/cli/advanced/cmd"
+	"github.com/hidevopsio/hiboot/examples/cli/advanced/cmd"
 )
 
 func main() {
 	// create new cli application and run it
-	cli.NewApplication().Run()
+	cli.NewApplication(new(cmd.FirstCommand)).Run()
 }
 

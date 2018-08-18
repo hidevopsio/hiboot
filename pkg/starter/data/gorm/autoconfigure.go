@@ -16,7 +16,6 @@ package gorm
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter"
-	"github.com/hidevopsio/hiboot/pkg/starter/data"
 )
 
 type configuration struct {
@@ -26,7 +25,7 @@ type configuration struct {
 }
 
 func init() {
-	starter.Add("gorm", configuration{})
+	starter.NewConfiguration("gorm", configuration{})
 }
 
 func (c *configuration) dataSource() DataSource {
@@ -38,8 +37,8 @@ func (c *configuration) dataSource() DataSource {
 }
 
 // GormRepository method name must be unique
-func (c *configuration) GormRepository() data.Repository {
-	repository := GetRepository()
-	repository.SetDataSource(c.dataSource())
-	return repository
+func (c *configuration) GormRepository() Repository {
+	dataSource := c.dataSource()
+	return dataSource.Repository()
 }
+

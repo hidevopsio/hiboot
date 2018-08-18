@@ -41,24 +41,29 @@ func (r *FakeRepository) Get(params ...interface{}) error  {
 }
 
 func init() {
+
+}
+
+func TestCrd(t *testing.T) {
 	userService = new(UserService)
 	userService.Init(&FakeRepository{})
-}
 
-func TestAddUser(t *testing.T) {
-	user := &entity.User{Name: "John Doe", Age: 18}
-	err := userService.AddUser(user)
-	assert.Equal(t, nil, err)
-}
 
-func TestGetUser(t *testing.T) {
-	u, err := userService.GetUser("1")
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "John Doe", u.Name)
-	assert.Equal(t, 18, u.Age)
-}
+	t.Run("should add user", func(t *testing.T) {
+		user := &entity.User{Id: "1", Name: "John Doe", Age: 18}
+		err := userService.AddUser(user)
+		assert.Equal(t, nil, err)
+	})
 
-func TestDeleteUser(t *testing.T) {
-	err := userService.DeleteUser("")
-	assert.Equal(t, nil, err)
+	t.Run("should get user that added above", func(t *testing.T) {
+		u, err := userService.GetUser("1")
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "John Doe", u.Name)
+		assert.Equal(t, 18, u.Age)
+	})
+
+	t.Run("should delete user", func(t *testing.T) {
+		err := userService.DeleteUser("1")
+		assert.Equal(t, nil, err)
+	})
 }

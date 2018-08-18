@@ -63,6 +63,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/erikstmartin/go-testdb"
+  packages = ["."]
+  revision = "8d10e4a1bae52cd8b81ffdec3445890d6dccab3d"
+
+[[projects]]
+  branch = "master"
   name = "github.com/fatih/camelcase"
   packages = ["."]
   revision = "44e46d280b43ec1531bb25252440e34f1b800b65"
@@ -116,6 +122,12 @@
   revision = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/hidevopsio/gorm"
+  packages = [".","dialects/mssql","dialects/mysql","dialects/postgres","dialects/sqlite"]
+  revision = "7914960564b4f97f2adf6a87f437872aabdac7f2"
+
+[[projects]]
   name = "github.com/imdario/mergo"
   packages = ["."]
   revision = "9d5f1277e9a8ed20c3684bda8fde67c05628518c"
@@ -158,10 +170,10 @@
   version = "v10"
 
 [[projects]]
-  name = "github.com/jinzhu/gorm"
-  packages = [".","dialects/mssql","dialects/mysql","dialects/postgres","dialects/sqlite"]
-  revision = "6ed508ec6a4ecb3531899a69cbc746ccf65a4166"
-  version = "v1.9.1"
+  branch = "master"
+  name = "github.com/jinzhu/copier"
+  packages = ["."]
+  revision = "7e38e58719c33e0d44d585c4ab477a30f8cb82dd"
 
 [[projects]]
   branch = "master"
@@ -231,7 +243,7 @@
 
 [[projects]]
   name = "github.com/magiconair/properties"
-  packages = ["."]
+  packages = [".","assert"]
   revision = "c3beff4c2358b44d0493c7dda585e7db7ff28ae6"
   version = "v1.7.6"
 
@@ -326,6 +338,12 @@
   revision = "86672fcb3f950f35f2e675df2240550f2a50762f"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/sony/sonyflake"
+  packages = ["."]
+  revision = "fa881fb1052b152e977c41023052c2f2a1c475e9"
+
+[[projects]]
   name = "github.com/spf13/afero"
   packages = [".","mem"]
   revision = "63644898a8da0bc22138abf860edaf5277b6102e"
@@ -362,8 +380,14 @@
   version = "v1.0.2"
 
 [[projects]]
+  name = "github.com/stretchr/objx"
+  packages = ["."]
+  revision = "477a77ecc69700c7cdeb1fa9e129548e1c1c393c"
+  version = "v0.1.1"
+
+[[projects]]
   name = "github.com/stretchr/testify"
-  packages = ["assert","require"]
+  packages = ["assert","mock","require"]
   revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
   version = "v1.2.1"
 
@@ -466,6 +490,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f395308b92546034d2cae7396d0fe8ad8ec95678aea0fa8861b4d96bd1531a92"
+  inputs-digest = "87976e05d78b9a478ca869ffd4fb5a914db57a5286bb4b067fe8f8d336adf42c"
   solver-name = "gps-cdcl"
   solver-version = 1

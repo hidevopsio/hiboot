@@ -23,7 +23,7 @@ import (
 	"runtime"
 	"path/filepath"
 	"github.com/hidevopsio/hiboot/pkg/utils/sort"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 )
 
 type Application interface {
@@ -78,16 +78,6 @@ func NewApplication(cmd ...Command) Application {
 	return a
 }
 
-
-func parseName(cmd Command) string {
-	name, err := reflector.GetName(cmd)
-	if err == nil {
-		name = strings.Replace(name, "Command", "", -1)
-		name = strings.ToLower(name)
-	}
-	return name
-}
-
 func (a *application) injectCommand(cmd Command)  {
 	fullname := "root"
 	if cmd != nil {
@@ -122,7 +112,9 @@ func (a *application) Init(cmd ...Command) error  {
 	inject.IntoObject(reflect.ValueOf(root))
 	Register(root)
 	a.SetRoot(root)
-	a.Root().EmbeddedCommand().Use = basename
+	if !gotest.IsRunning() {
+		a.Root().EmbeddedCommand().Use = basename
+	}
 
 	if a.root != nil && a.root.HasChild() {
 		a.injectCommand(a.root)

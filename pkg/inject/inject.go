@@ -20,6 +20,8 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/starter"
 	"errors"
+	"github.com/hidevopsio/hiboot/pkg/utils"
+	"strings"
 )
 
 
@@ -35,8 +37,9 @@ var (
 	InvalidObjectError      = errors.New("[inject] invalid object")
 	UnsupportedInjectionTypeError      = errors.New("[inject] unsupported injection type")
 	IllegalArgumentError = errors.New("[inject] input argument type can not be the same as receiver")
-	TagIsAlreadyExistError = errors.New("tag is already exist")
-	TagIsNilError = errors.New("tag is nil")
+	TagIsAlreadyExistError = errors.New("[inject] tag is already exist")
+	TagIsNilError = errors.New("[inject] tag is nil")
+	InvalidTagNameError = errors.New("[inject] invalid tag name, e.g. exampleTag")
 
 	tagsContainer map[string]Tag
 )
@@ -47,17 +50,44 @@ func init() {
 }
 
 // AddTag
-func AddTag(name string, tag Tag) error {
+func AddTag(tag Tag) error {
+	name := reflector.ParseObjectName(tag, "Tag")
+	if name == "" {
+		return InvalidTagNameError
+	}
+
 	t := tagsContainer[name]
 	if t != nil {
 		return TagIsAlreadyExistError
 	}
 	if tag != nil {
 		tagsContainer[name] = tag
-	} else {
-		return TagIsNilError
 	}
 	return nil
+}
+
+func getInstanceByName(instances map[string]interface{}, name string, instType reflect.Type) (inst interface{}) {
+	name = utils.LowerFirst(name)
+	inst = instances[name]
+
+	// if inst is nil, and the object type is an interface
+	// then try to find the instance that embedded with the interface
+	if inst == nil && instType.Kind() == reflect.Interface {
+		for n, ist := range instances {
+			log.Debug(n)
+			if ist != nil && reflector.HasEmbeddedField(ist, instType.Name()) {
+				inst = ist
+				break
+			}
+		}
+	}
+	return
+}
+
+func saveInstance(instances map[string]interface{}, name string, inst interface{}) {
+	name = utils.LowerFirst(name)
+	instances[name] = inst
+	return
 }
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
@@ -90,7 +120,7 @@ func IntoObject(object reflect.Value) error {
 		}
 
 		// TODO: assume that the f.Name of value and inject tag is not the same
-		injectedObject = instances[f.Name]
+		injectedObject = getInstanceByName(instances, f.Name, f.Type)
 		if injectedObject == nil {
 			for tagName, tagObject := range tagsContainer {
 				tag, ok := f.Tag.Lookup(tagName)
@@ -98,7 +128,7 @@ func IntoObject(object reflect.Value) error {
 					injectedObject = tagObject.Decode(object, f, tag)
 					if injectedObject != nil {
 						if tagObject.IsSingleton() {
-							instances[f.Name] = injectedObject
+							saveInstance(instances, f.Name, injectedObject)
 						}
 						// ONLY one tag should be used for dependency injection
 						break
@@ -134,16 +164,30 @@ func IntoObject(object reflect.Value) error {
 		numIn := method.Type.NumIn()
 		inputs := make([]reflect.Value, numIn)
 		inputs[0] = obj.Addr()
+		injectByMethod := true
 		for i := 1; i < numIn; i++ {
 			inType := reflector.IndirectType(method.Type.In(i))
 			var paramValue reflect.Value
 			inTypeName := inType.Name()
-			inst := instances[inTypeName]
+			pkgName := utils.DirName(inType.PkgPath())
+			//log.Debugf("pkg: %v", pkgName)
+			inst := getInstanceByName(instances, inTypeName, inType)
 			if inst == nil {
-				paramValue = reflect.New(inType)
-				inst = paramValue.Interface()
-				instances[inTypeName] = inst
-			} else {
+				alternativeName := strings.Title(pkgName) + inTypeName
+				inst = getInstanceByName(instances, alternativeName, inType)
+			}
+			if inst == nil {
+				if inType.Kind() == reflect.Interface {
+					injectByMethod = false
+					break
+				} else {
+					paramValue = reflect.New(inType)
+					inst = paramValue.Interface()
+					saveInstance(instances, inTypeName, inst)
+				}
+			}
+
+			if inst != nil {
 				paramValue = reflect.ValueOf(inst)
 			}
 			inputs[i] = paramValue
@@ -160,7 +204,9 @@ func IntoObject(object reflect.Value) error {
 			}
 		}
 		// finally call Init method to inject
-		method.Func.Call(inputs)
+		if injectByMethod {
+			method.Func.Call(inputs)
+		}
 	}
 
 	return nil

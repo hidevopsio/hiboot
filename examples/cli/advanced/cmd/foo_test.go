@@ -7,15 +7,10 @@ import (
 )
 
 func TestFooCommands(t *testing.T) {
-	fooCmd := new(fooCommand)
-	secondCmd := new(secondCommand)
-	firstCmd := new(firstCommand)
-	secondCmd.Add(fooCmd)
-	firstCmd.Add(secondCmd)
-	testApp := cli.NewTestApplication(firstCmd)
+	testApp := cli.NewTestApplication(new(fooCommand))
 
-	t.Run("should run second command", func(t *testing.T) {
-		_, err := testApp.RunTest("second", "foo")
+	t.Run("should run foo command", func(t *testing.T) {
+		_, err := testApp.RunTest()
 		assert.Equal(t, nil, err)
 	})
 }

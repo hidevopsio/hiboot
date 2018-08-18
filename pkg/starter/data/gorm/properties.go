@@ -14,6 +14,11 @@
 
 package gorm
 
+type Config struct {
+	Decrypt    bool   `json:"decrypt"`
+	DecryptKey string `json:"decrypt_key"`
+}
+
 type properties struct {
 	Type      string `json:"type"` // mysql, postgres, sqlite3, mssql,
 	Host      string `json:"host"`
@@ -24,4 +29,5 @@ type properties struct {
 	Charset   string `json:"charset"`
 	ParseTime string `json:"parse_time"`
 	Loc       string `json:"loc"`
+	Config    Config `json:"config"`
 }

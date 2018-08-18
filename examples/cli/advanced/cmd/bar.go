@@ -25,14 +25,16 @@ type barCommand struct {
 	cli.BaseCommand
 }
 
-func init() {
-	cli.AddCommand("root.first.second", new(barCommand))
-}
-
 func (c *barCommand) Init() {
 	c.Use = "bar"
 	c.Short = "bar command"
 	c.Long = "Run bar command"
+}
+
+// OnBaz run command bar baz, return true means it won't run next action, in this case is method Run(args []string)
+func (c *barCommand) OnBaz(args []string) bool  {
+	log.Infof("on baz command")
+	return true
 }
 
 func (c *barCommand) Run(args []string) error {

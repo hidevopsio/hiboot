@@ -45,6 +45,8 @@ type Baz struct {
 	Bar Bar
 }
 
+type FooBar struct {}
+
 func init() {
 	log.SetLevel(log.DebugLevel)
 }
@@ -366,3 +368,9 @@ func TestEmbedded(t *testing.T) {
 	}
 }
 
+func TestParseObjectName(t *testing.T) {
+	t.Run("should parse object name", func(t *testing.T) {
+		name := ParseObjectName(new(FooBar), "Bar")
+		assert.Equal(t, "foo", name)
+	})
+}

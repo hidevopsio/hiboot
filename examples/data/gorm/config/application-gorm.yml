@@ -1,0 +1,16 @@
+# config file for testing
+# filename should be application-gorm.yml
+
+gorm:
+  type: mysql
+  host: mysql-${app.profiles.active}
+  port: 3306
+  database: ${app.name:test}
+  username: demo
+  password: Duahbi3GqMmeS7ogPw743xtmsmVFiDIaNwh24BokqC1BnUIah8doCRRhVuIqtWs3tl8nHRNkEWMIbuKAo6GleN4FwSoO56B8HAxqP3Kv8Jr3A6L2bam1bglFJRDx6rRkSuX4zrO3D/35t1YSFdPKf+n2PWIEeEJI6zcULo7UVKA=
+  charset: utf8
+  parseTime: True
+  loc: Asia%2FShanghai
+  config:
+    decrypt: true
+
