@@ -22,6 +22,7 @@ import (
 	"os"
 	"reflect"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 )
 
 type Factory interface {
@@ -65,34 +66,70 @@ func GetFactory() Factory {
 	return bootFactory
 }
 
-func Add(name string, conf interface{})  {
+func parseInstance(eliminator string, params ...interface{}) (name string, inst interface{})  {
+
+	if len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String {
+		name = params[0].(string)
+		inst = params[1]
+	} else {
+		inst = params[0]
+		name = reflector.ParseObjectName(inst, eliminator)
+	}
+	return
+}
+
+func NewConfiguration(params ...interface{})  {
+
+	name, inst := parseInstance("Configuration", params...)
+
 	if container[name] != nil {
 		log.Fatalf("configuration name %v is already taken!", name)
 	}
-	container[name] = conf
+	container[name] = inst
+}
+
+func NewInstance(params ...interface{})  {
+
+	name, inst := parseInstance("Impl", params...)
+
+	f := GetFactory()
+	instances := f.Instances()
+
+	if instances[name] != nil {
+		log.Fatalf("instance name %v is already taken!", name)
+	}
+	instances[name] = inst
 }
 
 func (c *factory) Build()  {
 
 	workDir := utils.GetWorkDir()
-
+	profile := os.Getenv(appProfilesActive)
 	builder := &system.Builder{
 		Path:       filepath.Join(workDir, config),
 		Name:       application,
 		FileType:   yaml,
-		Profile:    os.Getenv(appProfilesActive),
+		Profile:    profile,
 		ConfigType: SystemConfiguration{},
 	}
+	var sysconf *SystemConfiguration
 	defaultConfig, err := builder.Build()
 	if err == nil {
 		c.configurations[System] = defaultConfig
+		utils.Replace(defaultConfig, defaultConfig)
+		sysconf = defaultConfig.(*SystemConfiguration)
+		sysconf.App.Profiles.Active = profile
+		log.Infof("profiles{active: %v, include: %v}", sysconf.App.Profiles.Active, sysconf.App.Profiles.Include)
 	} else {
 		log.Warn(err)
 	}
-	utils.Replace(defaultConfig, defaultConfig)
-	//sysconf := defaultConfig.(*SystemConfiguration)
 
 	for name, configType := range container {
+		// TODO: should check if profiles is enabled utils.StringInSlice(name, sysconf.App.Profiles.Include)
+		//if sysconf != nil && !utils.StringInSlice(name, sysconf.App.Profiles.Include) {
+		//	continue
+		//}
+
 		// inject properties
 		builder.ConfigType = configType
 		builder.Profile = name
@@ -108,7 +145,6 @@ func (c *factory) Build()  {
 			utils.Replace(cf, cf)
 
 			// instantiation
-			// TODO: should check if profiles is enabled utils.StringInSlice(name, sysconf.App.Profiles.Include)
 			if err == nil {
 				// create instances
 				c.Instantiate(cf)
@@ -145,10 +181,11 @@ func (c *factory) Instantiate(configuration interface{})  {
 			if retVal[0].CanInterface() {
 				instance := retVal[0].Interface()
 				//log.Debugf("instantiated: %v", instance)
-				if c.instances[methodName] != nil {
-					log.Fatalf("method name %v is already taken!", methodName)
+				instanceName := utils.LowerFirst(methodName)
+				if c.instances[instanceName] != nil {
+					log.Fatalf("method name %v is already taken!", instanceName)
 				}
-				c.instances[methodName] = instance
+				c.instances[instanceName] = instance
 			}
 		}
 	}

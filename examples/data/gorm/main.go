@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package adapter
+package main
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	_ "github.com/hidevopsio/hiboot/examples/data/gorm/controller"
+	"github.com/hidevopsio/hiboot/pkg/utils"
+)
 
-type FakeDataSource struct {
-	db *gorm.DB
+func init() {
+
+	// Just for using the config files under examples/db/gorm
+	utils.EnsureWorkDir("examples/data/gorm")
 }
 
-func (d *FakeDataSource) Open(dialect string, args ...interface{}) (db *gorm.DB, err error) {
-	return nil, nil
+func main() {
+	web.NewApplication().Run()
 }
-
-func (d *FakeDataSource) Close() error {
-	return nil
-}
-

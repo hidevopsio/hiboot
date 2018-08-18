@@ -18,23 +18,35 @@ import (
 	"fmt"
 	"errors"
 	"sync"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	_ "github.com/jinzhu/gorm/dialects/mssql"
+	_ "github.com/hidevopsio/gorm/dialects/mysql"
+	_ "github.com/hidevopsio/gorm/dialects/postgres"
+	_ "github.com/hidevopsio/gorm/dialects/sqlite"
+	_ "github.com/hidevopsio/gorm/dialects/mssql"
 	"github.com/hidevopsio/hiboot/pkg/starter/data/gorm/adapter"
+	"github.com/hidevopsio/hiboot/pkg/utils/crypto/rsa"
+	"strings"
+	"github.com/hidevopsio/gorm"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
+
+type Repository interface {
+	gorm.Repository
+}
+
+type FakeRepository struct {
+	gorm.FakeRepository
+}
 
 type DataSource interface {
 	Open(p *properties) error
 	IsOpened() bool
 	Close() error
-	DB() adapter.DB
+	Repository() gorm.Repository
 }
 
 type dataSource struct {
-	gorm adapter.Gorm
-	db adapter.DB
+	gorm       adapter.Gorm
+	repository gorm.Repository
 }
 
 var DatabaseIsNotOpenedError = errors.New("database is not opened")
@@ -51,12 +63,24 @@ func GetDataSource() DataSource {
 
 func (d *dataSource) Open(p *properties) error {
 	var err error
-	source := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=%v&parseTime=%v&loc=%v",
-		p.Username, p.Password, p.Host, p.Port,  p.Database, p.Charset, p.ParseTime, p.Loc)
+	password := p.Password
+	if p.Config.Decrypt {
+		pwd, err := rsa.DecryptBase64([]byte(password), []byte(p.Config.DecryptKey))
+		if err == nil {
+			password = string(pwd)
+		}
+	}
 
-	d.db, err = d.gorm.Open(p.Type, source)
+	databaseName := strings.Replace(p.Database, "-", "_", -1)
+
+	source := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=%v&parseTime=%v&loc=%v",
+		p.Username, password, p.Host, p.Port,  databaseName, p.Charset, p.ParseTime, p.Loc)
+
+	d.repository, err = d.gorm.Open(p.Type, source)
 
 	if err != nil {
+		log.Errorf("dataSource connection failed! (%v)", p)
+		d.repository = nil
 		defer d.gorm.Close()
 		return err
 	}
@@ -65,19 +89,19 @@ func (d *dataSource) Open(p *properties) error {
 }
 
 func (d *dataSource) IsOpened() bool {
-	return d.db != nil
+	return d.repository != nil
 }
 
 func (d *dataSource) Close() error {
-	if d.db != nil {
+	if d.repository != nil {
 		err := d.gorm.Close()
-		d.db = nil
+		d.repository = nil
 		return err
 	}
 	return DatabaseIsNotOpenedError
 }
 
-func (d *dataSource) DB() adapter.DB {
-	return d.db
+func (d *dataSource) Repository() gorm.Repository {
+	return d.repository
 }
 

@@ -16,7 +16,7 @@ package starter
 
 type Profiles struct {
 	Include []string `json:"include"`
-	Active  string   `json:"active"`
+	Active  string   `json:"active" value:"${APP_PROFILES_ACTIVE:dev}"`
 }
 
 type App struct {

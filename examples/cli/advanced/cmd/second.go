@@ -15,7 +15,6 @@
 
 package cmd
 
-
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter/cli"
 	"github.com/hidevopsio/hiboot/pkg/log"
@@ -23,10 +22,8 @@ import (
 
 type secondCommand struct {
 	cli.BaseCommand
-}
-
-func init() {
-	cli.AddCommand("root.first", new(secondCommand))
+	Foo *fooCommand `cmd:""`
+	Bar *barCommand `cmd:""`
 }
 
 func (c *secondCommand) Init() {
@@ -39,4 +36,3 @@ func (c *secondCommand) Run(args []string) error {
 	log.Info("handle second command")
 	return nil
 }
-
