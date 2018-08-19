@@ -152,10 +152,6 @@ func IntoObject(object reflect.Value) error {
 		canNested := filedKind == reflect.Struct
 		if canNested && fieldObj.IsValid() && fieldObj.CanSet() && filedObject.Type() != obj.Type() {
 			err = IntoObject(fieldObj)
-			if err != nil {
-				log.Errorf("object: %v", filedObject.Type())
-				return err
-			}
 		}
 	}
 
@@ -199,10 +195,6 @@ func IntoObject(object reflect.Value) error {
 			paramObject := reflect.Indirect(paramValue)
 			if paramObject.Type() != obj.Type() && paramObject.Kind() == reflect.Struct && paramValue.IsValid() {
 				err = IntoObject(paramValue)
-				if err != nil {
-					log.Errorf("object: %v, method: %v", method.Type, method.Name)
-					return err
-				}
 			}
 		}
 		// finally call Init method to inject
@@ -211,7 +203,7 @@ func IntoObject(object reflect.Value) error {
 		}
 	}
 
-	return nil
+	return err
 }
 
 

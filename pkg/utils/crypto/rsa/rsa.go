@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"github.com/hidevopsio/hiboot/pkg/utils/crypto/base64"
+	"github.com/hidevopsio/hiboot/pkg/utils/crypto"
 )
 
 //openssl genrsa -out private.pem 1024
@@ -48,7 +49,7 @@ func Encrypt(input []byte, publicKey ...[]byte) ([]byte, error) {
 
 	block, _ := pem.Decode(actualPublicKey)
 	if block == nil {
-		return nil, errors.New("public key error")
+		return nil, crypto.InvalidPublicKeyError
 	}
 	pubInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
@@ -67,7 +68,7 @@ func Decrypt(ciphertext []byte, privateKey ...[]byte) ([]byte, error) {
 	}
 	block, _ := pem.Decode(actualPrivateKey)
 	if block == nil {
-		return nil, errors.New("private key error")
+		return nil, crypto.InvalidPrivateKeyError
 	}
 	pk, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
