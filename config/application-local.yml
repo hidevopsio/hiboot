@@ -1,12 +1,5 @@
 # config file for testing
 
-app:
-  profiles:
-    include:
-    - foo
-    - bar
-    - baz
-
 server:
   port: 8080
 

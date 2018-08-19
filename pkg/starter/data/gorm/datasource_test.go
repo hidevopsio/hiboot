@@ -17,9 +17,7 @@ package gorm
 import (
 	"testing"
 	"github.com/stretchr/testify/assert"
-	"os"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/gorm"
 )
 
 type User struct {
@@ -38,41 +36,31 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 }
 
-
-type FakeDataSource struct {
-}
-
-func (d *FakeDataSource) Open(dialect string, args ...interface{}) (db gorm.Repository, err error){
-	return nil, nil
-}
-
-func (d *FakeDataSource) Close() error {
-	return nil
-}
-
 func TestDataSourceOpen(t *testing.T) {
-	gorm := &properties{
+	prop := &properties{
 		Type:      "mysql",
 		Host:      "mysql-dev",
 		Port:      "3306",
-		Username:  os.Getenv("MYSQL_USERNAME"),
-		Password:  os.Getenv("MYSQL_PASSWORD"),
+		Username:  "test",
+		Password:  "LcNxqoI4zZjAnpiTD7JQxLJR/IgL2iTiSZ2nd7KPEBgxMV+FVhPSzM+fgH93XqZJNpboN4F/buX22yLTXK38AcVGTfID3rmQAOAc9A2DIWNy5v9+3NOY00M8z4dR1XHojheK0681cY9QVjtlJ70jFFDXb7PjFc2fQ0GIyIjBQDY=",
 		Database:  "test",
 		ParseTime: "True",
 		Charset:   "utf8",
 		Loc:       "Asia%2FShanghai",
+		Config: Config{
+			Decrypt: true,
+		},
 	}
 	dataSource := new(dataSource)
-	dataSource.gorm = new(FakeDataSource)
 
 	t.Run("should report error when close database if it's not opened", func(t *testing.T) {
 		err := dataSource.Close()
 		assert.Equal(t, DatabaseIsNotOpenedError, err)
 	})
 
+	err := dataSource.Open(prop)
 	t.Run("should open database", func(t *testing.T) {
-		err := dataSource.Open(gorm)
-		assert.Equal(t, nil, err)
+		assert.NotEqual(t, nil, err)
 	})
 
 	t.Run("should close database", func(t *testing.T) {

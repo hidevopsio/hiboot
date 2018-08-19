@@ -71,11 +71,12 @@ func getInstanceByName(instances map[string]interface{}, name string, instType r
 	name = str.LowerFirst(name)
 	inst = instances[name]
 
+	// TODO: we should pro load all candidates into instances for improving performance.
 	// if inst is nil, and the object type is an interface
 	// then try to find the instance that embedded with the interface
 	if inst == nil && instType.Kind() == reflect.Interface {
-		for n, ist := range instances {
-			log.Debug(n)
+		for _, ist := range instances {
+			//log.Debug(n)
 			if ist != nil && reflector.HasEmbeddedField(ist, instType.Name()) {
 				inst = ist
 				break

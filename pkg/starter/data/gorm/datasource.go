@@ -22,7 +22,6 @@ import (
 	_ "github.com/hidevopsio/gorm/dialects/postgres"
 	_ "github.com/hidevopsio/gorm/dialects/sqlite"
 	_ "github.com/hidevopsio/gorm/dialects/mssql"
-	"github.com/hidevopsio/hiboot/pkg/starter/data/gorm/adapter"
 	"github.com/hidevopsio/hiboot/pkg/utils/crypto/rsa"
 	"strings"
 	"github.com/hidevopsio/gorm"
@@ -33,10 +32,6 @@ type Repository interface {
 	gorm.Repository
 }
 
-type FakeRepository struct {
-	gorm.FakeRepository
-}
-
 type DataSource interface {
 	Open(p *properties) error
 	IsOpened() bool
@@ -45,7 +40,6 @@ type DataSource interface {
 }
 
 type dataSource struct {
-	gorm       adapter.Gorm
 	repository gorm.Repository
 }
 
@@ -56,9 +50,12 @@ var dsOnce sync.Once
 func GetDataSource() DataSource {
 	dsOnce.Do(func() {
 		ds = new(dataSource)
-		ds.gorm = new(adapter.GormDataSource)
 	})
 	return ds
+}
+
+func (d *dataSource) Init(repository Repository)  {
+	d.repository = repository
 }
 
 func (d *dataSource) Open(p *properties) error {
@@ -76,12 +73,14 @@ func (d *dataSource) Open(p *properties) error {
 	source := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=%v&parseTime=%v&loc=%v",
 		p.Username, password, p.Host, p.Port,  databaseName, p.Charset, p.ParseTime, p.Loc)
 
-	d.repository, err = d.gorm.Open(p.Type, source)
+	d.repository, err = gorm.Open(p.Type, source)
 
 	if err != nil {
 		log.Errorf("dataSource connection failed! (%v)", p)
-		d.repository = nil
-		defer d.gorm.Close()
+		defer func() {
+			d.repository.Close()
+			d.repository = nil
+		}()
 		return err
 	}
 
@@ -94,7 +93,7 @@ func (d *dataSource) IsOpened() bool {
 
 func (d *dataSource) Close() error {
 	if d.repository != nil {
-		err := d.gorm.Close()
+		err := d.repository.Close()
 		d.repository = nil
 		return err
 	}

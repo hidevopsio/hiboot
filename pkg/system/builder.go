@@ -109,7 +109,7 @@ func (b *Builder) Read(name string) (interface{}, error) {
 	v := b.New(name)
 	err := v.ReadInConfig()
 	if err != nil {
-		return nil, fmt.Errorf("Error config file: %s \n", err)
+		return nil, fmt.Errorf("error on config file: %s", err)
 	}
 	st := b.ConfigType
 
@@ -117,7 +117,7 @@ func (b *Builder) Read(name string) (interface{}, error) {
 
 	err = v.Unmarshal(cp)
 	if err != nil {
-		return nil, fmt.Errorf("Error on viper config unmarshal : %s \n", err)
+		return nil, fmt.Errorf("error on viper config unmarshal : %s", err)
 	}
 	return cp, err
 }
