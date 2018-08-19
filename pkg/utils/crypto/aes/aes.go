@@ -21,7 +21,7 @@ func Encrypt(key []byte, text string) string {
 
 	// The IV needs to be unique, but not secure. Therefore it's common to
 	// include it at the beginning of the ciphertext.
-	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+	ciphertext := make([]byte, aes.BlockSize + len(plaintext))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		panic(err)
@@ -58,4 +58,3 @@ func Decrypt(key []byte, cryptoText string) string {
 
 	return fmt.Sprintf("%s", ciphertext)
 }
-

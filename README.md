@@ -157,10 +157,10 @@ Let's get help
 run hello command for getting started
 
 Usage:
-  main [flags]
+  hello [flags]
 
 Flags:
-  -h, --help        help for main
+  -h, --help        help for hello
   -t, --to string   e.g. --to=world or -t world (default "world")
 
 ```
