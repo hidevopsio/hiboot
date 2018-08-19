@@ -31,6 +31,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/starter"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
 )
 
 const (
@@ -91,7 +92,7 @@ func (wa *application) Run() {
 		serverPort = fmt.Sprintf(":%v", wa.config.Server.Port)
 	}
 	// TODO: WithCharset should be configurable
-	wa.app.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithCharset("UTF-8"), iris.WithoutVersionChecker)
+	wa.app.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(DefaultConfiguration()))
 }
 
 func healthHandler(app *iris.Application) *router.Route {
@@ -148,9 +149,17 @@ func (wa *application) Init(controllers ...interface{}) error {
 	if config != nil {
 		//return errors.New("system configuration not found")
 		wa.config = config.(*starter.SystemConfiguration)
+		// ensure web is included
+		if !str.InSlice("web", wa.config.App.Profiles.Include) {
+			wa.config.App.Profiles.Include = append(wa.config.App.Profiles.Include, "web")
+		}
 		log.SetLevel(wa.config.Logging.Level)
 	} else {
-		log.Warnf("no application config files in %v", filepath.Join(wa.workDir, "config"))
+		wa.config = new(starter.SystemConfiguration)
+		wa.config.App.Project = "hidevopsio"
+		wa.config.App.Name = "hiboot"
+		wa.config.App.Profiles.Include = append(wa.config.App.Profiles.Include, "web")
+		log.Warnf("no config files in %v, e.g. application.yml", filepath.Join(wa.workDir, "config"))
 	}
 
 	// Init JWT

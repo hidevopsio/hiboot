@@ -31,8 +31,17 @@ func (f *Foo) Init(name string)  {
 	f.Name = name
 }
 
+func (f *Foo) Bar()  {
+
+}
+
 func (f *Foo) Nickname() string  {
-	return "foo"
+	return f.nickname
+}
+
+func (f *Foo) SetNickname(nickname string) *Foo  {
+	f.nickname = nickname
+	return f
 }
 
 type Bar struct{
@@ -256,14 +265,28 @@ func TestGetName(t *testing.T) {
 }
 
 func TestCallMethodByName(t *testing.T) {
-	t.Run("should call method by name", func(t *testing.T) {
-		res, err := CallMethodByName(&Foo{}, "Nickname")
+	foo := new(Foo)
+	t.Run("should call method SetNickname", func(t *testing.T) {
+		res, err := CallMethodByName(foo, "SetNickname", "foobar")
 		assert.Equal(t, nil, err)
-		assert.Equal(t, "foo", res)
+		assert.Equal(t, foo, res)
+		assert.Equal(t, "foobar", foo.nickname)
+	})
+
+	t.Run("should call method Nickname", func(t *testing.T) {
+		res, err := CallMethodByName(foo, "Nickname")
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "foobar", res)
+	})
+
+	t.Run("should call method Bar", func(t *testing.T) {
+		res, err := CallMethodByName(foo, "Bar")
+		assert.Equal(t, nil, err)
+		assert.Equal(t, nil, res)
 	})
 
 	t.Run("should call method by name", func(t *testing.T) {
-		_, err := CallMethodByName(&Foo{}, "NotExistMethod")
+		_, err := CallMethodByName(foo, "NotExistMethod")
 		assert.Equal(t, InvalidMethodError, err)
 	})
 

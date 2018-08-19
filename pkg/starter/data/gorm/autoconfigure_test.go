@@ -16,23 +16,28 @@ package gorm
 
 import (
 	"testing"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestConfiguration(t *testing.T) {
-	//configuration := new(configuration)
-	//configuration.GormProperties = properties{
-	//	Type:      "mysql",
-	//	Host:      "mysql-dev",
-	//	Port:      "3306",
-	//	Username:  os.Getenv("MYSQL_USERNAME"),
-	//	Password:  os.Getenv("MYSQL_PASSWORD"),
-	//	Database:  "test",
-	//	ParseTime: "True",
-	//	Charset:   "utf8",
-	//	Loc:       "Asia%2FShanghai",
-	//}
-	//
-	//repo := configuration.GormRepository()
-	//assert.NotEqual(t, nil, ds)
-	//repo.Close()
+
+	// TODO: should test with fake data source
+	conf := new(configuration)
+	conf.GormProperties = properties{
+		Type:      "mysql",
+		Host:      "mysql-dev",
+		Port:      "3306",
+		Username:  "test",
+		Password:  "LcNxqoI4zZjAnpiTD7JQxLJR/IgL2iTiSZ2nd7KPEBgxMV+FVhPSzM+fgH93XqZJNpboN4F/buX22yLTXK38AcVGTfID3rmQAOAc9A2DIWNy5v9+3NOY00M8z4dR1XHojheK0681cY9QVjtlJ70jFFDXb7PjFc2fQ0GIyIjBQDY=",
+		Database:  "test",
+		ParseTime: "True",
+		Charset:   "utf8",
+		Loc:       "Asia%2FShanghai",
+		Config: Config{
+			Decrypt: true,
+		},
+	}
+
+	repo := conf.GormRepository()
+	assert.Equal(t, nil, repo)
 }

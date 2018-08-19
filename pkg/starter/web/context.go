@@ -129,6 +129,18 @@ func (ctx *Context) translate(message string) string {
 	return message
 }
 
+// Translate override base context method Translate to return format if i18n is not enabled
+func (ctx *Context) Translate(format string, args ...interface{}) string {
+
+	msg := ctx.Context.Translate(format, args...)
+
+	if msg == "" {
+		msg = format
+	}
+
+	return msg
+}
+
 
 // ResponseBody set response
 func (ctx *Context) ResponseString(data string) {

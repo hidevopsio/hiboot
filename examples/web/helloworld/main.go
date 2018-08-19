@@ -16,7 +16,9 @@
 package main
 
 // Line 2: import web starter from hiboot
-import "github.com/hidevopsio/hiboot/pkg/starter/web"
+import (
+	"github.com/hidevopsio/hiboot/pkg/starter/web"
+)
 
 // Line 3-5: RESTful Controller, derived from web.Controller. The context mapping of this controller is '/' by default
 type Controller struct {

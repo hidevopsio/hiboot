@@ -25,6 +25,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
+	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 )
 
 type Factory interface {
@@ -123,14 +124,16 @@ func (c *factory) Build()  {
 		sysconf.App.Profiles.Active = profile
 		log.Infof("profiles{active: %v, include: %v}", sysconf.App.Profiles.Active, sysconf.App.Profiles.Include)
 	} else {
-		log.Warn(err)
+		log.Warnf("%v", err)
 	}
 
+	isTestRunning := gotest.IsRunning()
 	for name, configType := range container {
-		// TODO: should check if profiles is enabled utils.StringInSlice(name, sysconf.App.Profiles.Include)
-		//if sysconf != nil && !utils.StringInSlice(name, sysconf.App.Profiles.Include) {
-		//	continue
-		//}
+		// TODO: should check if profiles is enabled str.InSlice(name, sysconf.App.Profiles.Include)
+		if !isTestRunning && sysconf != nil && !str.InSlice(name, sysconf.App.Profiles.Include) {
+			continue
+		}
+		log.Infof("auto configure: %v", name)
 
 		// inject properties
 		builder.ConfigType = configType
