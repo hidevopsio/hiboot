@@ -20,11 +20,11 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"github.com/imdario/mergo"
-	"github.com/hidevopsio/hiboot/pkg/utils"
 	"path/filepath"
 	"gopkg.in/yaml.v2"
 	"bytes"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
 type Env struct {
@@ -51,12 +51,12 @@ func (b *Builder) New(name string) *viper.Viper {
 
 // create file if it's not exist
 func (b *Builder) Init() (error) {
-	return utils.CreateFile(b.Path, b.Name + "." + b.FileType)
+	return io.CreateFile(b.Path, b.Name + "." + b.FileType)
 }
 
 func (b *Builder) isFileNotExist(path string) bool {
 	for _, ext := range viper.SupportedExts {
-		if !utils.IsPathNotExist(path + ext) {
+		if !io.IsPathNotExist(path + ext) {
 			return false
 		}
 	}

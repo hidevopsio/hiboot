@@ -22,7 +22,7 @@ import (
 	"github.com/fatih/camelcase"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
-	"github.com/hidevopsio/hiboot/pkg/utils"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 )
@@ -75,7 +75,7 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 		controllerName := ""
 		if len(fieldNames) >= 2 {
 			controllerName = strings.Replace(fieldName, fieldNames[len(fieldNames)-1], "", 1)
-			controllerName = utils.LowerFirst(controllerName)
+			controllerName = str.LowerFirst(controllerName)
 		}
 		//log.Debug("controllerName: ", controllerName)
 		// use controller's prefix as context mapping
@@ -120,7 +120,7 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 			// apiContextMapping should add arguments
 			//log.Debug("contextMapping: ", apiContextMapping)
 			// check if it's valid http method
-			if utils.StringInSlice(httpMethod, httpMethods) {
+			if str.InSlice(httpMethod, httpMethods) {
 				var apiContextMapping string
 				if len(ctxMap) > 2 && ctxMap[1] == "By" {
 					for _, pathParam := range ctxMap[2:] {
@@ -128,7 +128,7 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 					}
 				} else {
 					apiContextMapping = strings.Replace(methodName, ctxMap[0], "", 1)
-					apiContextMapping = pathSep + utils.LowerFirst(apiContextMapping)
+					apiContextMapping = pathSep + str.LowerFirst(apiContextMapping)
 				}
 
 				// parse all necessary requests and responses

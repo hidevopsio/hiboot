@@ -20,13 +20,13 @@ import (
 	"testing"
 	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
-	"github.com/hidevopsio/hiboot/pkg/utils"
 	"fmt"
 	"time"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
 func init() {
-	utils.ChangeWorkDir("../")
+	io.ChangeWorkDir("../")
 }
 
 func TestBarWithToken(t *testing.T) {

@@ -16,11 +16,11 @@ package system
 
 import (
 	"testing"
-	"github.com/hidevopsio/hiboot/pkg/utils"
 	"path/filepath"
 	"os"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/stretchr/testify/assert"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
 type profiles struct {
@@ -50,13 +50,13 @@ type Configuration struct {
 }
 
 func init() {
-	utils.ChangeWorkDir("../../")
+	io.ChangeWorkDir("../../")
 }
 
 func TestBuilderBuild(t *testing.T) {
 
 	b := &Builder{
-		Path:       filepath.Join(utils.GetWorkDir(), "config"),
+		Path:       filepath.Join(io.GetWorkDir(), "config"),
 		Name:       "application",
 		FileType:   "yaml",
 		Profile:    "local",
@@ -86,7 +86,7 @@ func TestBuilderBuildWithError(t *testing.T) {
 func TestBuilderBuildWithProfile(t *testing.T) {
 
 	b := &Builder{
-		Path:       filepath.Join(utils.GetWorkDir(), "config"),
+		Path:       filepath.Join(io.GetWorkDir(), "config"),
 		Name:       "application",
 		FileType:   "yaml",
 		Profile:    "local",
@@ -109,7 +109,7 @@ func TestBuilderBuildWithProfile(t *testing.T) {
 func TestFileDoesNotExist(t *testing.T) {
 
 	b := &Builder{
-		Path:       filepath.Join(utils.GetWorkDir(), "config"),
+		Path:       filepath.Join(io.GetWorkDir(), "config"),
 		Name:       "application",
 		FileType:   "yaml",
 		Profile:    "does-not-exist",
@@ -125,7 +125,7 @@ func TestFileDoesNotExist(t *testing.T) {
 func TestProfileIsEmpty(t *testing.T) {
 
 	b := &Builder{
-		Path:       filepath.Join(utils.GetWorkDir(), "config"),
+		Path:       filepath.Join(io.GetWorkDir(), "config"),
 		Name:       "application",
 		FileType:   "yaml",
 		Profile:    "",
@@ -142,7 +142,7 @@ func TestProfileIsEmpty(t *testing.T) {
 
 func TestWithoutReplacer(t *testing.T) {
 
-	path := filepath.Join(utils.GetWorkDir(), "config")
+	path := filepath.Join(io.GetWorkDir(), "config")
 	testProfile := "xxx"
 	appConfig := "application"
 	FileType := "yaml"
@@ -154,7 +154,7 @@ func TestWithoutReplacer(t *testing.T) {
 		Profile:    testProfile,
 		ConfigType: Configuration{},
 	}
-	utils.CreateFile(path, testFile)
+	io.CreateFile(path, testFile)
 	_, err := b.Build()
 	os.Remove(filepath.Join(path, testFile))
 	assert.Equal(t, nil, err)

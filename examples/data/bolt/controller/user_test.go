@@ -19,14 +19,14 @@ import (
 	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
 	"github.com/hidevopsio/hiboot/examples/data/bolt/entity"
-	"github.com/hidevopsio/hiboot/pkg/utils"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 
 func init() {
 	log.SetLevel(log.DebugLevel)
-	utils.EnsureWorkDir("..")
+	io.EnsureWorkDir("..")
 }
 
 func TestCrdRequest(t *testing.T) {

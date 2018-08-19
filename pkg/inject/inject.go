@@ -16,12 +16,13 @@ package inject
 
 import (
 	"reflect"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"github.com/hidevopsio/hiboot/pkg/starter"
 	"errors"
-	"github.com/hidevopsio/hiboot/pkg/utils"
 	"strings"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/starter"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
 
@@ -67,7 +68,7 @@ func AddTag(tag Tag) error {
 }
 
 func getInstanceByName(instances map[string]interface{}, name string, instType reflect.Type) (inst interface{}) {
-	name = utils.LowerFirst(name)
+	name = str.LowerFirst(name)
 	inst = instances[name]
 
 	// if inst is nil, and the object type is an interface
@@ -85,7 +86,7 @@ func getInstanceByName(instances map[string]interface{}, name string, instType r
 }
 
 func saveInstance(instances map[string]interface{}, name string, inst interface{}) {
-	name = utils.LowerFirst(name)
+	name = str.LowerFirst(name)
 	instances[name] = inst
 	return
 }
@@ -169,7 +170,7 @@ func IntoObject(object reflect.Value) error {
 			inType := reflector.IndirectType(method.Type.In(i))
 			var paramValue reflect.Value
 			inTypeName := inType.Name()
-			pkgName := utils.DirName(inType.PkgPath())
+			pkgName := io.DirName(inType.PkgPath())
 			//log.Debugf("pkg: %v", pkgName)
 			inst := getInstanceByName(instances, inTypeName, inType)
 			if inst == nil {

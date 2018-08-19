@@ -21,10 +21,10 @@ import (
 	"time"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/stretchr/testify/assert"
-	"github.com/hidevopsio/hiboot/pkg/utils"
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"errors"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
 type UserRequest struct {
@@ -70,7 +70,7 @@ type InvalidController struct {}
 
 func init() {
 	log.SetLevel(log.DebugLevel)
-	utils.ChangeWorkDir("../../../")
+	io.ChangeWorkDir("../../../")
 }
 
 func (c *FooController) Before()  {

@@ -374,3 +374,10 @@ func TestParseObjectName(t *testing.T) {
 		assert.Equal(t, "foo", name)
 	})
 }
+
+func TestGetPkgPath(t *testing.T) {
+	t.Run("should get object pkg path", func(t *testing.T) {
+		pkgPath := GetPkgPath(Foo{})
+		assert.Contains(t, "github.com/hidevopsio/hiboot/pkg/utils/reflector", pkgPath)
+	})
+}

@@ -16,7 +16,6 @@ package web
 
 import (
 	"reflect"
-	"github.com/hidevopsio/hiboot/pkg/utils"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
@@ -24,6 +23,7 @@ import (
 	"strings"
 	"strconv"
 	"path/filepath"
+	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
 )
 
 type request struct {
@@ -73,7 +73,7 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 	//log.Debugf("path: %v", path)
 	pps := strings.SplitN(path, "/", -1)
 	//log.Debug(pps)
-	pp := utils.ParseVariables(path, compiledRegExp)
+	pp := replacer.ParseVariables(path, compiledRegExp)
 	h.pathParams = make([]string, len(pp))
 	for i, pathParam := range pp {
 		//log.Debugf("pathParm: %v", pathParam[1])

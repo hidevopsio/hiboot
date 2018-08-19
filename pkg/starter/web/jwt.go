@@ -22,8 +22,8 @@ import (
 
 	jwtgo "github.com/dgrijalva/jwt-go"
 	"github.com/hidevopsio/hiboot/pkg/system"
-	"github.com/hidevopsio/hiboot/pkg/utils"
 	jwtmiddleware "github.com/iris-contrib/middleware/jwt"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
 // JwtMap is the JWT map
@@ -49,7 +49,7 @@ var (
 func InitJwt(wd string) error {
 
 	// check if key exist
-	if utils.IsPathNotExist(wd + privateKeyPath) {
+	if io.IsPathNotExist(wd + privateKeyPath) {
 		return &system.NotFoundError{Name: wd + privateKeyPath}
 	}
 

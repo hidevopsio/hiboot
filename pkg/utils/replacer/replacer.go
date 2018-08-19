@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package replacer
 
 import (
 	"reflect"
@@ -25,9 +25,15 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
-var NilPointerError = errors.New("nil pointer error")
-var InvalidObjectError = errors.New("invalid object")
-var compiledRegExp = regexp.MustCompile(`\$\{(.*?)\}`)
+const (
+	EmptyString = ""
+)
+
+var (
+	NilPointerError = errors.New("nil pointer error")
+	InvalidObjectError = errors.New("invalid object")
+	compiledRegExp = regexp.MustCompile(`\$\{(.*?)\}`)
+)
 
 // ParseVariables parse reference and env variables
 func ParseVariables(src string, re *regexp.Regexp) [][]string {

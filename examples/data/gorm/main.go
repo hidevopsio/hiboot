@@ -17,13 +17,13 @@ package main
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
 	_ "github.com/hidevopsio/hiboot/examples/data/gorm/controller"
-	"github.com/hidevopsio/hiboot/pkg/utils"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
 func init() {
 
 	// Just for using the config files under examples/db/gorm
-	utils.EnsureWorkDir("examples/data/gorm")
+	io.EnsureWorkDir("examples/data/gorm")
 }
 
 func main() {

@@ -20,11 +20,11 @@ import (
 	"reflect"
 	"github.com/hidevopsio/hiboot/pkg/starter/data"
 	"github.com/hidevopsio/hiboot/pkg/starter"
-	"github.com/hidevopsio/hiboot/pkg/utils"
 	"path/filepath"
 	"os"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/inject"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
 type user struct {
@@ -182,9 +182,9 @@ var (
 )
 
 func init() {
-	utils.EnsureWorkDir("../..")
+	io.EnsureWorkDir("../..")
 
-	configPath := filepath.Join(utils.GetWorkDir(), "config")
+	configPath := filepath.Join(io.GetWorkDir(), "config")
 	fakeFile := "application-fake.yaml"
 	os.Remove(filepath.Join(configPath, fakeFile))
 	fakeContent :=
@@ -193,12 +193,12 @@ func init() {
 			"\n  nickname: ${app.name} ${fake.name}\n" +
 			"\n  username: ${unknown.name:bar}\n" +
 			"\n  url: " + fakeUrl
-	utils.WriterFile(configPath, fakeFile, []byte(fakeContent))
+	io.WriterFile(configPath, fakeFile, []byte(fakeContent))
 
-	starter.NewConfiguration("fake", fakeConfiguration{})
-	starter.NewConfiguration("foo", fooConfiguration{})
+	starter.AddConfig("fake", fakeConfiguration{})
+	starter.AddConfig("foo", fooConfiguration{})
 	starter.GetFactory().Build()
-	starter.NewInstance(new(BazImpl))
+	starter.Add(new(BazImpl))
 }
 
 // Init automatically inject FooUser and FakeRepository that instantiated in fakeConfiguration
