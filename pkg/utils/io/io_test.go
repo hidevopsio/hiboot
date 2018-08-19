@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package io
 
 import (
 	"os"
@@ -49,7 +49,7 @@ func TestGetWorkingDir(t *testing.T) {
 func TestGetRelativePath(t *testing.T) {
 	path := GetRelativePath(1)
 
-	assert.Equal(t, "utils", DirName(path))
+	assert.Equal(t, "io", DirName(path))
 }
 
 func TestIsPathNotExist(t *testing.T) {

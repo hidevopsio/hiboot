@@ -17,13 +17,13 @@ package main
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
 	_ "github.com/hidevopsio/hiboot/examples/data/bolt/controller"
-	"github.com/hidevopsio/hiboot/pkg/utils"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
 func init() {
 
 	// Just for using the config files under examples/db/bolt
-	utils.EnsureWorkDir("examples/data/bolt")
+	io.EnsureWorkDir("examples/data/bolt")
 }
 
 func main() {

@@ -20,18 +20,17 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/system"
-	"github.com/hidevopsio/hiboot/pkg/utils"
+	"regexp"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/core/router"
 	"github.com/kataras/iris/middleware/i18n"
 	"github.com/kataras/iris/middleware/logger"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/starter"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"regexp"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
 const (
@@ -128,7 +127,7 @@ func (wa *application) add(controllers ...interface{}) {
 // Init init web application
 func (wa *application) Init(controllers ...interface{}) error {
 
-	wa.workDir = utils.GetWorkDir()
+	wa.workDir = io.GetWorkDir()
 
 	wa.httpMethods = []string{
 		http.MethodGet,
@@ -243,7 +242,7 @@ func (wa *application) initLocale() error {
 	// locale:
 	//   path: ./config/i18n/
 	localePath := "config/i18n/"
-	if utils.IsPathNotExist(localePath) {
+	if io.IsPathNotExist(localePath) {
 		return &system.NotFoundError{Name: localePath}
 	}
 
@@ -255,8 +254,8 @@ func (wa *application) initLocale() error {
 		}
 		//*files = append(*files, path)
 		lng := strings.Replace(path, localePath, "", 1)
-		lng = utils.BaseDir(lng)
-		lng = utils.Basename(lng)
+		lng = io.BaseDir(lng)
+		lng = io.Basename(lng)
 
 		if lng != "" && path != localePath+lng {
 			//languages[lng] = path

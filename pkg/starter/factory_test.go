@@ -16,11 +16,11 @@ package starter
 
 import (
 	"testing"
-	"github.com/hidevopsio/hiboot/pkg/utils"
 	"path/filepath"
 	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"os"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
 type FakeProperties struct {
@@ -39,8 +39,8 @@ type Foo struct {
 
 func init() {
 	log.SetLevel(log.DebugLevel)
-	utils.EnsureWorkDir("../../")
-	NewConfiguration("fake", FakeConfiguration{})
+	io.EnsureWorkDir("../../")
+	AddConfig("fake", FakeConfiguration{})
 }
 
 func (c *FakeConfiguration) Foo() *Foo {
@@ -51,7 +51,7 @@ func (c *FakeConfiguration) Foo() *Foo {
 }
 
 func TestBuild(t *testing.T) {
-	configPath := filepath.Join(utils.GetWorkDir(), "config")
+	configPath := filepath.Join(io.GetWorkDir(), "config")
 	fakeFile := "application-fake.yaml"
 	os.Remove(filepath.Join(configPath, fakeFile))
 	fakeContent :=
@@ -59,7 +59,7 @@ func TestBuild(t *testing.T) {
 		"  name: foo\n" +
 		"  nickname: ${app.name} ${fake.name}\n" +
 		"  username: ${unknown.name:bar}\n"
-	n, err := utils.WriterFile(configPath, fakeFile, []byte(fakeContent))
+	n, err := io.WriterFile(configPath, fakeFile, []byte(fakeContent))
 	assert.Equal(t, nil, err)
 	assert.Equal(t, n, len(fakeContent))
 

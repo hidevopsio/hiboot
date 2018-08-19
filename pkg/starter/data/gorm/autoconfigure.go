@@ -25,7 +25,7 @@ type configuration struct {
 }
 
 func init() {
-	starter.NewConfiguration("gorm", configuration{})
+	starter.AddConfig("gorm", configuration{})
 }
 
 func (c *configuration) dataSource() DataSource {

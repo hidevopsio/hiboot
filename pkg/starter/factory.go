@@ -16,13 +16,15 @@ package starter
 
 import (
 	"sync"
-	"github.com/hidevopsio/hiboot/pkg/utils"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"path/filepath"
 	"os"
 	"reflect"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
 )
 
 type Factory interface {
@@ -78,7 +80,7 @@ func parseInstance(eliminator string, params ...interface{}) (name string, inst 
 	return
 }
 
-func NewConfiguration(params ...interface{})  {
+func AddConfig(params ...interface{})  {
 
 	name, inst := parseInstance("Configuration", params...)
 
@@ -88,7 +90,7 @@ func NewConfiguration(params ...interface{})  {
 	container[name] = inst
 }
 
-func NewInstance(params ...interface{})  {
+func Add(params ...interface{})  {
 
 	name, inst := parseInstance("Impl", params...)
 
@@ -103,7 +105,7 @@ func NewInstance(params ...interface{})  {
 
 func (c *factory) Build()  {
 
-	workDir := utils.GetWorkDir()
+	workDir := io.GetWorkDir()
 	profile := os.Getenv(appProfilesActive)
 	builder := &system.Builder{
 		Path:       filepath.Join(workDir, config),
@@ -116,7 +118,7 @@ func (c *factory) Build()  {
 	defaultConfig, err := builder.Build()
 	if err == nil {
 		c.configurations[System] = defaultConfig
-		utils.Replace(defaultConfig, defaultConfig)
+		replacer.Replace(defaultConfig, defaultConfig)
 		sysconf = defaultConfig.(*SystemConfiguration)
 		sysconf.App.Profiles.Active = profile
 		log.Infof("profiles{active: %v, include: %v}", sysconf.App.Profiles.Active, sysconf.App.Profiles.Include)
@@ -141,8 +143,8 @@ func (c *factory) Build()  {
 			log.Warnf("failed to build %v configuration with error %v", name, err)
 		} else {
 			// replace references and environment variables
-			utils.Replace(cf, defaultConfig)
-			utils.Replace(cf, cf)
+			replacer.Replace(cf, defaultConfig)
+			replacer.Replace(cf, cf)
 
 			// instantiation
 			if err == nil {
@@ -181,7 +183,7 @@ func (c *factory) Instantiate(configuration interface{})  {
 			if retVal[0].CanInterface() {
 				instance := retVal[0].Interface()
 				//log.Debugf("instantiated: %v", instance)
-				instanceName := utils.LowerFirst(methodName)
+				instanceName := str.LowerFirst(methodName)
 				if c.instances[instanceName] != nil {
 					log.Fatalf("method name %v is already taken!", instanceName)
 				}

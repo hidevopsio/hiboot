@@ -12,39 +12,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package str
 
 import (
-	"unicode"
-	"strings"
+	"testing"
+	"github.com/stretchr/testify/assert"
 )
 
-const EmptyString  = ""
+func TestLowerFirst(t *testing.T) {
+	s := "Foo"
 
-// UpperFirst upper case first character of specific string
-func UpperFirst(str string) string {
-	return strings.Title(str)
+	ns := LowerFirst(s)
+
+	assert.Equal(t, "foo", ns)
+
+	es := LowerFirst("")
+
+	assert.Equal(t, "", es)
 }
 
-// LowerFirst lower case first character of specific string
-func LowerFirst(str string) string {
-	for i, v := range str {
-		return string(unicode.ToLower(v)) + str[i+1:]
-	}
-	return EmptyString
+func TestUpperFirst(t *testing.T) {
+	s := "foo"
+
+	ns := UpperFirst(s)
+
+	assert.Equal(t, "Foo", ns)
 }
 
 
-// StringInSlice check if specific string is in slice
-func StringInSlice(a string, list []string) bool {
-
-	var retVal bool
-
-	for _, b := range list {
-		if b == a {
-			retVal = true
-			break
-		}
+func TestStringInSlice(t *testing.T) {
+	s := []string{
+		"foo",
+		"bar",
+		"baz",
 	}
-	return retVal
+
+	assert.Equal(t, true, InSlice("bar", s))
 }

@@ -16,9 +16,9 @@ package gotest
 
 import (
 	"os"
-	"github.com/hidevopsio/hiboot/pkg/utils"
 	"strings"
 	"flag"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
 )
 
 func IsRunning() bool  {
@@ -28,7 +28,7 @@ func IsRunning() bool  {
 	//log.Println("args: ", args)
 	//log.Println("args[0]: ", args[0])
 
-	if utils.StringInSlice("-test.v", args) ||
+	if str.InSlice("-test.v", args) ||
 		strings.Contains(args[0], ".test") {
 		return true
 	}

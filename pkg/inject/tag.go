@@ -2,9 +2,9 @@ package inject
 
 import (
 	"strings"
-	"github.com/hidevopsio/hiboot/pkg/starter"
-	"github.com/hidevopsio/hiboot/pkg/utils"
 	"reflect"
+	"github.com/hidevopsio/hiboot/pkg/starter"
+	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
 )
 
 type Tag interface {
@@ -26,7 +26,7 @@ func (t *BaseTag) replaceReferences(val string) interface{}  {
 	retVal = val
 	systemConfig := autoConfiguration.Configuration(starter.System)
 
-	matches := utils.GetMatches(val)
+	matches := replacer.GetMatches(val)
 	if len(matches) != 0 {
 		for _, m := range matches {
 			//log.Debug(m[1])
@@ -35,12 +35,12 @@ func (t *BaseTag) replaceReferences(val string) interface{}  {
 			vars := strings.SplitN(m[1], ".", -1)
 			configName := vars[0]
 			config := autoConfiguration.Configuration(configName)
-			sysConf, err := utils.GetReferenceValue(systemConfig, configName)
+			sysConf, err := replacer.GetReferenceValue(systemConfig, configName)
 			if config == nil && err == nil && sysConf.IsValid() {
 				config = systemConfig
 			}
 			if config != nil {
-				retVal = utils.ReplaceStringVariables(val, config)
+				retVal = replacer.ReplaceStringVariables(val, config)
 				if retVal != val {
 					break
 				}
