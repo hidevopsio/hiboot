@@ -169,6 +169,19 @@ func (s *buzzService) Init(bs *buzzService, bz *buzz)  {
 	s.bz = bz
 }
 
+type CatInterface interface {
+
+}
+
+type animalService struct {
+	cat CatInterface
+}
+
+func (a *animalService) Init(cat CatInterface)  {
+	a.cat = cat
+}
+
+
 type testTag struct{
 	inject.BaseTag
 }
@@ -303,6 +316,13 @@ func TestInject(t *testing.T) {
 	t.Run("should failed to inject if the type of param and receiver are the same", func(t *testing.T) {
 		err := inject.IntoObject(reflect.ValueOf(new(buzzService)))
 		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should skip inject if the type of param is an unimplemented interface", func(t *testing.T) {
+		catSvc := new(animalService)
+		err := inject.IntoObject(reflect.ValueOf(catSvc))
+		assert.Equal(t, nil, err)
+		assert.Equal(t, nil, catSvc.cat)
 	})
 
 	t.Run("should inject value and it must not be singleton", func(t *testing.T) {
