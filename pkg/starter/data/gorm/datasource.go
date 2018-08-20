@@ -67,16 +67,19 @@ func (d *dataSource) Open(p *properties) error {
 			password = string(pwd)
 		}
 	}
-
+	loc := strings.Replace(p.Loc, "/", "%2F", -1)
 	databaseName := strings.Replace(p.Database, "-", "_", -1)
-
+	parseTime := "False"
+	if p.ParseTime {
+		parseTime = "True"
+	}
 	source := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=%v&parseTime=%v&loc=%v",
-		p.Username, password, p.Host, p.Port,  databaseName, p.Charset, p.ParseTime, p.Loc)
+		p.Username, password, p.Host, p.Port,  databaseName, p.Charset, parseTime, loc)
 
 	d.repository, err = gorm.Open(p.Type, source)
 
 	if err != nil {
-		log.Errorf("dataSource connection failed! (%v)", p)
+		log.Errorf("dataSource connection failed: %v (%v)", err, p)
 		defer func() {
 			d.repository.Close()
 			d.repository = nil
