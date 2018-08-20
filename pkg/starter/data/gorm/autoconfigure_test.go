@@ -30,9 +30,9 @@ func TestConfiguration(t *testing.T) {
 		Username:  "test",
 		Password:  "LcNxqoI4zZjAnpiTD7JQxLJR/IgL2iTiSZ2nd7KPEBgxMV+FVhPSzM+fgH93XqZJNpboN4F/buX22yLTXK38AcVGTfID3rmQAOAc9A2DIWNy5v9+3NOY00M8z4dR1XHojheK0681cY9QVjtlJ70jFFDXb7PjFc2fQ0GIyIjBQDY=",
 		Database:  "test",
-		ParseTime: "True",
+		ParseTime: true,
 		Charset:   "utf8",
-		Loc:       "Asia%2FShanghai",
+		Loc:       "Asia/Shanghai",
 		Config: Config{
 			Decrypt: true,
 		},
