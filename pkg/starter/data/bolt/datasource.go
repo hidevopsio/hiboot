@@ -18,6 +18,7 @@ import (
 	"github.com/boltdb/bolt"
 	"time"
 	"sync"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 type DataSource interface {
@@ -60,6 +61,8 @@ func (d *dataSource) Open(properties *properties) error {
 		if d.db != nil {
 			defer d.db.Close()
 		}
+	} else {
+		log.Infof("dataSource %v connected", properties.Database)
 	}
 
 	return err
