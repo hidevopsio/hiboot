@@ -772,6 +772,7 @@
     "github.com/kataras/pio",
     "github.com/mitchellh/mapstructure",
     "github.com/sony/sonyflake",
+    "github.com/magiconair/properties",
     "github.com/spf13/cobra",
     "github.com/spf13/pflag",
     "github.com/spf13/viper",
