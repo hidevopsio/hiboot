@@ -409,17 +409,6 @@
   revision = "90697d60dd844d5ef6ff15135d0203f65d2f53b8"
 
 [[projects]]
-  digest = "1:d244eb7b2d8e9f4c9355d215d65159c176603874ba10bfb7cbe6dcbd212813f5"
-  name = "github.com/magiconair/properties"
-  packages = [
-    ".",
-    "assert",
-  ]
-  pruneopts = ""
-  revision = "c3beff4c2358b44d0493c7dda585e7db7ff28ae6"
-  version = "v1.7.6"
-
-[[projects]]
   digest = "1:9ea83adf8e96d6304f394d40436f2eb44c1dc3250d223b74088cc253a6cd0a1c"
   name = "github.com/mattn/go-colorable"
   packages = ["."]
@@ -781,7 +770,6 @@
     "github.com/kataras/iris/middleware/i18n",
     "github.com/kataras/iris/middleware/logger",
     "github.com/kataras/pio",
-    "github.com/magiconair/properties/assert",
     "github.com/mitchellh/mapstructure",
     "github.com/sony/sonyflake",
     "github.com/spf13/cobra",

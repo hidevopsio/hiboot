@@ -22,9 +22,9 @@ import (
 	"net/http"
 	"github.com/hidevopsio/hiboot/examples/data/gorm/entity"
 	"github.com/hidevopsio/hiboot/pkg/utils/idgen"
-	"github.com/magiconair/properties/assert"
 	"github.com/stretchr/testify/mock"
 	"errors"
+	"github.com/stretchr/testify/assert"
 )
 
 func init() {
