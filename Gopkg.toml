@@ -31,7 +31,7 @@
 
 [[constraint]]
   name = "github.com/iris-contrib/middleware"
-  version = "10.0.0"
+  version = "v10"
 
 [[constraint]]
   branch = "master"
