@@ -18,6 +18,7 @@ import (
 	"testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/gorm"
 )
 
 type User struct {
@@ -70,4 +71,11 @@ func TestDataSourceOpen(t *testing.T) {
 		}
 	})
 
+	t.Run("should Init dataSource", func(t *testing.T) {
+		repo := new(gorm.FakeRepository)
+		dataSource.Init(repo)
+
+		err := dataSource.Close()
+		assert.Equal(t, nil, err)
+	})
 }

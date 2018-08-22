@@ -64,6 +64,16 @@ func (c *fooCommand) Run(args []string) (err error) {
 	return nil
 }
 
+func (c *fooCommand) OnDaz(args []string) bool {
+	log.Debug("on daz command")
+	return false
+}
+
+func (c *fooCommand) OnBuzz(args []string) bool {
+	log.Debug("on buzz command")
+	return true
+}
+
 type barCommand struct {
 	BaseCommand
 }
@@ -117,6 +127,45 @@ func TestCliApplication(t *testing.T) {
 		_, err := testApp.RunTest("foo", "baz")
 		assert.Equal(t, nil, err)
 	})
+
+	t.Run("should run baz command", func(t *testing.T) {
+		_, err := testApp.RunTest("foo", "daz")
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should run baz command", func(t *testing.T) {
+		_, err := testApp.RunTest("foo", "buzz")
+		assert.Equal(t, nil, err)
+	})
+}
+
+
+// demo foo bar
+func TestCliMultiCommand(t *testing.T) {
+	fooCmd := new(fooCommand)
+	barCmd := new(barCommand)
+	testApp := NewTestApplication(fooCmd, barCmd)
+
+	t.Run("should run foo command", func(t *testing.T) {
+		_, err := testApp.RunTest("foo")
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should run bar command", func(t *testing.T) {
+		_, err := testApp.RunTest("bar")
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should get root command", func(t *testing.T) {
+		root := fooCmd.Root()
+		assert.Equal(t, "root", root.Name())
+	})
+
+	t.Run("should get root command", func(t *testing.T) {
+		rootCmd := testApp.Root()
+		assert.Equal(t, "root", rootCmd.GetName())
+	})
+
 }
 
 func TestNewApplication(t *testing.T) {

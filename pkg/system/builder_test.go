@@ -121,6 +121,28 @@ func TestFileDoesNotExist(t *testing.T) {
 	})
 }
 
+func TestWrongFileFormat(t *testing.T) {
+
+	b := &Builder{
+		Path:       os.TempDir(),
+		Name:       "test",
+		FileType:   "yml",
+		Profile:    "abc",
+		ConfigType: Configuration{},
+	}
+	io.CreateFile(os.TempDir(), "test-abc.yml")
+	io.WriterFile(os.TempDir(), "test-abc.yml", []byte(": 1234"))
+	t.Run("should report error: did not find expected key", func(t *testing.T) {
+		_, err := b.Build()
+		assert.Contains(t, err.Error(), "did not find expected key")
+	})
+	io.WriterFile(os.TempDir(), "test-abc.yml", []byte("abc:"))
+	t.Run("use default profile if custom profile does not exist", func(t *testing.T) {
+		_, err := b.Build()
+		assert.Contains(t, err.Error(), "error on config file: While parsing config: yaml: unmarshal errors")
+	})
+}
+
 
 func TestProfileIsEmpty(t *testing.T) {
 
@@ -194,6 +216,14 @@ func TestBuilderSave(t *testing.T) {
 			Port: 8080,
 		},
 	}
-	err = b.Save(c)
-	assert.Equal(t, nil, err)
+
+	t.Run("should save struct to file", func(t *testing.T) {
+		err = b.Save(c)
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should save struct to file", func(t *testing.T) {
+		err = b.Save("wrong-format")
+		assert.Contains(t, err.Error(), "wrong")
+	})
 }
