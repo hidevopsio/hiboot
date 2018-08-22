@@ -9,9 +9,9 @@ var sf *sonyflake.Sonyflake
 func init() {
 	var st sonyflake.Settings
 	sf = sonyflake.NewSonyflake(st)
-	if sf == nil {
-		panic("sonyflake not created")
-	}
+	//if sf == nil {
+	//	panic("sonyflake not created")
+	//}
 }
 
 func Next() (id uint64, err error) {

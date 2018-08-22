@@ -7,6 +7,21 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/crypto"
 )
 
+var invalidPrivateKey = []byte(`
+-----BEGIN RSA PRIVATE KEY-----
+MCsCAQACBQDJaQRdAgMBAAECBEPxlU0CAwDt4wIDANi/AgJC0QICBc0CAkg4
+-----END RSA PRIVATE KEY-----
+`)
+
+
+var invalidPublicKey = []byte(`
+-----BEGIN PUBLIC KEY-----
+MCAwDQYJKoZIhvcNAQEBBQADDwAwDAIFAMlpBF0CAwEAAQ==
+-----END PUBLIC KEY-----
+`)
+
+
+
 func init() {
 	log.SetLevel(log.DebugLevel)
 }
@@ -37,11 +52,30 @@ func TestExeptions(t *testing.T) {
 		assert.Equal(t, crypto.InvalidPublicKeyError, err)
 	})
 
+	t.Run("should report error with invalid public key", func(t *testing.T) {
+		src := []byte("hello")
+		_, err := Encrypt([]byte(src), invalidPrivateKey)
+		assert.Contains(t, err.Error(), "tags don't match")
+	})
+
+	t.Run("should report error with invalid public key", func(t *testing.T) {
+		src := []byte("hello")
+		data, _ := Encrypt([]byte(src))
+		_, err := Decrypt(data, invalidPublicKey)
+		assert.Contains(t, err.Error(), "tags don't match")
+	})
+
 	t.Run("should report error with invalid private key", func(t *testing.T) {
 		src := []byte("hello")
 		data, _ := Encrypt([]byte(src))
 		_, err := Decrypt(data, []byte("invalid-key"))
 		assert.Equal(t, crypto.InvalidPrivateKeyError, err)
+	})
+
+	t.Run("should report error with invalid base64 string", func(t *testing.T) {
+		src := []byte("invalid-base64")
+		_, err := DecryptBase64([]byte(src))
+		assert.Equal(t, crypto.InvalidInputError, err)
 	})
 }
 

@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"crypto/rsa"
 	"crypto/rand"
-	"errors"
 	"github.com/hidevopsio/hiboot/pkg/utils/crypto/base64"
 	"github.com/hidevopsio/hiboot/pkg/utils/crypto"
 )
@@ -91,6 +90,6 @@ func DecryptBase64(input []byte, privateKey ...[]byte) ([]byte, error) {
 		data, err := Decrypt(ciphertext, privateKey...)
 		return data, err
 	}
-	return nil, errors.New("wrong input format")
+	return nil, crypto.InvalidInputError
 }
 

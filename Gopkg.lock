@@ -192,8 +192,7 @@
   revision = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168"
 
 [[projects]]
-  branch = "master"
-  digest = "1:9d275457961564d672763857d0d53fce2106ca96cb79a5b6fa67518818e36752"
+  digest = "1:e069a6c4f07e7d5686819cf020cd8ca10f710e3b374df835303473bef3ecaca4"
   name = "github.com/hidevopsio/gorm"
   packages = [
     ".",
@@ -203,7 +202,8 @@
     "dialects/sqlite",
   ]
   pruneopts = ""
-  revision = "7914960564b4f97f2adf6a87f437872aabdac7f2"
+  revision = "c63e030600d114f09f451c887732f616e5a6da48"
+  version = "v2.0.1"
 
 [[projects]]
   digest = "1:ea625f4c9123f980f6b008d387f812c9327ac1eb5bbcc4e55eff3566f2798e27"
