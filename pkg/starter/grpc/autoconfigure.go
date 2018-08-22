@@ -14,6 +14,24 @@
 
 package grpc
 
-type Application struct {
+import (
+	"google.golang.org/grpc"
+	"github.com/hidevopsio/hiboot/pkg/starter"
+)
 
+type configuration struct {
+	Properties properties `mapstructure:"grpc"`
+}
+
+func init() {
+	starter.AddConfig(new(configuration))
+}
+
+func (c *configuration) GrpcClientConnection() *grpc.ClientConn {
+	address := c.Properties.Host + ":" + c.Properties.Port
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	if err != nil {
+		return nil
+	}
+	return conn
 }
