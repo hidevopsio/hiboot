@@ -27,7 +27,7 @@ func init() {
 	starter.AddConfig(new(configuration))
 }
 
-func (c *configuration) GrpcClientConnection() *grpc.ClientConn {
+func (c *configuration) GrpcClientConn() *grpc.ClientConn {
 	address := c.Properties.Host + ":" + c.Properties.Port
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
