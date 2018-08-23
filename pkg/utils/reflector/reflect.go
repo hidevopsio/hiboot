@@ -20,7 +20,6 @@ import (
 	"strings"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 var InvalidInputError = errors.New("input is invalid")
@@ -166,7 +165,7 @@ func GetName(data interface{}) (string, error)  {
 	if !dv.IsValid() {
 		return "", InvalidInputError
 	}
-	log.Infof("%v %v %v %v", dv, dv.Type(), dv.Type().String(), dv.Type().Name())
+	//log.Debugf("%v %v %v %v", dv, dv.Type(), dv.Type().String(), dv.Type().Name())
 	name := dv.Type().Name()
 	return name, nil
 }
