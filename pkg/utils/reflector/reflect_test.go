@@ -404,3 +404,24 @@ func TestGetPkgPath(t *testing.T) {
 		assert.Contains(t, "github.com/hidevopsio/hiboot/pkg/utils/reflector", pkgPath)
 	})
 }
+
+func TestParseObjectPkgName(t *testing.T) {
+	pkgName := ParseObjectPkgName(Foo{})
+	assert.Equal(t, "reflector", pkgName)
+
+	pkgName = ParseObjectPkgName(&Foo{})
+	assert.Equal(t, "reflector", pkgName)
+}
+
+func SayHello(name string) string {
+	return "Hello " + name
+}
+
+func TestCallFunc(t *testing.T) {
+	t.Run("should call func", func(t *testing.T) {
+		res, err := CallFunc(SayHello, "Steve")
+		assert.Equal(t, nil, err)
+		assert.NotEqual(t, nil, res)
+		assert.Equal(t, "Hello Steve", res.(string))
+	})
+}

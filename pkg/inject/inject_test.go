@@ -198,7 +198,7 @@ func init() {
 	io.EnsureWorkDir("../..")
 
 	configPath := filepath.Join(io.GetWorkDir(), "config")
-	fakeFile := "application-fake.yaml"
+	fakeFile := "application-fake.yml"
 	os.Remove(filepath.Join(configPath, fakeFile))
 	fakeContent :=
 		"fake:" +

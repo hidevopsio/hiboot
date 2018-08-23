@@ -14,8 +14,69 @@
 
 package grpc
 
-import "testing"
+import (
+	"testing"
+	pb "google.golang.org/grpc/examples/helloworld/helloworld"
+	"github.com/hidevopsio/hiboot/pkg/starter"
+	"golang.org/x/net/context"
+)
 
-func TestServer(t *testing.T) {
+func init() {
+	RegisterServer(pb.RegisterGreeterServer, new(greeterService))
+	RegisterClient("greeter-client", pb.NewGreeterClient)
+}
 
+// gRpc server
+// server is used to implement helloworld.GreeterServer.
+type greeterService struct{}
+
+// SayHello implements helloworld.GreeterServer
+func (s *greeterService) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
+	return &pb.HelloReply{Message: "Hello " + in.Name}, nil
+}
+
+// gRpc client
+type greeterClient struct {
+	greeterClient pb.GreeterClient
+	clientContext ClientContext
+}
+
+// Init inject greeterClient and clientContext
+func (s *greeterClient) Init(greeterClient pb.GreeterClient, clientContext ClientContext)  {
+	s.clientContext = clientContext
+	s.greeterClient = greeterClient
+}
+
+func (s *greeterClient) SayHello(name string) (*pb.HelloReply, error) {
+	response, err := s.greeterClient.SayHello(s.clientContext, &pb.HelloRequest{Name: name})
+	return response, err
+}
+
+func TestGrpcServerAndClient(t *testing.T) {
+	grpcConfig := configuration{
+		Properties: properties{
+			TimeoutSecond: 1,
+			Server: server{
+				Enabled: true,
+				Network: "tcp",
+				Port: "7575",
+			},
+			Client: map[string]interface{}{
+				"greeter-client": client{
+					Host: "localhost",
+					Port: "7575",
+				},
+			},
+		},
+	}
+
+	factory := starter.GetFactory()
+	factory.Instantiate(&grpcConfig)
+
+	//greeterSvc := new(greeterClient)
+	//
+	//name := "Steve"
+	//response, err := greeterSvc.SayHello(name)
+	//assert.Equal(t, nil, err)
+	//assert.Equal(t, "Hello " + name, response.Message)
 }

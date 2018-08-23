@@ -1,0 +1,5 @@
+grpc:
+  server:
+    enabled: true
+    network: tcp
+    port: 7575

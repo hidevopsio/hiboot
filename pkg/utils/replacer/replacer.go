@@ -207,11 +207,16 @@ func Replace(to interface{}, root interface{}) error {
 					//case reflect.Slice:
 					//	log.Debug("slice")
 					case reflect.Map:
-						mi := dstField.Interface()
-						ReplaceMap(mi.(map[string]interface{}), root)
+						childMap := dstField.Interface()
+						if !dstField.IsNil() {
+							ReplaceMap(childMap.(map[string]interface{}), root)
+						}
 					default:
 						//log.Debug(fieldName, " is a ", kind)
-						Replace(dstField.Addr().Interface(), root)
+						child := dstField.Addr()
+						if child.CanInterface() {
+							Replace(child.Interface(), root)
+						}
 					}
 				}
 			}
