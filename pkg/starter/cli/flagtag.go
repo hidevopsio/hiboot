@@ -3,8 +3,8 @@ package cli
 import (
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"reflect"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 type flagTag struct {
@@ -38,22 +38,23 @@ func (t *flagTag) Decode(object reflect.Value, field reflect.StructField, tag st
 
 		var shorthand, name, value, usage string
 
-		if properties["shorthand"] != nil {
-			shorthand = properties["shorthand"].(string)
+		if val, ok := properties.Get("shorthand"); ok {
+			shorthand = val.(string)
 		}
 
-		if properties["usage"] != nil {
-			usage = properties["usage"].(string)
+		if val, ok := properties.Get("usage"); ok {
+			usage = val.(string)
 		}
 
 		name = strings.ToLower(field.Name)
-		if properties["name"] != nil {
-			name = properties["name"].(string)
+		if val, ok := properties.Get("name"); ok {
+			name = val.(string)
 		}
 
-		if properties["value"] != nil {
-			value = properties["value"].(string)
+		if val, ok := properties.Get("value"); ok {
+			value = val.(string)
 		}
+
 		//log.Debugf("flag: %v, shorthand: %v, value: %v, usage: %v", name, shorthand, value, usage)
 		switch ft.Kind() {
 		case reflect.String:
