@@ -44,12 +44,10 @@ type FooBar struct {
 	Name string
 }
 
-
-
 func init() {
 	log.SetLevel(log.DebugLevel)
 	io.EnsureWorkDir("../../")
-	AddConfig(FakeConfiguration{})
+	AddConfig("fake", FakeConfiguration{})
 }
 
 func (c *FakeConfiguration) Foo() *Foo {
@@ -61,7 +59,7 @@ func (c *FakeConfiguration) Foo() *Foo {
 
 func TestBuild(t *testing.T) {
 	configPath := filepath.Join(io.GetWorkDir(), "config")
-	fakeFile := "application-fake.yaml"
+	fakeFile := "application-fake.yml"
 	os.Remove(filepath.Join(configPath, fakeFile))
 	fakeContent :=
 		"fake:\n" +
@@ -72,9 +70,17 @@ func TestBuild(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, n, len(fakeContent))
 
-	AddConfig(FooConfiguration{})
+	AddConfig("foo", FooConfiguration{})
 	factory := GetFactory()
 	factory.Build()
+
+	t.Run("should add instance to factory at runtime", func(t *testing.T) {
+		fakeInstance := &struct{Name string}{Name: "fake"}
+		factory.AddInstance("fakeInstance", fakeInstance)
+		gotFakeInstance := factory.Instance("fakeInstance")
+		assert.Equal(t, fakeInstance, gotFakeInstance)
+	})
+
 	f := factory.Configuration("fake")
 	assert.NotEqual(t, nil, f)
 	fc := f.(*FakeConfiguration)
@@ -82,15 +88,17 @@ func TestBuild(t *testing.T) {
 	fooCfg := factory.Configuration("foo")
 	assert.NotEqual(t, nil, fooCfg)
 
-	assert.Equal(t, "hiboot foo", fc.FakeProperties.Nickname)
+	assert.Equal(t, "hiboot fake", fc.FakeProperties.Nickname)
 	assert.Equal(t, "bar", fc.FakeProperties.Username)
-	assert.Equal(t, "foo", fc.FakeProperties.Name)
-	assert.Equal(t, "foo", factory.Instances()["foo"].(*Foo).Name)
-	assert.Equal(t, "foo", factory.Instance("foo").(*Foo).Name)
+	assert.Equal(t, "fake", fc.FakeProperties.Name)
+	foo, ok := factory.Instances().Get("foo")
+	assert.Equal(t, true, ok)
+	assert.Equal(t, "fake", foo.(*Foo).Name)
+	assert.Equal(t, "fake", factory.Instance("foo").(*Foo).Name)
 
 	// get all configs
 	cfs := factory.Configurations()
-	assert.Equal(t, 3, len(cfs))
+	assert.Equal(t, 3, cfs.Count())
 
 }
 
@@ -100,4 +108,11 @@ func TestAdd(t *testing.T) {
 	factory := GetFactory()
 	f := factory.Instance("fooBar")
 	assert.Equal(t, f, fooBar)
+}
+
+func TestAddConfigs(t *testing.T) {
+	preCfg := struct{Name string}{}
+	AddPreConfig("pre", preCfg)
+	postCfg := struct{Name string}{}
+	AddPostConfig("post", postCfg)
 }

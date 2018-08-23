@@ -1,0 +1,7 @@
+# grpc client configs
+
+grpc:
+  client:
+    greeter-client:
+      host: localhost
+      port: 7575

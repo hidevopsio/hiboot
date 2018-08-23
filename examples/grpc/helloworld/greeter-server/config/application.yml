@@ -1,0 +1,14 @@
+# config file for testing
+# filename should be application.yml
+
+app:
+  project: hidevopsio
+  name: grpc-server
+  profiles:
+    include:
+    - web
+    - grpc
+
+logging:
+  level: info
+

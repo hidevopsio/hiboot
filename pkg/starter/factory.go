@@ -25,110 +25,111 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
+	"errors"
 	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
+	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 )
 
 type Factory interface {
-	Build()
+	Build(configs ...interface{})
 	Instantiate(configuration interface{})
-	Configurations() map[string]interface{}
+	Configurations() cmap.ConcurrentMap
 	Configuration(name string) interface{}
-	Instances() map[string]interface{}
+	Instances() cmap.ConcurrentMap
 	Instance(name string) interface{}
+	AddInstance(name string, instance interface{}) error
 }
 
 type factory struct {
-	configurations map[string]interface{}
-	instances map[string]interface{}
+	configurations cmap.ConcurrentMap
+	instances      cmap.ConcurrentMap
 }
 
 const (
-	System      = "system"
-	application = "application"
-	config      = "config"
-	yaml        = "yaml"
+	System            = "system"
+	application       = "application"
+	config            = "config"
+	yaml              = "yaml"
 	appProfilesActive = "APP_PROFILES_ACTIVE"
 )
 
 var (
-	bootFactory *factory
-	container   map[string]interface{}
-	once        sync.Once
+	bootFactory              *factory
+	preConfigContainer       cmap.ConcurrentMap
+	configContainer          cmap.ConcurrentMap
+	postConfigContainer      cmap.ConcurrentMap
+	once                     sync.Once
+	InstanceNameIsTakenError = errors.New("[factory] instance name is already taken")
 )
 
 func init() {
-	container = make(map[string]interface{})
+	preConfigContainer = cmap.New()
+	configContainer = cmap.New()
+	postConfigContainer = cmap.New()
 }
 
 func GetFactory() Factory {
 	once.Do(func() {
 		bootFactory = new(factory)
-		bootFactory.configurations = make(map[string]interface{})
-		bootFactory.instances = make(map[string]interface{})
+		bootFactory.configurations = cmap.New()
+		bootFactory.instances = cmap.New()
 	})
 	return bootFactory
 }
 
-func parseInstance(eliminator string, params ...interface{}) (name string, inst interface{})  {
+func parseInstance(eliminator string, params ...interface{}) (name string, inst interface{}) {
 
 	if len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String {
 		name = params[0].(string)
 		inst = params[1]
 	} else {
+		name = reflector.ParseObjectName(params[0], eliminator)
 		inst = params[0]
-		name = reflector.ParseObjectName(inst, eliminator)
 	}
 	return
 }
 
-func AddConfig(params ...interface{})  {
+func addConfig(c cmap.ConcurrentMap, params ...interface{}) {
 
 	name, inst := parseInstance("Configuration", params...)
+	if name == "" && params != nil {
+		name = reflector.ParseObjectPkgName(params[0])
+	}
 
-	if container[name] != nil {
+	if _, ok := c.Get(name); ok {
 		log.Fatalf("configuration name %v is already taken!", name)
 	}
-	container[name] = inst
+	c.Set(name, inst)
 }
 
-func Add(params ...interface{})  {
+func AddConfig(params ...interface{}) {
+	addConfig(configContainer, params...)
+}
 
+func AddPreConfig(params ...interface{}) {
+	addConfig(preConfigContainer, params...)
+}
+
+func AddPostConfig(params ...interface{}) {
+	addConfig(postConfigContainer, params...)
+}
+
+func Add(params ...interface{}) {
 	name, inst := parseInstance("Impl", params...)
 
 	f := GetFactory()
 	instances := f.Instances()
 
-	if instances[name] != nil {
+	if _, ok := instances.Get(name); ok {
 		log.Fatalf("instance name %v is already taken!", name)
 	}
-	instances[name] = inst
+	instances.Set(name, inst)
 }
 
-func (c *factory) Build()  {
-
-	workDir := io.GetWorkDir()
-	profile := os.Getenv(appProfilesActive)
-	builder := &system.Builder{
-		Path:       filepath.Join(workDir, config),
-		Name:       application,
-		FileType:   yaml,
-		Profile:    profile,
-		ConfigType: SystemConfiguration{},
-	}
-	var sysconf *SystemConfiguration
-	defaultConfig, err := builder.Build()
-	if err == nil {
-		c.configurations[System] = defaultConfig
-		replacer.Replace(defaultConfig, defaultConfig)
-		sysconf = defaultConfig.(*SystemConfiguration)
-		sysconf.App.Profiles.Active = profile
-		log.Infof("profiles{active: %v, include: %v}", sysconf.App.Profiles.Active, sysconf.App.Profiles.Include)
-	} else {
-		log.Warnf("%v", err)
-	}
-
+func (f *factory) build(cfgContainer cmap.ConcurrentMap, builder *system.Builder, sysconf *SystemConfiguration)  {
 	isTestRunning := gotest.IsRunning()
-	for name, configType := range container {
+	for item := range cfgContainer.IterBuffered() {
+		name, configType := item.Key, item.Val
 		// TODO: should check if profiles is enabled str.InSlice(name, sysconf.App.Profiles.Include)
 		if !isTestRunning && sysconf != nil && !str.InSlice(name, sysconf.App.Profiles.Include) {
 			continue
@@ -146,21 +147,56 @@ func (c *factory) Build()  {
 			log.Warnf("failed to build %v configuration with error %v", name, err)
 		} else {
 			// replace references and environment variables
-			replacer.Replace(cf, defaultConfig)
+			if sysconf != nil {
+				replacer.Replace(cf, sysconf)
+			}
 			replacer.Replace(cf, cf)
 
 			// instantiation
 			if err == nil {
 				// create instances
-				c.Instantiate(cf)
+				f.Instantiate(cf)
 				// save configuration
-				c.configurations[name] = cf
+				f.configurations.Set(name, cf)
 			}
 		}
 	}
 }
 
-func (c *factory) Instantiate(configuration interface{})  {
+func (f *factory) Build(configs ...interface{}) {
+
+	workDir := io.GetWorkDir()
+	profile := os.Getenv(appProfilesActive)
+	builder := &system.Builder{
+		Path:       filepath.Join(workDir, config),
+		Name:       application,
+		FileType:   yaml,
+		Profile:    profile,
+		ConfigType: SystemConfiguration{},
+	}
+	var sysconf *SystemConfiguration
+	defaultConfig, err := builder.Build()
+	if err == nil {
+		f.configurations.Set(System, defaultConfig)
+		replacer.Replace(defaultConfig, defaultConfig)
+		sysconf = defaultConfig.(*SystemConfiguration)
+		sysconf.App.Profiles.Active = profile
+		log.Infof("profiles{active: %v, include: %v}", sysconf.App.Profiles.Active, sysconf.App.Profiles.Include)
+	} else {
+		log.Warnf("%v", err)
+	}
+
+	if len(configs) != 0 {
+		name, inst := parseInstance("Configuration", configs...)
+		configContainer.Set(name, inst)
+	}
+
+	f.build(preConfigContainer, builder, sysconf)
+	f.build(configContainer, builder, sysconf)
+	f.build(postConfigContainer, builder, sysconf)
+}
+
+func (f *factory) Instantiate(configuration interface{}) {
 	cv := reflect.ValueOf(configuration)
 
 	configType := cv.Type()
@@ -183,31 +219,48 @@ func (c *factory) Instantiate(configuration interface{})  {
 			argv[0] = reflect.ValueOf(configuration)
 			retVal := method.Func.Call(argv)
 			// save instance
-			if retVal[0].CanInterface() {
+			if retVal != nil && retVal[0].CanInterface() {
 				instance := retVal[0].Interface()
 				//log.Debugf("instantiated: %v", instance)
 				instanceName := str.LowerFirst(methodName)
-				if c.instances[instanceName] != nil {
+				if _, ok := f.instances.Get(instanceName); ok {
 					log.Fatalf("method name %v is already taken!", instanceName)
 				}
-				c.instances[instanceName] = instance
+				f.instances.Set(instanceName, instance)
 			}
 		}
 	}
 }
 
-func (c *factory) Configurations() map[string]interface{} {
-	return c.configurations
+func (f *factory) Configurations() cmap.ConcurrentMap {
+	return f.configurations
 }
 
-func (c *factory) Configuration(name string) interface{} {
-	return c.configurations[name]
+func (f *factory) Configuration(name string) interface{} {
+	retVal, ok := f.configurations.Get(name)
+	if ok {
+		return retVal
+	}
+	return nil
 }
 
-func (c *factory) Instances() map[string]interface{} {
-	return c.instances
+func (f *factory) Instances() cmap.ConcurrentMap {
+	return f.instances
 }
 
-func (c *factory) Instance(name string) interface{} {
-	return c.instances[name]
+func (f *factory) Instance(name string) interface{} {
+	retVal, ok := f.instances.Get(name)
+	if ok {
+		return retVal
+	}
+	return nil
+}
+
+func (f *factory) AddInstance(name string, instance interface{}) error {
+	if _, ok := f.instances.Get(name); ok {
+		return InstanceNameIsTakenError
+	}
+	f.instances.Set(name, instance)
+
+	return nil
 }
