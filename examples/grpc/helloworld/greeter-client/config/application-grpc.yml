@@ -1,3 +1,5 @@
+# grpc client configs
+
 grpc:
   client:
     greeter-client:

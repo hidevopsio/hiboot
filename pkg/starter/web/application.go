@@ -148,11 +148,20 @@ func (wa *application) Init(controllers ...interface{}) error {
 		log.Warnf("no config files in %v, e.g. application.yml", filepath.Join(wa.workDir, "config"))
 	}
 
+	if len(controllers) == 0 {
+		wa.add(webControllers...)
+	} else {
+		wa.add(controllers...)
+	}
+
+	numJwtCtrl := len(wa.jwtControllers)
 	// Init JWT
 	err := InitJwt(wa.workDir)
 	if err != nil {
 		wa.jwtEnabled = false
-		log.Warn(err.Error())
+		if numJwtCtrl != 0 {
+			log.Warn(err.Error())
+		}
 	} else {
 		wa.jwtEnabled = true
 	}
@@ -195,14 +204,7 @@ func (wa *application) Init(controllers ...interface{}) error {
 
 	err = wa.initLocale()
 	if err != nil {
-		log.Warn(err)
-	}
-
-	//healthHandler(wa.app)
-	if len(controllers) == 0 {
-		wa.add(webControllers...)
-	} else {
-		wa.add(controllers...)
+		log.Debug(err)
 	}
 
 	// inject grpc services
