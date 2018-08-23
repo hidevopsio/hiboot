@@ -12,10 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grpc
+// copied from https://github.com/iancoleman/strcase
 
-import "testing"
+package str
 
-func TestServer(t *testing.T) {
+import (
+	"regexp"
+)
 
+var numberSequence = regexp.MustCompile(`([a-zA-Z])(\d+)([a-zA-Z]?)`)
+var numberReplacement = []byte(`$1 $2 $3`)
+
+func addWordBoundariesToNumbers(s string) string {
+	b := []byte(s)
+	b = numberSequence.ReplaceAll(b, numberReplacement)
+	return string(b)
 }

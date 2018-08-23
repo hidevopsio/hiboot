@@ -1,0 +1,7 @@
+# config file for testing
+
+server:
+  port: 8081
+
+logging:
+  level: debug

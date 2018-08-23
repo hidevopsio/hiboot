@@ -23,7 +23,6 @@ import (
 	"regexp"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
-	"github.com/kataras/iris/core/router"
 	"github.com/kataras/iris/middleware/i18n"
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/hidevopsio/hiboot/pkg/log"
@@ -32,6 +31,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
 )
 
 const (
@@ -69,11 +69,6 @@ type application struct {
 	dispatcher      dispatcher
 }
 
-// Health is the health check struct
-type Health struct {
-	Status string `json:"status"`
-}
-
 var (
 	// controllers global controllers container
 	webControllers []interface{}
@@ -93,15 +88,6 @@ func (wa *application) Run() {
 	}
 	// TODO: WithCharset should be configurable
 	wa.app.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(DefaultConfiguration()))
-}
-
-func healthHandler(app *iris.Application) *router.Route {
-	return app.Get("/health", func(ctx context.Context) {
-		health := Health{
-			Status: "UP",
-		}
-		ctx.JSON(health)
-	})
 }
 
 // Add add controller to controllers container
@@ -162,11 +148,20 @@ func (wa *application) Init(controllers ...interface{}) error {
 		log.Warnf("no config files in %v, e.g. application.yml", filepath.Join(wa.workDir, "config"))
 	}
 
+	if len(controllers) == 0 {
+		wa.add(webControllers...)
+	} else {
+		wa.add(controllers...)
+	}
+
+	numJwtCtrl := len(wa.jwtControllers)
 	// Init JWT
 	err := InitJwt(wa.workDir)
 	if err != nil {
 		wa.jwtEnabled = false
-		log.Warn(err.Error())
+		if numJwtCtrl != 0 {
+			log.Warn(err.Error())
+		}
 	} else {
 		wa.jwtEnabled = true
 	}
@@ -209,19 +204,15 @@ func (wa *application) Init(controllers ...interface{}) error {
 
 	err = wa.initLocale()
 	if err != nil {
-		log.Warn(err)
+		log.Debug(err)
 	}
 
-	healthHandler(wa.app)
-	if len(controllers) == 0 {
-		wa.add(webControllers...)
-	} else {
-		wa.add(controllers...)
-	}
+	// inject grpc services
+	grpc.InjectIntoObject()
 
 	if len(wa.anonControllers) == 0 &&
 		len(wa.jwtControllers) == 0 {
-		return &system.NotFoundError{Name: "controller"}
+		return nil
 	}
 
 	// first register anon controllers

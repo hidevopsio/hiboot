@@ -16,7 +16,10 @@ package main
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/starter/web"
-	_ "github.com/hidevopsio/hiboot/examples/web/jwt/controllers"
+	// starter/actuator is response for health check etc.
+	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
+	_ "github.com/hidevopsio/hiboot/examples/web/jwt/controller"
+
 )
 
 func main()  {

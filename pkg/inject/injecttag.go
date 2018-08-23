@@ -32,8 +32,8 @@ func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, tag 
 		o := reflect.New(ft)
 		retVal = o.Interface()
 		// inject field value
-		if len(properties) != 0 {
-			mapstruct.Decode(retVal, properties)
+		if properties.Count() != 0 {
+			mapstruct.Decode(retVal, properties.Items())
 		}
 	} else {
 		return

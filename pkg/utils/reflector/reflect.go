@@ -19,6 +19,8 @@ import (
 	"errors"
 	"strings"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 var InvalidInputError = errors.New("input is invalid")
@@ -164,6 +166,7 @@ func GetName(data interface{}) (string, error)  {
 	if !dv.IsValid() {
 		return "", InvalidInputError
 	}
+	log.Infof("%v %v %v %v", dv, dv.Type(), dv.Type().String(), dv.Type().Name())
 	name := dv.Type().Name()
 	return name, nil
 }
@@ -201,6 +204,22 @@ func CallMethodByName(object interface{}, name string, args ...interface{}) (int
 	return nil, InvalidMethodError
 }
 
+func CallFunc(object interface{}, args ...interface{}) (interface{}, error)  {
+	fn := reflect.ValueOf(object)
+	numIn := fn.Type().NumIn()
+	inputs := make([]reflect.Value, numIn)
+	for i, arg := range args {
+		inputs[i] = reflect.ValueOf(arg)
+	}
+	results := fn.Call(inputs)
+	if len(results) != 0 {
+		return results[0].Interface(), nil
+	} else {
+		return nil, nil
+	}
+	return nil, InvalidMethodError
+}
+
 func HasEmbeddedField(object interface{}, name string) bool {
 	typ := IndirectType(reflect.TypeOf(object))
 	field, ok := typ.FieldByName(name)
@@ -208,12 +227,21 @@ func HasEmbeddedField(object interface{}, name string) bool {
 }
 
 // ParseObjectName e.g. ExampleObject => example
-func ParseObjectName(cmd interface{}, eliminator string) string {
-	name, err := GetName(cmd)
+func ParseObjectName(obj interface{}, eliminator string) string {
+	name, err := GetName(obj)
 	if err == nil {
 		name = strings.Replace(name, eliminator, "", -1)
 		name = str.LowerFirst(name)
 	}
+	return name
+}
+
+// ParseObjectName e.g. ExampleObject => example
+func ParseObjectPkgName(obj interface{}) string {
+
+	typ := IndirectType(reflect.TypeOf(obj))
+	name := io.DirName(typ.PkgPath())
+
 	return name
 }
 

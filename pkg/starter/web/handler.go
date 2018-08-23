@@ -205,6 +205,7 @@ func (h *handler) call(ctx *Context) {
 	var results []reflect.Value
 	if reqErr == nil {
 		reflector.SetFieldValue(h.controller, "Ctx", ctx)
+		// call controller method
 		results = h.method.Func.Call(h.inputs)
 		if h.numOut == 1 {
 			result := results[0]
