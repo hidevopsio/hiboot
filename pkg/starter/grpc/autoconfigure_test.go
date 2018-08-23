@@ -80,3 +80,7 @@ func TestGrpcServerAndClient(t *testing.T) {
 	//assert.Equal(t, nil, err)
 	//assert.Equal(t, "Hello " + name, response.Message)
 }
+
+func TestInjectIntoObject(t *testing.T) {
+	InjectIntoObject()
+}
