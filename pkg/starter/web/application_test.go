@@ -237,9 +237,9 @@ func TestWebApplication(t *testing.T)  {
 			Body().Contains("Hello, World")
 	})
 
-	t.Run("should pass health check", func(t *testing.T) {
-		app.Get("/health").Expect().Status(http.StatusOK)
-	})
+	//t.Run("should pass health check", func(t *testing.T) {
+	//	app.Get("/health").Expect().Status(http.StatusOK)
+	//})
 
 	t.Run("should login with username and password", func(t *testing.T) {
 		app.Post("/foo/login").

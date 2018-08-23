@@ -23,6 +23,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 )
 
 
@@ -67,14 +68,14 @@ func AddTag(tag Tag) error {
 	return nil
 }
 
-func getInstanceByName(instances map[string]interface{}, name string, instType reflect.Type) (inst interface{}) {
+func getInstanceByName(instances cmap.ConcurrentMap, name string, instType reflect.Type) (inst interface{}) {
 	name = str.LowerFirst(name)
-	inst = instances[name]
-
+	var ok bool
+	inst, ok = instances.Get(name)
 	// TODO: we should pro load all candidates into instances for improving performance.
 	// if inst is nil, and the object type is an interface
 	// then try to find the instance that embedded with the interface
-	if inst == nil && instType.Kind() == reflect.Interface {
+	if !ok && instType.Kind() == reflect.Interface {
 		for _, ist := range instances {
 			//log.Debug(n)
 			if ist != nil && reflector.HasEmbeddedField(ist, instType.Name()) {
@@ -86,10 +87,14 @@ func getInstanceByName(instances map[string]interface{}, name string, instType r
 	return
 }
 
-func saveInstance(instances map[string]interface{}, name string, inst interface{}) {
+func saveInstance(instances cmap.ConcurrentMap, name string, inst interface{}) {
 	name = str.LowerFirst(name)
-	instances[name] = inst
-	return
+
+	if _, ok := instances.Get(name); ok {
+		log.Fatal("%v is already taken", name)
+	}
+
+	instances.Set(name, inst)
 }
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
