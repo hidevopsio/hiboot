@@ -129,12 +129,12 @@ func IntoObject(object reflect.Value) error {
 		// TODO: assume that the f.Name of value and inject tag is not the same
 		injectedObject = getInstanceByName(instances, f.Name, f.Type)
 		if injectedObject == nil {
-			for tagName, tagObject := range tagsContainer {
+			for tagName, tagImpl := range tagsContainer {
 				tag, ok := f.Tag.Lookup(tagName)
 				if ok {
-					injectedObject = tagObject.Decode(object, f, tag)
+					injectedObject = tagImpl.Decode(object, f, tag)
 					if injectedObject != nil {
-						if tagObject.IsSingleton() {
+						if tagImpl.IsSingleton() {
 							saveInstance(instances, f.Name, injectedObject)
 						}
 						// ONLY one tag should be used for dependency injection
