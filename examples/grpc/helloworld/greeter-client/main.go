@@ -22,7 +22,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
 	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"time"
 	"golang.org/x/net/context"
 )
 
@@ -42,12 +41,9 @@ func (c *greeterController) Init(greeterClient protobuf.GreeterClient)  {
 // GET /greeter/{name}
 func (c *greeterController) GetByName(name string) string {
 
-	// set 2 second timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 2 * time.Second)
-	defer cancel()
-
 	// call grpc server method
-	response, err := c.greeterClient.SayHello(ctx, &protobuf.HelloRequest{Name: name})
+	// pass context.Background() for the sake of simplicity
+	response, err := c.greeterClient.SayHello(context.Background(), &protobuf.HelloRequest{Name: name})
 
 	// got response
 	if err == nil {
