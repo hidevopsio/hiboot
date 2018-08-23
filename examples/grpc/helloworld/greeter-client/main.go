@@ -32,33 +32,44 @@ import (
 
 // controller
 type greeterController struct {
+	// embedded web.Controller
 	web.Controller
+	// declare greeterClient
 	greeterClient protobuf.GreeterClient
 }
 
-func (c *greeterController) Init(greeterClient protobuf.GreeterClient, clientContext grpc.ClientContext)  {
+// Init inject greeterClient
+func (c *greeterController) Init(greeterClient protobuf.GreeterClient)  {
 	c.greeterClient = greeterClient
 }
 
+// GET /greeter/{name}
 func (c *greeterController) GetByName(name string) string {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+
+	// set 2 second timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 2 * time.Second)
 	defer cancel()
 
+	// call grpc server method
 	response, err := c.greeterClient.SayHello(ctx, &protobuf.HelloRequest{Name: name})
 
+	// got response
 	if err == nil {
 		return response.Message
 	}
 
-	return "no response from grpc server"
+	// response with err
+	return err.Error()
 }
 
 func init() {
-	// for running test
+	// optional: for running test
 	io.EnsureWorkDir("examples/grpc/helloworld/greeter-client")
-	// register grpc client
+
+	// must: register grpc client
 	grpc.RegisterClient("greeter-client", protobuf.NewGreeterClient)
-	// register greeterController
+
+	// must: register greeterController
 	web.Add(new(greeterController))
 }
 

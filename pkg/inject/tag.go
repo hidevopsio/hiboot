@@ -5,16 +5,17 @@ import (
 	"reflect"
 	"github.com/hidevopsio/hiboot/pkg/starter"
 	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
+	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 )
 
 type Tag interface {
 	Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{})
-	Properties() map[string]interface{}
+	Properties() cmap.ConcurrentMap
 	IsSingleton() bool
 }
 
 type BaseTag struct {
-	properties map[string]interface{}
+	properties cmap.ConcurrentMap
 }
 
 func (t *BaseTag) IsSingleton() bool  {
@@ -50,8 +51,8 @@ func (t *BaseTag) replaceReferences(val string) interface{}  {
 	return retVal
 }
 
-func (t *BaseTag) ParseProperties(tag string) map[string]interface{} {
-	t.properties = make(map[string]interface{}) // ? map[string]string
+func (t *BaseTag) ParseProperties(tag string) cmap.ConcurrentMap {
+	t.properties = cmap.New()
 
 	args := strings.Split(tag, ",")
 	for _, v := range args {
@@ -64,14 +65,14 @@ func (t *BaseTag) ParseProperties(tag string) map[string]interface{} {
 				// check if val contains reference or env
 				// TODO: should lookup certain config instead of for loop
 				replacedVal := t.replaceReferences(val)
-				t.properties[key] = replacedVal
+				t.properties.Set(key, replacedVal)
 			}
 		}
 	}
 	return t.properties
 }
 
-func (t *BaseTag) Properties() map[string]interface{} {
+func (t *BaseTag) Properties() cmap.ConcurrentMap {
 	return t.properties
 }
 

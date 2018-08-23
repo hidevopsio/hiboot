@@ -29,17 +29,20 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
-// server is used to implement helloworld.GreeterServer.
+// server is used to implement protobuf.GreeterServer.
 type greeterService struct{}
 
 // SayHello implements helloworld.GreeterServer
-func (s *greeterService) SayHello(ctx context.Context, in *protobuf.HelloRequest) (*protobuf.HelloReply, error) {
-	return &protobuf.HelloReply{Message: "Hello " + in.Name}, nil
+func (s *greeterService) SayHello(ctx context.Context, request *protobuf.HelloRequest) (*protobuf.HelloReply, error) {
+	// response to client
+	return &protobuf.HelloReply{Message: "Hello " + request.Name}, nil
 }
 
 func init() {
+	// optional: for test only
 	io.EnsureWorkDir("examples/grpc/helloworld/greeter-server")
 
+	// must: register grpc server
 	grpc.RegisterServer(protobuf.RegisterGreeterServer, new(greeterService))
 }
 
