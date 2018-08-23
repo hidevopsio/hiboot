@@ -17,8 +17,31 @@ With auto configuration, you can integrate any other libraries easily with depen
 * Web MVC (Model-View-Controller)
 * Auto Configuration, pre-create instance with properties configs for dependency injection
 * Dependency injection with struct tag name **\`inject:""\`** or **Init** method
-* Some useful utils, include enhanced reflection, struct copier, config file replacer, etc.
-
+* Utils 
+    * cmap - concurrent map
+    * copier - copy between struct
+    * crypto - aes, base64, md5, and rsa encryption / decryption
+    * gotest - go test util
+    * idgen - twitter snowflake id generator
+    * io - file io util
+    * mapstruct - convert map to struct
+    * replacer - replacing stuct field value with references or environment variables
+    * sort - sort slice elements
+    * str - string util enhancement util
+    * validator - struct field validation
+* auto configuration starters
+    * cli - cli application starter
+    * web - web application starter
+    * grpc - grpc application starter
+    * bolt - bolt database starter
+    * gorm - gorm orm starter, support mysql, postgres, mssql, sqlite
+* Tags 
+    * inject - inject generic instance into object
+    * value - inject string value or references / variables into struct string field
+    * cmd - inject command into parent command for cli application
+    * flag - inject flag / options into command object
+    
+and more on the wey ...
 
 ## Getting started
 
