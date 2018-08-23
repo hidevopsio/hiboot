@@ -23,6 +23,7 @@ type App struct {
 	Project        string   `json:"project"`
 	Name           string   `json:"name"`
 	Profiles       Profiles `json:"profiles"`
+	Version        string   `json:"version"`
 }
 
 type Server struct {
