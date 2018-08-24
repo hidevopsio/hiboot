@@ -88,13 +88,13 @@ func TestBuild(t *testing.T) {
 	fooCfg := factory.Configuration("foo")
 	assert.NotEqual(t, nil, fooCfg)
 
-	assert.Equal(t, "hiboot fake", fc.FakeProperties.Nickname)
+	assert.Equal(t, "hiboot foo", fc.FakeProperties.Nickname)
 	assert.Equal(t, "bar", fc.FakeProperties.Username)
-	assert.Equal(t, "fake", fc.FakeProperties.Name)
+	assert.Equal(t, "foo", fc.FakeProperties.Name)
 	foo, ok := factory.Instances().Get("foo")
 	assert.Equal(t, true, ok)
-	assert.Equal(t, "fake", foo.(*Foo).Name)
-	assert.Equal(t, "fake", factory.Instance("foo").(*Foo).Name)
+	assert.Equal(t, "foo", foo.(*Foo).Name)
+	assert.Equal(t, "foo", factory.Instance("foo").(*Foo).Name)
 
 	// get all configs
 	cfs := factory.Configurations()
