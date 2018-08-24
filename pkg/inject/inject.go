@@ -91,7 +91,7 @@ func saveInstance(instances cmap.ConcurrentMap, name string, inst interface{}) {
 	name = str.LowerFirst(name)
 
 	if _, ok := instances.Get(name); ok {
-		log.Fatal("%v is already taken", name)
+		log.Fatalf("%v is already taken", name)
 	}
 
 	instances.Set(name, inst)
