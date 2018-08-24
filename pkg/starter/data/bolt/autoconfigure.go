@@ -15,8 +15,8 @@ package bolt
 // limitations under the License.
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/starter"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
 type configuration struct {
@@ -26,7 +26,7 @@ type configuration struct {
 }
 
 func init() {
-	starter.AddConfig("bolt", configuration{})
+	app.AddConfig("bolt", configuration{})
 }
 
 func (c *configuration) dataSource() DataSource {

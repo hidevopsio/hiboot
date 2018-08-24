@@ -18,7 +18,7 @@ package main
 
 import (
 	"testing"
-	"github.com/hidevopsio/hiboot/pkg/starter/cli"
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/stretchr/testify/assert"
 )
 

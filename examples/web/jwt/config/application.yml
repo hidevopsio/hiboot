@@ -3,10 +3,10 @@
 
 app:
   project: hidevopsio
-  name: hiboot
+  name: jwt-example
   profiles:
     include:
-    - foo
+    - web
 
 logging:
   level: info

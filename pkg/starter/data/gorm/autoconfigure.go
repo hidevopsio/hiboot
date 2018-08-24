@@ -15,7 +15,7 @@
 package gorm
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/starter"
+	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
 type configuration struct {
@@ -25,7 +25,7 @@ type configuration struct {
 }
 
 func init() {
-	starter.AddConfig("gorm", configuration{})
+	app.AddConfig("gorm", configuration{})
 }
 
 func (c *configuration) dataSource() DataSource {

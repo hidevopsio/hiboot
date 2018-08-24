@@ -364,13 +364,7 @@ func TestNewApplication(t *testing.T) {
 	wa := NewApplication()
 	t.Run("should init web application", func(t *testing.T) {
 		log.Debugf("### web application: %v", app)
-		assert.NotEqual(t, nil, wa.app)
-	})
-
-	t.Run("should get application config", func(t *testing.T) {
-		config := wa.Config()
-		assert.NotEqual(t, nil, config)
-		assert.NotEqual(t, "", config.App.Name)
+		assert.NotEqual(t, nil, wa)
 	})
 
 	go wa.Run()

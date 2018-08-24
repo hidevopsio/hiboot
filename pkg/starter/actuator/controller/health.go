@@ -1,6 +1,6 @@
 package controller
 
-import "github.com/hidevopsio/hiboot/pkg/starter/web"
+import "github.com/hidevopsio/hiboot/pkg/app/web"
 
 // Health is the health check struct
 type Health struct {

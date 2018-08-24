@@ -15,16 +15,18 @@
 package inject_test
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"reflect"
-	"github.com/hidevopsio/hiboot/pkg/starter/data"
-	"github.com/hidevopsio/hiboot/pkg/starter"
-	"path/filepath"
 	"os"
+	"testing"
+	"reflect"
+	"path/filepath"
+	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/hidevopsio/hiboot/pkg/starter/data"
+	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
+	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/factory"
 )
 
 type user struct {
@@ -192,26 +194,48 @@ var (
 	fooName    = "foo"
 	fakeUrl    = "http://fake.com/api/foo"
 	defaultUrl = "http://localhost:8080"
+
+	configurableFactory *factory.ConfigurableFactory
 )
 
 func init() {
-	io.EnsureWorkDir("../..")
+	io.ChangeWorkDir(os.TempDir())
+	configPath := filepath.Join(os.TempDir(), "config")
 
-	configPath := filepath.Join(io.GetWorkDir(), "config")
-	fakeFile := "application-fake.yml"
+	fakeFile := "application.yml"
 	os.Remove(filepath.Join(configPath, fakeFile))
 	fakeContent :=
-		"fake:" +
-			"\n  name: " + fakeName +
-			"\n  nickname: ${app.name} ${fake.name}\n" +
-			"\n  username: ${unknown.name:bar}\n" +
-			"\n  url: " + fakeUrl
+		"app:\n" +
+		"  project: hidevopsio\n" +
+		"  name: hiboot\n" +
+		"  version: ${unknown.version:0.0.1}\n"
 	io.WriterFile(configPath, fakeFile, []byte(fakeContent))
 
-	starter.AddConfig("fake", fakeConfiguration{})
-	starter.AddConfig("foo", fooConfiguration{})
-	starter.GetFactory().Build()
-	starter.Add(new(BazImpl))
+	fakeFile = "application-fake.yml"
+	os.Remove(filepath.Join(configPath, fakeFile))
+	fakeContent =
+		"fake:" +
+		"\n  name: " + fakeName +
+		"\n  nickname: ${app.name} ${fake.name}\n" +
+		"\n  username: ${unknown.name:bar}\n" +
+		"\n  url: " + fakeUrl
+	io.WriterFile(configPath, fakeFile, []byte(fakeContent))
+
+	instances := cmap.New()
+	configurations := cmap.New()
+	configurableFactory = new(factory.ConfigurableFactory)
+	configurableFactory.InstanceFactory = new(factory.InstanceFactory)
+	configurableFactory.InstanceFactory.Init(instances)
+	configurableFactory.Init(configurations)
+	configurableFactory.BuildSystemConfig(system.Configuration{})
+
+	inject.SetInstance(instances)
+
+	configs := cmap.New()
+	configs.Set("fake", fakeConfiguration{})
+	configs.Set("foo", fooConfiguration{})
+	configurableFactory.Build(configs)
+
 }
 
 // Init automatically inject FooUser and FakeRepository that instantiated in fakeConfiguration
@@ -227,6 +251,7 @@ func TestNotInject(t *testing.T) {
 }
 
 func TestInject(t *testing.T) {
+
 	t.Run("should inject through method", func(t *testing.T) {
 		s := new(MethodInjectionService)
 		err := inject.IntoObject(reflect.ValueOf(s))
@@ -337,27 +362,13 @@ func TestInject(t *testing.T) {
 	})
 
 	t.Run("should deduplicate tag", func(t *testing.T) {
-		err := inject.AddTag(new(testTag))
-		assert.Equal(t, nil, err)
-		err = inject.AddTag(new(testTag))
-		assert.Equal(t, inject.TagIsAlreadyExistError, err)
-		err = inject.AddTag( nil)
-		assert.Equal(t, inject.InvalidTagNameError, err)
+		inject.AddTag(new(testTag))
+		inject.AddTag( nil)
 	})
 
 	t.Run("should not inject primitive type", func(t *testing.T) {
 		a := struct{TestObj *int `inject:""`}{}
 		err := inject.IntoObject(reflect.ValueOf(&a))
 		assert.Equal(t, nil, err)
-	})
-
-	t.Run("should add a fake tag", func(t *testing.T) {
-		err := inject.AddTag(new(fakeTag))
-		assert.Equal(t, nil, err)
-	})
-
-	t.Run("should failed to add a tag with empty name", func(t *testing.T) {
-		err := inject.AddTag(new(Tag))
-		assert.Equal(t, inject.InvalidTagNameError, err)
 	})
 }

@@ -27,11 +27,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
-type Env struct {
-	Name  string
-	Value string
-}
-
 type Builder struct {
 	Path       string
 	Name       string
