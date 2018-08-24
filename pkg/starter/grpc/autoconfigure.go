@@ -22,17 +22,11 @@ import (
 	"google.golang.org/grpc/reflection"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"time"
-	"golang.org/x/net/context"
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"reflect"
 	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
 )
-
-type ClientContext interface{
-	context.Context
-}
 
 type configuration struct {
 	Properties properties `mapstructure:"grpc"`
@@ -92,11 +86,6 @@ func init() {
 	starter.AddConfig("grpc", configuration{})
 }
 
-func (c *configuration) grpcClientContext() ClientContext {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	return ctx
-}
 
 func (c *configuration) BuildGrpcClients() {
 	factory := starter.GetFactory()
@@ -136,7 +125,6 @@ func (c *configuration) BuildGrpcClients() {
 			}
 		}
 	}
-	factory.AddInstance("grpcClientContext", c.grpcClientContext())
 }
 
 func (c *configuration) RunGrpcServers() {
