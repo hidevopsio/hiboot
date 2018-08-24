@@ -12,36 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package starter
+package system
 
-type Profiles struct {
-	Include []string `json:"include"`
-	Active  string   `json:"active" value:"${APP_PROFILES_ACTIVE:dev}"`
-}
-
-type App struct {
-	Project        string   `json:"project"`
-	Name           string   `json:"name"`
-	Profiles       Profiles `json:"profiles"`
-	Version        string   `json:"version"`
-}
-
-type Server struct {
-	Port int32 `json:"port"`
-}
-
-type Logging struct {
-	Level string `json:"level"`
-}
-
-type Env struct {
-	Name  string
-	Value string
-}
-
-type SystemConfiguration struct {
+type Configuration struct {
 	App         App          `mapstructure:"app"`
 	Server      Server       `mapstructure:"server"`
 	Logging     Logging      `mapstructure:"logging"`
 }
-

@@ -19,11 +19,11 @@ import (
 	"errors"
 	"strings"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/starter"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
+	"github.com/hidevopsio/hiboot/pkg/system"
 )
 
 
@@ -34,7 +34,7 @@ const (
 )
 
 var (
-	autoConfiguration   starter.Factory
+	InstanceContainerIsNilError = errors.New("[inject] instance container is nil")
 	NotImplementedError = errors.New("[inject] interface is not implemented")
 	InvalidObjectError      = errors.New("[inject] invalid object")
 	UnsupportedInjectionTypeError      = errors.New("[inject] unsupported injection type")
@@ -42,41 +42,33 @@ var (
 	TagIsAlreadyExistError = errors.New("[inject] tag is already exist")
 	TagIsNilError = errors.New("[inject] tag is nil")
 	InvalidTagNameError = errors.New("[inject] invalid tag name, e.g. exampleTag")
+	SystemConfigurationError = errors.New("[inject] system is not configured")
 
-	tagsContainer map[string]Tag
+	// TODO use cmap.ConcurrentMap for tagsContainer
+	tagsContainer []Tag
+
+	instancesMap cmap.ConcurrentMap
 )
 
-func init() {
-	autoConfiguration = starter.GetFactory()
-	tagsContainer = make(map[string]Tag)
+func SetInstance(i cmap.ConcurrentMap)  {
+	instancesMap = i
 }
 
 // AddTag
-func AddTag(tag Tag) error {
-	name := reflector.ParseObjectName(tag, "Tag")
-	if name == "" {
-		return InvalidTagNameError
-	}
-
-	t := tagsContainer[name]
-	if t != nil {
-		return TagIsAlreadyExistError
-	}
-	if tag != nil {
-		tagsContainer[name] = tag
-	}
-	return nil
+func AddTag(tag Tag) {
+	tagsContainer = append(tagsContainer, tag)
 }
 
-func getInstanceByName(instances cmap.ConcurrentMap, name string, instType reflect.Type) (inst interface{}) {
+func getInstanceByName(name string, instType reflect.Type) (inst interface{}) {
 	name = str.LowerFirst(name)
 	var ok bool
-	inst, ok = instances.Get(name)
+	inst, ok = instancesMap.Get(name)
 	// TODO: we should pro load all candidates into instances for improving performance.
 	// if inst is nil, and the object type is an interface
 	// then try to find the instance that embedded with the interface
 	if !ok && instType.Kind() == reflect.Interface {
-		for _, ist := range instances {
+		for item := range instancesMap.IterBuffered() {
+			ist := item.Val
 			//log.Debug(n)
 			if ist != nil && reflector.HasEmbeddedField(ist, instType.Name()) {
 				inst = ist
@@ -87,19 +79,24 @@ func getInstanceByName(instances cmap.ConcurrentMap, name string, instType refle
 	return
 }
 
-func saveInstance(instances cmap.ConcurrentMap, name string, inst interface{}) {
+func saveInstance(name string, inst interface{}) {
 	name = str.LowerFirst(name)
 
-	if _, ok := instances.Get(name); ok {
+	if _, ok := instancesMap.Get(name); ok {
 		log.Fatalf("%v is already taken", name)
 	}
 
-	instances.Set(name, inst)
+	instancesMap.Set(name, inst)
 }
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
 func IntoObject(object reflect.Value) error {
     var err error
+
+    // TODO refactor IntoObject
+    if instancesMap == nil {
+    	return InstanceContainerIsNilError
+	}
 
 	obj := reflector.Indirect(object)
 	if obj.Kind() != reflect.Struct {
@@ -107,7 +104,17 @@ func IntoObject(object reflect.Value) error {
 		return InvalidObjectError
 	}
 
-	instances := autoConfiguration.Instances()
+	sc, ok := instancesMap.Get("systemConfiguration")
+	if !ok {
+		return SystemConfigurationError
+	}
+	systemConfig := sc.(*system.Configuration)
+
+	cs, ok := instancesMap.Get("configurations")
+	if !ok {
+		return SystemConfigurationError
+	}
+	configurations := cs.(cmap.ConcurrentMap)
 
 	// field injection
 	for _, f := range reflector.DeepFields(object.Type()) {
@@ -127,15 +134,20 @@ func IntoObject(object reflect.Value) error {
 		}
 
 		// TODO: assume that the f.Name of value and inject tag is not the same
-		injectedObject = getInstanceByName(instances, f.Name, f.Type)
+		injectedObject = getInstanceByName(f.Name, f.Type)
 		if injectedObject == nil {
-			for tagName, tagImpl := range tagsContainer {
+			for _, tagImpl := range tagsContainer {
+				tagName := reflector.ParseObjectName(tagImpl, "Tag")
+				if tagName == "" {
+					return InvalidTagNameError
+				}
 				tag, ok := f.Tag.Lookup(tagName)
 				if ok {
+					tagImpl.Init(systemConfig, configurations)
 					injectedObject = tagImpl.Decode(object, f, tag)
 					if injectedObject != nil {
 						if tagImpl.IsSingleton() {
-							saveInstance(instances, f.Name, injectedObject)
+							saveInstance(f.Name, injectedObject)
 						}
 						// ONLY one tag should be used for dependency injection
 						break
@@ -174,10 +186,10 @@ func IntoObject(object reflect.Value) error {
 			inTypeName := inType.Name()
 			pkgName := io.DirName(inType.PkgPath())
 			//log.Debugf("pkg: %v", pkgName)
-			inst := getInstanceByName(instances, inTypeName, inType)
+			inst := getInstanceByName(inTypeName, inType)
 			if inst == nil {
 				alternativeName := strings.Title(pkgName) + inTypeName
-				inst = getInstanceByName(instances, alternativeName, inType)
+				inst = getInstanceByName(alternativeName, inType)
 			}
 			if inst == nil {
 				if inType.Kind() == reflect.Interface {
@@ -186,7 +198,7 @@ func IntoObject(object reflect.Value) error {
 				} else {
 					paramValue = reflect.New(inType)
 					inst = paramValue.Interface()
-					saveInstance(instances, inTypeName, inst)
+					saveInstance(inTypeName, inst)
 				}
 			}
 

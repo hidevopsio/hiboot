@@ -69,12 +69,10 @@ func ReplaceStringVariables(source string, t interface{}) interface{} {
 		vars := strings.SplitN(varName, ".", -1)
 		refValue := ParseReferences(t, vars)
 		rvType := reflect.TypeOf(refValue)
+		var newValue string
 		switch rvType.Kind() {
 		case reflect.String:
-			newValue := refValue.(string)
-			if newValue == "" && defaultValue != "" {
-				newValue = defaultValue
-			}
+			newValue = refValue.(string)
 			// replace env
 			if newValue != "" {
 				source = strings.Replace(source, varFullName, newValue, -1)
@@ -85,6 +83,10 @@ func ReplaceStringVariables(source string, t interface{}) interface{} {
 		envValue := os.Getenv(varName)
 		if envValue != "" {
 			source = strings.Replace(source, varFullName, envValue, -1)
+		}
+
+		if envValue == "" && newValue == "" && defaultValue != "" {
+			source = strings.Replace(source, varFullName, defaultValue, -1)
 		}
 	}
 	return source
@@ -202,8 +204,14 @@ func Replace(to interface{}, root interface{}) error {
 					switch kind {
 					case reflect.String:
 						fv := fmt.Sprintf("%v", fieldValue)
-						newStr := ReplaceStringVariables(fv, root)
-						dstField.SetString(newStr.(string))
+						newStr := ReplaceStringVariables(fv, root).(string)
+						if newStr == "" {
+							newStr = field.Tag.Get("value")
+							if newStr != "" {
+								newStr = ReplaceStringVariables(newStr, root).(string)
+							}
+						}
+						dstField.SetString(newStr)
 					//case reflect.Slice:
 					//	log.Debug("slice")
 					case reflect.Map:

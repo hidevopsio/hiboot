@@ -19,7 +19,7 @@ package main
 import (
 	"testing"
 	"net/http"
-	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 )
 
 func TestRunMain(t *testing.T) {

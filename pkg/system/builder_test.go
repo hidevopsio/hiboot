@@ -43,12 +43,6 @@ type logging struct {
 	Level string `json:"level"`
 }
 
-type Configuration struct {
-	App         app          `mapstructure:"app"`
-	Server      server       `mapstructure:"server"`
-	Logging     logging      `mapstructure:"logging"`
-}
-
 func init() {
 	io.ChangeWorkDir("../../")
 }
@@ -97,7 +91,7 @@ func TestBuilderBuildWithProfile(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	c := cp.(*Configuration)
-	assert.Equal(t, int32(8080), c.Server.Port)
+	assert.Equal(t, "8080", c.Server.Port)
 	log.Print(c)
 
 	b.Profile = ""
@@ -208,12 +202,12 @@ func TestBuilderSave(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	c := &Configuration{
-		App: app{
+		App: App{
 			Name: "foo",
 			Project: "bar",
 		},
-		Server: server{
-			Port: 8080,
+		Server: Server{
+			Port: "8080",
 		},
 	}
 

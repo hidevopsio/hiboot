@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/starter/cli"
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/hidevopsio/hiboot/examples/cli/advanced/cmd"
 )
 

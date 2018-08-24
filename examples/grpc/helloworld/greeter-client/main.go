@@ -17,7 +17,7 @@
 package main
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
 	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf"

@@ -19,7 +19,7 @@ package controllers
 import (
 	"testing"
 	"net/http"
-	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"fmt"
 	"time"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"

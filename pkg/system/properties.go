@@ -6,39 +6,35 @@
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
-
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package system
 
-
-import (
-	"github.com/hidevopsio/hiboot/pkg/app/cli"
-	"github.com/hidevopsio/hiboot/pkg/log"
-)
-
-type barCommand struct {
-	cli.BaseCommand
+type Profiles struct {
+	Include []string `json:"include" value:"web"`
+	Active  string   `json:"active" value:"${APP_PROFILES_ACTIVE:dev}"`
 }
 
-func (c *barCommand) Init() {
-	c.Use = "bar"
-	c.Short = "bar command"
-	c.Long = "Run bar command"
+type App struct {
+	Project        string   `json:"project" value:"hidevopsio"`
+	Name           string   `json:"name" value:"hiboot-app"`
+	Profiles       Profiles `json:"profiles"`
+	Version        string   `json:"version" value:"0.0.1"`
 }
 
-// OnBaz run command bar baz, return true means it won't run next action, in this case is method Run(args []string)
-func (c *barCommand) OnBaz(args []string) bool  {
-	log.Infof("on baz command")
-	return true
+type Server struct {
+	Port string `json:"port" value:"8080"`
 }
 
-func (c *barCommand) Run(args []string) error {
-	log.Info("handle bar command")
-	return nil
+type Logging struct {
+	Level string `json:"level" value:"info"`
 }
 
+type Env struct {
+	Name  string
+	Value string
+}
