@@ -126,7 +126,7 @@ func ParseReferences(st interface{}, varName []string) interface{} {
 	for _, vn := range varName {
 		field, err := GetReferenceValue(parent, vn)
 		if err == nil {
-			k := reflector.GetKind(field)
+			k := reflector.GetKindByValue(field)
 			switch k {
 			case reflect.String, reflect.Int, reflect.Float32:
 				fv := fmt.Sprintf("%v", field.Interface())

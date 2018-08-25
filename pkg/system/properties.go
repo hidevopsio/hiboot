@@ -15,23 +15,23 @@
 package system
 
 type Profiles struct {
-	Include []string `json:"include" value:"web"`
-	Active  string   `json:"active" value:"${APP_PROFILES_ACTIVE:dev}"`
+	Include []string `json:"include" default:"web"`
+	Active  string   `json:"active" default:"${APP_PROFILES_ACTIVE:dev}"`
 }
 
 type App struct {
-	Project        string   `json:"project" value:"hidevopsio"`
-	Name           string   `json:"name" value:"hiboot-app"`
+	Project        string   `json:"project" default:"hidevopsio"`
+	Name           string   `json:"name" default:"hiboot-app"`
 	Profiles       Profiles `json:"profiles"`
-	Version        string   `json:"version" value:"0.0.1"`
+	Version        string   `json:"version" default:"0.0.1"`
 }
 
 type Server struct {
-	Port string `json:"port" value:"8080"`
+	Port string `json:"port" default:"8080"`
 }
 
 type Logging struct {
-	Level string `json:"level" value:"info"`
+	Level string `json:"level" default:"info"`
 }
 
 type Env struct {

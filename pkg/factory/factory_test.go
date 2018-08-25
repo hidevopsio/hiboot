@@ -26,11 +26,11 @@ import (
 )
 
 type FakeProperties struct {
-	Name string			`value:"foo"`
-	Nickname string		`value:"foobar"`
-	Username string		`value:"fb"`
-	Org string			`value:"hidevopsio"`
-	Profile string		`value:"${APP_PROFILES_ACTIVE}"`
+	Name string			`default:"foo"`
+	Nickname string		`default:"foobar"`
+	Username string		`default:"fb"`
+	Org string			`default:"hidevopsio"`
+	Profile string		`default:"${APP_PROFILES_ACTIVE}"`
 }
 
 type FakeConfiguration struct {
@@ -38,9 +38,9 @@ type FakeConfiguration struct {
 }
 
 type FooProperties struct {
-	Name string			`value:"${fake.name}"`
-	Nickname string		`value:"foobar"`
-	Username string		`value:"fb"`
+	Name string			`default:"${fake.name}"`
+	Nickname string		`default:"foobar"`
+	Username string		`default:"fb"`
 }
 
 type FooConfiguration struct {
@@ -89,8 +89,8 @@ func TestBuild(t *testing.T) {
 
 	f := new(ConfigurableFactory)
 	f.InstanceFactory = new(InstanceFactory)
-	f.InstanceFactory.Init(cmap.New())
-	f.Init(configContainers)
+	f.InstanceFactory.Initialize(cmap.New())
+	f.Initialize(configContainers)
 
 	t.Run("should build app config", func(t *testing.T) {
 		io.ChangeWorkDir(os.TempDir())

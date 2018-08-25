@@ -45,5 +45,6 @@ func init() {
 }
 
 func main() {
+	// create new web application and run it
 	web.NewApplication().Run()
 }

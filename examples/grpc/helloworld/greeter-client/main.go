@@ -58,7 +58,15 @@ func init() {
 	// optional: for running test
 	io.EnsureWorkDir("examples/grpc/helloworld/greeter-client")
 
-	// must: register grpc client
+	// must: register grpc client, the name greeter-client should configured in application.yml
+	// see config/application-grpc.yml
+	//
+	// grpc:
+	//   client:
+	// 	   greeter-client:   # client name
+	//       host: localhost # server host
+	//       port: 7575      # server port
+	//
 	grpc.RegisterClient("greeter-client", protobuf.NewGreeterClient)
 
 	// must: register greeterController
@@ -66,5 +74,6 @@ func init() {
 }
 
 func main() {
+	// create new web application and run it
 	web.NewApplication().Run()
 }
