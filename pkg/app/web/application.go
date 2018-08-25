@@ -217,6 +217,9 @@ func (a *application) Init(controllers ...interface{}) error {
 		return err
 	}
 
+	//
+	a.ConfigurableFactory().AfterInitialization()
+
 	return nil
 }
 

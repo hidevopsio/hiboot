@@ -25,6 +25,7 @@ import (
 	"bytes"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"reflect"
 )
 
 type Builder struct {
@@ -108,7 +109,12 @@ func (b *Builder) Read(name string) (interface{}, error) {
 	}
 	st := b.ConfigType
 
-	cp := reflector.NewReflectType(st)
+	val := reflect.ValueOf(st)
+	//log.Debugf("value of configuration: %v, kind: %v", val, val.Kind())
+	cp := b.ConfigType
+	if val.Kind() == reflect.Struct {
+		cp = reflector.NewReflectType(st)
+	}
 
 	err = v.Unmarshal(cp)
 	if err != nil {

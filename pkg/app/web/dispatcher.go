@@ -56,7 +56,7 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 		//log.Debug("controller: ", controller)
 
 		// inject component
-		err := inject.IntoObject(field)
+		err := inject.IntoObjectValue(field)
 		if err != nil {
 			return err
 		}

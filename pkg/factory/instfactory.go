@@ -10,7 +10,7 @@ type InstanceFactory struct {
 	instances cmap.ConcurrentMap
 }
 
-func (f *InstanceFactory) Init(instances cmap.ConcurrentMap)  {
+func (f *InstanceFactory) Initialize(instances cmap.ConcurrentMap)  {
 	f.instances = instances
 }
 

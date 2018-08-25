@@ -86,7 +86,7 @@ func (a *application) injectCommand(cmd Command)  {
 		fullname = cmd.FullName()
 	}
 	for _, child := range cmd.Children() {
-		inject.IntoObject(reflect.ValueOf(child))
+		inject.IntoObjectValue(reflect.ValueOf(child))
 		child.SetFullName(fullname + "." + child.GetName())
 		a.injectCommand(child)
 	}
@@ -111,7 +111,7 @@ func (a *application) Init(cmd ...Command) error  {
 		}
 	}
 	root.SetName("root")
-	inject.IntoObject(reflect.ValueOf(root))
+	inject.IntoObjectValue(reflect.ValueOf(root))
 	Register(root)
 	a.SetRoot(root)
 	if !gotest.IsRunning() {
@@ -133,7 +133,7 @@ func (a *application) Init(cmd ...Command) error  {
 				parent = a.root
 			}
 			for _, command := range commands {
-				inject.IntoObject(reflect.ValueOf(command))
+				inject.IntoObjectValue(reflect.ValueOf(command))
 				parent.Add(command)
 				fullname := cmdName + "." + command.GetName()
 				parentContainer[fullname] = command

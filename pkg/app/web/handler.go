@@ -104,7 +104,7 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 		h.requests[i].kind = iTyp.Kind()
 		h.requests[i].val = reflect.New(typ)
 		h.requests[i].iVal = reflect.New(iTyp)
-		h.requests[i].genKind = reflector.GetKind(h.requests[i].iVal) // TODO:
+		h.requests[i].genKind = reflector.GetKindByValue(h.requests[i].iVal) // TODO:
 		pi := i - 1
 		if pi < lenOfPathParams {
 			h.requests[i].name = pp[pi][1]

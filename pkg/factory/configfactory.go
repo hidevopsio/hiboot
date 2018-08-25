@@ -10,8 +10,8 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
-	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
+	"github.com/hidevopsio/hiboot/pkg/inject"
 )
 
 const (
@@ -27,9 +27,10 @@ type ConfigurableFactory struct {
 	configurations cmap.ConcurrentMap
 	systemConfig   *system.Configuration
 	builder        *system.Builder
+	postProcessor  postProcessor
 }
 
-func (f *ConfigurableFactory) Init(configurations cmap.ConcurrentMap)  {
+func (f *ConfigurableFactory) Initialize(configurations cmap.ConcurrentMap)  {
 	if f.InstanceFactory == nil {
 		log.Fatal("[factory] InstanceFactory can not be nil")
 	}
@@ -77,11 +78,20 @@ func (f *ConfigurableFactory) Build(configs ...cmap.ConcurrentMap) {
 	}
 }
 
+func (f *ConfigurableFactory) BeforeInitialization(configs ...cmap.ConcurrentMap) {
+	// pass user's instances
+	f.postProcessor.BeforeInitialization()
+}
+
+func (f *ConfigurableFactory) AfterInitialization(configs ...cmap.ConcurrentMap) {
+	// pass user's instances
+	f.postProcessor.AfterInitialization()
+}
+
 func (f *ConfigurableFactory) Instantiate(configuration interface{}) {
 	cv := reflect.ValueOf(configuration)
 
 	// inject configuration before instantiation
-	inject.IntoObject(cv)
 
 	configType := cv.Type()
 	//log.Debug("type: ", configType)
@@ -113,7 +123,6 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) {
 	}
 }
 
-
 func (f *ConfigurableFactory) build(cfgContainer cmap.ConcurrentMap)  {
 	isTestRunning := gotest.IsRunning()
 	for item := range cfgContainer.IterBuffered() {
@@ -139,6 +148,8 @@ func (f *ConfigurableFactory) build(cfgContainer cmap.ConcurrentMap)  {
 				replacer.Replace(cf, f.systemConfig)
 			}
 			replacer.Replace(cf, cf)
+
+			inject.IntoObject(cf)
 
 			// instantiation
 			if err == nil {

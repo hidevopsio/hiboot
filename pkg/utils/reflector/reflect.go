@@ -24,6 +24,7 @@ import (
 
 var InvalidInputError = errors.New("input is invalid")
 var InvalidMethodError = errors.New("method is invalid")
+var InvalidFuncError = errors.New("func is invalid")
 var FieldCanNotBeSetError = errors.New("field can not be set")
 
 func NewReflectType(st interface{}) interface{} {
@@ -114,10 +115,8 @@ func SetFieldValue(object interface{}, name string, value interface{}) error  {
 	return nil
 }
 
-func GetKind(val reflect.Value) reflect.Kind {
 
-	// Capture the value's Kind.
-	kind := val.Kind()
+func GetKind(kind reflect.Kind) reflect.Kind {
 
 	// Check each condition until a case is true.
 	switch {
@@ -135,6 +134,15 @@ func GetKind(val reflect.Value) reflect.Kind {
 		return kind
 	}
 }
+
+func GetKindByValue(val reflect.Value) reflect.Kind {
+	return GetKind(val.Kind())
+}
+
+func GetKindByType(typ reflect.Type) reflect.Kind {
+	return GetKind(typ.Kind())
+}
+
 
 func ValidateReflectType(obj interface{}, callback func(value *reflect.Value, reflectType reflect.Type, fieldSize int, isSlice bool) error) error {
 	v, err := Validate(obj)
@@ -205,18 +213,20 @@ func CallMethodByName(object interface{}, name string, args ...interface{}) (int
 
 func CallFunc(object interface{}, args ...interface{}) (interface{}, error)  {
 	fn := reflect.ValueOf(object)
-	numIn := fn.Type().NumIn()
-	inputs := make([]reflect.Value, numIn)
-	for i, arg := range args {
-		inputs[i] = reflect.ValueOf(arg)
+	if fn.Kind() == reflect.Func {
+		numIn := fn.Type().NumIn()
+		inputs := make([]reflect.Value, numIn)
+		for i, arg := range args {
+			inputs[i] = reflect.ValueOf(arg)
+		}
+		results := fn.Call(inputs)
+		if len(results) != 0 {
+			return results[0].Interface(), nil
+		} else {
+			return nil, nil
+		}
 	}
-	results := fn.Call(inputs)
-	if len(results) != 0 {
-		return results[0].Interface(), nil
-	} else {
-		return nil, nil
-	}
-	return nil, InvalidMethodError
+	return nil, InvalidFuncError
 }
 
 func HasEmbeddedField(object interface{}, name string) bool {

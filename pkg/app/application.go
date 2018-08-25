@@ -20,6 +20,7 @@ type BaseApplication struct {
 	WorkDir             string
 	configurations      cmap.ConcurrentMap
 	instances           cmap.ConcurrentMap
+	potatoes		 	cmap.ConcurrentMap
 	configurableFactory *factory.ConfigurableFactory
 }
 
@@ -28,6 +29,7 @@ var (
 	configContainer          cmap.ConcurrentMap
 	postConfigContainer      cmap.ConcurrentMap
 	instanceContainer		 cmap.ConcurrentMap
+
 )
 
 func init() {
@@ -91,14 +93,15 @@ func (a *BaseApplication) Init(args ...interface{}) error  {
 	a.instances = instanceContainer
 
 	instanceFactory := new(factory.InstanceFactory)
-	instanceFactory.Init(a.instances)
+	instanceFactory.Initialize(a.instances)
 	a.instances.Set("instanceFactory", instanceFactory)
 
 	configurableFactory := new(factory.ConfigurableFactory)
 	configurableFactory.InstanceFactory = instanceFactory
 	a.instances.Set("configurableFactory", configurableFactory)
 
-	configurableFactory.Init(a.configurations)
+	configurableFactory.BeforeInitialization()
+	configurableFactory.Initialize(a.configurations)
 	configurableFactory.BuildSystemConfig(system.Configuration{})
 
 	a.configurableFactory = configurableFactory
@@ -115,3 +118,4 @@ func (a *BaseApplication) BuildConfigurations()  {
 func (a *BaseApplication) ConfigurableFactory() *factory.ConfigurableFactory  {
 	return a.configurableFactory
 }
+

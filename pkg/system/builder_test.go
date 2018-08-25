@@ -45,6 +45,7 @@ type logging struct {
 
 func init() {
 	io.ChangeWorkDir("../../")
+	log.SetLevel(log.DebugLevel)
 }
 
 func TestBuilderBuild(t *testing.T) {
@@ -57,14 +58,23 @@ func TestBuilderBuild(t *testing.T) {
 		ConfigType: Configuration{},
 	}
 
-	cp, err := b.Build()
-	assert.Equal(t, nil, err)
+	t.Run("should build configuration properly", func(t *testing.T) {
+		cp, err := b.Build()
+		assert.Equal(t, nil, err)
+		c := cp.(*Configuration)
+		assert.Equal(t, "hiboot", c.App.Name)
+	})
 
-	c := cp.(*Configuration)
-	assert.Equal(t, "hiboot", c.App.Name)
+	t.Run("should build configuration properly", func(t *testing.T) {
+		b.ConfigType = new(Configuration)
+		cp, err := b.Build()
+		assert.Equal(t, nil, err)
+		c := cp.(*Configuration)
+		assert.Equal(t, "hiboot", c.App.Name)
+	})
 
-	log.Print(c)
 }
+
 
 
 func TestBuilderBuildWithError(t *testing.T) {

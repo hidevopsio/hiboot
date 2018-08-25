@@ -15,18 +15,17 @@
 package inject_test
 
 import (
-	"os"
 	"testing"
-	"reflect"
-	"path/filepath"
 	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/inject"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/starter/data"
+	"github.com/hidevopsio/hiboot/pkg/factory"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/system"
-	"github.com/hidevopsio/hiboot/pkg/factory"
+	"os"
+	"path/filepath"
 )
 
 type user struct {
@@ -39,10 +38,23 @@ type fakeRepository struct {
 }
 
 type fakeProperties struct {
-	Name     string
-	Nickname string
-	Username string
-	Url      string
+	Name          string  `default:"should not inject this default value as it will inject by system.Builder"`
+	Nickname      string  `default:"should not inject this default value as it will inject by system.Builder"`
+	Username      string  `default:"should not inject this default value as it will inject by system.Builder"`
+	Url           string  `default:"should not inject this default value as it will inject by system.Builder"`
+	DefStrVal     string  `default:"this is default value"`
+	DefIntVal     int     `default:"123"`
+	DefIntVal8    int8    `default:"12"`
+	DefIntVal16   int16   `default:"123"`
+	DefUintVal32  int32   `default:"1234"`
+	DefUintVal64  int64   `default:"12345"`
+	DefIntValU    uint    `default:"123"`
+	DefIntValU8   uint8   `default:"12"`
+	DefIntValU16  uint16  `default:"123"`
+	DefUintValU32 uint32  `default:"1234"`
+	DefUintValU64 uint64  `default:"12345"`
+	DefFloatVal64 float64 `default:"0.1231"`
+	DefFloatVal32 float32 `default:"0.1"`
 }
 
 type fakeConfiguration struct {
@@ -58,15 +70,13 @@ type FooUser struct {
 	Name string
 }
 
-type fakeTag struct{
+type fakeTag struct {
 	inject.BaseTag
 }
 
-
-type Tag struct{
+type Tag struct {
 	inject.BaseTag
 }
-
 
 func (c *fakeConfiguration) FakeRepository() FakeRepository {
 	repo := new(fakeRepository)
@@ -115,7 +125,8 @@ func (s *userService) Get() string {
 }
 
 type sliceInjectionTestService struct {
-	Profiles         []string       `value:"${app.profiles.include}"`
+	Profiles []string `value:"${app.profiles.include}"`
+	Options  []string `value:"a,b,c,d"`
 }
 
 type fooBarService struct {
@@ -142,20 +153,20 @@ type BazService interface {
 
 type BazImpl struct {
 	BazService
-	Name string `inject:""`
+	Name     string `inject:""`
 	nickname string
 }
 
-func (s *BazImpl) GetNickname() string  {
+func (s *BazImpl) GetNickname() string {
 	return s.nickname
 }
 
 type testService struct {
-	baz BazService
+	baz  BazService
 	name string
 }
 
-func (s *testService) Init(baz BazService)  {
+func (s *testService) Init(baz BazService) {
 	s.baz = baz
 }
 
@@ -167,24 +178,22 @@ type buzzService struct {
 	bz *buzz
 }
 
-func (s *buzzService) Init(bs *buzzService, bz *buzz)  {
+func (s *buzzService) Init(bs *buzzService, bz *buzz) {
 	s.bz = bz
 }
 
 type CatInterface interface {
-
 }
 
 type animalService struct {
 	cat CatInterface
 }
 
-func (a *animalService) Init(cat CatInterface)  {
+func (a *animalService) Init(cat CatInterface) {
 	a.cat = cat
 }
 
-
-type testTag struct{
+type testTag struct {
 	inject.BaseTag
 }
 
@@ -199,43 +208,7 @@ var (
 )
 
 func init() {
-	io.ChangeWorkDir(os.TempDir())
-	configPath := filepath.Join(os.TempDir(), "config")
-
-	fakeFile := "application.yml"
-	os.Remove(filepath.Join(configPath, fakeFile))
-	fakeContent :=
-		"app:\n" +
-		"  project: hidevopsio\n" +
-		"  name: hiboot\n" +
-		"  version: ${unknown.version:0.0.1}\n"
-	io.WriterFile(configPath, fakeFile, []byte(fakeContent))
-
-	fakeFile = "application-fake.yml"
-	os.Remove(filepath.Join(configPath, fakeFile))
-	fakeContent =
-		"fake:" +
-		"\n  name: " + fakeName +
-		"\n  nickname: ${app.name} ${fake.name}\n" +
-		"\n  username: ${unknown.name:bar}\n" +
-		"\n  url: " + fakeUrl
-	io.WriterFile(configPath, fakeFile, []byte(fakeContent))
-
-	instances := cmap.New()
-	configurations := cmap.New()
-	configurableFactory = new(factory.ConfigurableFactory)
-	configurableFactory.InstanceFactory = new(factory.InstanceFactory)
-	configurableFactory.InstanceFactory.Init(instances)
-	configurableFactory.Init(configurations)
-	configurableFactory.BuildSystemConfig(system.Configuration{})
-
-	inject.SetInstance(instances)
-
-	configs := cmap.New()
-	configs.Set("fake", fakeConfiguration{})
-	configs.Set("foo", fooConfiguration{})
-	configurableFactory.Build(configs)
-
+	log.SetLevel(log.DebugLevel)
 }
 
 // Init automatically inject FooUser and FakeRepository that instantiated in fakeConfiguration
@@ -251,10 +224,73 @@ func TestNotInject(t *testing.T) {
 }
 
 func TestInject(t *testing.T) {
+	io.ChangeWorkDir(os.TempDir())
+	configPath := filepath.Join(os.TempDir(), "config")
+
+	fakeFile := "application.yml"
+	os.Remove(filepath.Join(configPath, fakeFile))
+	fakeContent :=
+		"app:\n" +
+			"  project: hidevopsio\n" +
+			"  name: hiboot\n" +
+			"  version: ${unknown.version:0.0.1}\n" +
+			"  profiles:\n" +
+			"    include:\n" +
+			"    - web\n" +
+			"    - fake\n" +
+			"\n"
+	io.WriterFile(configPath, fakeFile, []byte(fakeContent))
+
+	fakeFile = "application-fake.yml"
+	os.Remove(filepath.Join(configPath, fakeFile))
+	fakeContent =
+		"fake:" +
+			"\n  name: " + fakeName +
+			"\n  nickname: ${app.name} ${fake.name}\n" +
+			"\n  username: ${unknown.name:bar}\n" +
+			"\n  url: " + fakeUrl
+	io.WriterFile(configPath, fakeFile, []byte(fakeContent))
+
+	instances := cmap.New()
+	configurations := cmap.New()
+	configurableFactory = new(factory.ConfigurableFactory)
+	configurableFactory.InstanceFactory = new(factory.InstanceFactory)
+	configurableFactory.InstanceFactory.Initialize(instances)
+	configurableFactory.Initialize(configurations)
+	configurableFactory.BuildSystemConfig(system.Configuration{})
+
+	inject.SetInstance(instances)
+
+	configs := cmap.New()
+	fakeConfig := new(fakeConfiguration)
+	configs.Set("fake", fakeConfig)
+	configs.Set("foo", fooConfiguration{})
+	configurableFactory.Build(configs)
+
+	t.Run("should inject default string", func(t *testing.T) {
+		assert.Equal(t, "this is default value", fakeConfig.Properties.DefStrVal)
+	})
+
+	t.Run("should inject default int", func(t *testing.T) {
+		assert.Equal(t, 123, fakeConfig.Properties.DefIntVal)
+	})
+
+	t.Run("should inject default uint", func(t *testing.T) {
+		assert.Equal(t, uint(123), fakeConfig.Properties.DefIntValU)
+	})
+
+	t.Run("should inject default float32", func(t *testing.T) {
+		assert.Equal(t, float32(0.1), fakeConfig.Properties.DefFloatVal32)
+	})
+
+	t.Run("shuld get config", func(t *testing.T) {
+		fr := configurableFactory.GetInstance("fakeRepository")
+		assert.NotEqual(t, nil, fr)
+	})
 
 	t.Run("should inject through method", func(t *testing.T) {
 		s := new(MethodInjectionService)
-		err := inject.IntoObject(reflect.ValueOf(s))
+		err := inject.IntoObject(s)
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, (*FooUser)(nil), s.fooUser)
 		assert.NotEqual(t, (*user)(nil), s.barUser)
@@ -263,7 +299,7 @@ func TestInject(t *testing.T) {
 
 	t.Run("should inject repository", func(t *testing.T) {
 		us := new(userService)
-		err := inject.IntoObject(reflect.ValueOf(us))
+		err := inject.IntoObject(us)
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, (*user)(nil), us.User)
 		assert.Equal(t, fooName, us.FooUser.Name)
@@ -276,33 +312,33 @@ func TestInject(t *testing.T) {
 
 	t.Run("should not inject unimplemented interface into FooBarRepository", func(t *testing.T) {
 		fb := new(foobarRecursiveInject)
-		err := inject.IntoObject(reflect.ValueOf(fb))
+		err := inject.IntoObject(fb)
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should not inject unimplemented interface into FooRepository", func(t *testing.T) {
 		fs := new(fooService)
-		err := inject.IntoObject(reflect.ValueOf(fs))
+		err := inject.IntoObject(fs)
 		assert.Equal(t, "foo", fs.FooUser.Name)
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should not inject system property into object", func(t *testing.T) {
 		fs := new(hibootService)
-		err := inject.IntoObject(reflect.ValueOf(fs))
+		err := inject.IntoObject(fs)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, appName, fs.HibootUser.Name)
 	})
 
 	t.Run("should not inject unimplemented interface into BarRepository", func(t *testing.T) {
 		bs := new(barService)
-		err := inject.IntoObject(reflect.ValueOf(bs))
+		err := inject.IntoObject(bs)
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should inject recursively", func(t *testing.T) {
 		ps := &recursiveInject{UserService: new(userService)}
-		err := inject.IntoObject(reflect.ValueOf(ps))
+		err := inject.IntoObject(ps)
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, (*user)(nil), ps.UserService.User)
 		assert.NotEqual(t, (*fakeRepository)(nil), ps.UserService.FakeRepository)
@@ -312,50 +348,53 @@ func TestInject(t *testing.T) {
 		testSvc := struct {
 			Users []FooUser `inject:""`
 		}{}
-		err := inject.IntoObject(reflect.ValueOf(testSvc))
+		err := inject.IntoObject(testSvc)
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should inject slice value", func(t *testing.T) {
 		testSvc := new(sliceInjectionTestService)
-		err := inject.IntoObject(reflect.ValueOf(testSvc))
+		err := inject.IntoObject(testSvc)
 		assert.Equal(t, nil, err)
+		assert.Equal(t, []string{"web", "fake"}, testSvc.Profiles)
+		assert.Equal(t, []string{"a", "b", "c", "d"}, testSvc.Options)
 		log.Debug(testSvc.Profiles)
 	})
 
 	t.Run("should inject slice value", func(t *testing.T) {
-		err := inject.IntoObject(reflect.ValueOf((*MethodInjectionService)(nil)))
+		err := inject.IntoObject((*MethodInjectionService)(nil))
 		assert.Equal(t, inject.InvalidObjectError, err)
 	})
 
 	t.Run("should inject slice value", func(t *testing.T) {
-		err := inject.IntoObject(reflect.ValueOf((*string)(nil)))
+		err := inject.IntoObject((*string)(nil))
 		assert.Equal(t, inject.InvalidObjectError, err)
 	})
 
-	t.Run("should failed to inject with illegal struct tag", func(t *testing.T) {
-		err := inject.IntoObject(reflect.ValueOf(new(testService)))
+	t.Run("should ignore to inject with invalid struct type BazService", func(t *testing.T) {
+		ts := new(testService)
+		err := inject.IntoObject(ts)
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should failed to inject if the type of param and receiver are the same", func(t *testing.T) {
-		err := inject.IntoObject(reflect.ValueOf(new(buzzService)))
+		err := inject.IntoObject(new(buzzService))
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should skip inject if the type of param is an unimplemented interface", func(t *testing.T) {
 		catSvc := new(animalService)
-		err := inject.IntoObject(reflect.ValueOf(catSvc))
+		err := inject.IntoObject(catSvc)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, nil, catSvc.cat)
 	})
 
 	t.Run("should inject value and it must not be singleton", func(t *testing.T) {
-		a := &struct{TestName string `value:"test-data-from-a"`}{}
-		b := &struct{TestName string}{}
-		err := inject.IntoObject(reflect.ValueOf(a))
+		a := &struct{ TestName string `value:"test-data-from-a"` }{}
+		b := &struct{ TestName string }{}
+		err := inject.IntoObject(a)
 		assert.Equal(t, nil, err)
-		inject.IntoObject(reflect.ValueOf(b))
+		inject.IntoObject(b)
 		assert.Equal(t, nil, err)
 
 		assert.NotEqual(t, a.TestName, b.TestName)
@@ -363,12 +402,22 @@ func TestInject(t *testing.T) {
 
 	t.Run("should deduplicate tag", func(t *testing.T) {
 		inject.AddTag(new(testTag))
-		inject.AddTag( nil)
+		inject.AddTag(nil)
 	})
 
-	t.Run("should not inject primitive type", func(t *testing.T) {
-		a := struct{TestObj *int `inject:""`}{}
-		err := inject.IntoObject(reflect.ValueOf(&a))
+	t.Run("should inject primitive type", func(t *testing.T) {
+		type testObjTyp struct {
+			TestObj *int `inject:""`
+		}
+		a := new(testObjTyp)
+		err := inject.IntoObject(a)
 		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should inject anonymous sturct with primitive type", func(t *testing.T) {
+		a := struct{ TestObj *int `inject:""` }{}
+		err := inject.IntoObject(&a)
+		assert.Equal(t, nil, err)
+		assert.NotEqual(t, nil, a.TestObj)
 	})
 }

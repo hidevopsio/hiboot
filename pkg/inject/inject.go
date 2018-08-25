@@ -89,8 +89,14 @@ func saveInstance(name string, inst interface{}) {
 	instancesMap.Set(name, inst)
 }
 
+
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
-func IntoObject(object reflect.Value) error {
+func IntoObject(object interface{}) error {
+	return IntoObjectValue(reflect.ValueOf(object))
+}
+
+// IntoObject injects instance into the tagged field with `inject:"instanceName"`
+func IntoObjectValue(object reflect.Value) error {
     var err error
 
     // TODO refactor IntoObject
@@ -168,7 +174,7 @@ func IntoObject(object reflect.Value) error {
 		filedKind := filedObject.Kind()
 		canNested := filedKind == reflect.Struct
 		if canNested && fieldObj.IsValid() && fieldObj.CanSet() && filedObject.Type() != obj.Type() {
-			err = IntoObject(fieldObj)
+			err = IntoObjectValue(fieldObj)
 		}
 	}
 
@@ -192,10 +198,12 @@ func IntoObject(object reflect.Value) error {
 				inst = getInstanceByName(alternativeName, inType)
 			}
 			if inst == nil {
-				if inType.Kind() == reflect.Interface {
+				log.Debug(inType.Kind())
+				switch inType.Kind() {
+				case reflect.Interface, reflect.Slice:
 					injectByMethod = false
 					break
-				} else {
+				default:
 					paramValue = reflect.New(inType)
 					inst = paramValue.Interface()
 					saveInstance(inTypeName, inst)
@@ -210,8 +218,8 @@ func IntoObject(object reflect.Value) error {
 			//log.Debugf("inType: %v, name: %v, instance: %v", inType, inTypeName, inst)
 			//log.Debugf("kind: %v == %v, %v, %v ", obj.Kind(), reflect.Struct, paramValue.IsValid(), paramValue.CanSet())
 			paramObject := reflect.Indirect(paramValue)
-			if paramObject.Type() != obj.Type() && paramObject.Kind() == reflect.Struct && paramValue.IsValid() {
-				err = IntoObject(paramValue)
+			if paramValue.IsValid() && paramObject.IsValid() && paramObject.Type() != obj.Type() && paramObject.Kind() == reflect.Struct {
+				err = IntoObjectValue(paramValue)
 			}
 		}
 		// finally call Init method to inject
