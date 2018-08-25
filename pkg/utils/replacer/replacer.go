@@ -204,14 +204,8 @@ func Replace(to interface{}, root interface{}) error {
 					switch kind {
 					case reflect.String:
 						fv := fmt.Sprintf("%v", fieldValue)
-						newStr := ReplaceStringVariables(fv, root).(string)
-						if newStr == "" {
-							newStr = field.Tag.Get("value")
-							if newStr != "" {
-								newStr = ReplaceStringVariables(newStr, root).(string)
-							}
-						}
-						dstField.SetString(newStr)
+						newStr := ReplaceStringVariables(fv, root)
+						dstField.SetString(newStr.(string))
 					//case reflect.Slice:
 					//	log.Debug("slice")
 					case reflect.Map:
