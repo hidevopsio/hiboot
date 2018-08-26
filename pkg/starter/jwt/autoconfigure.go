@@ -43,10 +43,11 @@ func (c *configuration) JwtToken() Token  {
 	//wd := io.GetWorkDir()
 
 	jt.Initialize(&c.Properties)
+	//jt.jwtMiddleware = c.JwtMiddleware(jt)
 
 	jwtMiddleware := c.jwtMiddleware(jt)
+	// TODO: JwtToken depends on jwtMiddleware
 	c.instanceFactory.SetInstance("jwtMiddleware", jwtMiddleware)
-	jt.jwtEnabled = true
 
 	return jt
 }

@@ -32,10 +32,11 @@ type Token interface {
 	Generate(payload Map, expired int64, unit time.Duration) (string, error)
 }
 
-type jwtToken struct{
-	verifyKey  *rsa.PublicKey
-	signKey    *rsa.PrivateKey
-	jwtEnabled bool
+type jwtToken struct {
+	verifyKey     *rsa.PublicKey
+	signKey       *rsa.PrivateKey
+	//jwtMiddleware *JwtMiddleware
+	jwtEnabled    bool
 }
 
 func NewJwtToken(p *Properties) Token {
