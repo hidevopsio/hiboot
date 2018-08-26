@@ -23,6 +23,11 @@ const (
 	appProfilesActive = "APP_PROFILES_ACTIVE"
 )
 
+type Factory interface {
+	SystemConfiguration() *system.Configuration
+	Configuration(name string) interface{}
+}
+
 type ConfigurableFactory struct {
 	*inst.InstanceFactory
 	configurations cmap.ConcurrentMap
@@ -41,8 +46,16 @@ func (f *ConfigurableFactory) Initialize(configurations cmap.ConcurrentMap)  {
 	f.SetInstance("configurations", configurations)
 }
 
-func (f *ConfigurableFactory) SystemConfig() *system.Configuration {
+func (f *ConfigurableFactory) SystemConfiguration() *system.Configuration {
 	return f.systemConfig
+}
+
+func (f *ConfigurableFactory) Configuration(name string) interface{} {
+	cfg, ok := f.configurations.Get(name)
+	if ok {
+		return cfg
+	}
+	return nil
 }
 
 func (f *ConfigurableFactory) BuildSystemConfig(configType interface{}) (err error) {

@@ -98,10 +98,11 @@ func (a *application) add(controllers ...interface{}) {
 // Init init web application
 func (a *application) Init(controllers ...interface{}) error {
 
-	a.BeforeInitialization()
-
 	// run base Init
 	a.BaseApplication.Init(controllers...)
+
+	// before init
+	a.BeforeInitialization()
 
 	a.httpMethods = []string{
 		http.MethodGet,
@@ -122,6 +123,7 @@ func (a *application) Init(controllers ...interface{}) error {
 		log.Infof("The following profiles are active: %v, %v", systemConfig.App.Profiles.Active, systemConfig.App.Profiles.Include)
 	}
 
+	// build auto configurations
 	a.BuildConfigurations()
 
 	if len(controllers) == 0 {
@@ -200,6 +202,7 @@ func (a *application) Init(controllers ...interface{}) error {
 		return err
 	}
 
+	// TODO: move out jwt and locale
 	// then use jwt
 	a.webApp.Use(jwtHandler.Serve)
 

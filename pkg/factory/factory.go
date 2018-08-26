@@ -14,8 +14,5 @@
 
 package factory
 
-type Factory interface {
-	Build(configs ...interface{})
-	Instantiate(configuration interface{})
-}
+type Factory interface {}
 

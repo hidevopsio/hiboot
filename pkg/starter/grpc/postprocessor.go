@@ -15,11 +15,11 @@ func init() {
 	app.RegisterPostProcessor(new(postProcessor))
 }
 
-func (p *postProcessor) BeforeInitialization()  {
+func (p *postProcessor) BeforeInitialization(factory interface{})  {
 	log.Debug("[grpc] BeforeInitialization")
 }
 
-func (p *postProcessor) AfterInitialization()  {
+func (p *postProcessor) AfterInitialization(factory interface{})  {
 	log.Debug("[grpc] AfterInitialization")
 	for _, srv := range grpcServers {
 		err := inject.IntoObject(srv.svc)
