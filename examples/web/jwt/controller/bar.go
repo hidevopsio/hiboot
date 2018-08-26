@@ -17,8 +17,9 @@ package controllers
 import (
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/dgrijalva/jwt-go"
 	"strings"
+	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
+	jwtgo "github.com/dgrijalva/jwt-go"
 )
 
 
@@ -28,25 +29,23 @@ type Bar struct {
 
 
 type BarController struct{
-	web.JwtController
+	jwt.Controller
 }
 
 func init()  {
-	web.Add(new(BarController))
+	web.RestController(new(BarController))
 }
 
 func (c *BarController) Get(ctx *web.Context)  {
 	// decrypt jwt token
 	ti := ctx.Values().Get("jwt")
-	var token *jwt.Token
+	var token *jwtgo.Token
 	if ti != nil {
-		token = ti.(*jwt.Token)
+		token = ti.(*jwtgo.Token)
 		var username, password string
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-
+		if claims, ok := token.Claims.(jwtgo.MapClaims); ok && token.Valid {
 			username = c.ParseToken(claims, "username")
 			password = c.ParseToken(claims, "password")
-
 			log.Debugf("username: %v, password: %v", username, strings.Repeat("*", len(password)))
 		}
 

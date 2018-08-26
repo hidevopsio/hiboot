@@ -26,7 +26,7 @@ import (
 	"os"
 	"path/filepath"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
-	"github.com/hidevopsio/hiboot/pkg/factory/inst"
+	"github.com/hidevopsio/hiboot/pkg/factory/instance"
 )
 
 type user struct {
@@ -257,7 +257,7 @@ func TestInject(t *testing.T) {
 	instances := cmap.New()
 	configurations := cmap.New()
 	configurableFactory = new(autoconfigure.ConfigurableFactory)
-	configurableFactory.InstanceFactory = new(inst.InstanceFactory)
+	configurableFactory.InstanceFactory = new(instance.InstanceFactory)
 	configurableFactory.InstanceFactory.Initialize(instances)
 	configurableFactory.Initialize(configurations)
 	configurableFactory.BuildSystemConfig(system.Configuration{})

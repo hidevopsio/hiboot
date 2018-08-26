@@ -12,34 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package web
+package jwt
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"testing"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/dgrijalva/jwt-go"
+	"fmt"
 )
 
-var (
-	jwtMw *JwtMiddleware
-	ctx FakeContext
-)
-
-type FakeContext struct {
+type JwtController interface {
 }
 
-func (c *FakeContext) Next()  {
-	log.Debug("FakeContext.Next()")
+// JwtController is the base web controller that enabled JWT
+type Controller struct {
+	JwtController
+	web.Controller
 }
 
-func (c *FakeContext) StopExecution()  {
-	log.Debug("FakeContext.Next()")
-}
-
-func init() {
-	log.SetLevel(log.DebugLevel)
-
-	jwtMw = new(JwtMiddleware)
-}
-
-func TestCheckJWT(t *testing.T) {
+// ParseToken is an util that parsing JWT token from jwt.MapClaims
+func (c *Controller) ParseToken(claims jwt.MapClaims, prop string) string {
+	return fmt.Sprintf("%v", claims[prop])
 }

@@ -12,7 +12,7 @@ type healthController struct {
 }
 
 func init() {
-	web.Add(new(healthController))
+	web.RestController(new(healthController))
 }
 
 // GET /health

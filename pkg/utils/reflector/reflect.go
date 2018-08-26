@@ -166,16 +166,28 @@ func ValidateReflectType(obj interface{}, callback func(value *reflect.Value, re
 	return err
 }
 
-func GetName(data interface{}) (string, error)  {
+
+func GetType(data interface{}) (typ reflect.Type, err error)  {
 	dv := Indirect(reflect.ValueOf(data))
 
 	// Return is from value is invalid
 	if !dv.IsValid() {
-		return "", InvalidInputError
+		err = InvalidInputError
+		return
 	}
-	//log.Debugf("%v %v %v %v", dv, dv.Type(), dv.Type().String(), dv.Type().Name())
-	name := dv.Type().Name()
-	return name, nil
+	typ = dv.Type()
+
+	//log.Debugf("%v %v %v %v %v", dv, typ, typ.String(), typ.Name(), typ.PkgPath())
+	return
+}
+
+func GetName(data interface{}) (name string, err error)  {
+
+	typ, err := GetType(data)
+	if err == nil {
+		name = typ.Name()
+	}
+	return
 }
 
 func GetLowerCaseObjectName(data interface{}) (string, error) {

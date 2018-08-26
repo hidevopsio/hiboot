@@ -41,7 +41,7 @@ type UserController struct {
 }
 
 func init() {
-	web.Add(new(UserController))
+	web.RestController(new(UserController))
 }
 
 // Init inject userService automatically

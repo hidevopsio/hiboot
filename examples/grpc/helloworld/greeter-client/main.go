@@ -70,7 +70,7 @@ func init() {
 	grpc.RegisterClient("greeter-client", protobuf.NewGreeterClient)
 
 	// must: register greeterController
-	web.Add(new(greeterController))
+	web.RestController(new(greeterController))
 }
 
 func main() {

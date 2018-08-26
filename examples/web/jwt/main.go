@@ -20,7 +20,13 @@ import (
 	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
 	_ "github.com/hidevopsio/hiboot/examples/web/jwt/controller"
 
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
+
+func init() {
+	// optional: for running test
+	io.EnsureWorkDir("examples/web/jwt")
+}
 
 func main()  {
 	// create new web application and run it

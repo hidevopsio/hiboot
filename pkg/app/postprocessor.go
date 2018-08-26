@@ -1,5 +1,7 @@
 package app
 
+import "github.com/hidevopsio/hiboot/pkg/inject"
+
 type PostProcessor interface {
 	BeforeInitialization(factory interface{})
 	AfterInitialization(factory interface{})
@@ -28,6 +30,7 @@ func (p *postProcessor) BeforeInitialization(factory interface{})  {
 
 func (p *postProcessor) AfterInitialization(factory interface{})  {
 	for _, processor := range postProcessors {
+		inject.IntoObject(processor)
 		processor.AfterInitialization(factory)
 	}
 }

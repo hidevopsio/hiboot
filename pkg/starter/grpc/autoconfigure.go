@@ -24,14 +24,14 @@ import (
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/factory/inst"
+	"github.com/hidevopsio/hiboot/pkg/factory/instance"
 )
 
 type grpcConfiguration struct {
 	app.Configuration
 	Properties properties `mapstructure:"grpc"`
 
-	instanceFactory *inst.InstanceFactory
+	instanceFactory *instance.InstanceFactory
 }
 
 type grpcService struct {
@@ -71,7 +71,7 @@ func init() {
 }
 
 // inject instanceFactory
-func (c *grpcConfiguration) Init(instanceFactory *inst.InstanceFactory) {
+func (c *grpcConfiguration) Init(instanceFactory *instance.InstanceFactory) {
 	c.instanceFactory = instanceFactory
 }
 

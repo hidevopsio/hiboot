@@ -12,17 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package web
+package jwt
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"testing"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/stretchr/testify/assert"
 )
 
-func TestParseToken(t *testing.T) {
-	claims := jwt.MapClaims{"username": "john"}
-	jc := &JwtController{}
-	username := jc.ParseToken(claims, "username")
-	assert.Equal(t, "john", username)
+var (
+	jwtMw *JwtMiddleware
+	ctx FakeContext
+)
+
+type FakeContext struct {
+}
+
+func (c *FakeContext) Next()  {
+	log.Debug("FakeContext.Next()")
+}
+
+func (c *FakeContext) StopExecution()  {
+	log.Debug("FakeContext.Next()")
+}
+
+func init() {
+	log.SetLevel(log.DebugLevel)
+
+	jwtMw = new(JwtMiddleware)
+}
+
+func TestCheckJWT(t *testing.T) {
 }
