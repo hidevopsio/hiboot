@@ -29,7 +29,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/app"
 )
@@ -53,7 +52,6 @@ const (
 type application struct {
 	app.BaseApplication
 	webApp          *iris.Application
-	systemConfig    *system.Configuration
 	jwtEnabled      bool
 	httpMethods     []string
 	factory         factory.Factory
@@ -69,16 +67,13 @@ var (
 	compiledRegExp = regexp.MustCompile(`\{(.*?)\}`)
 )
 
-// Config returns application config
-func (a *application) Config() *system.Configuration {
-	return a.systemConfig
-}
 
 // Run run web application
 func (a *application) Run() {
 	serverPort := ":8080"
-	if a.systemConfig != nil && a.systemConfig.Server.Port != "" {
-		serverPort = fmt.Sprintf(":%v", a.systemConfig.Server.Port)
+	conf := a.SystemConfig()
+	if conf != nil && conf.Server.Port != "" {
+		serverPort = fmt.Sprintf(":%v", conf.Server.Port)
 	}
 	// TODO: WithCharset should be configurable
 	a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(DefaultConfiguration()))
@@ -102,6 +97,9 @@ func (a *application) add(controllers ...interface{}) {
 
 // Init init web application
 func (a *application) Init(controllers ...interface{}) error {
+
+	a.BeforeInitialization()
+
 	// run base Init
 	a.BaseApplication.Init(controllers...)
 
@@ -117,17 +115,11 @@ func (a *application) Init(controllers ...interface{}) error {
 		http.MethodTrace,
 	}
 
-	systemConfig := a.ConfigurableFactory().SystemConfig()
+	systemConfig := a.SystemConfig()
 	if systemConfig != nil {
-		//return errors.New("system configuration not found")
-		a.systemConfig = systemConfig
-		// ensure web is included
-		if !str.InSlice("web", a.systemConfig.App.Profiles.Include) {
-			a.systemConfig.App.Profiles.Include = append(a.systemConfig.App.Profiles.Include, "web")
-		}
-		log.SetLevel(a.systemConfig.Logging.Level)
-
-		log.Infof("web application profile: %v", systemConfig.App.Profiles.Active)
+		log.SetLevel(systemConfig.Logging.Level)
+		log.Infof("Starting hiboot web application %v on localhost with PID %v (%v)", systemConfig.App.Name, os.Getpid(), a.WorkDir)
+		log.Infof("The following profiles are active: %v, %v", systemConfig.App.Profiles.Active, systemConfig.App.Profiles.Include)
 	}
 
 	a.BuildConfigurations()
@@ -217,8 +209,8 @@ func (a *application) Init(controllers ...interface{}) error {
 		return err
 	}
 
-	//
-	a.ConfigurableFactory().AfterInitialization()
+	// call AfterInitialization with factory interface
+	a.AfterInitialization()
 
 	return nil
 }

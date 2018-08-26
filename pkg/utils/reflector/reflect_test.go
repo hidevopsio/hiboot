@@ -464,3 +464,26 @@ func TestCallFunc(t *testing.T) {
 		assert.Equal(t, InvalidFuncError, err)
 	})
 }
+
+func TestGetEmbeddedInterfaceField(t *testing.T) {
+	type fakeInterface interface {}
+	type fakeService struct { fakeInterface }
+	type fakeChildService struct { fakeService }
+
+	t.Run("should get embedded fakeInterface", func(t *testing.T) {
+		field := GetEmbeddedInterfaceField(new(fakeService))
+		assert.Equal(t,"fakeInterface", field.Name)
+	})
+
+	t.Run("should get embedded fakeInterface", func(t *testing.T) {
+		field := GetEmbeddedInterfaceField(new(fakeChildService))
+		assert.Equal(t,"fakeInterface", field.Name)
+	})
+
+	t.Run("should not get embedded interface that it's not exist", func(t *testing.T) {
+		type fooService struct { }
+		type barService struct { fooService }
+		field := GetEmbeddedInterfaceField(new(barService))
+		assert.Equal(t,false, field.Anonymous)
+	})
+}

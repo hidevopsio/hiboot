@@ -24,13 +24,14 @@ import (
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/factory"
+	"github.com/hidevopsio/hiboot/pkg/factory/inst"
 )
 
-type configuration struct {
+type grpcConfiguration struct {
+	app.Configuration
 	Properties properties `mapstructure:"grpc"`
 
-	instanceFactory *factory.InstanceFactory
+	instanceFactory *inst.InstanceFactory
 }
 
 type grpcService struct {
@@ -66,15 +67,15 @@ func RegisterClient(name string, cb interface{}, s ...interface{})  {
 }
 
 func init() {
-	app.AddConfig("grpc", configuration{})
+	app.AutoConfiguration(new(grpcConfiguration))
 }
 
 // inject instanceFactory
-func (c *configuration) Init(instanceFactory *factory.InstanceFactory) {
+func (c *grpcConfiguration) Init(instanceFactory *inst.InstanceFactory) {
 	c.instanceFactory = instanceFactory
 }
 
-func (c *configuration) BuildGrpcClients() {
+func (c *grpcConfiguration) BuildGrpcClients() {
 	clientProps := c.Properties.Client
 	for _, cli := range grpcClients {
 		prop := new(client)
@@ -113,7 +114,7 @@ func (c *configuration) BuildGrpcClients() {
 	}
 }
 
-func (c *configuration) RunGrpcServers() {
+func (c *grpcConfiguration) RunGrpcServers() {
 	// just return if grpc server is not enabled
 	if !c.Properties.Server.Enabled {
 		return

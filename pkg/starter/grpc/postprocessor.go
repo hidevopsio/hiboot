@@ -2,8 +2,8 @@ package grpc
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/inject"
-	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
 type postProcessor struct {
@@ -11,8 +11,8 @@ type postProcessor struct {
 }
 
 func init() {
-// register postProcessor
-	factory.AddPostProcessor(new(postProcessor))
+	// register postProcessor
+	app.RegisterPostProcessor(new(postProcessor))
 }
 
 func (p *postProcessor) BeforeInitialization()  {

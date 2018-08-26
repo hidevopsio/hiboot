@@ -15,7 +15,7 @@
 package system
 
 type Profiles struct {
-	Include []string `json:"include" default:"web"`
+	Include []string `json:"include"`
 	Active  string   `json:"active" default:"${APP_PROFILES_ACTIVE:dev}"`
 }
 
@@ -23,7 +23,8 @@ type App struct {
 	Project        string   `json:"project" default:"hidevopsio"`
 	Name           string   `json:"name" default:"hiboot-app"`
 	Profiles       Profiles `json:"profiles"`
-	Version        string   `json:"version" default:"0.0.1"`
+	// TODO: should defined in application-version.yml
+	//Version        string   `json:"version" default:"0.0.1"`
 }
 
 type Server struct {

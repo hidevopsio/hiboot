@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"strings"
 	"strconv"
-	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 type defaultTag struct {
@@ -37,13 +36,13 @@ func (t *defaultTag) IsSingleton() bool  {
 func (t *defaultTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{}) {
 	if tag != "" {
 		fieldVal := object.FieldByName(field.Name).Interface()
-		log.Debugf("field: %v, value: %v", field.Name, fieldVal)
+		//log.Debugf("field: %v, value: %v", field.Name, fieldVal)
 
 		// check if filed type is slice
 		kind := field.Type.Kind()
 		switch kind {
 		case reflect.Slice:
-			if fieldVal == nil {
+			if len(fieldVal.([]string)) == 0  {
 				retVal = t.replaceReferences(tag)
 				if retVal == tag {
 					retVal = strings.SplitN(tag, ",", -1)

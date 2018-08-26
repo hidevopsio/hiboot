@@ -1,4 +1,4 @@
-package factory
+package inst
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
@@ -7,23 +7,27 @@ import (
 )
 
 type InstanceFactory struct {
-	instances cmap.ConcurrentMap
+	instanceMap cmap.ConcurrentMap
 }
 
-func (f *InstanceFactory) Initialize(instances cmap.ConcurrentMap)  {
-	f.instances = instances
+func (f *InstanceFactory) Initialize(instanceMap cmap.ConcurrentMap)  {
+	f.instanceMap = instanceMap
+}
+
+func (f *InstanceFactory) Initialized() bool  {
+	return f.instanceMap != nil
 }
 
 func (f *InstanceFactory) SetInstance(name string, instance interface{}) {
-	if _, ok := f.instances.Get(name); ok && !gotest.IsRunning() {
+	if _, ok := f.instanceMap.Get(name); ok && !gotest.IsRunning() {
 		log.Fatalf("[factory] instance name % is already taken", name)
 	}
-	f.instances.Set(name, instance)
+	f.instanceMap.Set(name, instance)
 }
 
 func (f *InstanceFactory) GetInstance(name string) (inst interface{}) {
 	var ok bool
-	if inst, ok = f.instances.Get(name); !ok {
+	if inst, ok = f.instanceMap.Get(name); !ok {
 		return nil
 	}
 	return

@@ -1,4 +1,4 @@
-package factory
+package autoconfigure
 
 import (
 	"os"
@@ -12,6 +12,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 	"github.com/hidevopsio/hiboot/pkg/inject"
+	"github.com/hidevopsio/hiboot/pkg/factory/inst"
 )
 
 const (
@@ -23,18 +24,17 @@ const (
 )
 
 type ConfigurableFactory struct {
-	*InstanceFactory
+	*inst.InstanceFactory
 	configurations cmap.ConcurrentMap
 	systemConfig   *system.Configuration
 	builder        *system.Builder
-	postProcessor  postProcessor
 }
 
 func (f *ConfigurableFactory) Initialize(configurations cmap.ConcurrentMap)  {
 	if f.InstanceFactory == nil {
 		log.Fatal("[factory] InstanceFactory can not be nil")
 	}
-	if f.instances == nil {
+	if !f.Initialized() {
 		log.Fatal("[factory] instances map can not be nil")
 	}
 	f.configurations = configurations
@@ -64,10 +64,12 @@ func (f *ConfigurableFactory) BuildSystemConfig(configType interface{}) (err err
 	} else {
 		f.systemConfig = new(system.Configuration)
 	}
+	// TODO: should separate instance to system and app
+	f.SetInstance("systemConfiguration", f.systemConfig)
+	inject.IntoObject(f.systemConfig)
 	replacer.Replace(f.systemConfig, f.systemConfig)
 
 	f.configurations.Set(System, f.systemConfig)
-	f.SetInstance("systemConfiguration", f.systemConfig)
 
 	return err
 }
@@ -76,16 +78,6 @@ func (f *ConfigurableFactory) Build(configs ...cmap.ConcurrentMap) {
 	for _, configMap := range configs {
 		f.build(configMap)
 	}
-}
-
-func (f *ConfigurableFactory) BeforeInitialization(configs ...cmap.ConcurrentMap) {
-	// pass user's instances
-	f.postProcessor.BeforeInitialization()
-}
-
-func (f *ConfigurableFactory) AfterInitialization(configs ...cmap.ConcurrentMap) {
-	// pass user's instances
-	f.postProcessor.AfterInitialization()
 }
 
 func (f *ConfigurableFactory) Instantiate(configuration interface{}) {
@@ -136,7 +128,7 @@ func (f *ConfigurableFactory) build(cfgContainer cmap.ConcurrentMap)  {
 		// inject properties
 		f.builder.ConfigType = configType
 		f.builder.Profile = name
-		cf, err := f.builder.BuildWithProfile()
+		cf, err := f.builder.Build()
 
 		// TODO: check if cf.DependsOn
 
@@ -147,9 +139,8 @@ func (f *ConfigurableFactory) build(cfgContainer cmap.ConcurrentMap)  {
 			if f.systemConfig != nil {
 				replacer.Replace(cf, f.systemConfig)
 			}
-			replacer.Replace(cf, cf)
-
 			inject.IntoObject(cf)
+			replacer.Replace(cf, cf)
 
 			// instantiation
 			if err == nil {
@@ -164,3 +155,5 @@ func (f *ConfigurableFactory) build(cfgContainer cmap.ConcurrentMap)  {
 		}
 	}
 }
+
+

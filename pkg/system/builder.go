@@ -19,7 +19,6 @@ package system
 import (
 	"fmt"
 	"github.com/spf13/viper"
-	"github.com/imdario/mergo"
 	"path/filepath"
 	"gopkg.in/yaml.v2"
 	"bytes"
@@ -73,12 +72,11 @@ func (b *Builder) Build() (interface{}, error) {
 		return conf, nil
 	}
 
-	confReplacer, err := b.Read(name)
-	if err != nil {
-		return conf, err
-	}
-
-	mergo.Merge(conf, confReplacer, mergo.WithOverride, mergo.WithAppendSlice)
+	_, err = b.Read(name)
+	//if err != nil {
+	//	return conf, err
+	//}
+	//mergo.Merge(conf, confReplacer, mergo.WithOverride, mergo.WithAppendSlice)
 
 	return conf, nil
 }

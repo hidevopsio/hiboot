@@ -4,9 +4,6 @@
 app:
   project: hidevopsio
   name: jwt-example
-  profiles:
-    include:
-    - web
 
 logging:
   level: info
