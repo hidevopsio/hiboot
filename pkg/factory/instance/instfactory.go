@@ -1,4 +1,4 @@
-package inst
+package instance
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"

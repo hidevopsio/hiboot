@@ -12,19 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package web
+package web_test
 
 import (
 	"testing"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"net/http"
 	"time"
-	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/stretchr/testify/assert"
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"errors"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
 )
 
 type UserRequest struct {
@@ -59,11 +61,12 @@ type Bar struct {
 }
 
 type FooController struct{
-	Controller
+	web.Controller
+	jwtToken jwt.Token
 }
 
 type ExampleController struct{
-	Controller
+	web.Controller
 }
 
 type InvalidController struct {}
@@ -71,6 +74,11 @@ type InvalidController struct {}
 func init() {
 	log.SetLevel(log.DebugLevel)
 	io.ChangeWorkDir("../../../")
+}
+
+
+func (c *FooController) Init(jwtToken jwt.Token) {
+	c.jwtToken = jwtToken
 }
 
 func (c *FooController) Before()  {
@@ -83,13 +91,12 @@ func (c *FooController) PostLogin(request *UserRequest) (response model.Response
 	log.Debug("FooController.Login")
 
 	// you make validate username and password first
-
-	jwtToken, err := GenerateJwtToken(JwtMap{
+	token, err := c.jwtToken.Generate(jwt.Map{
 		"username": request.Username,
 		"password": request.Password,
 	}, 10, time.Minute)
 	response = new(model.BaseResponse)
-	response.SetData(jwtToken)
+	response.SetData(token)
 
 	return
 }
@@ -112,7 +119,7 @@ func (c *FooController) GetById(id int) string  {
 }
 
 // GetHello we can also pass ctx to controller action
-func (c *FooController) GetHello(ctx *Context) string  {
+func (c *FooController) GetHello(ctx *web.Context) string  {
 	log.Debug("FooController.GetHello")
 	return "hello"
 }
@@ -140,7 +147,7 @@ func (c *FooController) After()  {
 
 // BarController
 type BarController struct{
-	JwtController
+	jwt.Controller
 }
 
 func (c *BarController) Get(request *BarRequest) (response model.Response, err error)  {
@@ -152,7 +159,7 @@ func (c *BarController) Get(request *BarRequest) (response model.Response, err e
 }
 
 type FoobarController struct {
-	Controller
+	web.Controller
 }
 
 func (c *FoobarController) Post(request *FoobarRequestForm) (response model.Response, err error)  {
@@ -173,7 +180,7 @@ func (c *FoobarController) Get(request *FoobarRequestParams) (response model.Res
 // the lower cased foo will be the context mapping of the controller
 // context mapping can be overwritten by FooController.ContextMapping
 type HelloController struct{
-	Controller
+	web.Controller
 	ContextMapping string `value:"/"`
 }
 
@@ -205,7 +212,7 @@ func (c *HelloController) GetAll() {
 }
 
 func TestWebApplication(t *testing.T)  {
-	app := NewTestApplication(t, new(HelloController), new(FooController), new(BarController), new(FoobarController))
+	app := web.NewTestApplication(t, new(HelloController), new(FooController), new(BarController), new(FoobarController))
 
 	t.Run("should response 200 when GET /all", func(t *testing.T) {
 		app.
@@ -296,15 +303,19 @@ func TestWebApplication(t *testing.T)  {
 	})
 
 	t.Run("should return http.StatusOK on /bar with jwt token", func(t *testing.T) {
-
+		log.Println(io.GetWorkDir())
+		jwtToken := jwt.NewJwtToken(&jwt.Properties{
+			PrivateKeyPath: "config/ssl/app.rsa",
+			PublicKeyPath: "config/ssl/app.rsa.pub",
+		})
 		// test jwt
-		pt, err := GenerateJwtToken(JwtMap{
+		token, err := jwtToken.Generate(jwt.Map{
 			"username": "johndoe",
 			"password": "PA$$W0RD",
 		}, 100, time.Millisecond)
 		if err == nil {
 
-			t := fmt.Sprintf("Bearer %v", string(*pt))
+			t := fmt.Sprintf("Bearer %v", token)
 
 			app.Get("/bar").
 				WithHeader("Authorization", t).
@@ -345,27 +356,34 @@ func TestWebApplication(t *testing.T)  {
 	})
 }
 
-func TestInvalidController(t *testing.T)  {
-	ta := new(testApplication)
-	err := ta.Init(new(InvalidController))
-	err, ok := err.(*system.InvalidControllerError)
-	assert.Equal(t, ok, true)
-}
+//func TestInvalidController(t *testing.T)  {
+//	ta := new(testApplication)
+//	err := ta.Init(new(InvalidController))
+//	err, ok := err.(*system.InvalidControllerError)
+//	assert.Equal(t, ok, true)
+//}
 
 func TestNewApplication(t *testing.T) {
-	var app *application
 
-	//t.Run("should return no controller error", func(t *testing.T) {
-	//	NewApplication()
-	//})
+	web.RestController(new(ExampleController))
 
-	Add(new(ExampleController))
-
-	wa := NewApplication()
+	wa := web.NewApplication()
 	t.Run("should init web application", func(t *testing.T) {
-		log.Debugf("### web application: %v", app)
 		assert.NotEqual(t, nil, wa)
+	})
+
+	t.Run("should get interface name", func(t *testing.T) {
+		type myInterface interface {
+
+		}
+
+		mi := new(myInterface)
+
+		typ, err := reflector.GetType(mi)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "myInterface", typ.Name())
 	})
 
 	go wa.Run()
 }
+

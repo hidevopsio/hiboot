@@ -9,12 +9,16 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"errors"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
-	"github.com/hidevopsio/hiboot/pkg/factory/inst"
+	"github.com/hidevopsio/hiboot/pkg/factory/instance"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/kataras/iris/context"
 )
 
 type Application interface {
 	Init(args ...interface{}) error
 	Run()
+	RegisterController(controller interface{}) error
+	Use(handlers ...context.Handler)
 }
 
 type Configuration interface {}
@@ -72,9 +76,11 @@ func validateObjectType(inst interface{}) error  {
 }
 
 // AutoConfiguration
-func AutoConfiguration(params ...interface{}) error {
+func AutoConfiguration(params ...interface{}) (err error) {
 	if len(params) == 0 || params[0] == nil {
-		return InvalidObjectTypeError
+		err = InvalidObjectTypeError
+		log.Error(err)
+		return
 	}
 	name, inst := parseInstance("Configuration", params...)
 	if name == "" || name == "configuration" {
@@ -92,19 +98,26 @@ func AutoConfiguration(params ...interface{}) error {
 		case "PostConfiguration":
 			c = postConfigContainer
 		default:
-			return InvalidObjectTypeError
+			err = InvalidObjectTypeError
+			return
 		}
 	} else {
-		return InvalidObjectTypeError
+		err = InvalidObjectTypeError
+		log.Error(err)
+		return
 	}
 
 	if _, ok := c.Get(name); ok {
-		return ConfigurationNameIsTakenError
+		err = ConfigurationNameIsTakenError
+		log.Error(err)
+		return
 	}
 
-	err := validateObjectType(inst)
+	err = validateObjectType(inst)
 	if err == nil {
 		c.Set(name, inst)
+	} else {
+		log.Error(err)
 	}
 
 	return err
@@ -145,7 +158,7 @@ func (a *BaseApplication) Init(args ...interface{}) error  {
 	a.configurations = cmap.New()
 	a.instances = instanceContainer
 
-	instanceFactory := new(inst.InstanceFactory)
+	instanceFactory := new(instance.InstanceFactory)
 	instanceFactory.Initialize(a.instances)
 	a.instances.Set("instanceFactory", instanceFactory)
 
@@ -186,4 +199,11 @@ func (a *BaseApplication) BeforeInitialization() {
 func (a *BaseApplication) AfterInitialization(configs ...cmap.ConcurrentMap) {
 	// pass user's instances
 	a.postProcessor.AfterInitialization(a.configurableFactory)
+}
+
+func (a *BaseApplication) RegisterController(controller interface{}) error {
+	return nil
+}
+
+func (a *BaseApplication) Use(handlers ...context.Handler) {
 }

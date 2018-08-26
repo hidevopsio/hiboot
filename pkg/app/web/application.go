@@ -29,17 +29,12 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/app"
+	"errors"
 )
 
 const (
 	pathSep = "/"
-
-	AuthType        = "AuthType"
-	AuthTypeDefault = ""
-	AuthTypeAnon    = "anon"
-	AuthTypeJwt     = "jwt"
 
 	initMethodName = "Init"
 
@@ -54,10 +49,10 @@ type application struct {
 	webApp          *iris.Application
 	jwtEnabled      bool
 	httpMethods     []string
-	factory         factory.Factory
 	anonControllers []interface{}
 	jwtControllers  []interface{}
 	dispatcher      dispatcher
+	controllerMap   map[string][]interface{}
 }
 
 var (
@@ -65,6 +60,9 @@ var (
 	initializers []interface{}
 	webControllers []interface{}
 	compiledRegExp = regexp.MustCompile(`\{(.*?)\}`)
+
+	ControllersNotFoundError = errors.New("[app] controllers not found")
+	InvalidControllerError = errors.New("[app] invalid controller")
 )
 
 
@@ -81,16 +79,12 @@ func (a *application) Run() {
 
 func (a *application) add(controllers ...interface{}) {
 	for _, controller := range controllers {
-		authType := AuthTypeAnon
-		result, err := reflector.CallMethodByName(controller, "AuthType")
-		if err == nil {
-			authType = fmt.Sprintf("%v", result)
-		}
-		// separate jwt controllers from anon
-		if authType == AuthTypeJwt {
-			a.jwtControllers = append(a.jwtControllers, controller)
-		} else {
-			a.anonControllers = append(a.anonControllers, controller)
+
+		ifcField := reflector.GetEmbeddedInterfaceField(controller)
+		if ifcField.Anonymous {
+			ctrlTypeName := ifcField.Name
+			controllers := a.controllerMap[ctrlTypeName]
+			a.controllerMap[ctrlTypeName] = append(controllers, controller)
 		}
 	}
 }
@@ -123,29 +117,22 @@ func (a *application) Init(controllers ...interface{}) error {
 		log.Infof("The following profiles are active: %v, %v", systemConfig.App.Profiles.Active, systemConfig.App.Profiles.Include)
 	}
 
+	f := a.ConfigurableFactory()
+	f.SetInstance("application", a)
+
 	// build auto configurations
 	a.BuildConfigurations()
 
+	a.controllerMap = make(map[string][]interface{})
 	if len(controllers) == 0 {
 		a.add(webControllers...)
 	} else {
 		a.add(controllers...)
 	}
 
-	numJwtCtrl := len(a.jwtControllers)
-	// Init JWT
-	err := InitJwt(a.WorkDir)
-	if err != nil {
-		a.jwtEnabled = false
-		if numJwtCtrl != 0 {
-			log.Debug(err.Error())
-		}
-	} else {
-		a.jwtEnabled = true
-	}
-
 	a.webApp = iris.New()
 
+	//TODO: move out to starter/logging
 	customLogger := logger.New(logger.Config{
 		// Status displays status code
 		Status: true,
@@ -181,42 +168,41 @@ func (a *application) Init(controllers ...interface{}) error {
 		}
 	})
 
-	err = a.initLocale()
+	err := a.initLocale()
 	if err != nil {
 		log.Debug(err)
 	}
 
-	// call initializer
-	for _, initializer := range initializers {
-		reflector.CallFunc(initializer)
-	}
-
-	if len(a.anonControllers) == 0 &&
-		len(a.jwtControllers) == 0 {
-		return nil
-	}
-
 	// first register anon controllers
-	err = a.dispatcher.register(a.webApp, a.anonControllers)
-	if err != nil {
-		return err
-	}
-
-	// TODO: move out jwt and locale
-	// then use jwt
-	a.webApp.Use(jwtHandler.Serve)
-
-	// finally register jwt controllers
-	err = a.dispatcher.register(a.webApp, a.jwtControllers)
-	if err != nil {
-		return err
-	}
+	err = a.RegisterController(new(AnonController))
 
 	// call AfterInitialization with factory interface
 	a.AfterInitialization()
 
 	return nil
 }
+
+func (a *application) RegisterController(controller interface{}) error {
+	// get from controller map
+	// parse controller type
+	controllerInterfaceName, err := reflector.GetName(controller)
+	if err != nil {
+		return InvalidControllerError
+	}
+	controllers, ok := a.controllerMap[controllerInterfaceName]
+	if ok {
+		return a.dispatcher.register(a.webApp, controllers)
+	}
+	return ControllersNotFoundError
+}
+
+func (a *application) Use(handlers ...context.Handler) {
+	// pass user's instances
+	for _, hdl := range handlers {
+		a.webApp.Use(hdl)
+	}
+}
+
 
 func (a *application) initLocale() error {
 	// TODO: localePath should be configurable in application.yml
@@ -269,7 +255,7 @@ func (a *application) initLocale() error {
 }
 
 // Add add controller to controllers container
-func Add(controllers ...interface{}) {
+func RestController(controllers ...interface{}) {
 	webControllers = append(webControllers, controllers...)
 }
 

@@ -12,7 +12,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 	"github.com/hidevopsio/hiboot/pkg/inject"
-	"github.com/hidevopsio/hiboot/pkg/factory/inst"
+	"github.com/hidevopsio/hiboot/pkg/factory/instance"
 )
 
 const (
@@ -29,7 +29,7 @@ type Factory interface {
 }
 
 type ConfigurableFactory struct {
-	*inst.InstanceFactory
+	*instance.InstanceFactory
 	configurations cmap.ConcurrentMap
 	systemConfig   *system.Configuration
 	builder        *system.Builder

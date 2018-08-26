@@ -24,7 +24,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
-	"github.com/hidevopsio/hiboot/pkg/factory/inst"
+	"github.com/hidevopsio/hiboot/pkg/factory/instance"
 )
 
 type FakeProperties struct {
@@ -90,7 +90,7 @@ func TestBuild(t *testing.T) {
 	configContainers := cmap.New()
 
 	f := new(autoconfigure.ConfigurableFactory)
-	f.InstanceFactory = new(inst.InstanceFactory)
+	f.InstanceFactory = new(instance.InstanceFactory)
 	f.InstanceFactory.Initialize(cmap.New())
 	f.Initialize(configContainers)
 

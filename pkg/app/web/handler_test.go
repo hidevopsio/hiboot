@@ -25,6 +25,17 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 }
 
+
+type FooController struct{
+	Controller
+}
+
+// PUT /foo/{id}/{name}/{age}
+func (c *FooController) PutByIdNameAge(id int, name string, age int) error {
+	log.Debugf("FooController.Put %v %v %v", id, name, age)
+	return nil
+}
+
 func TestParse(t *testing.T) {
 
 	hdl := new(handler)

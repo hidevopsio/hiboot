@@ -23,6 +23,3 @@ type Controller struct {
 	Ctx            *Context
 }
 
-func (c *Controller) AuthType() string  {
-	return "anon"
-}
