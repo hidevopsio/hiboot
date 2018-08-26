@@ -235,6 +235,28 @@ func HasEmbeddedField(object interface{}, name string) bool {
 	return field.Anonymous && ok
 }
 
+
+func getEmbeddedInterfaceField(typ reflect.Type) (field reflect.StructField) {
+	if typ.Kind() == reflect.Struct {
+		for i := 0; i < typ.NumField(); i++ {
+			v := typ.Field(i)
+			if v.Anonymous {
+				if v.Type.Kind() == reflect.Interface {
+					return v
+				} else {
+					return getEmbeddedInterfaceField(v.Type)
+				}
+			}
+		}
+	}
+	return
+}
+
+func GetEmbeddedInterfaceField(object interface{}) (field reflect.StructField) {
+	typ := IndirectType(reflect.TypeOf(object));
+	return getEmbeddedInterfaceField(typ)
+}
+
 // ParseObjectName e.g. ExampleObject => example
 func ParseObjectName(obj interface{}, eliminator string) string {
 	name, err := GetName(obj)

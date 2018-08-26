@@ -106,7 +106,7 @@ func IntoObjectValue(object reflect.Value) error {
 
 	obj := reflector.Indirect(object)
 	if obj.Kind() != reflect.Struct {
-		log.Errorf("object: %v", object)
+		log.Errorf("[inject] object: %v, kind: %v", object, obj.Kind())
 		return InvalidObjectError
 	}
 
@@ -198,7 +198,7 @@ func IntoObjectValue(object reflect.Value) error {
 				inst = getInstanceByName(alternativeName, inType)
 			}
 			if inst == nil {
-				log.Debug(inType.Kind())
+				//log.Debug(inType.Kind())
 				switch inType.Kind() {
 				case reflect.Interface, reflect.Slice:
 					injectByMethod = false

@@ -1,4 +1,4 @@
-package factory
+package app
 
 type PostProcessor interface {
 	BeforeInitialization()
@@ -16,7 +16,7 @@ func init() {
 
 }
 
-func AddPostProcessor(p ...PostProcessor)  {
+func RegisterPostProcessor(p ...PostProcessor)  {
 	postProcessors = append(postProcessors, p...)
 }
 

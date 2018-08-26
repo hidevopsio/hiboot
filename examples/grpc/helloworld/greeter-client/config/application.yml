@@ -6,7 +6,6 @@ app:
   name: grpc-client
   profiles:
     include:
-    - web
     - grpc
 
 logging:

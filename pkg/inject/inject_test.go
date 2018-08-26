@@ -20,12 +20,13 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/starter/data"
-	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"os"
 	"path/filepath"
+	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
+	"github.com/hidevopsio/hiboot/pkg/factory/inst"
 )
 
 type user struct {
@@ -55,6 +56,8 @@ type fakeProperties struct {
 	DefUintValU64 uint64  `default:"12345"`
 	DefFloatVal64 float64 `default:"0.1231"`
 	DefFloatVal32 float32 `default:"0.1"`
+	DefBool       float32 `default:"true"`
+	DefSlice      []string `default:"jupiter,mercury,mars,earth,moon"`
 }
 
 type fakeConfiguration struct {
@@ -204,7 +207,7 @@ var (
 	fakeUrl    = "http://fake.com/api/foo"
 	defaultUrl = "http://localhost:8080"
 
-	configurableFactory *factory.ConfigurableFactory
+	configurableFactory *autoconfigure.ConfigurableFactory
 )
 
 func init() {
@@ -236,7 +239,7 @@ func TestInject(t *testing.T) {
 			"  version: ${unknown.version:0.0.1}\n" +
 			"  profiles:\n" +
 			"    include:\n" +
-			"    - web\n" +
+			"    - foo\n" +
 			"    - fake\n" +
 			"\n"
 	io.WriterFile(configPath, fakeFile, []byte(fakeContent))
@@ -253,8 +256,8 @@ func TestInject(t *testing.T) {
 
 	instances := cmap.New()
 	configurations := cmap.New()
-	configurableFactory = new(factory.ConfigurableFactory)
-	configurableFactory.InstanceFactory = new(factory.InstanceFactory)
+	configurableFactory = new(autoconfigure.ConfigurableFactory)
+	configurableFactory.InstanceFactory = new(inst.InstanceFactory)
 	configurableFactory.InstanceFactory.Initialize(instances)
 	configurableFactory.Initialize(configurations)
 	configurableFactory.BuildSystemConfig(system.Configuration{})
@@ -356,7 +359,7 @@ func TestInject(t *testing.T) {
 		testSvc := new(sliceInjectionTestService)
 		err := inject.IntoObject(testSvc)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, []string{"web", "fake"}, testSvc.Profiles)
+		assert.Equal(t, []string{"foo", "fake"}, testSvc.Profiles)
 		assert.Equal(t, []string{"a", "b", "c", "d"}, testSvc.Options)
 		log.Debug(testSvc.Profiles)
 	})

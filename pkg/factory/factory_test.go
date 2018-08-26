@@ -23,6 +23,8 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
+	"github.com/hidevopsio/hiboot/pkg/factory/inst"
 )
 
 type FakeProperties struct {
@@ -87,8 +89,8 @@ func TestBuild(t *testing.T) {
 
 	configContainers := cmap.New()
 
-	f := new(ConfigurableFactory)
-	f.InstanceFactory = new(InstanceFactory)
+	f := new(autoconfigure.ConfigurableFactory)
+	f.InstanceFactory = new(inst.InstanceFactory)
 	f.InstanceFactory.Initialize(cmap.New())
 	f.Initialize(configContainers)
 
@@ -109,8 +111,9 @@ func TestBuild(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	container := cmap.New()
-	container.Set("foo", FooConfiguration{})
-	container.Set("fake", FakeConfiguration{})
+	fooConfig := new(FooConfiguration)
+	container.Set("foo", fooConfig)
+	container.Set("fake", new(FakeConfiguration))
 
 	f.Build(container)
 
@@ -122,15 +125,10 @@ func TestBuild(t *testing.T) {
 	})
 
 	t.Run("should get foo configuration", func(t *testing.T) {
-		fci, ok := f.configurations.Get("foo")
-		assert.Equal(t, true, ok)
-		assert.NotEqual(t, nil, fci)
-
 		assert.Equal(t, "Hello world", f.GetInstance("helloWorld").(string))
 
-		fc := fci.(*FooConfiguration)
-		assert.Equal(t, "hiboot foo", fc.FakeProperties.Nickname)
-		assert.Equal(t, "bar", fc.FakeProperties.Username)
-		assert.Equal(t, "foo", fc.FakeProperties.Name)
+		assert.Equal(t, "hiboot foo", fooConfig.FakeProperties.Nickname)
+		assert.Equal(t, "bar", fooConfig.FakeProperties.Username)
+		assert.Equal(t, "foo", fooConfig.FakeProperties.Name)
 	})
 }

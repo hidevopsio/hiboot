@@ -18,17 +18,18 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
-type configuration struct {
+type gormConfiguration struct {
+	app.Configuration
 	// the properties member name must be Gorm if the mapstructure is gorm,
 	// so that the reference can be parsed
 	GormProperties properties `mapstructure:"gorm"`
 }
 
 func init() {
-	app.AddConfig("gorm", configuration{})
+	app.AutoConfiguration(new(gormConfiguration))
 }
 
-func (c *configuration) dataSource() DataSource {
+func (c *gormConfiguration) dataSource() DataSource {
 	dataSource := GetDataSource()
 	if ! dataSource.IsOpened() {
 		dataSource.Open(&c.GormProperties)
@@ -37,7 +38,7 @@ func (c *configuration) dataSource() DataSource {
 }
 
 // GormRepository method name must be unique
-func (c *configuration) GormRepository() Repository {
+func (c *gormConfiguration) GormRepository() Repository {
 	dataSource := c.dataSource()
 	return dataSource.Repository()
 }

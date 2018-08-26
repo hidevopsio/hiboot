@@ -1,14 +1,15 @@
 package app
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"reflect"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/system"
+	"errors"
+	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
+	"github.com/hidevopsio/hiboot/pkg/factory/inst"
 )
 
 type Application interface {
@@ -16,12 +17,18 @@ type Application interface {
 	Run()
 }
 
+type Configuration interface {}
+type PreConfiguration interface {}
+type PostConfiguration interface {}
+
 type BaseApplication struct {
 	WorkDir             string
 	configurations      cmap.ConcurrentMap
 	instances           cmap.ConcurrentMap
 	potatoes		 	cmap.ConcurrentMap
-	configurableFactory *factory.ConfigurableFactory
+	configurableFactory *autoconfigure.ConfigurableFactory
+	systemConfig 		*system.Configuration
+	postProcessor  		postProcessor
 }
 
 var (
@@ -30,6 +37,9 @@ var (
 	postConfigContainer      cmap.ConcurrentMap
 	instanceContainer		 cmap.ConcurrentMap
 
+	InvalidObjectTypeError        = errors.New("[app] invalid object type")
+	ConfigurationNameIsTakenError = errors.New("[app] configuration name is already taken")
+	ComponentNameIsTakenError     = errors.New("[app] component name is already taken")
 )
 
 func init() {
@@ -51,38 +61,81 @@ func parseInstance(eliminator string, params ...interface{}) (name string, inst 
 	return
 }
 
-func addConfig(c cmap.ConcurrentMap, params ...interface{}) {
+func validateObjectType(inst interface{}) error  {
+	val := reflect.ValueOf(inst)
+	//log.Println(val.Kind())
+	//log.Println(reflect.Indirect(val).Kind())
+	if val.Kind() == reflect.Ptr && reflect.Indirect(val).Kind() == reflect.Struct {
+		return nil
+	}
+	return InvalidObjectTypeError
+}
 
+// AutoConfiguration
+func AutoConfiguration(params ...interface{}) error {
+	if len(params) == 0 || params[0] == nil {
+		return InvalidObjectTypeError
+	}
 	name, inst := parseInstance("Configuration", params...)
-	if name == "" && params != nil {
+	if name == "" || name == "configuration" {
 		name = reflector.ParseObjectPkgName(params[0])
 	}
 
+	ifcField := reflector.GetEmbeddedInterfaceField(inst)
+	var c cmap.ConcurrentMap
+	if ifcField.Anonymous {
+		switch ifcField.Name {
+		case "Configuration":
+			c = configContainer
+		case "PreConfiguration":
+			c = preConfigContainer
+		case "PostConfiguration":
+			c = postConfigContainer
+		default:
+			return InvalidObjectTypeError
+		}
+	} else {
+		return InvalidObjectTypeError
+	}
+
 	if _, ok := c.Get(name); ok {
-		log.Fatalf("configuration name %v is already taken!", name)
+		return ConfigurationNameIsTakenError
 	}
-	c.Set(name, inst)
+
+	err := validateObjectType(inst)
+	if err == nil {
+		c.Set(name, inst)
+	}
+
+	return err
 }
 
-func AddConfig(params ...interface{}) {
-	addConfig(configContainer, params...)
-}
-
-func AddPreConfig(params ...interface{}) {
-	addConfig(preConfigContainer, params...)
-}
-
-func AddPostConfig(params ...interface{}) {
-	addConfig(postConfigContainer, params...)
-}
-
-func Add(params ...interface{}) {
-	name, inst := parseInstance("Impl", params...)
-
+// Component
+func Component(params ...interface{}) error {
+	if len(params) == 0 || params[0] == nil {
+		return InvalidObjectTypeError
+	}
+	var name string
+	var inst interface{}
+	if len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String {
+		name = params[0].(string)
+		inst = params[1]
+	} else {
+		inst = params[0]
+		ifcField := reflector.GetEmbeddedInterfaceField(inst)
+		if ifcField.Anonymous {
+			name = ifcField.Name
+		}
+	}
 	if _, ok := instanceContainer.Get(name); ok {
-		log.Fatalf("instance name %v is already taken!", name)
+		return ComponentNameIsTakenError
 	}
-	instanceContainer.Set(name, inst)
+
+	err := validateObjectType(inst)
+	if err == nil {
+		instanceContainer.Set(name, inst)
+	}
+	return err
 }
 
 // BeforeInitialization ?
@@ -92,30 +145,45 @@ func (a *BaseApplication) Init(args ...interface{}) error  {
 	a.configurations = cmap.New()
 	a.instances = instanceContainer
 
-	instanceFactory := new(factory.InstanceFactory)
+	instanceFactory := new(inst.InstanceFactory)
 	instanceFactory.Initialize(a.instances)
 	a.instances.Set("instanceFactory", instanceFactory)
 
-	configurableFactory := new(factory.ConfigurableFactory)
+	configurableFactory := new(autoconfigure.ConfigurableFactory)
 	configurableFactory.InstanceFactory = instanceFactory
 	a.instances.Set("configurableFactory", configurableFactory)
 
-	configurableFactory.BeforeInitialization()
+	inject.SetInstance(a.instances)
+
 	configurableFactory.Initialize(a.configurations)
-	configurableFactory.BuildSystemConfig(system.Configuration{})
+
+	a.systemConfig = new(system.Configuration)
+	configurableFactory.BuildSystemConfig(a.systemConfig)
 
 	a.configurableFactory = configurableFactory
 
-	inject.SetInstance(a.instances)
-
 	return nil
+}
+
+// Config returns application config
+func (a *BaseApplication) SystemConfig() *system.Configuration {
+	return a.systemConfig
 }
 
 func (a *BaseApplication) BuildConfigurations()  {
 	a.configurableFactory.Build(preConfigContainer, configContainer, postConfigContainer)
 }
 
-func (a *BaseApplication) ConfigurableFactory() *factory.ConfigurableFactory  {
+func (a *BaseApplication) ConfigurableFactory() *autoconfigure.ConfigurableFactory  {
 	return a.configurableFactory
 }
 
+func (a *BaseApplication) BeforeInitialization(configs ...cmap.ConcurrentMap) {
+	// pass user's instances
+	a.postProcessor.BeforeInitialization()
+}
+
+func (a *BaseApplication) AfterInitialization(configs ...cmap.ConcurrentMap) {
+	// pass user's instances
+	a.postProcessor.AfterInitialization()
+}
