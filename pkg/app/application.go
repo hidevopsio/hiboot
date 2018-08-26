@@ -178,12 +178,12 @@ func (a *BaseApplication) ConfigurableFactory() *autoconfigure.ConfigurableFacto
 	return a.configurableFactory
 }
 
-func (a *BaseApplication) BeforeInitialization(configs ...cmap.ConcurrentMap) {
+func (a *BaseApplication) BeforeInitialization() {
 	// pass user's instances
-	a.postProcessor.BeforeInitialization()
+	a.postProcessor.BeforeInitialization(a.configurableFactory)
 }
 
 func (a *BaseApplication) AfterInitialization(configs ...cmap.ConcurrentMap) {
 	// pass user's instances
-	a.postProcessor.AfterInitialization()
+	a.postProcessor.AfterInitialization(a.configurableFactory)
 }

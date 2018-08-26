@@ -1,8 +1,8 @@
 package app
 
 type PostProcessor interface {
-	BeforeInitialization()
-	AfterInitialization()
+	BeforeInitialization(factory interface{})
+	AfterInitialization(factory interface{})
 }
 
 type postProcessor struct{
@@ -20,14 +20,14 @@ func RegisterPostProcessor(p ...PostProcessor)  {
 	postProcessors = append(postProcessors, p...)
 }
 
-func (p *postProcessor) BeforeInitialization()  {
+func (p *postProcessor) BeforeInitialization(factory interface{})  {
 	for _, processor := range postProcessors {
-		processor.BeforeInitialization()
+		processor.BeforeInitialization(factory)
 	}
 }
 
-func (p *postProcessor) AfterInitialization()  {
+func (p *postProcessor) AfterInitialization(factory interface{})  {
 	for _, processor := range postProcessors {
-		processor.AfterInitialization()
+		processor.AfterInitialization(factory)
 	}
 }

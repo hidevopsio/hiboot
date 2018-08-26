@@ -6,6 +6,12 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 )
 
+type Factory interface {
+	Initialized() bool
+	SetInstance(name string, instance interface{})
+	GetInstance(name string) (inst interface{})
+}
+
 type InstanceFactory struct {
 	instanceMap cmap.ConcurrentMap
 }

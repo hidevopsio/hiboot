@@ -14,8 +14,11 @@
 
 package web
 
+type AnonController interface{}
+
 // Controller is the web base controller
 type Controller struct {
+	AnonController
 	ContextMapping string
 	Ctx            *Context
 }
