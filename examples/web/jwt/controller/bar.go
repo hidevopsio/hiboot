@@ -15,11 +15,10 @@
 package controllers
 
 import (
+	"strings"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"strings"
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
-	jwtgo "github.com/dgrijalva/jwt-go"
 )
 
 
@@ -37,21 +36,12 @@ func init()  {
 }
 
 func (c *BarController) Get(ctx *web.Context)  {
-	// decrypt jwt token
-	ti := ctx.Values().Get("jwt")
-	var token *jwtgo.Token
-	if ti != nil {
-		token = ti.(*jwtgo.Token)
-		var username, password string
-		if claims, ok := token.Claims.(jwtgo.MapClaims); ok && token.Valid {
-			username = c.ParseToken(claims, "username")
-			password = c.ParseToken(claims, "password")
-			log.Debugf("username: %v, password: %v", username, strings.Repeat("*", len(password)))
-		}
+	username := c.GetJwtProperty("username")
+	password := c.GetJwtProperty("password")
+	log.Debugf("username: %v, password: %v", username, strings.Repeat("*", len(password)))
 
-		log.Debug("BarController.SayHello")
-		language := ctx.Values().GetString(ctx.Application().ConfigurationReadOnly().GetTranslateLanguageContextKey())
-		log.Debug(language)
-		ctx.ResponseBody("success", &Bar{Greeting: "hello bar"})
-	}
+	log.Debug("BarController.SayHello")
+	language := ctx.Values().GetString(ctx.Application().ConfigurationReadOnly().GetTranslateLanguageContextKey())
+	log.Debug(language)
+	ctx.ResponseBody("success", &Bar{Greeting: "hello bar"})
 }
