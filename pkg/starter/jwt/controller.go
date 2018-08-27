@@ -33,3 +33,39 @@ type Controller struct {
 func (c *Controller) ParseToken(claims jwt.MapClaims, prop string) string {
 	return fmt.Sprintf("%v", claims[prop])
 }
+
+// ParseToken is an util that parsing JWT token from jwt.MapClaims
+func (c *Controller) GetJwtToken() *jwt.Token {
+	return c.Ctx.Values().Get("jwt").(*jwt.Token)
+}
+
+// GetJwtProperty is an util that parsing JWT token and return single property from jwt.MapClaims
+func (c *Controller) GetJwtProperty(propName string) (propVal string) {
+	claims := c.GetJwtProperties()
+	propVal = fmt.Sprintf("%v", claims[propName])
+	return
+}
+
+// GetJwtProperty is an util that parsing JWT token and return all properties from jwt.MapClaims
+func (c *Controller) GetJwtProperties() (propMap map[string]interface{}) {
+	propMap = make(map[string]interface{})
+
+	token := c.GetJwtToken()
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		propMap = claims
+	}
+	return
+}
+
+// GetJwtProperty is an util that parsing JWT token and return all properties in string from jwt.MapClaims
+func (c *Controller) GetJwtPropertiesString() (propMap map[string]string) {
+
+	claims := c.GetJwtProperties()
+
+	for name, value := range claims {
+		propMap[name] = fmt.Sprintf("%v", value)
+	}
+	return
+}
+

@@ -41,7 +41,7 @@ func TestBarWithToken(t *testing.T) {
 	pt, err := jwtToken.Generate(jwt.Map{
 		"username": "johndoe",
 		"password": "PA$$W0RD",
-	}, 100, time.Millisecond)
+	}, 500, time.Millisecond)
 	if err == nil {
 
 		token := fmt.Sprintf("Bearer %v", pt)
