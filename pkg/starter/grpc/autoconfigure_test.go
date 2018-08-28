@@ -50,26 +50,27 @@ func (s *greeterClient) SayHello(name string) (*pb.HelloReply, error) {
 }
 
 func TestGrpcServerAndClient(t *testing.T) {
-	//grpcConfig := configuration{
-	//	Properties: properties{
-	//		TimeoutSecond: 1,
-	//		Server: server{
-	//			Enabled: true,
-	//			Network: "tcp",
-	//			Port: "7575",
-	//		},
-	//		Client: map[string]interface{}{
-	//			"greeter-client": client{
-	//				Host: "localhost",
-	//				Port: "7575",
-	//			},
-	//		},
-	//	},
-	//}
+	grpcConfig := grpcConfiguration{
+		Properties: properties{
+			TimeoutSecond: 1,
+			Server: server{
+				Enabled: true,
+				Network: "tcp",
+				Port: "7575",
+			},
+			Client: map[string]interface{}{
+				"greeter-client": client{
+					Host: "localhost",
+					Port: "7575",
+				},
+			},
+		},
+	}
 
-	//factory := starter.GetFactory()
-	//factory.Instantiate(&grpcConfig)
+	grpcConfig.Init(nil)
 
+	// TODO: add more test
+	//
 	//greeterSvc := new(greeterClient)
 	//
 	//name := "Steve"

@@ -15,19 +15,19 @@
 package gorm
 
 type Config struct {
-	Decrypt    bool   `json:"decrypt"`
+	Decrypt    bool   `json:"decrypt" default:"true"`
 	DecryptKey string `json:"decrypt_key"`
 }
 
 type properties struct {
-	Type      string `json:"type"` // mysql, postgres, sqlite3, mssql,
-	Host      string `json:"host"`
-	Port      string `json:"port"`
+	Type      string `json:"type" default:"mysql"` // mysql, postgres, sqlite3, mssql,
+	Host      string `json:"host" default:"mysql-dev"`
+	Port      string `json:"port" default:"3306"`
 	Database  string `json:"database"`
 	Username  string `json:"username"`
 	Password  string `json:"password"`
-	Charset   string `json:"charset"`
-	ParseTime bool 	 `json:"parse_time"`
-	Loc       string `json:"loc"`
+	Charset   string `json:"charset" default:"utf8"`
+	ParseTime bool 	 `json:"parse_time" default:"true"`
+	Loc       string `json:"loc" default:"Asia/Shanghai"`
 	Config    Config `json:"config"`
 }
