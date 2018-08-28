@@ -187,28 +187,52 @@ func TestGetKind(t *testing.T) {
 	t.Run("should return reflect.Unit for uint64", func(t *testing.T) {
 		var x uint64
 		x = 1234
-		k := GetKind(reflect.ValueOf(x))
+		k := GetKindByValue(reflect.ValueOf(x))
 		assert.Equal(t, reflect.Uint, k)
 	})
 
 	t.Run("should return reflect.Int for int64", func(t *testing.T) {
 		var x int64
 		x = 1234
-		k := GetKind(reflect.ValueOf(x))
+		k := GetKindByValue(reflect.ValueOf(x))
 		assert.Equal(t, reflect.Int, k)
 	})
 
 	t.Run("should return reflect.Float32 for float64", func(t *testing.T) {
 		var x float64
 		x = 1.234
-		k := GetKind(reflect.ValueOf(x))
+		k := GetKindByValue(reflect.ValueOf(x))
 		assert.Equal(t, reflect.Float32, k)
 	})
 
-
 	t.Run("should return Ptr", func(t *testing.T) {
-		k := GetKind(reflect.ValueOf((*Foo)(nil)))
+		k := GetKindByValue(reflect.ValueOf((*Foo)(nil)))
 		assert.Equal(t, reflect.Ptr, k)
+	})
+
+	t.Run("should return Int", func(t *testing.T) {
+		k := GetKindByType(reflect.ValueOf(int(1)).Type())
+		assert.Equal(t, reflect.Int, k)
+	})
+
+	t.Run("should return Uint", func(t *testing.T) {
+		k := GetKindByType(reflect.ValueOf(uint(1)).Type())
+		assert.Equal(t, reflect.Uint, k)
+	})
+
+	t.Run("should return Bool", func(t *testing.T) {
+		k := GetKindByType(reflect.ValueOf(true).Type())
+		assert.Equal(t, reflect.Bool, k)
+	})
+
+	t.Run("should return Float32", func(t *testing.T) {
+		k := GetKindByType(reflect.ValueOf(0.01).Type())
+		assert.Equal(t, reflect.Float32, k)
+	})
+
+	t.Run("should return String", func(t *testing.T) {
+		k := GetKindByType(reflect.ValueOf("abc").Type())
+		assert.Equal(t, reflect.String, k)
 	})
 }
 
@@ -417,11 +441,49 @@ func SayHello(name string) string {
 	return "Hello " + name
 }
 
+func Dummy()  {
+	// for test only, do nothing
+}
+
 func TestCallFunc(t *testing.T) {
 	t.Run("should call func", func(t *testing.T) {
 		res, err := CallFunc(SayHello, "Steve")
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, nil, res)
 		assert.Equal(t, "Hello Steve", res.(string))
+	})
+
+	t.Run("should call func", func(t *testing.T) {
+		res, err := CallFunc(Dummy)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, nil, res)
+	})
+
+	t.Run("should call func", func(t *testing.T) {
+		_, err := CallFunc(int(1))
+		assert.Equal(t, InvalidFuncError, err)
+	})
+}
+
+func TestGetEmbeddedInterfaceField(t *testing.T) {
+	type fakeInterface interface {}
+	type fakeService struct { fakeInterface }
+	type fakeChildService struct { fakeService }
+
+	t.Run("should get embedded fakeInterface", func(t *testing.T) {
+		field := GetEmbeddedInterfaceField(new(fakeService))
+		assert.Equal(t,"fakeInterface", field.Name)
+	})
+
+	t.Run("should get embedded fakeInterface", func(t *testing.T) {
+		field := GetEmbeddedInterfaceField(new(fakeChildService))
+		assert.Equal(t,"fakeInterface", field.Name)
+	})
+
+	t.Run("should not get embedded interface that it's not exist", func(t *testing.T) {
+		type fooService struct { }
+		type barService struct { fooService }
+		field := GetEmbeddedInterfaceField(new(barService))
+		assert.Equal(t,false, field.Anonymous)
 	})
 }

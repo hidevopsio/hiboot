@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"github.com/hidevopsio/hiboot/pkg/utils/sort"
 	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
+	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
 type Application interface {
@@ -34,6 +35,7 @@ type Application interface {
 }
 
 type application struct {
+	app.BaseApplication
 	root Command
 }
 
@@ -43,10 +45,10 @@ type CommandNameValue struct {
 }
 
 var (
-	commandContainer  map[string][]Command
-	commandNames []string
-	app *application
-	once sync.Once
+	commandContainer map[string][]Command
+	commandNames     []string
+	cliApp           *application
+	once             sync.Once
 )
 
 func init() {
@@ -66,10 +68,10 @@ func AddCommand(parentPath string, commands ...Command) {
 
 func GetApplication() Application {
 	once.Do(func() {
-		app = new(application)
-		app.SetRoot(new(rootCommand))
+		cliApp = new(application)
+		cliApp.SetRoot(new(rootCommand))
 	})
-	return app
+	return cliApp
 }
 
 func NewApplication(cmd ...Command) Application {
@@ -84,14 +86,14 @@ func (a *application) injectCommand(cmd Command)  {
 		fullname = cmd.FullName()
 	}
 	for _, child := range cmd.Children() {
-		inject.IntoObject(reflect.ValueOf(child))
+		inject.IntoObjectValue(reflect.ValueOf(child))
 		child.SetFullName(fullname + "." + child.GetName())
 		a.injectCommand(child)
 	}
 }
 
 func (a *application) Init(cmd ...Command) error  {
-
+	a.BaseApplication.Init()
 	basename := filepath.Base(os.Args[0])
 	if runtime.GOOS == "windows" {
 		basename = strings.ToLower(basename)
@@ -109,7 +111,7 @@ func (a *application) Init(cmd ...Command) error  {
 		}
 	}
 	root.SetName("root")
-	inject.IntoObject(reflect.ValueOf(root))
+	inject.IntoObjectValue(reflect.ValueOf(root))
 	Register(root)
 	a.SetRoot(root)
 	if !gotest.IsRunning() {
@@ -131,7 +133,7 @@ func (a *application) Init(cmd ...Command) error  {
 				parent = a.root
 			}
 			for _, command := range commands {
-				inject.IntoObject(reflect.ValueOf(command))
+				inject.IntoObjectValue(reflect.ValueOf(command))
 				parent.Add(command)
 				fullname := cmdName + "." + command.GetName()
 				parentContainer[fullname] = command

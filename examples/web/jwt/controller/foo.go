@@ -15,9 +15,10 @@
 package controllers
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"time"
+	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
 )
 
 type UserRequest struct {
@@ -37,11 +38,17 @@ type FooResponse struct {
 
 type FooController struct {
 	web.Controller
+
+	jwtToken jwt.Token
 }
 
 // init - add &FooController{} to web application
 func init() {
-	web.Add(&FooController{})
+	web.RestController(&FooController{})
+}
+
+func (c *FooController) Init(jwtToken jwt.Token) {
+	c.jwtToken = jwtToken
 }
 
 func (c *FooController) Before(ctx *web.Context) {
@@ -56,7 +63,7 @@ func (c *FooController) PostLogin(ctx *web.Context) {
 
 	userRequest := &UserRequest{}
 	if ctx.RequestBody(userRequest) == nil {
-		jwtToken, _ := web.GenerateJwtToken(web.JwtMap{
+		jwtToken, _ := c.jwtToken.Generate(jwt.Map{
 			"username": userRequest.Username,
 			"password": userRequest.Password,
 		}, 10, time.Minute)

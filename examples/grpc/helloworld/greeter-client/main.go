@@ -17,7 +17,7 @@
 package main
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
 	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf"
@@ -58,13 +58,22 @@ func init() {
 	// optional: for running test
 	io.EnsureWorkDir("examples/grpc/helloworld/greeter-client")
 
-	// must: register grpc client
+	// must: register grpc client, the name greeter-client should configured in application.yml
+	// see config/application-grpc.yml
+	//
+	// grpc:
+	//   client:
+	// 	   greeter-client:   # client name
+	//       host: localhost # server host
+	//       port: 7575      # server port
+	//
 	grpc.RegisterClient("greeter-client", protobuf.NewGreeterClient)
 
 	// must: register greeterController
-	web.Add(new(greeterController))
+	web.RestController(new(greeterController))
 }
 
 func main() {
+	// create new web application and run it
 	web.NewApplication().Run()
 }

@@ -12,36 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package starter
+package system
 
 type Profiles struct {
 	Include []string `json:"include"`
-	Active  string   `json:"active" value:"${APP_PROFILES_ACTIVE:dev}"`
+	Active  string   `json:"active" default:"${APP_PROFILES_ACTIVE:dev}"`
 }
 
 type App struct {
-	Project        string   `json:"project"`
-	Name           string   `json:"name"`
+	Project        string   `json:"project" default:"hidevopsio"`
+	Name           string   `json:"name" default:"hiboot-app"`
 	Profiles       Profiles `json:"profiles"`
-	Version        string   `json:"version"`
+	// TODO: should defined in application-version.yml
+	//Version        string   `json:"version" default:"0.0.1"`
 }
 
 type Server struct {
-	Port int32 `json:"port"`
+	Port string `json:"port" default:"8080"`
 }
 
 type Logging struct {
-	Level string `json:"level"`
+	Level string `json:"level" default:"info"`
 }
 
 type Env struct {
 	Name  string
 	Value string
 }
-
-type SystemConfiguration struct {
-	App         App          `mapstructure:"app"`
-	Server      Server       `mapstructure:"server"`
-	Logging     Logging      `mapstructure:"logging"`
-}
-

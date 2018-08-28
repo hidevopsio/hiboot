@@ -24,6 +24,7 @@ import (
 
 var InvalidInputError = errors.New("input is invalid")
 var InvalidMethodError = errors.New("method is invalid")
+var InvalidFuncError = errors.New("func is invalid")
 var FieldCanNotBeSetError = errors.New("field can not be set")
 
 func NewReflectType(st interface{}) interface{} {
@@ -114,10 +115,8 @@ func SetFieldValue(object interface{}, name string, value interface{}) error  {
 	return nil
 }
 
-func GetKind(val reflect.Value) reflect.Kind {
 
-	// Capture the value's Kind.
-	kind := val.Kind()
+func GetKind(kind reflect.Kind) reflect.Kind {
 
 	// Check each condition until a case is true.
 	switch {
@@ -135,6 +134,15 @@ func GetKind(val reflect.Value) reflect.Kind {
 		return kind
 	}
 }
+
+func GetKindByValue(val reflect.Value) reflect.Kind {
+	return GetKind(val.Kind())
+}
+
+func GetKindByType(typ reflect.Type) reflect.Kind {
+	return GetKind(typ.Kind())
+}
+
 
 func ValidateReflectType(obj interface{}, callback func(value *reflect.Value, reflectType reflect.Type, fieldSize int, isSlice bool) error) error {
 	v, err := Validate(obj)
@@ -158,16 +166,28 @@ func ValidateReflectType(obj interface{}, callback func(value *reflect.Value, re
 	return err
 }
 
-func GetName(data interface{}) (string, error)  {
+
+func GetType(data interface{}) (typ reflect.Type, err error)  {
 	dv := Indirect(reflect.ValueOf(data))
 
 	// Return is from value is invalid
 	if !dv.IsValid() {
-		return "", InvalidInputError
+		err = InvalidInputError
+		return
 	}
-	//log.Debugf("%v %v %v %v", dv, dv.Type(), dv.Type().String(), dv.Type().Name())
-	name := dv.Type().Name()
-	return name, nil
+	typ = dv.Type()
+
+	//log.Debugf("%v %v %v %v %v", dv, typ, typ.String(), typ.Name(), typ.PkgPath())
+	return
+}
+
+func GetName(data interface{}) (name string, err error)  {
+
+	typ, err := GetType(data)
+	if err == nil {
+		name = typ.Name()
+	}
+	return
 }
 
 func GetLowerCaseObjectName(data interface{}) (string, error) {
@@ -205,24 +225,48 @@ func CallMethodByName(object interface{}, name string, args ...interface{}) (int
 
 func CallFunc(object interface{}, args ...interface{}) (interface{}, error)  {
 	fn := reflect.ValueOf(object)
-	numIn := fn.Type().NumIn()
-	inputs := make([]reflect.Value, numIn)
-	for i, arg := range args {
-		inputs[i] = reflect.ValueOf(arg)
+	if fn.Kind() == reflect.Func {
+		numIn := fn.Type().NumIn()
+		inputs := make([]reflect.Value, numIn)
+		for i, arg := range args {
+			inputs[i] = reflect.ValueOf(arg)
+		}
+		results := fn.Call(inputs)
+		if len(results) != 0 {
+			return results[0].Interface(), nil
+		} else {
+			return nil, nil
+		}
 	}
-	results := fn.Call(inputs)
-	if len(results) != 0 {
-		return results[0].Interface(), nil
-	} else {
-		return nil, nil
-	}
-	return nil, InvalidMethodError
+	return nil, InvalidFuncError
 }
 
 func HasEmbeddedField(object interface{}, name string) bool {
 	typ := IndirectType(reflect.TypeOf(object))
 	field, ok := typ.FieldByName(name)
 	return field.Anonymous && ok
+}
+
+
+func getEmbeddedInterfaceField(typ reflect.Type) (field reflect.StructField) {
+	if typ.Kind() == reflect.Struct {
+		for i := 0; i < typ.NumField(); i++ {
+			v := typ.Field(i)
+			if v.Anonymous {
+				if v.Type.Kind() == reflect.Interface {
+					return v
+				} else {
+					return getEmbeddedInterfaceField(v.Type)
+				}
+			}
+		}
+	}
+	return
+}
+
+func GetEmbeddedInterfaceField(object interface{}) (field reflect.StructField) {
+	typ := IndirectType(reflect.TypeOf(object));
+	return getEmbeddedInterfaceField(typ)
 }
 
 // ParseObjectName e.g. ExampleObject => example

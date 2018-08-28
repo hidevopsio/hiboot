@@ -4,9 +4,6 @@
 app:
   project: hidevopsio
   name: hiboot
-  profiles:
-    include:
-    - web
 
 logging:
   level: info

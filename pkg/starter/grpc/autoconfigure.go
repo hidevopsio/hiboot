@@ -17,19 +17,21 @@ package grpc
 import (
 	"net"
 	"google.golang.org/grpc"
-	"github.com/hidevopsio/hiboot/pkg/starter"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"google.golang.org/grpc/reflection"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"fmt"
-	"github.com/hidevopsio/hiboot/pkg/inject"
-	"reflect"
 	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/factory/instance"
 )
 
-type configuration struct {
+type grpcConfiguration struct {
+	app.Configuration
 	Properties properties `mapstructure:"grpc"`
+
+	instanceFactory *instance.InstanceFactory
 }
 
 type grpcService struct {
@@ -64,31 +66,16 @@ func RegisterClient(name string, cb interface{}, s ...interface{})  {
 	grpcClients = append(grpcClients, svr)
 }
 
-// InjectIntoObject
-func InjectIntoObject()  {
-	for _, srv := range grpcServers {
-		err := inject.IntoObject(reflect.ValueOf(srv.svc))
-		if err != nil {
-			break
-		}
-	}
-
-	// we use web controller to inject
-	//for _, cli := range grpcClients {
-	//	err := inject.IntoObject(reflect.ValueOf(cli.svc))
-	//	if err != nil {
-	//		break
-	//	}
-	//}
-}
-
 func init() {
-	starter.AddConfig("grpc", configuration{})
+	app.AutoConfiguration(new(grpcConfiguration))
 }
 
+// inject instanceFactory
+func (c *grpcConfiguration) Init(instanceFactory *instance.InstanceFactory) {
+	c.instanceFactory = instanceFactory
+}
 
-func (c *configuration) BuildGrpcClients() {
-	factory := starter.GetFactory()
+func (c *grpcConfiguration) BuildGrpcClients() {
 	clientProps := c.Properties.Client
 	for _, cli := range grpcClients {
 		prop := new(client)
@@ -111,23 +98,23 @@ func (c *configuration) BuildGrpcClients() {
 			gRpcCli, err := reflector.CallFunc(cli.cb, conn)
 			if err == nil {
 				// register grpc client
-				factory.AddInstance(clientInstanceName, gRpcCli)
+				c.instanceFactory.SetInstance(clientInstanceName, gRpcCli)
 			}
 		}
 		// register clientConn
-		factory.AddInstance(clientInstanceName + "Conn", conn)
+		c.instanceFactory.SetInstance(clientInstanceName + "Conn", conn)
 
 		// register client service
 		if cli.svc != nil {
 			svcName, err := reflector.GetName(cli.svc)
 			if err == nil {
-				factory.AddInstance(svcName, cli.svc)
+				c.instanceFactory.SetInstance(svcName, cli.svc)
 			}
 		}
 	}
 }
 
-func (c *configuration) RunGrpcServers() {
+func (c *grpcConfiguration) RunGrpcServers() {
 	// just return if grpc server is not enabled
 	if !c.Properties.Server.Enabled {
 		return

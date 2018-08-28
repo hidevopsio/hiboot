@@ -27,20 +27,14 @@ import (
 	"github.com/kataras/iris/middleware/logger"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system"
-	"github.com/hidevopsio/hiboot/pkg/starter"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
-	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"errors"
 )
 
 const (
 	pathSep = "/"
-
-	AuthType        = "AuthType"
-	AuthTypeDefault = ""
-	AuthTypeAnon    = "anon"
-	AuthTypeJwt     = "jwt"
 
 	initMethodName = "Init"
 
@@ -48,75 +42,63 @@ const (
 	AfterMethod  = "After"
 )
 
-// ApplicationInterface is the interface of web application
-type Application interface {
-	Init(controllers ...interface{}) error
-	Config() *starter.SystemConfiguration
-	Run()
-}
-
 // Application is the struct of web Application
 // TODO: application should be singleton and private
 type application struct {
-	app             *iris.Application
-	config          *starter.SystemConfiguration
+	app.BaseApplication
+	webApp          *iris.Application
 	jwtEnabled      bool
-	workDir         string
 	httpMethods     []string
-	factory         starter.Factory
 	anonControllers []interface{}
 	jwtControllers  []interface{}
 	dispatcher      dispatcher
+	controllerMap   map[string][]interface{}
 }
 
 var (
 	// controllers global controllers container
+	initializers []interface{}
 	webControllers []interface{}
 	compiledRegExp = regexp.MustCompile(`\{(.*?)\}`)
+
+	ControllersNotFoundError = errors.New("[app] controllers not found")
+	InvalidControllerError = errors.New("[app] invalid controller")
 )
 
-// Config returns application config
-func (wa *application) Config() *starter.SystemConfiguration {
-	return wa.config
-}
 
 // Run run web application
-func (wa *application) Run() {
+func (a *application) Run() {
 	serverPort := ":8080"
-	if wa.config != nil && wa.config.Server.Port != 0 {
-		serverPort = fmt.Sprintf(":%v", wa.config.Server.Port)
+	conf := a.SystemConfig()
+	if conf != nil && conf.Server.Port != "" {
+		serverPort = fmt.Sprintf(":%v", conf.Server.Port)
 	}
 	// TODO: WithCharset should be configurable
-	wa.app.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(DefaultConfiguration()))
+	a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(DefaultConfiguration()))
 }
 
-// Add add controller to controllers container
-func Add(controllers ...interface{}) {
-	webControllers = append(webControllers, controllers...)
-}
-
-func (wa *application) add(controllers ...interface{}) {
+func (a *application) add(controllers ...interface{}) {
 	for _, controller := range controllers {
-		authType := AuthTypeAnon
-		result, err := reflector.CallMethodByName(controller, "AuthType")
-		if err == nil {
-			authType = fmt.Sprintf("%v", result)
-		}
-		// separate jwt controllers from anon
-		if authType == AuthTypeJwt {
-			wa.jwtControllers = append(wa.jwtControllers, controller)
-		} else {
-			wa.anonControllers = append(wa.anonControllers, controller)
+
+		ifcField := reflector.GetEmbeddedInterfaceField(controller)
+		if ifcField.Anonymous {
+			ctrlTypeName := ifcField.Name
+			controllers := a.controllerMap[ctrlTypeName]
+			a.controllerMap[ctrlTypeName] = append(controllers, controller)
 		}
 	}
 }
 
 // Init init web application
-func (wa *application) Init(controllers ...interface{}) error {
+func (a *application) Init(controllers ...interface{}) error {
 
-	wa.workDir = io.GetWorkDir()
+	// run base Init
+	a.BaseApplication.Init(controllers...)
 
-	wa.httpMethods = []string{
+	// before init
+	a.BeforeInitialization()
+
+	a.httpMethods = []string{
 		http.MethodGet,
 		http.MethodHead,
 		http.MethodPost,
@@ -128,46 +110,29 @@ func (wa *application) Init(controllers ...interface{}) error {
 		http.MethodTrace,
 	}
 
-	wa.factory = starter.GetFactory()
-	wa.factory.Build()
-
-	config := wa.factory.Configuration(starter.System)
-	if config != nil {
-		//return errors.New("system configuration not found")
-		wa.config = config.(*starter.SystemConfiguration)
-		// ensure web is included
-		if !str.InSlice("web", wa.config.App.Profiles.Include) {
-			wa.config.App.Profiles.Include = append(wa.config.App.Profiles.Include, "web")
-		}
-		log.SetLevel(wa.config.Logging.Level)
-	} else {
-		wa.config = new(starter.SystemConfiguration)
-		wa.config.App.Project = "hidevopsio"
-		wa.config.App.Name = "hiboot"
-		wa.config.App.Profiles.Include = append(wa.config.App.Profiles.Include, "web")
-		log.Warnf("no config files in %v, e.g. application.yml", filepath.Join(wa.workDir, "config"))
+	systemConfig := a.SystemConfig()
+	if systemConfig != nil {
+		log.SetLevel(systemConfig.Logging.Level)
+		log.Infof("Starting hiboot web application %v on localhost with PID %v (%v)", systemConfig.App.Name, os.Getpid(), a.WorkDir)
+		log.Infof("The following profiles are active: %v, %v", systemConfig.App.Profiles.Active, systemConfig.App.Profiles.Include)
 	}
 
+	f := a.ConfigurableFactory()
+	f.SetInstance("application", a)
+
+	// build auto configurations
+	a.BuildConfigurations()
+
+	a.controllerMap = make(map[string][]interface{})
 	if len(controllers) == 0 {
-		wa.add(webControllers...)
+		a.add(webControllers...)
 	} else {
-		wa.add(controllers...)
+		a.add(controllers...)
 	}
 
-	numJwtCtrl := len(wa.jwtControllers)
-	// Init JWT
-	err := InitJwt(wa.workDir)
-	if err != nil {
-		wa.jwtEnabled = false
-		if numJwtCtrl != 0 {
-			log.Warn(err.Error())
-		}
-	} else {
-		wa.jwtEnabled = true
-	}
+	a.webApp = iris.New()
 
-	wa.app = iris.New()
-
+	//TODO: move out to starter/logging
 	customLogger := logger.New(logger.Config{
 		// Status displays status code
 		Status: true,
@@ -190,50 +155,56 @@ func (wa *application) Init(controllers ...interface{}) error {
 		MessageHeaderKeys: []string{"User-Agent"},
 	})
 
-	wa.app.Use(customLogger)
+	// TODO: it should be configurable
+	a.webApp.Use(customLogger)
 
 	// The only one Required:
 	// here is how you define how your own context will
 	// be created and acquired from the iris' generic context pool.
-	wa.app.ContextPool.Attach(func() context.Context {
+	a.webApp.ContextPool.Attach(func() context.Context {
 		return &Context{
 			// Optional Part 3:
-			Context: context.NewContext(wa.app),
+			Context: context.NewContext(a.webApp),
 		}
 	})
 
-	err = wa.initLocale()
+	err := a.initLocale()
 	if err != nil {
 		log.Debug(err)
 	}
 
-	// inject grpc services
-	grpc.InjectIntoObject()
-
-	if len(wa.anonControllers) == 0 &&
-		len(wa.jwtControllers) == 0 {
-		return nil
-	}
-
 	// first register anon controllers
-	err = wa.dispatcher.register(wa.app, wa.anonControllers)
-	if err != nil {
-		return err
-	}
+	err = a.RegisterController(new(AnonController))
 
-	// then use jwt
-	wa.app.Use(jwtHandler.Serve)
-
-	// finally register jwt controllers
-	err = wa.dispatcher.register(wa.app, wa.jwtControllers)
-	if err != nil {
-		return err
-	}
+	// call AfterInitialization with factory interface
+	a.AfterInitialization()
 
 	return nil
 }
 
-func (wa *application) initLocale() error {
+func (a *application) RegisterController(controller interface{}) error {
+	// get from controller map
+	// parse controller type
+	controllerInterfaceName, err := reflector.GetName(controller)
+	if err != nil {
+		return InvalidControllerError
+	}
+	controllers, ok := a.controllerMap[controllerInterfaceName]
+	if ok {
+		return a.dispatcher.register(a.webApp, controllers)
+	}
+	return ControllersNotFoundError
+}
+
+func (a *application) Use(handlers ...context.Handler) {
+	// pass user's instances
+	for _, hdl := range handlers {
+		a.webApp.Use(hdl)
+	}
+}
+
+
+func (a *application) initLocale() error {
 	// TODO: localePath should be configurable in application.yml
 	// locale:
 	//   en-US: ./config/i18n/en-US.ini
@@ -278,13 +249,22 @@ func (wa *application) initLocale() error {
 		Languages:    languages,
 	})
 
-	wa.app.Use(globalLocale)
+	a.webApp.Use(globalLocale)
 
 	return nil
 }
 
+// Add add controller to controllers container
+func RestController(controllers ...interface{}) {
+	webControllers = append(webControllers, controllers...)
+}
+
+func RegisterInitializer(initializer ...interface{})  {
+	initializers = append(initializers, initializer...)
+}
+
 // NewApplication create new web application instance and init it
-func NewApplication(controllers ...interface{}) *application {
+func NewApplication(controllers ...interface{}) app.Application {
 	wa := new(application)
 	err := wa.Init(controllers...)
 	if err != nil {

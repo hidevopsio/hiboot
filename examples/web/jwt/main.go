@@ -15,12 +15,18 @@
 package main
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 	// starter/actuator is response for health check etc.
 	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
 	_ "github.com/hidevopsio/hiboot/examples/web/jwt/controller"
 
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
+
+func init() {
+	// optional: for running test
+	io.EnsureWorkDir("examples/web/jwt")
+}
 
 func main()  {
 	// create new web application and run it
