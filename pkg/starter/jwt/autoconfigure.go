@@ -4,7 +4,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/dgrijalva/jwt-go"
 	mw "github.com/iris-contrib/middleware/jwt"
-	"github.com/hidevopsio/hiboot/pkg/factory/instance"
 )
 
 type configuration struct{
@@ -13,7 +12,6 @@ type configuration struct{
 	Properties Properties `mapstructure:"jwt"`
 
 	jwtHandler *JwtMiddleware
-	instanceFactory instance.Factory
 
 }
 
@@ -21,15 +19,14 @@ func init() {
 	app.AutoConfiguration(new(configuration))
 }
 
-func (c *configuration ) Init(instanceFactory instance.Factory) {
-	c.instanceFactory = instanceFactory
-}
+func (c *configuration ) JwtMiddleware() *JwtMiddleware {
 
-func (c *configuration ) jwtMiddleware(jt *jwtToken) *JwtMiddleware {
+	jt := c.JwtToken()
+
 	return NewJwtMiddleware(mw.Config{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 			//log.Debug(token)
-			return jt.verifyKey, nil
+			return jt.VerifyKey(), nil
 		},
 		// When set, the middleware verifies that tokens are signed with the specific signing algorithm
 		// If the signing method is not constant the ValidationKeyGetter callback can be used to implement additional checks
@@ -40,14 +37,8 @@ func (c *configuration ) jwtMiddleware(jt *jwtToken) *JwtMiddleware {
 
 func (c *configuration) JwtToken() Token  {
 	jt := new(jwtToken)
-	//wd := io.GetWorkDir()
 
 	jt.Initialize(&c.Properties)
-	//jt.jwtMiddleware = c.JwtMiddleware(jt)
-
-	jwtMiddleware := c.jwtMiddleware(jt)
-	// TODO: JwtToken depends on jwtMiddleware
-	c.instanceFactory.SetInstance("jwtMiddleware", jwtMiddleware)
 
 	return jt
 }
