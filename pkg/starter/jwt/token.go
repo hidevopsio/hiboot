@@ -30,6 +30,7 @@ type Map map[string]interface{}
 
 type Token interface {
 	Generate(payload Map, expired int64, unit time.Duration) (string, error)
+	VerifyKey() *rsa.PublicKey
 }
 
 type jwtToken struct {
@@ -74,6 +75,10 @@ func (t *jwtToken) Initialize(p *Properties) error {
 	t.jwtEnabled = true
 
 	return nil
+}
+
+func (t *jwtToken) VerifyKey() *rsa.PublicKey {
+	return t.verifyKey
 }
 
 // Generate generates JWT token with specified exired time
