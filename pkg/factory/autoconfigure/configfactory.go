@@ -161,7 +161,7 @@ func (f *ConfigurableFactory) build(cfgContainer cmap.ConcurrentMap)  {
 				f.Instantiate(cf)
 				// save configuration
 				if _, ok := f.configurations.Get(name); ok {
-					log.Fatalf("[factory] configuration name % is already taken", name)
+					log.Fatalf("[factory] configuration name %v is already taken", name)
 				}
 				f.configurations.Set(name, cf)
 			}
