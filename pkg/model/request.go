@@ -21,14 +21,11 @@ var (
 	Context = "Context"
 )
 
-type RequestBody struct {
-}
+type RequestBody struct {}
 
 
-type RequestForm struct {
-}
+type RequestForm struct {}
 
 
-type RequestParams struct {
-}
+type RequestParams struct {}
 

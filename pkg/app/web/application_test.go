@@ -15,14 +15,14 @@
 package web_test
 
 import (
-	"testing"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"net/http"
-	"time"
-	"github.com/stretchr/testify/assert"
 	"fmt"
-	"github.com/hidevopsio/hiboot/pkg/model"
+	"time"
 	"errors"
+	"testing"
+	"net/http"
+	"github.com/stretchr/testify/assert"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
@@ -75,7 +75,6 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 	io.ChangeWorkDir("../../../")
 }
-
 
 func (c *FooController) Init(jwtToken jwt.Token) {
 	c.jwtToken = jwtToken

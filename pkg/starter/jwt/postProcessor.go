@@ -34,6 +34,6 @@ func (p *postProcessor) AfterInitialization(factory interface{})  {
 	// finally register jwt controllers
 	err := p.application.RegisterController(new(JwtController))
 	if err != nil {
-		log.Errorf("[jwt] %v", err)
+		log.Warnf("[jwt] %v", err)
 	}
 }
