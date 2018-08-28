@@ -26,7 +26,7 @@ func (f *InstanceFactory) Initialized() bool  {
 
 func (f *InstanceFactory) SetInstance(name string, instance interface{}) {
 	if _, ok := f.instanceMap.Get(name); ok && !gotest.IsRunning() {
-		log.Fatalf("[factory] instance name % is already taken", name)
+		log.Fatalf("[factory] instance name %v is already taken", name)
 	}
 	f.instanceMap.Set(name, instance)
 }
