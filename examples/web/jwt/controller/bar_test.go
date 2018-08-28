@@ -32,7 +32,7 @@ func init() {
 }
 
 func TestBarWithToken(t *testing.T) {
-	app := web.NewTestApplication(t, new(BarController))
+	app := web.NewTestApplication(t, new(barController))
 	log.Println(io.GetWorkDir())
 	jwtToken := jwt.NewJwtToken(&jwt.Properties{
 		PrivateKeyPath: "config/ssl/app.rsa",
@@ -64,7 +64,7 @@ func TestBarWithToken(t *testing.T) {
 
 
 func TestBarWithoutToken(t *testing.T) {
-	app := web.NewTestApplication(t, new(BarController))
+	app := web.NewTestApplication(t, new(barController))
 
 	app.Get("/bar").
 		Expect().Status(http.StatusUnauthorized)

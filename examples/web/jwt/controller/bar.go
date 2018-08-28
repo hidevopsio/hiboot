@@ -27,15 +27,15 @@ type Bar struct {
 }
 
 
-type BarController struct{
+type barController struct{
 	jwt.Controller
 }
 
 func init()  {
-	web.RestController(new(BarController))
+	web.RestController(new(barController))
 }
 
-func (c *BarController) Get(ctx *web.Context)  {
+func (c *barController) Get(ctx *web.Context)  {
 	username := c.GetJwtProperty("username")
 	password := c.GetJwtProperty("password")
 	log.Debugf("username: %v, password: %v", username, strings.Repeat("*", len(password)))
