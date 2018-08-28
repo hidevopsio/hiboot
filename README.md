@@ -29,6 +29,23 @@ With auto configuration, you can integrate any other libraries easily with depen
 * Web MVC (Model-View-Controller)
 * Auto Configuration, pre-create instance with properties configs for dependency injection
 * Dependency injection with struct tag name **\`inject:""\`** or **Init** method
+
+## Features
+
+* Apps
+    * cli - command line application
+    * web - web application
+* Starters 
+    * actuator - health check
+    * grpc - grpc application starter
+    * bolt - bolt database starter
+    * gorm - gorm orm starter, support mysql, postgres, mssql, sqlite
+* Tags 
+    * inject - inject generic instance into object
+    * default - inject default value into struct object 
+    * value - inject string value or references / variables into struct string field
+    * cmd - inject command into parent command for cli application
+    * flag - inject flag / options into command object
 * Utils 
     * cmap - concurrent map
     * copier - copy between struct
@@ -40,19 +57,8 @@ With auto configuration, you can integrate any other libraries easily with depen
     * replacer - replacing stuct field value with references or environment variables
     * sort - sort slice elements
     * str - string util enhancement util
-    * validator - struct field validation
-* auto configuration starters
-    * cli - cli application starter
-    * web - web application starter
-    * grpc - grpc application starter
-    * bolt - bolt database starter
-    * gorm - gorm orm starter, support mysql, postgres, mssql, sqlite
-* Tags 
-    * inject - inject generic instance into object
-    * value - inject string value or references / variables into struct string field
-    * cmd - inject command into parent command for cli application
-    * flag - inject flag / options into command object
-    
+    * validator - struct field validation 
+       
 and more on the wey ...
 
 ## Getting started
