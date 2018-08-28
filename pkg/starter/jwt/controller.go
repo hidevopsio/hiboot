@@ -60,6 +60,7 @@ func (c *Controller) GetJwtProperties() (propMap map[string]interface{}) {
 
 // GetJwtProperty is an util that parsing JWT token and return all properties in string from jwt.MapClaims
 func (c *Controller) GetJwtPropertiesString() (propMap map[string]string) {
+	propMap = make(map[string]string)
 
 	claims := c.GetJwtProperties()
 

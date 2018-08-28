@@ -14,6 +14,7 @@
 
 package web
 
+// AnonController is an anonymous controller interface
 type AnonController interface{}
 
 // Controller is the web base controller

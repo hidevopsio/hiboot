@@ -19,10 +19,6 @@ import (
 	"testing"
 )
 
-var (
-	jwtMw *JwtMiddleware
-	ctx FakeContext
-)
 
 type FakeContext struct {
 }
@@ -37,8 +33,6 @@ func (c *FakeContext) StopExecution()  {
 
 func init() {
 	log.SetLevel(log.DebugLevel)
-
-	jwtMw = new(JwtMiddleware)
 }
 
 func TestCheckJWT(t *testing.T) {
