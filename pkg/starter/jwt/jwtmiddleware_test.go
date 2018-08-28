@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package jwt
+package jwt_test
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"testing"
+	"time"
+	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
+	"github.com/stretchr/testify/assert"
 )
 
 
@@ -36,4 +39,15 @@ func init() {
 }
 
 func TestCheckJWT(t *testing.T) {
+	jwtToken := jwt.NewJwtToken(&jwt.Properties{
+		PrivateKeyPath: "config/ssl/app.rsa",
+		PublicKeyPath: "config/ssl/app.rsa.pub",
+	})
+	token, err := jwtToken.Generate(jwt.Map{
+		"username": "johndoe",
+		"password": "PA$$W0RD",
+	}, 500, time.Millisecond)
+
+	assert.Equal(t, nil, err)
+	assert.NotEqual(t, nil, token)
 }
