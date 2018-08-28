@@ -36,7 +36,7 @@ type FooResponse struct {
 	Age  int `json:"age"`
 }
 
-type FooController struct {
+type fooController struct {
 	web.Controller
 
 	jwtToken jwt.Token
@@ -44,21 +44,21 @@ type FooController struct {
 
 // init - add &FooController{} to web application
 func init() {
-	web.RestController(&FooController{})
+	web.RestController(&fooController{})
 }
 
-func (c *FooController) Init(jwtToken jwt.Token) {
+func (c *fooController) Init(jwtToken jwt.Token) {
 	c.jwtToken = jwtToken
 }
 
-func (c *FooController) Before(ctx *web.Context) {
+func (c *fooController) Before(ctx *web.Context) {
 	log.Debug("FooController.Before")
 	ctx.Next()
 }
 
 // Post login
 // The first word of method is the http method POST, the rest is the context mapping
-func (c *FooController) PostLogin(ctx *web.Context) {
+func (c *fooController) PostLogin(ctx *web.Context) {
 	log.Debug("FooController.Login")
 
 	userRequest := &UserRequest{}
@@ -74,7 +74,7 @@ func (c *FooController) PostLogin(ctx *web.Context) {
 	}
 }
 
-func (c *FooController) Post(ctx *web.Context) {
+func (c *fooController) Post(ctx *web.Context) {
 	log.Debug("FooController.Post")
 
 	foo := &FooRequest{}
@@ -84,7 +84,7 @@ func (c *FooController) Post(ctx *web.Context) {
 
 }
 
-func (c *FooController) Get(ctx *web.Context) {
+func (c *fooController) Get(ctx *web.Context) {
 	log.Debug("FooController.Get")
 
 	foo := &FooRequest{}
@@ -96,6 +96,6 @@ func (c *FooController) Get(ctx *web.Context) {
 	}
 }
 
-func (c *FooController) After(ctx *web.Context) {
+func (c *fooController) After(ctx *web.Context) {
 	log.Debug("FooController.After")
 }

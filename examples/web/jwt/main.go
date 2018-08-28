@@ -24,7 +24,7 @@ import (
 )
 
 func init() {
-	// optional: for running test
+	// optional: ensure working dir as examples/web/jwt is under hiboot
 	io.EnsureWorkDir("examples/web/jwt")
 }
 
