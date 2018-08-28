@@ -16,11 +16,11 @@
 package service
 
 import (
+	"errors"
 	"github.com/hidevopsio/hiboot/examples/data/gorm/entity"
 	"github.com/hidevopsio/hiboot/pkg/utils/idgen"
 	"github.com/hidevopsio/hiboot/pkg/starter/data/gorm"
-	"errors"
-	"github.com/hidevopsio/hiboot/pkg/starter"
+	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
 type UserService interface {
@@ -37,7 +37,7 @@ type UserServiceImpl struct {
 
 func init() {
 	// register UserServiceImpl
-	starter.Add(new(UserServiceImpl))
+	app.Component(new(UserServiceImpl))
 }
 
 // will inject BoltRepository that configured in github.com/hidevopsio/hiboot/pkg/starter/data/bolt

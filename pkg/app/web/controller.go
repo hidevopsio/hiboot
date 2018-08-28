@@ -14,32 +14,12 @@
 
 package web
 
-import (
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"testing"
-)
+type AnonController interface{}
 
-var (
-	jwtMw *JwtMiddleware
-	ctx FakeContext
-)
-
-type FakeContext struct {
+// Controller is the web base controller
+type Controller struct {
+	AnonController
+	ContextMapping string
+	Ctx            *Context
 }
 
-func (c *FakeContext) Next()  {
-	log.Debug("FakeContext.Next()")
-}
-
-func (c *FakeContext) StopExecution()  {
-	log.Debug("FakeContext.Next()")
-}
-
-func init() {
-	log.SetLevel(log.DebugLevel)
-
-	jwtMw = new(JwtMiddleware)
-}
-
-func TestCheckJWT(t *testing.T) {
-}

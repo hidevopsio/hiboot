@@ -3,12 +3,13 @@ package inject
 import (
 	"strings"
 	"reflect"
-	"github.com/hidevopsio/hiboot/pkg/starter"
 	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
+	"github.com/hidevopsio/hiboot/pkg/system"
 )
 
 type Tag interface {
+	Init(systemConfig *system.Configuration, configurations cmap.ConcurrentMap)
 	Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{})
 	Properties() cmap.ConcurrentMap
 	IsSingleton() bool
@@ -16,16 +17,23 @@ type Tag interface {
 
 type BaseTag struct {
 	properties cmap.ConcurrentMap
+	systemConfig *system.Configuration
+	configurations cmap.ConcurrentMap
 }
 
 func (t *BaseTag) IsSingleton() bool  {
 	return false
 }
 
+func (t *BaseTag) Init(systemConfig *system.Configuration, configurations cmap.ConcurrentMap) {
+	t.systemConfig = systemConfig
+	t.configurations = configurations
+}
+
+// TODO move to replacer ?
 func (t *BaseTag) replaceReferences(val string) interface{}  {
 	var retVal interface{}
 	retVal = val
-	systemConfig := autoConfiguration.Configuration(starter.System)
 
 	matches := replacer.GetMatches(val)
 	if len(matches) != 0 {
@@ -35,10 +43,11 @@ func (t *BaseTag) replaceReferences(val string) interface{}  {
 
 			vars := strings.SplitN(m[1], ".", -1)
 			configName := vars[0]
-			config := autoConfiguration.Configuration(configName)
-			sysConf, err := replacer.GetReferenceValue(systemConfig, configName)
-			if config == nil && err == nil && sysConf.IsValid() {
-				config = systemConfig
+			// trying to find config
+			config, ok := t.configurations.Get(configName)
+			sysConf, err := replacer.GetReferenceValue(t.systemConfig, configName)
+			if !ok && err == nil && sysConf.IsValid() {
+				config = t.systemConfig
 			}
 			if config != nil {
 				retVal = replacer.ReplaceStringVariables(val, config)

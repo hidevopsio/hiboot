@@ -19,10 +19,12 @@ package controllers
 import (
 	"testing"
 	"net/http"
-	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"fmt"
 	"time"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 func init() {
@@ -31,14 +33,18 @@ func init() {
 
 func TestBarWithToken(t *testing.T) {
 	app := web.NewTestApplication(t, new(BarController))
-
-	pt, err := web.GenerateJwtToken(web.JwtMap{
+	log.Println(io.GetWorkDir())
+	jwtToken := jwt.NewJwtToken(&jwt.Properties{
+		PrivateKeyPath: "config/ssl/app.rsa",
+		PublicKeyPath: "config/ssl/app.rsa.pub",
+	})
+	pt, err := jwtToken.Generate(jwt.Map{
 		"username": "johndoe",
 		"password": "PA$$W0RD",
-	}, 100, time.Millisecond)
+	}, 500, time.Millisecond)
 	if err == nil {
 
-		token := fmt.Sprintf("Bearer %v", string(*pt))
+		token := fmt.Sprintf("Bearer %v", pt)
 		t.Run("should pass with jwt token", func(t *testing.T) {
 			app.Get("/bar").
 				WithHeader("Authorization", token).

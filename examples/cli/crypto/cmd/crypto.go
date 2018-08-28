@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/starter/cli"
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/hidevopsio/hiboot/pkg/utils/crypto/rsa"
 	"fmt"
 )

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package web
+package jwt
 
 import (
 	"fmt"
@@ -22,6 +22,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	mwjwt "github.com/iris-contrib/middleware/jwt"
 	"github.com/kataras/iris/context"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 )
 
 // JwtMiddleware derrived from github.com/iris-contrib/middleware/jwt/Middleware
@@ -32,7 +33,7 @@ type JwtMiddleware struct {
 // Serve the middleware's action
 func (m *JwtMiddleware) Serve(ctx context.Context) {
 	if err := m.CheckJWT(ctx); err != nil {
-		c := ctx.(*Context)
+		c := ctx.(*web.Context)
 		c.ResponseError(err.Error(), http.StatusUnauthorized)
 		c.StopExecution()
 		return

@@ -22,11 +22,12 @@ import (
 	"github.com/iris-contrib/httpexpect"
 	"github.com/kataras/iris/httptest"
 	"github.com/stretchr/testify/assert"
+	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
 // TestApplicationInterface the test web application interface for unit test only
 type TestApplication interface {
-	Application
+	app.Application
 	RunTestServer(t *testing.T) *httpexpect.Expect
 	Request(method, path string, pathargs ...interface{}) *httpexpect.Request
 	Post(path string, pathargs ...interface{}) *httpexpect.Request
@@ -46,6 +47,7 @@ type testApplication struct {
 func NewTestApplication(t *testing.T, controllers ...interface{}) TestApplication {
 	log.SetLevel(log.DebugLevel)
 	ta := new(testApplication)
+	// reset
 	err := ta.Init(controllers...)
 	assert.Equal(t, nil, err)
 	ta.expect = ta.RunTestServer(t)
@@ -54,7 +56,7 @@ func NewTestApplication(t *testing.T, controllers ...interface{}) TestApplicatio
 
 // RunTestServer run the test server
 func (ta *testApplication) RunTestServer(t *testing.T) *httpexpect.Expect {
-	return httptest.New(t, ta.app)
+	return httptest.New(t, ta.webApp)
 }
 
 // Request request for unit test

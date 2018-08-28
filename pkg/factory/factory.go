@@ -12,14 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package web
+package factory
 
-// Controller is the web base controller
-type Controller struct {
-	ContextMapping string
-	Ctx            *Context
-}
+type Factory interface {}
 
-func (c *Controller) AuthType() string  {
-	return "anon"
-}

@@ -6,9 +6,7 @@ app:
   name: grpc-server
   profiles:
     include:
-    - web
     - grpc
 
 logging:
   level: info
-

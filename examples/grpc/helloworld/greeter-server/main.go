@@ -20,7 +20,7 @@ package main
 
 import (
 	"golang.org/x/net/context"
-	"github.com/hidevopsio/hiboot/pkg/starter/web"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
 	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf"
@@ -45,5 +45,6 @@ func init() {
 }
 
 func main() {
+	// create new web application and run it
 	web.NewApplication().Run()
 }

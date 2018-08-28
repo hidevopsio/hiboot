@@ -1,7 +1,17 @@
-# Hiboot  [![Build Status](https://travis-ci.org/hidevopsio/hiboot.svg?branch=master)](https://travis-ci.org/hidevopsio/hiboot) [![codecov](https://codecov.io/gh/hidevopsio/hiboot/branch/master/graph/badge.svg)](https://codecov.io/gh/hidevopsio/hiboot) [![Licensed under Apache License version 2.0](lic.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+# Hiboot  
 
 <p align="center">
   <img src="https://github.com/hidevopsio/hiboot/blob/master/hiboot.png?raw=true" alt="hiboot">
+</p>
+
+<p align="center">
+  <a href="https://travis-ci.org/hidevopsio/hiboot.svg?branch=master"><img src="https://travis-ci.org/hidevopsio/hiboot.svg?branch=master" alt="Build Status"></img></a>
+  <a href="https://codecov.io/gh/hidevopsio/hiboot">
+    <img src="https://codecov.io/gh/hidevopsio/hiboot/branch/master/graph/badge.svg" />
+  </a>
+  <a href="https://opensource.org/licenses/Apache-2.0">
+      <img src="https://img.shields.io/badge/License-Apache%202.0-green.svg" />
+  </a>
 </p>
 
 ## About
@@ -69,7 +79,7 @@ Below is the simplest web application in Go.
 package main
 
 // Line 2: import web starter from hiboot
-import "github.com/hidevopsio/hiboot/pkg/starter/web"
+import "github.com/hidevopsio/hiboot/pkg/app/web"
 
 // Line 3-5: RESTful Controller, derived from web.Controller. The context mapping of this controller is '/' by default
 type Controller struct {

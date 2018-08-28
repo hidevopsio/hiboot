@@ -20,7 +20,7 @@ import (
 )
 
 func TestNewBolt(t *testing.T) {
-	configuration := new(configuration)
+	configuration := new(boltConfiguration)
 	configuration.BoltProperties = properties{
 		Database: "test.db",
 		Mode: 0600,
@@ -33,7 +33,7 @@ func TestNewBolt(t *testing.T) {
 }
 
 func TestNewBoltWithError(t *testing.T) {
-	configuration := new(configuration)
+	configuration := new(boltConfiguration)
 
 	repository := configuration.BoltRepository()
 	assert.NotEqual(t, nil, repository)

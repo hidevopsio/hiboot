@@ -12,24 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package web
+package jwt
 
 import (
-	"fmt"
-
+	"testing"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/stretchr/testify/assert"
 )
 
-// JwtController is the base web controller that enabled JWT
-type JwtController struct {
-	Controller
-}
-
-func (c *JwtController) AuthType() string  {
-	return "jwt"
-}
-
-// ParseToken is an util that parsing JWT token from jwt.MapClaims
-func (c *JwtController) ParseToken(claims jwt.MapClaims, prop string) string {
-	return fmt.Sprintf("%v", claims[prop])
+func TestParseToken(t *testing.T) {
+	claims := jwt.MapClaims{"username": "john"}
+	jc := &Controller{}
+	username := jc.ParseToken(claims, "username")
+	assert.Equal(t, "john", username)
 }

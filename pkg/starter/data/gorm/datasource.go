@@ -86,7 +86,7 @@ func (d *dataSource) Open(p *properties) error {
 		}()
 		return err
 	} else {
-		log.Infof("dataSource %v@%v:%v/%v connected", p.Username, p.Host, p.Port, databaseName)
+		log.Infof("connected to dataSource %v@%v:%v/%v", p.Username, p.Host, p.Port, databaseName)
 	}
 
 	return nil

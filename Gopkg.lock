@@ -221,14 +221,6 @@
   version = "v2.0.1"
 
 [[projects]]
-  digest = "1:ea625f4c9123f980f6b008d387f812c9327ac1eb5bbcc4e55eff3566f2798e27"
-  name = "github.com/imdario/mergo"
-  packages = ["."]
-  pruneopts = ""
-  revision = "9d5f1277e9a8ed20c3684bda8fde67c05628518c"
-  version = "v0.3.4"
-
-[[projects]]
   digest = "1:788735d9cba7f51b7cc86e6c7ba7b40b0b7c7b374bf3a0b5fa7c929fa2af2da8"
   name = "github.com/imkira/go-interpol"
   packages = ["."]
@@ -426,10 +418,7 @@
 [[projects]]
   digest = "1:961dc3b1d11f969370533390fdf203813162980c858e1dabe827b60940c909a5"
   name = "github.com/magiconair/properties"
-  packages = [
-    ".",
-    "assert",
-  ]
+  packages = ["."]
   pruneopts = ""
   revision = "c2353362d570a7bfa228149c62842019201cfb71"
   version = "v1.8.0"
@@ -833,23 +822,21 @@
     "github.com/dgrijalva/jwt-go",
     "github.com/erikstmartin/go-testdb",
     "github.com/fatih/camelcase",
+    "github.com/golang/protobuf/proto",
     "github.com/hidevopsio/gorm",
     "github.com/hidevopsio/gorm/dialects/mssql",
     "github.com/hidevopsio/gorm/dialects/mysql",
     "github.com/hidevopsio/gorm/dialects/postgres",
     "github.com/hidevopsio/gorm/dialects/sqlite",
-    "github.com/imdario/mergo",
     "github.com/iris-contrib/httpexpect",
     "github.com/iris-contrib/middleware/jwt",
     "github.com/kataras/golog",
     "github.com/kataras/iris",
     "github.com/kataras/iris/context",
-    "github.com/kataras/iris/core/router",
     "github.com/kataras/iris/httptest",
     "github.com/kataras/iris/middleware/i18n",
     "github.com/kataras/iris/middleware/logger",
     "github.com/kataras/pio",
-    "github.com/magiconair/properties/assert",
     "github.com/mitchellh/mapstructure",
     "github.com/sony/sonyflake",
     "github.com/spf13/cobra",

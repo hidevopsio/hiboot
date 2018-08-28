@@ -69,12 +69,10 @@ func ReplaceStringVariables(source string, t interface{}) interface{} {
 		vars := strings.SplitN(varName, ".", -1)
 		refValue := ParseReferences(t, vars)
 		rvType := reflect.TypeOf(refValue)
+		var newValue string
 		switch rvType.Kind() {
 		case reflect.String:
-			newValue := refValue.(string)
-			if newValue == "" && defaultValue != "" {
-				newValue = defaultValue
-			}
+			newValue = refValue.(string)
 			// replace env
 			if newValue != "" {
 				source = strings.Replace(source, varFullName, newValue, -1)
@@ -85,6 +83,10 @@ func ReplaceStringVariables(source string, t interface{}) interface{} {
 		envValue := os.Getenv(varName)
 		if envValue != "" {
 			source = strings.Replace(source, varFullName, envValue, -1)
+		}
+
+		if envValue == "" && newValue == "" && defaultValue != "" {
+			source = strings.Replace(source, varFullName, defaultValue, -1)
 		}
 	}
 	return source
@@ -124,7 +126,7 @@ func ParseReferences(st interface{}, varName []string) interface{} {
 	for _, vn := range varName {
 		field, err := GetReferenceValue(parent, vn)
 		if err == nil {
-			k := reflector.GetKind(field)
+			k := reflector.GetKindByValue(field)
 			switch k {
 			case reflect.String, reflect.Int, reflect.Float32:
 				fv := fmt.Sprintf("%v", field.Interface())

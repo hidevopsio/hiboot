@@ -19,18 +19,13 @@ package system
 import (
 	"fmt"
 	"github.com/spf13/viper"
-	"github.com/imdario/mergo"
 	"path/filepath"
 	"gopkg.in/yaml.v2"
 	"bytes"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"reflect"
 )
-
-type Env struct {
-	Name  string
-	Value string
-}
 
 type Builder struct {
 	Path       string
@@ -77,12 +72,11 @@ func (b *Builder) Build() (interface{}, error) {
 		return conf, nil
 	}
 
-	confReplacer, err := b.Read(name)
-	if err != nil {
-		return conf, err
-	}
-
-	mergo.Merge(conf, confReplacer, mergo.WithOverride, mergo.WithAppendSlice)
+	_, err = b.Read(name)
+	//if err != nil {
+	//	return conf, err
+	//}
+	//mergo.Merge(conf, confReplacer, mergo.WithOverride, mergo.WithAppendSlice)
 
 	return conf, nil
 }
@@ -113,7 +107,12 @@ func (b *Builder) Read(name string) (interface{}, error) {
 	}
 	st := b.ConfigType
 
-	cp := reflector.NewReflectType(st)
+	val := reflect.ValueOf(st)
+	//log.Debugf("value of configuration: %v, kind: %v", val, val.Kind())
+	cp := b.ConfigType
+	if val.Kind() == reflect.Struct {
+		cp = reflector.NewReflectType(st)
+	}
 
 	err = v.Unmarshal(cp)
 	if err != nil {

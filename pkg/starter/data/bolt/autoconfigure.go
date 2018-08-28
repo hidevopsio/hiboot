@@ -15,21 +15,22 @@ package bolt
 // limitations under the License.
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/starter"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
-type configuration struct {
+type boltConfiguration struct {
+	app.Configuration
 	// the properties member name must be Bolt if the mapstructure is bolt,
 	// so that the reference can be parsed
 	BoltProperties properties `mapstructure:"bolt"`
 }
 
 func init() {
-	starter.AddConfig("bolt", configuration{})
+	app.AutoConfiguration(new(boltConfiguration))
 }
 
-func (c *configuration) dataSource() DataSource {
+func (c *boltConfiguration) dataSource() DataSource {
 	dataSource := GetDataSource()
 	if ! dataSource.IsOpened() {
 		err := dataSource.Open(&c.BoltProperties)
@@ -40,7 +41,7 @@ func (c *configuration) dataSource() DataSource {
 	return dataSource
 }
 
-func (c *configuration) BoltRepository() Repository {
+func (c *boltConfiguration) BoltRepository() Repository {
 	repository := GetRepository()
 	repository.SetDataSource(c.dataSource())
 	return repository
