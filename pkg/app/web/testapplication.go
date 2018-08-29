@@ -45,6 +45,7 @@ type testApplication struct {
 
 // NewTestApplication returns the new test application
 func NewTestApplication(t *testing.T, controllers ...interface{}) TestApplication {
+	// TODO: find and change work dir where the config/application locates
 	log.SetLevel(log.DebugLevel)
 	ta := new(testApplication)
 	// reset
