@@ -27,10 +27,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
-func init() {
-	io.ChangeWorkDir("../")
-}
-
 func TestBarWithToken(t *testing.T) {
 	app := web.NewTestApplication(t, new(barController))
 	log.Println(io.GetWorkDir())
@@ -60,7 +56,6 @@ func TestBarWithToken(t *testing.T) {
 		})
 	}
 }
-
 
 
 func TestBarWithoutToken(t *testing.T) {

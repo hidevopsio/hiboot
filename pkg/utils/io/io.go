@@ -133,3 +133,13 @@ func EnsureWorkDir(path string) string  {
 	}
 	return wd
 }
+
+
+func CallerInfo(skip int) (file string, line int, fn string) {
+	var pc uintptr
+	var ok bool
+	if pc, file, line, ok = runtime.Caller(skip); ok {
+		fn = runtime.FuncForPC(pc).Name()
+	}
+	return
+}

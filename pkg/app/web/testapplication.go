@@ -23,8 +23,6 @@ import (
 	"github.com/kataras/iris/httptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"path/filepath"
-	"os"
 )
 
 // TestApplicationInterface the test web application interface for unit test only
@@ -47,20 +45,12 @@ type testApplication struct {
 
 // NewTestApplication returns the new test application
 func NewTestApplication(t *testing.T, controllers ...interface{}) TestApplication {
-	// TODO: find and change work dir where the config/application locates
-	ex, err := os.Executable()
-	if err != nil {
-		panic(err)
-	}
-	exPath := filepath.Dir(ex)
-	if err == nil {
-		log.Debugf("[%s]", exPath)
-	}
-
 	log.SetLevel(log.DebugLevel)
 	ta := new(testApplication)
+	// find and change work dir where the config/application.yml locates
+	ta.EnsureWorkDir(2)
 	// reset
-	err = ta.Init(controllers...)
+	err := ta.Init(controllers...)
 	assert.Equal(t, nil, err)
 	ta.expect = ta.RunTestServer(t)
 	return ta

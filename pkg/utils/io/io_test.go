@@ -158,3 +158,10 @@ func TestEnsureWorkDir(t *testing.T) {
 	d = EnsureWorkDir(wd + "/..")
 	assert.NotEqual(t, wd, d)
 }
+
+func TestCallerInfo(t *testing.T) {
+	file, line, fn := CallerInfo(1)
+	assert.Contains(t, file, "io_test.go")
+	assert.Equal(t, 163, line)
+	assert.Contains(t, fn, "TestCallerInfo")
+}

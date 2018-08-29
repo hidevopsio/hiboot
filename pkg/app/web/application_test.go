@@ -73,7 +73,6 @@ type InvalidController struct {}
 
 func init() {
 	log.SetLevel(log.DebugLevel)
-	io.ChangeWorkDir("../../../")
 }
 
 func (c *FooController) Init(jwtToken jwt.Token) {
