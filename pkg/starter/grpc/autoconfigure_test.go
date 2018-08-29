@@ -19,6 +19,9 @@ import (
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 	"golang.org/x/net/context"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
+	"github.com/stretchr/testify/assert"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/inject"
 )
 
 func init() {
@@ -51,14 +54,17 @@ func (s *greeterClient) SayHello(name string) (*pb.HelloReply, error) {
 }
 
 func TestGrpcServerAndClient(t *testing.T) {
-	// TODO: add more test
-	//
-	//greeterSvc := new(greeterClient)
-	//
-	//name := "Steve"
-	//response, err := greeterSvc.SayHello(name)
-	//assert.Equal(t, nil, err)
-	//assert.Equal(t, "Hello " + name, response.Message)
+	app := web.NewTestApplication(t)
+	assert.NotEqual(t, nil, app)
+
+	greeterSvc := new(greeterClient)
+	// TODO: should inject be private?
+	inject.IntoObject(greeterSvc)
+
+	name := "Steve"
+	response, err := greeterSvc.SayHello(name)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "Hello " + name, response.Message)
 }
 
 func TestInjectIntoObject(t *testing.T) {
