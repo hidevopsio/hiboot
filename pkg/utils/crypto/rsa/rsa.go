@@ -41,6 +41,7 @@ dtOs4rP6YpVbzGQd22K0tkADbsxMBHKsHsFcg02uFGSF6qIPnrWJIN0wNEJrNumo
 // Encrypt
 func Encrypt(input []byte, publicKey ...[]byte) ([]byte, error) {
 	//decrypt pem public key
+	// TODO: check if the publicKey or privateKey is a file
 	actualPublicKey := defaultPublicKey
 	if len(publicKey) == 1 && len(publicKey[0]) != 0 {
 		actualPublicKey = publicKey[0]

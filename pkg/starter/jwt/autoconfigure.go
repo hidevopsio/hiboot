@@ -33,14 +33,11 @@ func init() {
 	app.AutoConfiguration(new(configuration))
 }
 
-func (c *configuration ) JwtMiddleware() *JwtMiddleware {
-
-	jt := c.JwtToken()
-
+func (c *configuration ) JwtMiddleware(jtk *jwtToken) *JwtMiddleware {
 	return NewJwtMiddleware(mw.Config{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 			//log.Debug(token)
-			return jt.VerifyKey(), nil
+			return jtk.VerifyKey(), nil
 		},
 		// When set, the middleware verifies that tokens are signed with the specific signing algorithm
 		// If the signing method is not constant the ValidationKeyGetter callback can be used to implement additional checks
@@ -50,9 +47,7 @@ func (c *configuration ) JwtMiddleware() *JwtMiddleware {
 }
 
 func (c *configuration) JwtToken() Token  {
-	jt := new(jwtToken)
-
-	jt.Initialize(&c.Properties)
-
-	return jt
+	jtk := new(jwtToken)
+	jtk.Initialize(&c.Properties)
+	return jtk
 }

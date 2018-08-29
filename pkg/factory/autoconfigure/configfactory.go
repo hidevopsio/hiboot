@@ -2,8 +2,10 @@ package autoconfigure
 
 import (
 	"os"
-	"path/filepath"
+	"errors"
 	"reflect"
+	"strings"
+	"path/filepath"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
@@ -13,6 +15,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/factory/instance"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 )
 
 const (
@@ -21,6 +24,10 @@ const (
 	config            = "config"
 	yaml              = "yaml"
 	appProfilesActive = "APP_PROFILES_ACTIVE"
+)
+
+var (
+	InvalidMethodError = errors.New("[factory] method is invalid")
 )
 
 type Factory interface {
@@ -93,7 +100,48 @@ func (f *ConfigurableFactory) Build(configs ...cmap.ConcurrentMap) {
 	}
 }
 
-func (f *ConfigurableFactory) Instantiate(configuration interface{}) {
+func (f *ConfigurableFactory) InstantiateByName(configuration interface{}, name string) (inst interface{}, err error) {
+	objVal := reflect.ValueOf(configuration)
+	method, ok := objVal.Type().MethodByName(name)
+	if ok {
+		return f.InstantiateMethod(configuration, method, name)
+	}
+	return nil, InvalidMethodError
+}
+
+func (f *ConfigurableFactory) InstantiateMethod(configuration interface{}, method reflect.Method, methodName string) (inst interface{}, err error) {
+	//log.Debugf("method: %v", methodName)
+	numIn := method.Type.NumIn()
+	// only 1 arg is supported so far
+	argv := make([]reflect.Value, numIn)
+	argv[0] = reflect.ValueOf(configuration)
+	for a := 1; a < numIn; a++ {
+		mt := method.Type.In(a)
+		iTyp := reflector.IndirectType(mt)
+		mtName := str.ToLowerCamel(iTyp.Name())
+		depInst := f.GetInstance(mtName)
+		if depInst == nil {
+			// TODO: check it it's dependency circle
+			depInst, err = f.InstantiateByName(configuration, strings.Title(mtName))
+		}
+		if depInst == nil {
+			log.Errorf("[factory] failed to inject dependency as it can not be found")
+		}
+		argv[a] = reflect.ValueOf(depInst)
+	}
+	// inject instance into method
+	retVal := method.Func.Call(argv)
+	// save instance
+	if retVal != nil && retVal[0].CanInterface() {
+		inst = retVal[0].Interface()
+		//log.Debugf("instantiated: %v", instance)
+		instanceName := str.LowerFirst(methodName)
+		f.SetInstance(instanceName, inst)
+	}
+	return
+}
+
+func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error) {
 	cv := reflect.ValueOf(configuration)
 
 	// inject configuration before instantiation
@@ -106,26 +154,15 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) {
 	// call Init
 	numOfMethod := cv.NumMethod()
 	//log.Debug("methods: ", numOfMethod)
-
 	for mi := 0; mi < numOfMethod; mi++ {
 		method := configType.Method(mi)
 		methodName := method.Name
-		//log.Debugf("method: %v", methodName)
-		numIn := method.Type.NumIn()
-		// only 1 arg is supported so far
-		if numIn == 1 {
-			argv := make([]reflect.Value, numIn)
-			argv[0] = reflect.ValueOf(configuration)
-			retVal := method.Func.Call(argv)
-			// save instance
-			if retVal != nil && retVal[0].CanInterface() {
-				instance := retVal[0].Interface()
-				//log.Debugf("instantiated: %v", instance)
-				instanceName := str.LowerFirst(methodName)
-				f.SetInstance(instanceName, instance)
-			}
+		_, err = f.InstantiateMethod(configuration, method, methodName)
+		if err != nil {
+			return
 		}
 	}
+	return
 }
 
 func (f *ConfigurableFactory) build(cfgContainer cmap.ConcurrentMap)  {
