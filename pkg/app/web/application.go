@@ -89,6 +89,26 @@ func (a *application) add(controllers ...interface{}) {
 	}
 }
 
+// EnsureWorkDir ensure that current dir contains config/application.yml
+func (a *application) EnsureWorkDir(skip int)  {
+	path := io.GetWorkDir()
+	lastPath := ""
+	for {
+		log.Debugf("%v", path)
+		configPath := filepath.Join(path, "config", "application.yml")
+		if !io.IsPathNotExist(configPath) {
+			io.ChangeWorkDir(path)
+			break
+		}
+
+		path = io.BaseDir(path)
+		if lastPath == path {
+			break
+		}
+		lastPath = path
+	}
+}
+
 // Init init web application
 func (a *application) Init(controllers ...interface{}) error {
 
@@ -115,6 +135,8 @@ func (a *application) Init(controllers ...interface{}) error {
 		log.SetLevel(systemConfig.Logging.Level)
 		log.Infof("Starting hiboot web application %v on localhost with PID %v (%v)", systemConfig.App.Name, os.Getpid(), a.WorkDir)
 		log.Infof("The following profiles are active: %v, %v", systemConfig.App.Profiles.Active, systemConfig.App.Profiles.Include)
+	} else {
+		log.SetLevel(log.InfoLevel)
 	}
 
 	f := a.ConfigurableFactory()
@@ -266,6 +288,7 @@ func RegisterInitializer(initializer ...interface{})  {
 // NewApplication create new web application instance and init it
 func NewApplication(controllers ...interface{}) app.Application {
 	wa := new(application)
+	wa.EnsureWorkDir(2)
 	err := wa.Init(controllers...)
 	if err != nil {
 		log.Error(err)

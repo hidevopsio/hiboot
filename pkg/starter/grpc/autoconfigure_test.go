@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grpc
+package grpc_test
 
 import (
 	"testing"
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 	"golang.org/x/net/context"
+	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
 )
 
 func init() {
-	RegisterServer(pb.RegisterGreeterServer, new(greeterService))
-	RegisterClient("greeter-client", pb.NewGreeterClient)
+	grpc.RegisterServer(pb.RegisterGreeterServer, new(greeterService))
+	grpc.RegisterClient("greeter-client", pb.NewGreeterClient)
 }
 
 // gRpc server
@@ -50,25 +51,6 @@ func (s *greeterClient) SayHello(name string) (*pb.HelloReply, error) {
 }
 
 func TestGrpcServerAndClient(t *testing.T) {
-	grpcConfig := grpcConfiguration{
-		Properties: properties{
-			TimeoutSecond: 1,
-			Server: server{
-				Enabled: true,
-				Network: "tcp",
-				Port: "7575",
-			},
-			Client: map[string]interface{}{
-				"greeter-client": client{
-					Host: "localhost",
-					Port: "7575",
-				},
-			},
-		},
-	}
-
-	grpcConfig.Init(nil)
-
 	// TODO: add more test
 	//
 	//greeterSvc := new(greeterClient)

@@ -19,6 +19,8 @@ import (
 	"github.com/kataras/golog"
 	"github.com/kataras/pio"
 	"io"
+	"fmt"
+	"runtime"
 )
 
 
@@ -39,6 +41,32 @@ const (
 	FatalLevel = "fatal"
 	Disable = "disable"
 )
+
+
+func callerInfo(skip int) (file string, line int, fn string) {
+	var pc uintptr
+	var ok bool
+	if pc, file, line, ok = runtime.Caller(skip); ok {
+		fn = runtime.FuncForPC(pc).Name()
+	}
+	return
+}
+
+func withCaller(fn func(v ...interface{}), v ...interface{})  {
+	argv := make([]interface{}, 1)
+	_, line, fnName := callerInfo(3)
+	argv[0] = fmt.Sprintf("[%v:%v] ", fnName, line)
+	argv = append(argv, v...)
+
+	fn(argv...)
+}
+
+func withCallerf(fn func(format string, v ...interface{}), format string, v ...interface{})  {
+	_, line, fnName := callerInfo(3)
+	f := fmt.Sprintf("[%v:%v] %v", fnName, line, format)
+
+	fn(f, v...)
+}
 
 // NewLine can override the default package-level line breaker, "\n".
 // It should be called (in-sync) before  the print or leveled functions.
@@ -122,24 +150,24 @@ func Logf(level golog.Level, format string, args ...interface{}) {
 // If the logger's level is fatal, error, warn, info or debug
 // then it will print the log message too.
 func Fatal(v ...interface{}) {
-	golog.Fatal(v...)
+	withCaller(golog.Fatal, v...)
 }
 
 // Fatalf will `os.Exit(1)` no matter the level of the logger.
 // If the logger's level is fatal, error, warn, info or debug
 // then it will print the log message too.
 func Fatalf(format string, args ...interface{}) {
-	golog.Fatalf(format, args...)
+	withCallerf(golog.Fatalf, format, args...)
 }
 
 // Error will print only when logger's Level is error, warn, info or debug.
 func Error(v ...interface{}) {
-	golog.Error(v...)
+	withCaller(golog.Error, v...)
 }
 
 // Errorf will print only when logger's Level is error, warn, info or debug.
 func Errorf(format string, args ...interface{}) {
-	golog.Errorf(format, args...)
+	withCallerf(golog.Errorf, format, args...)
 }
 
 // Warn will print when logger's Level is warn, info or debug.
@@ -164,12 +192,13 @@ func Infof(format string, args ...interface{}) {
 
 // Debug will print when logger's Level is debug.
 func Debug(v ...interface{}) {
-	golog.Debug(v...)
+	withCaller(golog.Debug, v...)
 }
 
 // Debugf will print when logger's Level is debug.
 func Debugf(format string, args ...interface{}) {
-	golog.Debugf(format, args...)
+
+	withCallerf(golog.Debugf, format, args...)
 }
 
 // Install receives  an external logger
@@ -240,4 +269,3 @@ func Scan(r io.Reader) (cancel func()) {
 func Child(name string) *golog.Logger {
 	return golog.Child(name)
 }
-

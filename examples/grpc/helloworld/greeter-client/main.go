@@ -21,7 +21,6 @@ import (
 	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
 	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"golang.org/x/net/context"
 )
 
@@ -55,8 +54,6 @@ func (c *greeterController) GetByName(name string) string {
 }
 
 func init() {
-	// optional: for running test
-	io.EnsureWorkDir("examples/grpc/helloworld/greeter-client")
 
 	// must: register grpc client, the name greeter-client should configured in application.yml
 	// see config/application-grpc.yml

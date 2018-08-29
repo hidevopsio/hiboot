@@ -39,24 +39,24 @@ type fakeRepository struct {
 }
 
 type fakeProperties struct {
-	Name          string  `default:"should not inject this default value as it will inject by system.Builder"`
-	Nickname      string  `default:"should not inject this default value as it will inject by system.Builder"`
-	Username      string  `default:"should not inject this default value as it will inject by system.Builder"`
-	Url           string  `default:"should not inject this default value as it will inject by system.Builder"`
-	DefStrVal     string  `default:"this is default value"`
-	DefIntVal     int     `default:"123"`
-	DefIntVal8    int8    `default:"12"`
-	DefIntVal16   int16   `default:"123"`
-	DefUintVal32  int32   `default:"1234"`
-	DefUintVal64  int64   `default:"12345"`
-	DefIntValU    uint    `default:"123"`
-	DefIntValU8   uint8   `default:"12"`
-	DefIntValU16  uint16  `default:"123"`
-	DefUintValU32 uint32  `default:"1234"`
-	DefUintValU64 uint64  `default:"12345"`
-	DefFloatVal64 float64 `default:"0.1231"`
-	DefFloatVal32 float32 `default:"0.1"`
-	DefBool       float32 `default:"true"`
+	Name          string   `default:"should not inject this default value as it will inject by system.Builder"`
+	Nickname      string   `default:"should not inject this default value as it will inject by system.Builder"`
+	Username      string   `default:"should not inject this default value as it will inject by system.Builder"`
+	Url           string   `default:"should not inject this default value as it will inject by system.Builder"`
+	DefStrVal     string   `default:"this is default value"`
+	DefIntVal     int      `default:"123"`
+	DefIntVal8    int8     `default:"12"`
+	DefIntVal16   int16    `default:"123"`
+	DefUintVal32  int32    `default:"1234"`
+	DefUintVal64  int64    `default:"12345"`
+	DefIntValU    uint     `default:"123"`
+	DefIntValU8   uint8    `default:"12"`
+	DefIntValU16  uint16   `default:"123"`
+	DefUintValU32 uint32   `default:"1234"`
+	DefUintValU64 uint64   `default:"12345"`
+	DefFloatVal64 float64  `default:"0.1231"`
+	DefFloatVal32 float32  `default:"0.1"`
+	DefBool       bool     `default:"true"`
 	DefSlice      []string `default:"jupiter,mercury,mars,earth,moon"`
 }
 
@@ -121,6 +121,21 @@ type userService struct {
 	FakeRepository FakeRepository `inject:""`
 	DefaultUrl     string         `value:"${fake.defaultUrl:http://localhost:8080}"`
 	Url            string         `value:"${fake.url}"`
+	DefStrVal      string         `value:"this is value"`
+	DefIntVal      int            `value:"123"`
+	DefIntVal8     int8           `value:"12"`
+	DefIntVal16    int16          `value:"123"`
+	DefUintVal32   int32          `value:"1234"`
+	DefUintVal64   int64          `value:"12345"`
+	DefIntValU     uint           `value:"123"`
+	DefIntValU8    uint8          `value:"12"`
+	DefIntValU16   uint16         `value:"123"`
+	DefUintValU32  uint32         `value:"1234"`
+	DefUintValU64  uint64         `value:"12345"`
+	DefFloatVal64  float64        `value:"0.1231"`
+	DefFloatVal32  float32        `value:"0.1"`
+	DefBool        bool           `value:"true"`
+	DefSlice       []string       `value:"jupiter,mercury,mars,earth,moon"`
 }
 
 func (s *userService) Get() string {

@@ -44,6 +44,10 @@ var (
 	InvalidObjectTypeError        = errors.New("[app] invalid object type")
 	ConfigurationNameIsTakenError = errors.New("[app] configuration name is already taken")
 	ComponentNameIsTakenError     = errors.New("[app] component name is already taken")
+
+	logo = `
+
+`
 )
 
 func init() {

@@ -111,6 +111,11 @@ func (f *ConfigurableFactory) InstantiateByName(configuration interface{}, name 
 
 func (f *ConfigurableFactory) InstantiateMethod(configuration interface{}, method reflect.Method, methodName string) (inst interface{}, err error) {
 	//log.Debugf("method: %v", methodName)
+	instanceName := str.LowerFirst(methodName)
+	if i := f.GetInstance(instanceName); i != nil {
+		log.Debugf("instance %v already exist", instanceName)
+		return
+	}
 	numIn := method.Type.NumIn()
 	// only 1 arg is supported so far
 	argv := make([]reflect.Value, numIn)
@@ -135,7 +140,6 @@ func (f *ConfigurableFactory) InstantiateMethod(configuration interface{}, metho
 	if retVal != nil && retVal[0].CanInterface() {
 		inst = retVal[0].Interface()
 		//log.Debugf("instantiated: %v", instance)
-		instanceName := str.LowerFirst(methodName)
 		f.SetInstance(instanceName, inst)
 	}
 	return

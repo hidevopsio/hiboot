@@ -49,7 +49,9 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 
 		fieldType := field.Type()
 		//log.Debug("fieldType: ", fieldType)
-		fieldName := fieldType.Elem().Name()
+		ift := fieldType.Elem()
+		fieldName := ift.Name()
+		pkgPath := ift.PkgPath()
 		//log.Debug("fieldName: ", fieldName)
 
 		controller := field.Interface()
@@ -136,11 +138,11 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 				hdl := new(handler)
 				hdl.parse(method, controller, contextMapping + apiContextMapping)
 
-				party.Handle(httpMethod, apiContextMapping, func(ctx context.Context) {
+				route := party.Handle(httpMethod, apiContextMapping, func(ctx context.Context) {
 					hdl.call(ctx.(*Context))
 					ctx.Next()
 				})
-
+				route.MainHandlerName = fmt.Sprintf("%s/%s.%s", pkgPath, fieldName, methodName)
 			}
 		}
 	}

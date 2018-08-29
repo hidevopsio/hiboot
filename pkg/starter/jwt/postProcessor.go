@@ -35,11 +35,11 @@ func (p *postProcessor) Init(application app.Application, jwtMiddleware *JwtMidd
 }
 
 func (p *postProcessor) BeforeInitialization(factory interface{})  {
-	log.Debug("[jwt] BeforeInitialization")
+	//log.Debug("[jwt] BeforeInitialization")
 }
 
 func (p *postProcessor) AfterInitialization(factory interface{})  {
-	log.Debug("[jwt] AfterInitialization")
+	//log.Debug("[jwt] AfterInitialization")
 
 	// use jwt
 	p.application.Use(p.jwtMiddleware.Serve)
