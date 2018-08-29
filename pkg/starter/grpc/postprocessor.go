@@ -21,9 +21,10 @@ func (p *postProcessor) BeforeInitialization(factory interface{})  {
 func (p *postProcessor) AfterInitialization(factory interface{})  {
 	//log.Debug("[grpc] AfterInitialization")
 	for _, srv := range grpcServers {
-		err := inject.IntoObject(srv.svc)
-		if err != nil {
-			break
-		}
+		inject.IntoObject(srv.svc)
+	}
+
+	for _, cli := range grpcClients {
+		inject.IntoObject(cli.svc)
 	}
 }

@@ -18,15 +18,13 @@ import (
 	"testing"
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 	"golang.org/x/net/context"
-	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"github.com/hidevopsio/hiboot/pkg/inject"
+	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
 )
 
 func init() {
-	grpc.RegisterServer(pb.RegisterGreeterServer, new(greeterService))
-	grpc.RegisterClient("greeter-client", pb.NewGreeterClient)
+
 }
 
 // gRpc server
@@ -39,30 +37,31 @@ func (s *greeterService) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb
 }
 
 // gRpc client
-type greeterClient struct {
+type greeterClientService struct {
 	greeterClient pb.GreeterClient
 }
 
 // Init inject greeterClient and clientContext
-func (s *greeterClient) Init(greeterClient pb.GreeterClient,)  {
+func (s *greeterClientService) Init(greeterClient pb.GreeterClient)  {
 	s.greeterClient = greeterClient
 }
 
-func (s *greeterClient) SayHello(name string) (*pb.HelloReply, error) {
+func (s *greeterClientService) SayHello(name string) (*pb.HelloReply, error) {
 	response, err := s.greeterClient.SayHello(context.Background(), &pb.HelloRequest{Name: name})
 	return response, err
 }
 
 func TestGrpcServerAndClient(t *testing.T) {
+
+	greeterClientSvc := new(greeterClientService)
+	grpc.RegisterServer(pb.RegisterGreeterServer, new(greeterService))
+	grpc.RegisterClient("greeter-client", pb.NewGreeterClient, greeterClientSvc)
+
 	app := web.NewTestApplication(t)
 	assert.NotEqual(t, nil, app)
 
-	greeterSvc := new(greeterClient)
-	// TODO: should inject be private?
-	inject.IntoObject(greeterSvc)
-
 	name := "Steve"
-	response, err := greeterSvc.SayHello(name)
+	response, err := greeterClientSvc.SayHello(name)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "Hello " + name, response.Message)
 }
