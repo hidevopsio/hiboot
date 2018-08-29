@@ -1,0 +1,13 @@
+# config file for testing
+# filename should be application.yml
+
+app:
+  project: hiboot
+  name: grpc-starter
+  profiles:
+    include:
+    - grpc
+
+logging:
+  level: info
+
