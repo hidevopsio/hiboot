@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="https://travis-ci.org/hidevopsio/hiboot.svg?branch=master">
+  <a href="https://travis-ci.org/hidevopsio/hiboot?branch=master">
     <img src="https://travis-ci.org/hidevopsio/hiboot.svg?branch=master" alt="Build Status"/>
   </a>
   <a href="https://codecov.io/gh/hidevopsio/hiboot">
