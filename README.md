@@ -138,7 +138,7 @@ e.g. flag tag dependency injection
 package main
 
 // import cli starter and fmt
-import "github.com/hidevopsio/hiboot/pkg/starter/cli"
+import "github.com/hidevopsio/hiboot/pkg/app/cli"
 import "fmt"
 
 // define the command
