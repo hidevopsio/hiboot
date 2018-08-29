@@ -38,6 +38,6 @@ func TestAutoConfigure(t *testing.T) {
 
 	token := config.JwtToken()
 	assert.NotEqual(t, nil, token)
-	mw := config.JwtMiddleware()
+	mw := config.JwtMiddleware(token.(*jwtToken))
 	assert.NotEqual(t, nil, mw)
 }
