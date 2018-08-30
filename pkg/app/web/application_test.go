@@ -27,6 +27,8 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
+	"os"
+	"path/filepath"
 )
 
 type UserRequest struct {
@@ -428,3 +430,12 @@ func TestNewApplication(t *testing.T) {
 	go wa.Run()
 }
 
+func TestChangingWorkDir(t *testing.T) {
+	os.RemoveAll(filepath.Join(os.TempDir(), "config"))
+	io.ChangeWorkDir(os.TempDir())
+	app := web.NewTestApplication(t, new(HelloController))
+	t.Run("should Get /", func(t *testing.T) {
+		app.Get("/").
+			Expect().Status(http.StatusOK)
+	})
+}

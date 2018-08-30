@@ -141,8 +141,6 @@ func (a *application) Init(controllers ...interface{}) error {
 		log.SetLevel(systemConfig.Logging.Level)
 		log.Infof("Starting hiboot web application %v on localhost with PID %v (%v)", systemConfig.App.Name, os.Getpid(), a.WorkDir)
 		log.Infof("The following profiles are active: %v, %v", systemConfig.App.Profiles.Active, systemConfig.App.Profiles.Include)
-	} else {
-		log.SetLevel(log.InfoLevel)
 	}
 
 	f := a.ConfigurableFactory()
