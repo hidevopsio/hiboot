@@ -59,7 +59,7 @@ func (c *UserController) Post(request *UserRequest) (model.Response, error) {
 	return response, err
 }
 
-// Get /user/{id}
+// Get /id/{id}
 func (c *UserController) GetById(id uint64) (response model.Response, err error) {
 	user, err := c.userService.GetUser(id)
 	response = new(model.BaseResponse)
@@ -71,7 +71,7 @@ func (c *UserController) GetById(id uint64) (response model.Response, err error)
 	return
 }
 
-// Delete /user/{id}
+// Delete /id/{id}
 func (c *UserController) DeleteById(id uint64) (response model.Response, err error) {
 	err = c.userService.DeleteUser(id)
 	response = new(model.BaseResponse)

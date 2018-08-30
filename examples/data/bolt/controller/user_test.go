@@ -42,21 +42,21 @@ func TestCrdRequest(t *testing.T) {
 
 	t.Run("should get user with GET request", func(t *testing.T) {
 		// Then Get User
-		app.Get("/user/{id}").
+		app.Get("/user/id/{id}").
 			WithPath("id", "1").
 			Expect().Status(http.StatusOK)
 	})
 
 	t.Run("should return 404 if trying to find a record that does not exist", func(t *testing.T) {
 		// Then Get User
-		app.Get("/user/{id}").
+		app.Get("/user/id/{id}").
 			WithPath("id", "9999").
 			Expect().Status(http.StatusNotFound)
 	})
 
 	t.Run("should delete the record with DELETE request", func(t *testing.T) {
 		// Finally Delete User
-		app.Delete("/user/{id}").
+		app.Delete("/user/id/{id}").
 			WithPath("id", "1").
 			Expect().Status(http.StatusOK)
 	})

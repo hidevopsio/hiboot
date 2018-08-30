@@ -84,7 +84,8 @@ func TestCrdRequest(t *testing.T) {
 
 	t.Run("should get user with GET request", func(t *testing.T) {
 		// Then Get User
-		app.Get("/user/{id}").
+		// e.g. GET /user/id/123456
+		app.Get("/user/id/{id}").
 			WithPath("id", id).
 			Expect().Status(http.StatusOK)
 	})
@@ -98,7 +99,7 @@ func TestCrdRequest(t *testing.T) {
 
 	t.Run("should return 404 if trying to find a record that does not exist", func(t *testing.T) {
 		// Then Get User
-		app.Get("/user/{id}").
+		app.Get("/user/id/{id}").
 			WithPath("id", unknownId).
 			Expect().Status(http.StatusNotFound)
 	})
@@ -108,7 +109,7 @@ func TestCrdRequest(t *testing.T) {
 
 	t.Run("should delete the record with DELETE request", func(t *testing.T) {
 		// Finally Delete User
-		app.Delete("/user/{id}").
+		app.Delete("/user/id/{id}").
 			WithPath("id", id).
 			Expect().Status(http.StatusOK)
 	})

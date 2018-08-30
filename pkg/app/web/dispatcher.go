@@ -126,7 +126,8 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 				var apiContextMapping string
 				if len(ctxMap) > 2 && ctxMap[1] == "By" {
 					for _, pathParam := range ctxMap[2:] {
-						apiContextMapping = apiContextMapping + pathSep + "{" + strings.ToLower(pathParam) + "}"
+						lpp := strings.ToLower(pathParam)
+						apiContextMapping = apiContextMapping + pathSep + lpp + pathSep + "{" + lpp + "}"
 					}
 				} else {
 					apiContextMapping = strings.Replace(methodName, ctxMap[0], "", 1)

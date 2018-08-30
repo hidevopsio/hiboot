@@ -112,7 +112,7 @@ func (c *FooController) Post(request *FooRequest) (response model.Response, err 
 	return
 }
 
-// GET /{id}
+// GET /id/{id}
 func (c *FooController) GetById(id int) string  {
 	log.Debugf("FooController.Get by id: %v", id)
 	return "hello"
@@ -130,13 +130,13 @@ func (c *FooController) PutByIdNameAge(id int, name string, age int) error {
 	return nil
 }
 
-// PATCH /{id}
+// PATCH /id/{id}
 func (c *FooController) PatchById(id int) error {
 	log.Debug("FooController.Patch")
 	return nil
 }
 
-// DELETE /{id}
+// DELETE /id/{id}
 func (c *FooController) DeleteById(id int) error {
 	log.Debug("FooController.Delete ", id)
 	return nil
@@ -332,7 +332,7 @@ func TestWebApplication(t *testing.T)  {
 
 
 	t.Run("should return http.StatusOK on /foo with PUT, PATCH, DELETE methods", func(t *testing.T) {
-		app.Put("/foo/{id}/{name}/{age}").
+		app.Put("/foo/id/{id}/name/{name}/age/{age}").
 			WithPath("id", 123456).
 			WithPath("name", "Mike").
 			WithPath("age", 18).
@@ -340,18 +340,18 @@ func TestWebApplication(t *testing.T)  {
 	})
 
 	t.Run("should Get foo by id", func(t *testing.T) {
-		app.Get("/foo/{id}").
+		app.Get("/foo/id/{id}").
 			WithPath("id", 123).
 			Expect().Status(http.StatusOK)
 	})
 
 	t.Run("should Patch foo by id", func(t *testing.T) {
-		app.Patch("/foo/{id}").
+		app.Patch("/foo/id/{id}").
 			WithPath("id", 456).
 			Expect().Status(http.StatusOK)
 	})
 	t.Run("should Delete foo by id", func(t *testing.T) {
-		app.Delete("/foo/{id}").
+		app.Delete("/foo/id/{id}").
 			WithPath("id", 789).
 			Expect().Status(http.StatusOK)
 	})

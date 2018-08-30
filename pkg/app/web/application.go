@@ -100,7 +100,7 @@ func (a *application) EnsureWorkDir(skip int)  {
 	}
 	lastPath := ""
 	for {
-		log.Debugf("%v", path)
+		//log.Debugf("%v", path)
 		configPath := filepath.Join(path, "config", "application.yml")
 		if !io.IsPathNotExist(configPath) {
 			io.ChangeWorkDir(path)
