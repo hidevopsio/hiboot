@@ -1,4 +1,4 @@
-# Hiboot  
+# Hiboot - web/cli application framework 
 
 <p align="center">
   <img src="https://github.com/hidevopsio/hiboot/blob/master/hiboot.png?raw=true" alt="hiboot">
@@ -20,33 +20,33 @@
 
 Hiboot is a cloud native web and cli application framework written in Go.
 
-Hiboot is not trying to reinvent everything, it integrates popular libraries but make it simpler, easier to use.
+Hiboot is not trying to reinvent everything, it integrates the popular libraries but make them simpler, easier to use. It borrowed some of the Spring features like dependency injection, aspect oriented programming, and auto configuration. You can integrate any other libraries easily by auto configuration with dependency injection support.
 
-With auto configuration, you can integrate any other libraries easily with dependency injection support.
+If you are a Java developer, you can start coding in Go with no learning curve.
 
 ## Overview
 
-* Web MVC (Model-View-Controller)
-* Auto Configuration, pre-create instance with properties configs for dependency injection
-* Dependency injection with struct tag name **\`inject:""\`** or **Init** method
+* Web MVC (Model-View-Controller).
+* Auto Configuration, pre-create instance with properties configs for dependency injection.
+* Dependency injection with struct tag name **\`inject:""\`** or **Init** method.
 
 ## Features
 
-* Apps
+* **Apps**
     * cli - command line application
     * web - web application
-* Starters 
+* **Starters**
     * actuator - health check
     * grpc - grpc application starter
     * bolt - bolt database starter
     * gorm - gorm orm starter, support mysql, postgres, mssql, sqlite
-* Tags 
+* **Tags** 
     * inject - inject generic instance into object
     * default - inject default value into struct object 
     * value - inject string value or references / variables into struct string field
     * cmd - inject command into parent command for cli application
     * flag - inject flag / options into command object
-* Utils 
+* **Utils** 
     * cmap - concurrent map
     * copier - copy between struct
     * crypto - aes, base64, md5, and rsa encryption / decryption
@@ -59,7 +59,7 @@ With auto configuration, you can integrate any other libraries easily with depen
     * str - string util enhancement util
     * validator - struct field validation 
        
-and more on the wey ...
+and more features on the wey ...
 
 ## Getting started
 
