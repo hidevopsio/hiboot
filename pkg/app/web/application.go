@@ -31,6 +31,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"errors"
+	"runtime"
 )
 
 const (
@@ -57,7 +58,6 @@ type application struct {
 
 var (
 	// controllers global controllers container
-	initializers []interface{}
 	webControllers []interface{}
 	compiledRegExp = regexp.MustCompile(`\{(.*?)\}`)
 
@@ -91,7 +91,13 @@ func (a *application) add(controllers ...interface{}) {
 
 // EnsureWorkDir ensure that current dir contains config/application.yml
 func (a *application) EnsureWorkDir(skip int)  {
-	path := io.GetWorkDir()
+	// check if app is running on ide
+	var path string
+	if _, file, _, ok := runtime.Caller(2); ok && strings.Contains(os.Args[0], "go_build_") {
+		path = io.BaseDir(file)
+	} else {
+		path = io.GetWorkDir()
+	}
 	lastPath := ""
 	for {
 		log.Debugf("%v", path)
@@ -279,10 +285,6 @@ func (a *application) initLocale() error {
 // Add add controller to controllers container
 func RestController(controllers ...interface{}) {
 	webControllers = append(webControllers, controllers...)
-}
-
-func RegisterInitializer(initializer ...interface{})  {
-	initializers = append(initializers, initializer...)
 }
 
 // NewApplication create new web application instance and init it
