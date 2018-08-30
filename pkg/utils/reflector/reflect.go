@@ -248,7 +248,7 @@ func HasEmbeddedField(object interface{}, name string) bool {
 }
 
 
-func getEmbeddedInterfaceField(typ reflect.Type) (field reflect.StructField) {
+func GetEmbeddedInterfaceFieldByType(typ reflect.Type) (field reflect.StructField) {
 	if typ.Kind() == reflect.Struct {
 		for i := 0; i < typ.NumField(); i++ {
 			v := typ.Field(i)
@@ -256,7 +256,7 @@ func getEmbeddedInterfaceField(typ reflect.Type) (field reflect.StructField) {
 				if v.Type.Kind() == reflect.Interface {
 					return v
 				} else {
-					return getEmbeddedInterfaceField(v.Type)
+					return GetEmbeddedInterfaceFieldByType(v.Type)
 				}
 			}
 		}
@@ -266,7 +266,7 @@ func getEmbeddedInterfaceField(typ reflect.Type) (field reflect.StructField) {
 
 func GetEmbeddedInterfaceField(object interface{}) (field reflect.StructField) {
 	typ := IndirectType(reflect.TypeOf(object));
-	return getEmbeddedInterfaceField(typ)
+	return GetEmbeddedInterfaceFieldByType(typ)
 }
 
 // ParseObjectName e.g. ExampleObject => example
