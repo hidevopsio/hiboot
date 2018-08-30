@@ -17,6 +17,8 @@ package str
 import (
 	"unicode"
 	"strings"
+	"reflect"
+	"strconv"
 )
 
 const EmptyString  = ""
@@ -47,4 +49,86 @@ func InSlice(a string, list []string) bool {
 		}
 	}
 	return retVal
+}
+
+func Convert(src string, kind reflect.Kind) (retVal interface{})  {
+	switch kind {
+	case reflect.Slice:
+		retVal = strings.SplitN(src, ",", -1)
+	case reflect.String:
+		retVal = src
+	case reflect.Int:
+		val, err := strconv.ParseInt(src, 10, 32)
+		if err == nil {
+			retVal = int(val)
+		}
+	case reflect.Int8:
+		val, err := strconv.ParseInt(src, 10, 8)
+		if err == nil {
+			retVal = int8(val)
+		}
+
+	case reflect.Int16:
+		val, err := strconv.ParseInt(src, 10, 16)
+		if err == nil {
+			retVal = int16(val)
+		}
+
+	case reflect.Int32:
+		val, err := strconv.ParseInt(src, 10, 32)
+		if err == nil {
+			retVal = int32(val)
+		}
+
+	case reflect.Int64:
+		val, err := strconv.ParseInt(src, 10, 64)
+		if err == nil {
+			retVal = int64(val)
+		}
+
+	case reflect.Uint:
+		val, err := strconv.ParseInt(src, 10, 32)
+		if err == nil {
+			retVal = uint(val)
+		}
+	case reflect.Uint8:
+		val, err := strconv.ParseInt(src, 10, 8)
+		if err == nil {
+			retVal = uint8(val)
+		}
+
+	case reflect.Uint16:
+		val, err := strconv.ParseInt(src, 10, 16)
+		if err == nil {
+			retVal = uint16(val)
+		}
+
+	case reflect.Uint32:
+		val, err := strconv.ParseInt(src, 10, 32)
+		if err == nil {
+			retVal = uint32(val)
+		}
+
+	case reflect.Uint64:
+		val, err := strconv.ParseInt(src, 10, 64)
+		if err == nil {
+			retVal = uint64(val)
+		}
+	case reflect.Float32:
+		val, err := strconv.ParseFloat(src, 32)
+		if err == nil {
+			retVal = float32(val)
+		}
+	case reflect.Float64:
+		val, err := strconv.ParseFloat(src, 64)
+		if err == nil {
+			retVal = val
+		}
+	case reflect.Bool:
+		val, err := strconv.ParseBool(src)
+		if err == nil {
+			retVal = val
+		}
+	}
+	return
 }

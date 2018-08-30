@@ -112,6 +112,32 @@ func (c *FooController) Post(request *FooRequest) (response model.Response, err 
 	return
 }
 
+
+// GET /options/{options}
+func (c *FooController) GetByOptions(options []string) (response model.Response)  {
+	type settings struct {
+		Options []string
+	}
+	response = new(model.BaseResponse)
+	response.SetCode(http.StatusOK)
+	response.SetMessage("success")
+	response.SetData(&settings{Options: options})
+	return
+}
+
+
+// GET /name/{name}
+func (c *FooController) GetByName(name string) (response model.Response)  {
+	type user struct {
+		Name string
+	}
+	response = new(model.BaseResponse)
+	response.SetCode(http.StatusOK)
+	response.SetMessage("success")
+	response.SetData(&user{Name: name})
+	return
+}
+
 // GET /id/{id}
 func (c *FooController) GetById(id int) string  {
 	log.Debugf("FooController.Get by id: %v", id)
@@ -343,6 +369,20 @@ func TestWebApplication(t *testing.T)  {
 		app.Get("/foo/id/{id}").
 			WithPath("id", 123).
 			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should Get foo by name", func(t *testing.T) {
+		app.Get("/foo/options/{options}").
+			WithPath("options", "mars,earth,mercury,jupiter").
+			Expect().Status(http.StatusOK).
+			Body().Contains("mercury")
+	})
+
+	t.Run("should Get foo by name", func(t *testing.T) {
+		app.Get("/foo/name/{name}").
+			WithPath("name", "Peter Phil").
+			Expect().Status(http.StatusOK).
+			Body().Contains("Peter Phil")
 	})
 
 	t.Run("should Patch foo by id", func(t *testing.T) {

@@ -21,9 +21,9 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"net/http"
 	"strings"
-	"strconv"
 	"path/filepath"
 	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
 )
 
 type request struct {
@@ -101,7 +101,11 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 		iTyp := reflector.IndirectType(typ)
 		h.requests[i].typ = typ
 		h.requests[i].iTyp = iTyp
-		h.requests[i].kind = iTyp.Kind()
+		if typ.Kind() == reflect.Slice {
+			h.requests[i].kind = reflect.Slice
+		} else {
+			h.requests[i].kind = iTyp.Kind()
+		}
 		h.requests[i].val = reflect.New(typ)
 		h.requests[i].iVal = reflect.New(iTyp)
 		h.requests[i].genKind = reflector.GetKindByValue(h.requests[i].iVal) // TODO:
@@ -130,10 +134,64 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 	h.responses = make([]response, h.numOut)
 	for i := 0; i < h.numOut; i++ {
 		typ := method.Type.Out(i)
+
 		h.responses[i].typ = typ
 		h.responses[i].kind = typ.Kind()
 		h.responses[i].typeName = typ.Name()
 		//log.Debug(h.responses[i])
+
+	}
+}
+
+func (h *handler) responseData(ctx *Context, numOut int, results []reflect.Value) {
+	if numOut == 0 {
+		return
+	}
+
+	result := results[0]
+	if !result.CanInterface() {
+		log.Warn("response is invalid")
+	}
+
+	respVal := result.Interface()
+	if respVal == nil {
+		// TODO: add unit test
+		log.Warn("response is nil")
+		return
+	}
+
+	switch h.responses[0].typeName {
+	case "string":
+		ctx.ResponseString(result.Interface().(string))
+	case "error":
+		respErr := result.Interface().(error)
+		ctx.ResponseError(respErr.Error(), http.StatusInternalServerError)
+	case "Response":
+		response := respVal.(model.Response)
+		if numOut >= 2 {
+			var respErr error
+			errVal := results[1]
+			if errVal.IsNil() {
+				respErr = nil
+			} else if errVal.Type().Name() == "error" {
+				respErr = results[1].Interface().(error)
+			}
+
+			if respErr == nil {
+				response.SetCode(http.StatusOK)
+				response.SetMessage(ctx.translate("success"))
+			} else {
+				if response.GetCode() == 0 {
+					response.SetCode(http.StatusInternalServerError)
+				}
+				// TODO: output error message directly? how about i18n
+				response.SetMessage(ctx.translate(respErr.Error()))
+
+				// TODO: configurable status code in application.yml
+				ctx.StatusCode(response.GetCode())
+			}
+		}
+		ctx.JSON(response)
 	}
 }
 
@@ -141,7 +199,6 @@ func (h *handler) call(ctx *Context) {
 
 	var request interface{}
 	var reqErr error
-	var err error
 	var path string
 	var pvs []string
 
@@ -175,81 +232,21 @@ func (h *handler) call(ctx *Context) {
 			h.inputs[i] = reflect.ValueOf(request)
 			break
 		} else if h.lenOfPathParams != 0 {
-			strVal := pvs[req.pathIdx] //TODO: out of scope
-			var val interface{}
-			switch req.typeName {
-			case "int", "int16", "int32", "int64":
-				val, err = strconv.Atoi(strVal)
-				if err != nil {
-					log.Error(err)
-					return
-				}
-			case "uint", "uint16", "uint32", "uint64":
-				val, err = strconv.ParseUint(strVal, 10, 64)
-				if err != nil {
-					log.Error(err)
-					return
-				}
-			default:
-				val = strVal
-			}
-
+			strVal := pvs[req.pathIdx]
+			val := str.Convert(strVal, req.kind)
 			h.inputs[i] = reflect.ValueOf(val)
 		} else {
-			log.Warn("Not implemented!")
+			log.Warn("input type is not supported!")
 			return
 		}
 	}
 
-	var respErr error
+	//var respErr error
 	var results []reflect.Value
 	if reqErr == nil {
 		reflector.SetFieldValue(h.controller, "Ctx", ctx)
 		// call controller method
 		results = h.method.Func.Call(h.inputs)
-		if h.numOut == 1 {
-			result := results[0]
-			if result.CanInterface() {
-				if h.responses[0].kind == reflect.String {
-					ctx.ResponseString(result.Interface().(string))
-				} else if h.responses[0].typeName == "error" && !result.IsNil() {
-					respErr = result.Interface().(error)
-					ctx.ResponseError(respErr.Error(), http.StatusInternalServerError)
-				}
-			}
-		} else if h.numOut >= 2 {
-			if h.method.Type.Out(1).Name() == "error" {
-				if results[1].IsNil() {
-					respErr = nil
-				} else {
-					respErr = results[1].Interface().(error)
-				}
-			}
-			var response model.Response
-			switch h.responses[0].typeName {
-			case "Response":
-				if results[0].Interface() == nil {
-					// TODO: add unit test
-					log.Warn("response is nil")
-					return
-				} else {
-					response = results[0].Interface().(model.Response)
-					if respErr == nil {
-						response.SetCode(http.StatusOK)
-						response.SetMessage(ctx.translate("success"))
-					} else {
-						if response.GetCode() == 0 {
-							response.SetCode(http.StatusInternalServerError)
-						}
-						// TODO: output error message directly? how about i18n
-						response.SetMessage(ctx.translate(respErr.Error()))
-
-						// TODO: configurable status code in application.yml
-						ctx.StatusCode(response.GetCode())
-					}
-				}
-			}
-			ctx.JSON(response)
-		}
+		h.responseData(ctx, h.numOut, results)
 	}
 }

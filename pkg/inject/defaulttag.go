@@ -10,21 +10,6 @@ type defaultTag struct {
 	BaseTag
 }
 
-var bitNumLut = map[string]int{
-	"int8": 8,
-	"int16": 16,
-	"int32": 32,
-	"int64": 64,
-	"int": 32,
-	"uint8": 8,
-	"uint16": 16,
-	"uint32": 32,
-	"uint64": 64,
-	"uint": 32,
-	"float32": 32,
-	"float64": 64,
-}
-
 func init() {
 	AddTag(new(defaultTag))
 }
