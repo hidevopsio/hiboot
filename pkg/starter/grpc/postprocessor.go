@@ -20,11 +20,16 @@ func (p *postProcessor) BeforeInitialization(factory interface{})  {
 
 func (p *postProcessor) AfterInitialization(factory interface{})  {
 	//log.Debug("[grpc] AfterInitialization")
+	// TODO should call factory.Register()
 	for _, srv := range grpcServers {
-		inject.IntoObject(srv.svc)
+		if srv.svc != nil {
+			inject.IntoObject(srv.svc)
+		}
 	}
 
 	for _, cli := range grpcClients {
-		inject.IntoObject(cli.svc)
+		if cli.svc != nil {
+			inject.IntoObject(cli.svc)
+		}
 	}
 }

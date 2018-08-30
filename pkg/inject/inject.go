@@ -92,6 +92,7 @@ func saveInstance(name string, inst interface{}) {
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
 func IntoObject(object interface{}) error {
+	// TODO: save injected object to map to avoid re-injection
 	return IntoObjectValue(reflect.ValueOf(object))
 }
 

@@ -60,6 +60,7 @@ type Bar struct {
 	Greeting string
 }
 
+// PATH /foo
 type FooController struct{
 	web.Controller
 	jwtToken jwt.Token
@@ -99,6 +100,7 @@ func (c *FooController) PostLogin(request *UserRequest) (response model.Response
 	return
 }
 
+// POST /
 func (c *FooController) Post(request *FooRequest) (response model.Response, err error)  {
 	log.Debug("FooController.Post")
 
@@ -110,30 +112,31 @@ func (c *FooController) Post(request *FooRequest) (response model.Response, err 
 	return
 }
 
-// GET /foo/{id}
+// GET /{id}
 func (c *FooController) GetById(id int) string  {
 	log.Debugf("FooController.Get by id: %v", id)
 	return "hello"
 }
 
-// GetHello we can also pass ctx to controller action
+// GET /hello
 func (c *FooController) GetHello(ctx *web.Context) string  {
 	log.Debug("FooController.GetHello")
 	return "hello"
 }
 
-// PUT /foo/{id}/{name}/{age}
+// PUT /id/{id}/name/{name}/age/{age}
 func (c *FooController) PutByIdNameAge(id int, name string, age int) error {
 	log.Debugf("FooController.Put %v %v %v", id, name, age)
 	return nil
 }
 
+// PATCH /{id}
 func (c *FooController) PatchById(id int) error {
 	log.Debug("FooController.Patch")
 	return nil
 }
 
-// DELETE /foo/{id}
+// DELETE /{id}
 func (c *FooController) DeleteById(id int) error {
 	log.Debug("FooController.Delete ", id)
 	return nil
