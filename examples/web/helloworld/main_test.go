@@ -20,6 +20,7 @@ import (
 	"testing"
 	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"time"
 )
 
 func TestRunMain(t *testing.T) {
@@ -27,6 +28,7 @@ func TestRunMain(t *testing.T) {
 }
 
 func TestController(t *testing.T) {
+	time.Sleep(time.Second)
 	web.NewTestApplication(t, new(Controller)).
 		Get("/").
 		Expect().Status(http.StatusOK)
