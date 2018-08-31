@@ -427,6 +427,8 @@ func TestNewApplication(t *testing.T) {
 		assert.Equal(t, "myInterface", typ.Name())
 	})
 
+	web.HideBanner()
+
 	go wa.Run()
 }
 

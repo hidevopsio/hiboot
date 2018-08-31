@@ -20,42 +20,42 @@ type Application interface {
 	Run()
 }
 
-
 type ApplicationContext interface {
 	RegisterController(controller interface{}) error
 	Use(handlers ...context.Handler)
 }
 
-type Configuration interface {}
-type PreConfiguration interface {}
-type PostConfiguration interface {}
+type Configuration interface{}
+type PreConfiguration interface{}
+type PostConfiguration interface{}
 
 type BaseApplication struct {
 	WorkDir             string
 	configurations      cmap.ConcurrentMap
 	instances           cmap.ConcurrentMap
-	potatoes		 	cmap.ConcurrentMap
+	potatoes            cmap.ConcurrentMap
 	configurableFactory *autoconfigure.ConfigurableFactory
-	systemConfig 		*system.Configuration
-	postProcessor  		postProcessor
+	systemConfig        *system.Configuration
+	postProcessor       postProcessor
 }
 
 var (
-	preConfigContainer       cmap.ConcurrentMap
-	configContainer          cmap.ConcurrentMap
-	postConfigContainer      cmap.ConcurrentMap
-	instanceContainer		 cmap.ConcurrentMap
+	preConfigContainer  cmap.ConcurrentMap
+	configContainer     cmap.ConcurrentMap
+	postConfigContainer cmap.ConcurrentMap
+	instanceContainer   cmap.ConcurrentMap
 
 	InvalidObjectTypeError        = errors.New("[app] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
 	ConfigurationNameIsTakenError = errors.New("[app] configuration name is already taken")
 	ComponentNameIsTakenError     = errors.New("[app] component name is already taken")
 
-	banner = `
+	hideBanner          bool
+	banner                        = `
 ______  ____________             _____
 ___  / / /__(_)__  /_______________  /_
-__  /_/ /__  /__  __ \  __ \  __ \  __/
-_  __  / _  / _  /_/ / /_/ / /_/ / /_
-/_/ /_/  /_/  /_.___/\____/\____/\__/    Hiboot Application Framework
+__  /_/ /__  /__  __ \  __ \  __ \  __/   
+_  __  / _  / _  /_/ / /_/ / /_/ / /_     Hiboot Application Framework
+/_/ /_/  /_/  /_.___/\____/\____/\__/     https://github.com/hidevopsio/hiboot
 
 `
 )
@@ -79,7 +79,7 @@ func parseInstance(eliminator string, params ...interface{}) (name string, inst 
 	return
 }
 
-func validateObjectType(inst interface{}) error  {
+func validateObjectType(inst interface{}) error {
 	val := reflect.ValueOf(inst)
 	//log.Println(val.Kind())
 	//log.Println(reflect.Indirect(val).Kind())
@@ -165,10 +165,15 @@ func Component(params ...interface{}) error {
 	return err
 }
 
-// BeforeInitialization ?
-func (a *BaseApplication) Init(args ...interface{}) error  {
-	fmt.Print(banner)
+func HideBanner() {
+	hideBanner = true
+}
 
+// BeforeInitialization ?
+func (a *BaseApplication) Init(args ...interface{}) error {
+	if !hideBanner {
+		fmt.Print(banner)
+	}
 	a.WorkDir = io.GetWorkDir()
 
 	a.configurations = cmap.New()
@@ -202,11 +207,11 @@ func (a *BaseApplication) SystemConfig() *system.Configuration {
 	return a.systemConfig
 }
 
-func (a *BaseApplication) BuildConfigurations()  {
+func (a *BaseApplication) BuildConfigurations() {
 	a.configurableFactory.Build(preConfigContainer, configContainer, postConfigContainer)
 }
 
-func (a *BaseApplication) ConfigurableFactory() *autoconfigure.ConfigurableFactory  {
+func (a *BaseApplication) ConfigurableFactory() *autoconfigure.ConfigurableFactory {
 	return a.configurableFactory
 }
 

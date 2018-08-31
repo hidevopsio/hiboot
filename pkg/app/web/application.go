@@ -66,6 +66,10 @@ var (
 )
 
 
+func HideBanner() {
+	app.HideBanner()
+}
+
 // Run run web application
 func (a *application) Run() {
 	serverPort := ":8080"
