@@ -39,8 +39,8 @@ func init()  {
 
 
 func (c *barController) Get() (response model.Response) {
-	username := c.GetJwtProperty("username")
-	password := c.GetJwtProperty("password")
+	username := c.JwtProperty("username")
+	password := c.JwtProperty("password")
 	log.Debugf("username: %v, password: %v", username, strings.Repeat("*", len(password)))
 
 	log.Debug("BarController.SayHello")
