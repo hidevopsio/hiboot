@@ -147,7 +147,7 @@ func (a *application) Init(controllers ...interface{}) error {
 	}
 
 	f := a.ConfigurableFactory()
-	f.SetInstance("application", a)
+	f.SetInstance("applicationContext", a)
 
 	// build auto configurations
 	a.BuildConfigurations()

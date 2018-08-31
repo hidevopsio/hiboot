@@ -21,7 +21,7 @@ import (
 
 type postProcessor struct {
 	jwtMiddleware *JwtMiddleware
-	application app.Application
+	applicationContext app.ApplicationContext
 }
 
 func init() {
@@ -29,8 +29,8 @@ func init() {
 	app.RegisterPostProcessor(new(postProcessor))
 }
 
-func (p *postProcessor) Init(application app.Application, jwtMiddleware *JwtMiddleware)  {
-	p.application = application
+func (p *postProcessor) Init(applicationContext app.ApplicationContext, jwtMiddleware *JwtMiddleware)  {
+	p.applicationContext = applicationContext
 	p.jwtMiddleware = jwtMiddleware
 }
 
@@ -42,10 +42,10 @@ func (p *postProcessor) AfterInitialization(factory interface{})  {
 	//log.Debug("[jwt] AfterInitialization")
 
 	// use jwt
-	p.application.Use(p.jwtMiddleware.Serve)
+	p.applicationContext.Use(p.jwtMiddleware.Serve)
 
 	// finally register jwt controllers
-	err := p.application.RegisterController(new(JwtController))
+	err := p.applicationContext.RegisterController(new(JwtController))
 	if err != nil {
 		log.Warnf("[jwt] %v", err)
 	}

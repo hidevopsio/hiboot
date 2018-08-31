@@ -12,11 +12,16 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/kataras/iris/context"
+	"fmt"
 )
 
 type Application interface {
 	Init(args ...interface{}) error
 	Run()
+}
+
+
+type ApplicationContext interface {
 	RegisterController(controller interface{}) error
 	Use(handlers ...context.Handler)
 }
@@ -41,11 +46,16 @@ var (
 	postConfigContainer      cmap.ConcurrentMap
 	instanceContainer		 cmap.ConcurrentMap
 
-	InvalidObjectTypeError        = errors.New("[app] invalid object type")
+	InvalidObjectTypeError        = errors.New("[app] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
 	ConfigurationNameIsTakenError = errors.New("[app] configuration name is already taken")
 	ComponentNameIsTakenError     = errors.New("[app] component name is already taken")
 
-	logo = `
+	banner = `
+______  ____________             _____
+___  / / /__(_)__  /_______________  /_
+__  /_/ /__  /__  __ \  __ \  __ \  __/
+_  __  / _  / _  /_/ / /_/ / /_/ / /_
+/_/ /_/  /_/  /_.___/\____/\____/\__/    Hiboot Application Framework
 
 `
 )
@@ -157,6 +167,8 @@ func Component(params ...interface{}) error {
 
 // BeforeInitialization ?
 func (a *BaseApplication) Init(args ...interface{}) error  {
+	fmt.Print(banner)
+
 	a.WorkDir = io.GetWorkDir()
 
 	a.configurations = cmap.New()
