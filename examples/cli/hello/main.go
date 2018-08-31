@@ -16,8 +16,10 @@
 package main
 
 // import cli starter and fmt
-import "github.com/hidevopsio/hiboot/pkg/app/cli"
-import "fmt"
+import (
+	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
+)
 
 // define the command
 type HelloCommand struct {
@@ -49,6 +51,7 @@ func (c *HelloCommand) Run(args []string) error {
 // main function
 func main() {
 	// create new cli application and run it
+	cli.HideBanner()
 	cli.NewApplication(new(HelloCommand)).Run()
 }
 

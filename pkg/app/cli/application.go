@@ -56,6 +56,10 @@ func init() {
 	commandNames = make([]string, 0)
 }
 
+func HideBanner() {
+	app.HideBanner()
+}
+
 func AddCommand(parentPath string, commands ...Command) {
 	// de-duplication
 	if commandContainer[parentPath] == nil {

@@ -166,6 +166,7 @@ func TestCliMultiCommand(t *testing.T) {
 		assert.Equal(t, "root", rootCmd.GetName())
 	})
 
+	HideBanner()
 }
 
 func TestNewApplication(t *testing.T) {
