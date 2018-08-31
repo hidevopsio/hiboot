@@ -24,6 +24,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/factory"
 )
 
 
@@ -47,11 +48,12 @@ var (
 	// TODO use cmap.ConcurrentMap for tagsContainer
 	tagsContainer []Tag
 
-	instancesMap cmap.ConcurrentMap
+	//instancesMap cmap.ConcurrentMap
+	fct factory.ConfigurableFactory
 )
 
-func SetInstance(i cmap.ConcurrentMap)  {
-	instancesMap = i
+func SetFactory(f factory.ConfigurableFactory)  {
+	fct = f
 }
 
 // AddTag
@@ -62,13 +64,12 @@ func AddTag(tag Tag) {
 func getInstanceByName(name string, instType reflect.Type) (inst interface{}) {
 	name = str.LowerFirst(name)
 	var ok bool
-	inst, ok = instancesMap.Get(name)
+	inst = fct.GetInstance(name)
 	// TODO: we should pro load all candidates into instances for improving performance.
 	// if inst is nil, and the object type is an interface
 	// then try to find the instance that embedded with the interface
 	if !ok && instType.Kind() == reflect.Interface {
-		for item := range instancesMap.IterBuffered() {
-			ist := item.Val
+		for _, ist := range fct.Items() {
 			//log.Debug(n)
 			if ist != nil && reflector.HasEmbeddedField(ist, instType.Name()) {
 				inst = ist
@@ -79,14 +80,9 @@ func getInstanceByName(name string, instType reflect.Type) (inst interface{}) {
 	return
 }
 
-func saveInstance(name string, inst interface{}) {
+func saveInstance(name string, inst interface{}) error {
 	name = str.LowerFirst(name)
-
-	if _, ok := instancesMap.Get(name); ok {
-		log.Fatalf("%v is already taken", name)
-	}
-
-	instancesMap.Set(name, inst)
+	return fct.SetInstance(name, inst)
 }
 
 
@@ -101,8 +97,8 @@ func IntoObjectValue(object reflect.Value) error {
     var err error
 
     // TODO refactor IntoObject
-    if instancesMap == nil {
-    	return InstanceContainerIsNilError
+    if fct == nil {
+    	return SystemConfigurationError
 	}
 
 	obj := reflector.Indirect(object)
@@ -111,14 +107,14 @@ func IntoObjectValue(object reflect.Value) error {
 		return InvalidObjectError
 	}
 
-	sc, ok := instancesMap.Get("systemConfiguration")
-	if !ok {
+	sc := fct.GetInstance("systemConfiguration")
+	if sc == nil {
 		return SystemConfigurationError
 	}
 	systemConfig := sc.(*system.Configuration)
 
-	cs, ok := instancesMap.Get("configurations")
-	if !ok {
+	cs  := fct.GetInstance("configurations")
+	if cs == nil {
 		return SystemConfigurationError
 	}
 	configurations := cs.(cmap.ConcurrentMap)
@@ -154,7 +150,10 @@ func IntoObjectValue(object reflect.Value) error {
 					injectedObject = tagImpl.Decode(object, f, tag)
 					if injectedObject != nil {
 						if tagImpl.IsSingleton() {
-							saveInstance(f.Name, injectedObject)
+							err := saveInstance(f.Name, injectedObject)
+							if err != nil {
+								log.Warnf("instance %v is already exist", f.Name)
+							}
 						}
 						// ONLY one tag should be used for dependency injection
 						break
@@ -207,7 +206,10 @@ func IntoObjectValue(object reflect.Value) error {
 				default:
 					paramValue = reflect.New(inType)
 					inst = paramValue.Interface()
-					saveInstance(inTypeName, inst)
+					err = saveInstance(inTypeName, inst)
+					if err != nil {
+						log.Warnf("instance %v is already exist", inTypeName)
+					}
 				}
 			}
 

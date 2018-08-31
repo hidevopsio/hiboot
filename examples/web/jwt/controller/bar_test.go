@@ -57,11 +57,3 @@ func TestBarWithToken(t *testing.T) {
 	}
 }
 
-
-func TestBarWithoutToken(t *testing.T) {
-	app := web.NewTestApplication(t, new(barController))
-
-	app.Get("/bar").
-		Expect().Status(http.StatusUnauthorized)
-
-}

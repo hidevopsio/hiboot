@@ -1,3 +1,17 @@
+// Copyright 2018 John Deng (hi.devops.io@gmail.com).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package autoconfigure
 
 import (
@@ -14,7 +28,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 	"github.com/hidevopsio/hiboot/pkg/inject"
-	"github.com/hidevopsio/hiboot/pkg/factory/instance"
+	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 )
 
@@ -27,30 +41,28 @@ const (
 )
 
 var (
-	InvalidMethodError = errors.New("[factory] method is invalid")
+	InvalidMethodError           = errors.New("[factory] method is invalid")
+	FactoryCannotBeNilError      = errors.New("[factory] InstantiateFactory can not be nil")
+	FactoryIsNotInitializedError = errors.New("[factory] InstantiateFactory is not initialized")
 )
 
-type Factory interface {
-	SystemConfiguration() *system.Configuration
-	Configuration(name string) interface{}
-}
-
 type ConfigurableFactory struct {
-	*instance.InstanceFactory
+	*instantiate.InstantiateFactory
 	configurations cmap.ConcurrentMap
 	systemConfig   *system.Configuration
 	builder        *system.Builder
 }
 
-func (f *ConfigurableFactory) Initialize(configurations cmap.ConcurrentMap)  {
-	if f.InstanceFactory == nil {
-		log.Fatal("[factory] InstanceFactory can not be nil")
+func (f *ConfigurableFactory) Initialize(configurations cmap.ConcurrentMap) (err error) {
+	if f.InstantiateFactory == nil {
+		return FactoryCannotBeNilError
 	}
 	if !f.Initialized() {
-		log.Fatal("[factory] instances map can not be nil")
+		return FactoryIsNotInitializedError
 	}
 	f.configurations = configurations
 	f.SetInstance("configurations", configurations)
+	return
 }
 
 func (f *ConfigurableFactory) SystemConfiguration() *system.Configuration {
@@ -112,7 +124,7 @@ func (f *ConfigurableFactory) InstantiateByName(configuration interface{}, name 
 func (f *ConfigurableFactory) InstantiateMethod(configuration interface{}, method reflect.Method, methodName string) (inst interface{}, err error) {
 	//log.Debugf("method: %v", methodName)
 	instanceName := str.LowerFirst(methodName)
-	if i := f.GetInstance(instanceName); i != nil {
+	if inst = f.GetInstance(instanceName); inst != nil {
 		log.Debugf("instance %v already exist", instanceName)
 		return
 	}
@@ -160,10 +172,12 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error)
 	//log.Debug("methods: ", numOfMethod)
 	for mi := 0; mi < numOfMethod; mi++ {
 		method := configType.Method(mi)
-		methodName := method.Name
-		_, err = f.InstantiateMethod(configuration, method, methodName)
-		if err != nil {
-			return
+		// skip Init method
+		if method.Name != "Init" {
+			_, err = f.InstantiateMethod(configuration, method, method.Name)
+			if err != nil {
+				return
+			}
 		}
 	}
 	return

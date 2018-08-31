@@ -19,6 +19,8 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
+	"github.com/hidevopsio/hiboot/pkg/model"
+	"net/http"
 )
 
 
@@ -35,13 +37,17 @@ func init()  {
 	web.RestController(new(barController))
 }
 
-func (c *barController) Get(ctx *web.Context)  {
+
+func (c *barController) Get() (response model.Response) {
 	username := c.GetJwtProperty("username")
 	password := c.GetJwtProperty("password")
 	log.Debugf("username: %v, password: %v", username, strings.Repeat("*", len(password)))
 
 	log.Debug("BarController.SayHello")
-	language := ctx.Values().GetString(ctx.Application().ConfigurationReadOnly().GetTranslateLanguageContextKey())
-	log.Debug(language)
-	ctx.ResponseBody("success", &Bar{Greeting: "hello bar"})
+
+	response = new(model.BaseResponse)
+	response.SetCode(http.StatusOK)
+	response.SetMessage("success")
+	response.SetData(&Bar{Greeting: "Hello " + username})
+	return
 }
