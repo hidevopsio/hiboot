@@ -9,7 +9,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"errors"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
-	"github.com/hidevopsio/hiboot/pkg/factory/instance"
+	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/kataras/iris/context"
 )
@@ -162,17 +162,20 @@ func (a *BaseApplication) Init(args ...interface{}) error  {
 	a.configurations = cmap.New()
 	a.instances = instanceContainer
 
-	instanceFactory := new(instance.InstanceFactory)
+	instanceFactory := new(instantiate.InstantiateFactory)
 	instanceFactory.Initialize(a.instances)
 	a.instances.Set("instanceFactory", instanceFactory)
 
 	configurableFactory := new(autoconfigure.ConfigurableFactory)
-	configurableFactory.InstanceFactory = instanceFactory
+	configurableFactory.InstantiateFactory = instanceFactory
 	a.instances.Set("configurableFactory", configurableFactory)
 
-	inject.SetInstance(a.instances)
+	inject.SetFactory(configurableFactory)
 
-	configurableFactory.Initialize(a.configurations)
+	err := configurableFactory.Initialize(a.configurations)
+	if err != nil {
+		return err
+	}
 
 	a.systemConfig = new(system.Configuration)
 	configurableFactory.BuildSystemConfig(a.systemConfig)

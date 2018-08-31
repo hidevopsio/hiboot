@@ -119,7 +119,10 @@ func (a *application) EnsureWorkDir(skip int)  {
 func (a *application) Init(controllers ...interface{}) error {
 
 	// run base Init
-	a.BaseApplication.Init(controllers...)
+	err := a.BaseApplication.Init(controllers...)
+	if err != nil {
+		return err
+	}
 
 	// before init
 	a.BeforeInitialization()
@@ -139,7 +142,7 @@ func (a *application) Init(controllers ...interface{}) error {
 	systemConfig := a.SystemConfig()
 	if systemConfig != nil {
 		log.SetLevel(systemConfig.Logging.Level)
-		log.Infof("Starting hiboot web application %v on localhost with PID %v (%v)", systemConfig.App.Name, os.Getpid(), a.WorkDir)
+		log.Infof("Starting Hiboot web application %v on localhost with PID %v (%v)", systemConfig.App.Name, os.Getpid(), a.WorkDir)
 		log.Infof("The following profiles are active: %v, %v", systemConfig.App.Profiles.Active, systemConfig.App.Profiles.Include)
 	}
 
@@ -194,7 +197,7 @@ func (a *application) Init(controllers ...interface{}) error {
 		}
 	})
 
-	err := a.initLocale()
+	err = a.initLocale()
 	if err != nil {
 		log.Debug(err)
 	}

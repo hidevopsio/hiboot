@@ -24,14 +24,14 @@ import (
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/factory/instance"
+	"github.com/hidevopsio/hiboot/pkg/factory"
 )
 
 type grpcConfiguration struct {
 	app.Configuration
 	Properties properties `mapstructure:"grpc"`
 
-	instanceFactory *instance.InstanceFactory
+	instantiateFactory factory.InstantiateFactory
 }
 
 type grpcService struct {
@@ -71,8 +71,8 @@ func init() {
 }
 
 // inject instanceFactory
-func (c *grpcConfiguration) Init(instanceFactory *instance.InstanceFactory) {
-	c.instanceFactory = instanceFactory
+func (c *grpcConfiguration) Init(instantiateFactory factory.InstantiateFactory) {
+	c.instantiateFactory = instantiateFactory
 }
 
 func (c *grpcConfiguration) BuildGrpcClients() {
@@ -98,17 +98,17 @@ func (c *grpcConfiguration) BuildGrpcClients() {
 			gRpcCli, err := reflector.CallFunc(cli.cb, conn)
 			if err == nil {
 				// register grpc client
-				c.instanceFactory.SetInstance(clientInstanceName, gRpcCli)
+				c.instantiateFactory.SetInstance(clientInstanceName, gRpcCli)
 			}
 		}
 		// register clientConn
-		c.instanceFactory.SetInstance(clientInstanceName + "Conn", conn)
+		c.instantiateFactory.SetInstance(clientInstanceName + "Conn", conn)
 
 		// register client service
 		if cli.svc != nil {
 			svcName, err := reflector.GetName(cli.svc)
 			if err == nil {
-				c.instanceFactory.SetInstance(svcName, cli.svc)
+				c.instantiateFactory.SetInstance(svcName, cli.svc)
 			}
 		}
 	}
@@ -141,6 +141,6 @@ func (c *grpcConfiguration) RunGrpcServers() {
 			fmt.Printf("grpc server exit\n")
 		}()
 		<- c
-		log.Infof("grpc server listening at: %v", address)
+		log.Infof("Grpc server listening at: %v", address)
 	}
 }
