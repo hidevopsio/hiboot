@@ -80,7 +80,7 @@ type barController struct{
 func (c *barController) Before()  {
 	log.Debug("barController.Before")
 
-	jwtProp := c.GetJwtProperties()
+	jwtProp := c.JwtProperties()
 	// intercept all requests that not contain jwt token
 	if jwtProp == nil {
 		return
@@ -126,13 +126,13 @@ func TestController(t *testing.T) {
 	})
 
 	t.Run("should get jwt properties", func(t *testing.T) {
-		jwtProps := barCtrl.GetJwtProperties()
+		jwtProps := barCtrl.JwtProperties()
 		assert.NotEqual(t, nil, jwtProps)
 
-		jwtPropsStr := barCtrl.GetJwtPropertiesString()
+		jwtPropsStr := barCtrl.JwtPropertiesString()
 		assert.NotEqual(t, nil, jwtPropsStr)
 
-		username := barCtrl.GetJwtProperty("username")
+		username := barCtrl.JwtProperty("username")
 		assert.Equal(t, "johndoe", username)
 	})
 }

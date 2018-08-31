@@ -35,8 +35,8 @@ func (c *Controller) ParseToken(claims jwt.MapClaims, prop string) string {
 }
 
 // GetJwtProperty is an util that parsing JWT token and return single property from jwt.MapClaims
-func (c *Controller) GetJwtProperty(propName string) (propVal string) {
-	claims := c.GetJwtProperties()
+func (c *Controller) JwtProperty(propName string) (propVal string) {
+	claims := c.JwtProperties()
 	if claims != nil {
 		propVal = fmt.Sprintf("%v", claims[propName])
 	}
@@ -44,7 +44,7 @@ func (c *Controller) GetJwtProperty(propName string) (propVal string) {
 }
 
 // GetJwtProperty is an util that parsing JWT token and return all properties from jwt.MapClaims
-func (c *Controller) GetJwtProperties() (propMap map[string]interface{}) {
+func (c *Controller) JwtProperties() (propMap map[string]interface{}) {
 	var token *jwt.Token
 	jti := c.Ctx.Values().Get("jwt")
 	if jti != nil {
@@ -58,10 +58,10 @@ func (c *Controller) GetJwtProperties() (propMap map[string]interface{}) {
 }
 
 // GetJwtProperty is an util that parsing JWT token and return all properties in string from jwt.MapClaims
-func (c *Controller) GetJwtPropertiesString() (propMap map[string]string) {
+func (c *Controller) JwtPropertiesString() (propMap map[string]string) {
 	propMap = make(map[string]string)
 
-	claims := c.GetJwtProperties()
+	claims := c.JwtProperties()
 	if claims != nil {
 		for name, value := range claims {
 			propMap[name] = fmt.Sprintf("%v", value)
