@@ -91,32 +91,6 @@ func (a *application) add(controllers ...interface{}) {
 		}
 	}
 }
-//
-//// EnsureWorkDir ensure that current dir contains config/application.yml
-//func (a *application) EnsureWorkDir(skip int)  {
-//	// check if app is running on ide
-//	var path string
-//	if _, file, _, ok := runtime.Caller(2); ok && strings.Contains(os.Args[0], "go_build_") {
-//		path = io.BaseDir(file)
-//	} else {
-//		path = io.GetWorkDir()
-//	}
-//	lastPath := ""
-//	for {
-//		//log.Debugf("%v", path)
-//		configPath := filepath.Join(path, "config", "application.yml")
-//		if !io.IsPathNotExist(configPath) {
-//			io.ChangeWorkDir(path)
-//			break
-//		}
-//
-//		path = io.BaseDir(path)
-//		if lastPath == path {
-//			break
-//		}
-//		lastPath = path
-//	}
-//}
 
 // Init init web application
 func (a *application) Init(controllers ...interface{}) error {

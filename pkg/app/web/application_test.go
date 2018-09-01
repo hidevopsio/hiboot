@@ -420,6 +420,13 @@ func TestWebApplication(t *testing.T)  {
 			Body().Contains("Peter Phil")
 	})
 
+	t.Run("should Get foo by name", func(t *testing.T) {
+		app.Get("/foo/name/{name}").
+			WithPath("name", "张三").
+			Expect().Status(http.StatusOK).
+			Body().Contains("张三")
+	})
+
 	t.Run("should Patch foo by id", func(t *testing.T) {
 		app.Patch("/foo/id/{id}").
 			WithPath("id", 456).

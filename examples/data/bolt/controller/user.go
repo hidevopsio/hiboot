@@ -45,7 +45,7 @@ func (c *UserController) Post(user *entity.User) (model.Response, error) {
 	return response, err
 }
 
-// Get /user/{id}
+// Get /user/id/{id}
 func (c *UserController) GetById(id string) (model.Response, error) {
 	user, err := c.userService.GetUser(id)
 	response := new(model.BaseResponse)
@@ -57,7 +57,7 @@ func (c *UserController) GetById(id string) (model.Response, error) {
 	return response, err
 }
 
-// Delete /user/{id}
+// Delete /user/id/{id}
 func (c *UserController) DeleteById(id string) (response model.Response, err error) {
 	err = c.userService.DeleteUser(id)
 	response = new(model.BaseResponse)

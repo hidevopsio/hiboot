@@ -37,7 +37,7 @@ func (c *greeterController) Init(greeterClient protobuf.GreeterClient)  {
 	c.greeterClient = greeterClient
 }
 
-// GET /greeter/{name}
+// GET /greeter/name/{name}
 func (c *greeterController) GetByName(name string) string {
 
 	// call grpc server method

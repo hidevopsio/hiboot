@@ -59,24 +59,26 @@ func (b *Builder) isFileNotExist(path string) bool {
 }
 
 // build config file
-func (b *Builder) Build() (interface{}, error) {
+func (b *Builder) Build(profiles ...string) (interface{}, error) {
 
 	conf, err := b.Read(b.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	name := b.Name + "-" + b.Profile
-	// allow the empty of the profile
-	if b.Profile == "" || b.isFileNotExist(filepath.Join(b.Path, name) + ".") {
-		return conf, nil
+	if len(profiles) == 0 && b.Profile != "" {
+		profiles = append(profiles, b.Profile)
 	}
 
-	_, err = b.Read(name)
-	//if err != nil {
-	//	return conf, err
-	//}
-	//mergo.Merge(conf, confReplacer, mergo.WithOverride, mergo.WithAppendSlice)
+	for _, profile := range profiles {
+		name := b.Name + "-" + profile
+		// allow the empty of the profile
+		if b.Profile == "" || b.isFileNotExist(filepath.Join(b.Path, name) + ".") {
+			return conf, nil
+		}
+
+		_, err = b.Read(name)
+	}
 
 	return conf, nil
 }
