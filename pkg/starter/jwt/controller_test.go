@@ -80,9 +80,9 @@ type barController struct{
 func (c *barController) Before()  {
 	log.Debug("barController.Before")
 
-	jwtProp := c.JwtProperties()
+	_, ok := c.JwtProperties()
 	// intercept all requests that not contain jwt token
-	if jwtProp == nil {
+	if !ok {
 		return
 	}
 	c.Ctx.Next()
@@ -94,9 +94,18 @@ func (c *barController) Get() string  {
 	return "Hello, world"
 }
 
-func TestController(t *testing.T) {
+func TestJwtController(t *testing.T) {
 	fooCtrl := new(fooController)
 	barCtrl := new(barController)
+
+	t.Run("should failed to get jwt properties when app is not run", func(t *testing.T) {
+		_, ok := barCtrl.JwtProperties()
+		assert.Equal(t, false, ok)
+
+		_, ok = barCtrl.JwtPropertiesString()
+		assert.Equal(t, false, ok)
+	})
+
 	app := web.NewTestApplication(t, fooCtrl, barCtrl)
 
 	t.Run("should login with POST /foo/login", func(t *testing.T) {
@@ -118,6 +127,15 @@ func TestController(t *testing.T) {
 			WithHeader("Authorization", token).
 			Expect().Status(http.StatusOK)
 
+		_, ok := barCtrl.JwtProperties()
+		assert.Equal(t, true, ok)
+
+		_, ok = barCtrl.JwtPropertiesString()
+		assert.Equal(t, true, ok)
+
+		username := barCtrl.JwtProperty("username")
+		assert.Equal(t, "johndoe", username)
+
 		time.Sleep(2 * time.Second)
 
 		app.Get("/bar").
@@ -125,16 +143,6 @@ func TestController(t *testing.T) {
 			Expect().Status(http.StatusUnauthorized)
 	})
 
-	t.Run("should get jwt properties", func(t *testing.T) {
-		jwtProps := barCtrl.JwtProperties()
-		assert.NotEqual(t, nil, jwtProps)
-
-		jwtPropsStr := barCtrl.JwtPropertiesString()
-		assert.NotEqual(t, nil, jwtPropsStr)
-
-		username := barCtrl.JwtProperty("username")
-		assert.Equal(t, "johndoe", username)
-	})
 }
 
 func TestAppWithoutJwtController(t *testing.T) {
