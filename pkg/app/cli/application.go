@@ -58,7 +58,6 @@ func init() {
 	commandNames = make([]string, 0)
 }
 
-
 // HideBanner hide banner display on application start up
 func HideBanner() {
 	app.HideBanner()

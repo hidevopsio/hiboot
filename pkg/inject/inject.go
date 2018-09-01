@@ -35,13 +35,13 @@ const (
 
 var (
 	// NotImplementedError: the interface is not implemented
-	NotImplementedError           = errors.New("[inject] interface is not implemented")
+	NotImplementedError = errors.New("[inject] interface is not implemented")
 	// InvalidObjectError: the object is invalid
-	InvalidObjectError            = errors.New("[inject] invalid object")
+	InvalidObjectError = errors.New("[inject] invalid object")
 	// InvalidTagNameError the tag name is invalid
-	InvalidTagNameError           = errors.New("[inject] invalid tag name, e.g. exampleTag")
+	InvalidTagNameError = errors.New("[inject] invalid tag name, e.g. exampleTag")
 	// SystemConfigurationError system is not configured
-	SystemConfigurationError      = errors.New("[inject] system is not configured")
+	SystemConfigurationError = errors.New("[inject] system is not configured")
 
 	// TODO use cmap.ConcurrentMap for tagsContainer
 	tagsContainer []Tag
