@@ -23,7 +23,7 @@ import (
 	"net/http"
 )
 
-type UserRequest struct {
+type userRequest struct {
 	model.RequestBody
 	Id       uint64 `json:"id"`
 	Name     string `json:"name" validate:"required"`
@@ -35,22 +35,22 @@ type UserRequest struct {
 }
 
 // RestController
-type UserController struct {
+type userController struct {
 	web.Controller
 	userService service.UserService
 }
 
 func init() {
-	web.RestController(new(UserController))
+	web.RestController(new(userController))
 }
 
 // Init inject userService automatically
-func (c *UserController) Init(userService service.UserService) {
+func (c *userController) Init(userService service.UserService) {
 	c.userService = userService
 }
 
-// Post /user
-func (c *UserController) Post(request *UserRequest) (model.Response, error) {
+// Post POST /user
+func (c *userController) Post(request *userRequest) (model.Response, error) {
 	var user entity.User
 	copier.Copy(&user, request)
 	err := c.userService.AddUser(&user)
@@ -59,8 +59,8 @@ func (c *UserController) Post(request *UserRequest) (model.Response, error) {
 	return response, err
 }
 
-// Get /id/{id}
-func (c *UserController) GetById(id uint64) (response model.Response, err error) {
+// GetById GET /id/{id}
+func (c *userController) GetById(id uint64) (response model.Response, err error) {
 	user, err := c.userService.GetUser(id)
 	response = new(model.BaseResponse)
 	if err != nil {
@@ -71,8 +71,8 @@ func (c *UserController) GetById(id uint64) (response model.Response, err error)
 	return
 }
 
-// Delete /id/{id}
-func (c *UserController) DeleteById(id uint64) (response model.Response, err error) {
+// DeleteById DELETE /id/{id}
+func (c *userController) DeleteById(id uint64) (response model.Response, err error) {
 	err = c.userService.DeleteUser(id)
 	response = new(model.BaseResponse)
 	return

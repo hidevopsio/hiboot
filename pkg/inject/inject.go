@@ -34,14 +34,13 @@ const (
 )
 
 var (
-	InstanceContainerIsNilError   = errors.New("[inject] instance container is nil")
+	// NotImplementedError: the interface is not implemented
 	NotImplementedError           = errors.New("[inject] interface is not implemented")
+	// InvalidObjectError: the object is invalid
 	InvalidObjectError            = errors.New("[inject] invalid object")
-	UnsupportedInjectionTypeError = errors.New("[inject] unsupported injection type")
-	IllegalArgumentError          = errors.New("[inject] input argument type can not be the same as receiver")
-	TagIsAlreadyExistError        = errors.New("[inject] tag is already exist")
-	TagIsNilError                 = errors.New("[inject] tag is nil")
+	// InvalidTagNameError the tag name is invalid
 	InvalidTagNameError           = errors.New("[inject] invalid tag name, e.g. exampleTag")
+	// SystemConfigurationError system is not configured
 	SystemConfigurationError      = errors.New("[inject] system is not configured")
 
 	// TODO use cmap.ConcurrentMap for tagsContainer
@@ -51,11 +50,12 @@ var (
 	fct factory.ConfigurableFactory
 )
 
+// SetFactory set factory from app
 func SetFactory(f factory.ConfigurableFactory) {
 	fct = f
 }
 
-// AddTag
+// AddTag add new tag
 func AddTag(tag Tag) {
 	tagsContainer = append(tagsContainer, tag)
 }
@@ -90,7 +90,7 @@ func IntoObject(object interface{}) error {
 	return IntoObjectValue(reflect.ValueOf(object))
 }
 
-// IntoObject injects instance into the tagged field with `inject:"instanceName"`
+// IntoObjectValue injects instance into the tagged field with `inject:"instanceName"`
 func IntoObjectValue(object reflect.Value) error {
 	var err error
 
