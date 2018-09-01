@@ -159,6 +159,6 @@ func TestEnsureWorkDir(t *testing.T) {
 func TestCallerInfo(t *testing.T) {
 	file, line, fn := CallerInfo(1)
 	assert.Contains(t, file, "io_test.go")
-	assert.Equal(t, 161, line)
+	assert.Equal(t, 160, line)
 	assert.Contains(t, fn, "TestCallerInfo")
 }

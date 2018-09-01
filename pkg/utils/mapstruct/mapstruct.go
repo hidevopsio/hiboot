@@ -19,6 +19,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
+// Decode decode (convert) map to struct
 func Decode(to interface{}, from interface{}) error {
 
 	config := &mapstructure.DecoderConfig{

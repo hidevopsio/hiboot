@@ -51,7 +51,7 @@ func (s *fakeService) DeleteUser(id uint64) (err error) {
 }
 
 func TestCrdRequest(t *testing.T) {
-	userController := new(UserController)
+	userController := new(userController)
 	app := web.NewTestApplication(t, userController)
 	svc := new(fakeService)
 
