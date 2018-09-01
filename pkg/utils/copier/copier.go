@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Notes: this source code is originally copied from github.com/jinzhu/copier
+// Notes: this source code is originally copied from https://github.com/jinzhu/copier
 
 package copier
 

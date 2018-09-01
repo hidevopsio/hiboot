@@ -84,6 +84,9 @@ func (r *repository) Put(params ...interface{}) error {
 
 		// marshal data to bytes
 		b, err := json.Marshal(value)
+		if err != nil {
+			return err
+		}
 
 		err = bucket.Put(key, b)
 		if err != nil {

@@ -209,7 +209,6 @@ func (a *application) Use(handlers ...context.Handler) {
 	}
 }
 
-
 func (a *application) initLocale() error {
 	// TODO: localePath should be configurable in application.yml
 	// locale:

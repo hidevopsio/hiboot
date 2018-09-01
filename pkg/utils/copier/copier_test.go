@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Notes: this source code is originally copied from https://github.com/jinzhu/copier
+
 package copier_test
 
 import (
@@ -300,13 +302,13 @@ func TestEmbedded(t *testing.T) {
 	}
 
 	base := Base{}
-	embeded := Embed{}
-	embeded.BaseField1 = 1
-	embeded.BaseField2 = 2
-	embeded.EmbedField1 = 3
-	embeded.EmbedField2 = 4
+	embedded := Embed{}
+	embedded.BaseField1 = 1
+	embedded.BaseField2 = 2
+	embedded.EmbedField1 = 3
+	embedded.EmbedField2 = 4
 
-	copier.Copy(&base, &embeded)
+	copier.Copy(&base, &embedded)
 
 	if base.BaseField1 != 1 {
 		t.Error("Embedded fields not copied")
