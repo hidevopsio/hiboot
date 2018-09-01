@@ -15,9 +15,9 @@
 package instantiate
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
-	"fmt"
 	"errors"
+	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 )
 
 var (
@@ -28,11 +28,11 @@ type InstantiateFactory struct {
 	instanceMap cmap.ConcurrentMap
 }
 
-func (f *InstantiateFactory) Initialize(instanceMap cmap.ConcurrentMap)  {
+func (f *InstantiateFactory) Initialize(instanceMap cmap.ConcurrentMap) {
 	f.instanceMap = instanceMap
 }
 
-func (f *InstantiateFactory) Initialized() bool  {
+func (f *InstantiateFactory) Initialized() bool {
 	return f.instanceMap != nil
 }
 

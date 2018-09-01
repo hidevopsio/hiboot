@@ -16,8 +16,8 @@ package inject
 
 import (
 	"reflect"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 type defaultTag struct {
@@ -28,7 +28,7 @@ func init() {
 	AddTag(new(defaultTag))
 }
 
-func (t *defaultTag) IsSingleton() bool  {
+func (t *defaultTag) IsSingleton() bool {
 	return false
 }
 
@@ -41,7 +41,7 @@ func (t *defaultTag) Decode(object reflect.Value, field reflect.StructField, tag
 		kind := field.Type.Kind()
 		switch kind {
 		case reflect.Slice:
-			if len(fieldVal.([]string)) == 0  {
+			if len(fieldVal.([]string)) == 0 {
 				retVal = t.replaceReferences(tag)
 				if retVal == tag {
 					retVal = strings.SplitN(tag, ",", -1)

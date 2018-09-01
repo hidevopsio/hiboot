@@ -1,12 +1,12 @@
 package rsa
 
 import (
-	"encoding/pem"
-	"crypto/x509"
-	"crypto/rsa"
 	"crypto/rand"
-	"github.com/hidevopsio/hiboot/pkg/utils/crypto/base64"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"github.com/hidevopsio/hiboot/pkg/utils/crypto"
+	"github.com/hidevopsio/hiboot/pkg/utils/crypto/base64"
 )
 
 //openssl genrsa -out private.pem 1024
@@ -93,4 +93,3 @@ func DecryptBase64(input []byte, privateKey ...[]byte) ([]byte, error) {
 	}
 	return nil, crypto.InvalidInputError
 }
-

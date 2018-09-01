@@ -46,5 +46,3 @@ func recordWhichContextJustForProofOfConcept(ctx context.Context) {
 //	e.Request("GET", "/health").Expect().Status(http.StatusOK).Body()
 //
 //}
-
-

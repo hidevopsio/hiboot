@@ -15,10 +15,10 @@
 package gotest
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"flag"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func init() {

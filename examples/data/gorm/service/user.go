@@ -12,15 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package service
 
 import (
 	"errors"
 	"github.com/hidevopsio/hiboot/examples/data/gorm/entity"
-	"github.com/hidevopsio/hiboot/pkg/utils/idgen"
-	"github.com/hidevopsio/hiboot/pkg/starter/data/gorm"
 	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/starter/data/gorm"
+	"github.com/hidevopsio/hiboot/pkg/utils/idgen"
 )
 
 type UserService interface {
@@ -41,7 +40,7 @@ func init() {
 }
 
 // will inject BoltRepository that configured in github.com/hidevopsio/hiboot/pkg/starter/data/bolt
-func (s *UserServiceImpl) Init(repository gorm.Repository)  {
+func (s *UserServiceImpl) Init(repository gorm.Repository) {
 	s.repository = repository
 	repository.AutoMigrate(&entity.User{})
 }
@@ -67,4 +66,3 @@ func (s *UserServiceImpl) DeleteUser(id uint64) (err error) {
 	err = s.repository.Where("id = ?", id).Delete(entity.User{}).Error()
 	return
 }
-

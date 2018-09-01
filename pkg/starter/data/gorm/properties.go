@@ -27,7 +27,7 @@ type properties struct {
 	Username  string `json:"username"`
 	Password  string `json:"password"`
 	Charset   string `json:"charset" default:"utf8"`
-	ParseTime bool 	 `json:"parse_time" default:"true"`
+	ParseTime bool   `json:"parse_time" default:"true"`
 	Loc       string `json:"loc" default:"Asia/Shanghai"`
 	Config    Config `json:"config"`
 }

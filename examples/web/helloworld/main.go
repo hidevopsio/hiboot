@@ -20,11 +20,13 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 )
 
+// Controller Rest Controller with path /
 // Line 3-5: RESTful Controller, derived from web.Controller. The context mapping of this controller is '/' by default
 type Controller struct {
 	web.Controller
 }
 
+// Get GET /
 // Line 6-8: Get method, the context mapping of this method is '/' by default
 // the Method name Get means that the http request method is GET
 func (c *Controller) Get() string {
@@ -35,5 +37,5 @@ func (c *Controller) Get() string {
 // Line 9-11: main function
 func main() {
 	// create new web application and run it
-	web.NewApplication(&Controller{}).Run()
+	web.NewApplication(new(Controller)).Run()
 }

@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"testing"
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestFirstCommands(t *testing.T) {
@@ -31,6 +31,6 @@ func TestFirstCommands(t *testing.T) {
 
 	t.Run("should report unknown command", func(t *testing.T) {
 		_, err := testApp.RunTest("not-exist-command")
-		assert.Contains(t, err.Error(),"unknown command")
+		assert.Contains(t, err.Error(), "unknown command")
 	})
 }

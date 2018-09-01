@@ -28,7 +28,7 @@ type BaseKVRepository struct {
 	BaseRepository
 }
 
-func (r *BaseKVRepository) getKey(value interface{}, id string) string  {
+func (r *BaseKVRepository) getKey(value interface{}, id string) string {
 	k := reflector.GetFieldValue(value, id)
 	if k.IsValid() && k.CanInterface() {
 		return k.Interface().(string)
@@ -67,7 +67,7 @@ func (r *BaseKVRepository) Put(params ...interface{}) error {
 }
 
 // Get retrieves a key:value pair from the database
-func (r *BaseKVRepository) Get(params ...interface{}) error  {
+func (r *BaseKVRepository) Get(params ...interface{}) error {
 	return nil
 }
 

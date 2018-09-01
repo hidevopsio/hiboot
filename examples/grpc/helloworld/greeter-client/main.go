@@ -17,10 +17,10 @@
 package main
 
 import (
+	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
-	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf"
 	"golang.org/x/net/context"
 )
 
@@ -33,7 +33,7 @@ type greeterController struct {
 }
 
 // Init inject greeterClient
-func (c *greeterController) Init(greeterClient protobuf.GreeterClient)  {
+func (c *greeterController) Init(greeterClient protobuf.GreeterClient) {
 	c.greeterClient = greeterClient
 }
 

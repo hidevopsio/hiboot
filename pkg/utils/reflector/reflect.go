@@ -15,11 +15,11 @@
 package reflector
 
 import (
-	"reflect"
 	"errors"
-	"strings"
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"reflect"
+	"strings"
 )
 
 var InvalidInputError = errors.New("input is invalid")
@@ -81,7 +81,6 @@ func IndirectType(reflectType reflect.Type) reflect.Type {
 	return reflectType
 }
 
-
 func GetFieldValue(f interface{}, name string) reflect.Value {
 	r := reflect.ValueOf(f)
 	fv := reflect.Indirect(r).FieldByName(name)
@@ -89,12 +88,11 @@ func GetFieldValue(f interface{}, name string) reflect.Value {
 	return fv
 }
 
-
-func SetFieldValue(object interface{}, name string, value interface{}) error  {
+func SetFieldValue(object interface{}, name string, value interface{}) error {
 
 	obj := Indirect(reflect.ValueOf(object))
 
-	if ! obj.IsValid()  {
+	if !obj.IsValid() {
 		return InvalidInputError
 	}
 
@@ -104,7 +102,7 @@ func SetFieldValue(object interface{}, name string, value interface{}) error  {
 
 	fieldObj := obj.FieldByName(name)
 
-	if ! fieldObj.CanSet() {
+	if !fieldObj.CanSet() {
 		return FieldCanNotBeSetError
 	}
 
@@ -114,7 +112,6 @@ func SetFieldValue(object interface{}, name string, value interface{}) error  {
 	//log.Debugf("Set %v.(%v) into %v.%v", value, fov.Type(), obj.Type(), name)
 	return nil
 }
-
 
 func GetKind(kind reflect.Kind) reflect.Kind {
 
@@ -143,7 +140,6 @@ func GetKindByType(typ reflect.Type) reflect.Kind {
 	return GetKind(typ.Kind())
 }
 
-
 func ValidateReflectType(obj interface{}, callback func(value *reflect.Value, reflectType reflect.Type, fieldSize int, isSlice bool) error) error {
 	v, err := Validate(obj)
 	if err != nil {
@@ -166,8 +162,7 @@ func ValidateReflectType(obj interface{}, callback func(value *reflect.Value, re
 	return err
 }
 
-
-func GetType(data interface{}) (typ reflect.Type, err error)  {
+func GetType(data interface{}) (typ reflect.Type, err error) {
 	dv := Indirect(reflect.ValueOf(data))
 
 	// Return is from value is invalid
@@ -181,7 +176,7 @@ func GetType(data interface{}) (typ reflect.Type, err error)  {
 	return
 }
 
-func GetName(data interface{}) (name string, err error)  {
+func GetName(data interface{}) (name string, err error) {
 
 	typ, err := GetType(data)
 	if err == nil {
@@ -196,14 +191,14 @@ func GetLowerCaseObjectName(data interface{}) (string, error) {
 	return name, err
 }
 
-func HasField(object interface{}, name string) bool  {
+func HasField(object interface{}, name string) bool {
 	r := reflect.ValueOf(object)
 	fv := reflect.Indirect(r).FieldByName(name)
 
 	return fv.IsValid()
 }
 
-func CallMethodByName(object interface{}, name string, args ...interface{}) (interface{}, error)  {
+func CallMethodByName(object interface{}, name string, args ...interface{}) (interface{}, error) {
 	objVal := reflect.ValueOf(object)
 	method, ok := objVal.Type().MethodByName(name)
 	if ok {
@@ -211,7 +206,7 @@ func CallMethodByName(object interface{}, name string, args ...interface{}) (int
 		inputs := make([]reflect.Value, numIn)
 		inputs[0] = objVal
 		for i, arg := range args {
-			inputs[i + 1] = reflect.ValueOf(arg)
+			inputs[i+1] = reflect.ValueOf(arg)
 		}
 		results := method.Func.Call(inputs)
 		if len(results) != 0 {
@@ -223,7 +218,7 @@ func CallMethodByName(object interface{}, name string, args ...interface{}) (int
 	return nil, InvalidMethodError
 }
 
-func CallFunc(object interface{}, args ...interface{}) (interface{}, error)  {
+func CallFunc(object interface{}, args ...interface{}) (interface{}, error) {
 	fn := reflect.ValueOf(object)
 	if fn.Kind() == reflect.Func {
 		numIn := fn.Type().NumIn()
@@ -247,7 +242,6 @@ func HasEmbeddedField(object interface{}, name string) bool {
 	return field.Anonymous && ok
 }
 
-
 func GetEmbeddedInterfaceFieldByType(typ reflect.Type) (field reflect.StructField) {
 	if typ.Kind() == reflect.Struct {
 		for i := 0; i < typ.NumField(); i++ {
@@ -265,7 +259,7 @@ func GetEmbeddedInterfaceFieldByType(typ reflect.Type) (field reflect.StructFiel
 }
 
 func GetEmbeddedInterfaceField(object interface{}) (field reflect.StructField) {
-	typ := IndirectType(reflect.TypeOf(object));
+	typ := IndirectType(reflect.TypeOf(object))
 	return GetEmbeddedInterfaceFieldByType(typ)
 }
 

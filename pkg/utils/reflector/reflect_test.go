@@ -15,38 +15,38 @@
 package reflector
 
 import (
-	"testing"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/stretchr/testify/assert"
 	"reflect"
-	"github.com/hidevopsio/hiboot/pkg/log"
+	"testing"
 )
 
-type Foo struct{
-	Name string
-	Age int
+type Foo struct {
+	Name     string
+	Age      int
 	nickname string
 }
 
-func (f *Foo) Init(name string)  {
+func (f *Foo) Init(name string) {
 	f.Name = name
 }
 
-func (f *Foo) Bar()  {
+func (f *Foo) Bar() {
 
 }
 
-func (f *Foo) Nickname() string  {
+func (f *Foo) Nickname() string {
 	return f.nickname
 }
 
-func (f *Foo) SetNickname(nickname string) *Foo  {
+func (f *Foo) SetNickname(nickname string) *Foo {
 	f.nickname = nickname
 	return f
 }
 
-type Bar struct{
+type Bar struct {
 	Name string
-	Age int
+	Age  int
 }
 
 type Baz struct {
@@ -54,7 +54,7 @@ type Baz struct {
 	Bar Bar
 }
 
-type FooBar struct {}
+type FooBar struct{}
 
 func init() {
 	log.SetLevel(log.DebugLevel)
@@ -89,7 +89,6 @@ func TestConstructor(t *testing.T) {
 		inputs := make([]reflect.Value, numIn)
 		for i := 0; i < numIn; i++ {
 			t := methodType.In(i)
-
 
 			log.Debugf("%v: %v %v", i, t.Name(), t)
 		}
@@ -237,7 +236,7 @@ func TestGetKind(t *testing.T) {
 }
 
 func TestValidateReflectType(t *testing.T) {
-	baz := &Baz{Foo: Foo{Name:"foo"}, Bar: Bar{Name: "bar"}}
+	baz := &Baz{Foo: Foo{Name: "foo"}, Bar: Bar{Name: "bar"}}
 
 	t.Run("should validete reflect type", func(t *testing.T) {
 		ValidateReflectType(baz, func(value *reflect.Value, reflectType reflect.Type, fieldSize int, isSlice bool) error {
@@ -255,7 +254,7 @@ func TestValidateReflectType(t *testing.T) {
 	})
 
 	t.Run("should validate slice", func(t *testing.T) {
-		s := []int {1, 2, 3}
+		s := []int{1, 2, 3}
 		err := ValidateReflectType(&s, nil)
 		assert.Equal(t, nil, err)
 	})
@@ -327,7 +326,7 @@ type Test struct {
 	*PtrEmbedded
 	Exportedvalue int
 	unexported    string
-	A struct { A int }
+	A             struct{ A int }
 }
 
 func TestEmbedded(t *testing.T) {
@@ -338,7 +337,7 @@ func TestEmbedded(t *testing.T) {
 		ok        bool
 		private   bool
 		anonymous bool
-	} {
+	}{
 		{
 			name:      "Should find Embedded field by name",
 			source:    Test{},
@@ -441,7 +440,7 @@ func SayHello(name string) string {
 	return "Hello " + name
 }
 
-func Dummy()  {
+func Dummy() {
 	// for test only, do nothing
 }
 
@@ -466,24 +465,24 @@ func TestCallFunc(t *testing.T) {
 }
 
 func TestGetEmbeddedInterfaceField(t *testing.T) {
-	type fakeInterface interface {}
-	type fakeService struct { fakeInterface }
-	type fakeChildService struct { fakeService }
+	type fakeInterface interface{}
+	type fakeService struct{ fakeInterface }
+	type fakeChildService struct{ fakeService }
 
 	t.Run("should get embedded fakeInterface", func(t *testing.T) {
 		field := GetEmbeddedInterfaceField(new(fakeService))
-		assert.Equal(t,"fakeInterface", field.Name)
+		assert.Equal(t, "fakeInterface", field.Name)
 	})
 
 	t.Run("should get embedded fakeInterface", func(t *testing.T) {
 		field := GetEmbeddedInterfaceField(new(fakeChildService))
-		assert.Equal(t,"fakeInterface", field.Name)
+		assert.Equal(t, "fakeInterface", field.Name)
 	})
 
 	t.Run("should not get embedded interface that it's not exist", func(t *testing.T) {
-		type fooService struct { }
-		type barService struct { fooService }
+		type fooService struct{}
+		type barService struct{ fooService }
 		field := GetEmbeddedInterfaceField(new(barService))
-		assert.Equal(t,false, field.Anonymous)
+		assert.Equal(t, false, field.Anonymous)
 	})
 }

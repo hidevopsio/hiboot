@@ -15,9 +15,9 @@
 package str
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
 	"reflect"
+	"testing"
 )
 
 func TestLowerFirst(t *testing.T) {
@@ -54,212 +54,212 @@ func TestConvert(t *testing.T) {
 	testData := []struct {
 		src  string
 		kind reflect.Kind
-		dst interface{}
+		dst  interface{}
 	}{
 		{
 			src:  "a,b,c,d",
 			kind: reflect.Slice,
-			dst: []string{"a", "b", "c", "d"},
+			dst:  []string{"a", "b", "c", "d"},
 		},
 		{
 			src:  "this is a string",
 			kind: reflect.String,
-			dst: "this is a string",
+			dst:  "this is a string",
 		},
 		{
 			src:  "1234",
 			kind: reflect.Int,
-			dst: int(1234),
+			dst:  int(1234),
 		},
 		{
 			src:  "12",
 			kind: reflect.Int8,
-			dst: int8(12),
+			dst:  int8(12),
 		},
 		{
 			src:  "123",
 			kind: reflect.Int16,
-			dst: int16(123),
+			dst:  int16(123),
 		},
 		{
 			src:  "2345",
 			kind: reflect.Int32,
-			dst: int32(2345),
+			dst:  int32(2345),
 		},
 		{
 			src:  "12345678",
 			kind: reflect.Int64,
-			dst: int64(12345678),
+			dst:  int64(12345678),
 		},
 		{
 			src:  "4321",
 			kind: reflect.Uint,
-			dst: uint(4321),
+			dst:  uint(4321),
 		},
 		{
 			src:  "21",
 			kind: reflect.Uint8,
-			dst: uint8(21),
+			dst:  uint8(21),
 		},
 		{
 			src:  "321",
 			kind: reflect.Uint16,
-			dst: uint16(321),
+			dst:  uint16(321),
 		},
 		{
 			src:  "5432",
 			kind: reflect.Uint32,
-			dst: uint32(5432),
+			dst:  uint32(5432),
 		},
 		{
 			src:  "87654321",
 			kind: reflect.Uint64,
-			dst: uint64(87654321),
+			dst:  uint64(87654321),
 		},
 		{
 			src:  "0.1",
 			kind: reflect.Float32,
-			dst: float32(0.1),
+			dst:  float32(0.1),
 		},
 		{
 			src:  "0.1234",
 			kind: reflect.Float64,
-			dst: float64(0.1234),
+			dst:  float64(0.1234),
 		},
 		{
 			src:  "true",
 			kind: reflect.Bool,
-			dst: true,
+			dst:  true,
 		},
 		{
 			src:  "",
 			kind: reflect.Int,
-			dst: int(0),
+			dst:  int(0),
 		},
 		{
 			src:  "",
 			kind: reflect.Int8,
-			dst: int8(0),
+			dst:  int8(0),
 		},
 		{
 			src:  "",
 			kind: reflect.Int16,
-			dst: int16(0),
+			dst:  int16(0),
 		},
 		{
 			src:  "",
 			kind: reflect.Int32,
-			dst: int32(0),
+			dst:  int32(0),
 		},
 		{
 			src:  "",
 			kind: reflect.Int64,
-			dst: int64(0),
+			dst:  int64(0),
 		},
 		{
 			src:  "",
 			kind: reflect.Uint,
-			dst: uint(0),
+			dst:  uint(0),
 		},
 		{
 			src:  "",
 			kind: reflect.Uint8,
-			dst: uint8(0),
+			dst:  uint8(0),
 		},
 		{
 			src:  "",
 			kind: reflect.Uint16,
-			dst: uint16(0),
+			dst:  uint16(0),
 		},
 		{
 			src:  "",
 			kind: reflect.Uint32,
-			dst: uint32(0),
+			dst:  uint32(0),
 		},
 		{
 			src:  "",
 			kind: reflect.Uint64,
-			dst: uint64(0),
+			dst:  uint64(0),
 		},
 		{
 			src:  "",
 			kind: reflect.Float32,
-			dst: float32(0.0),
+			dst:  float32(0.0),
 		},
 		{
 			src:  "",
 			kind: reflect.Float64,
-			dst: float64(0.0),
+			dst:  float64(0.0),
 		},
 		{
 			src:  "",
 			kind: reflect.Bool,
-			dst: false,
+			dst:  false,
 		},
 		{
 			src:  " ",
 			kind: reflect.Int,
-			dst: int(0),
+			dst:  int(0),
 		},
 		{
 			src:  " ",
 			kind: reflect.Int8,
-			dst: int8(0),
+			dst:  int8(0),
 		},
 		{
 			src:  " ",
 			kind: reflect.Int16,
-			dst: int16(0),
+			dst:  int16(0),
 		},
 		{
 			src:  " ",
 			kind: reflect.Int32,
-			dst: int32(0),
+			dst:  int32(0),
 		},
 		{
 			src:  " ",
 			kind: reflect.Int64,
-			dst: int64(0),
+			dst:  int64(0),
 		},
 		{
 			src:  " ",
 			kind: reflect.Uint,
-			dst: uint(0),
+			dst:  uint(0),
 		},
 		{
 			src:  " ",
 			kind: reflect.Uint8,
-			dst: uint8(0),
+			dst:  uint8(0),
 		},
 		{
 			src:  "",
 			kind: reflect.Uint16,
-			dst: uint16(0),
+			dst:  uint16(0),
 		},
 		{
 			src:  " ",
 			kind: reflect.Uint32,
-			dst: uint32(0),
+			dst:  uint32(0),
 		},
 		{
 			src:  " ",
 			kind: reflect.Uint64,
-			dst: uint64(0),
+			dst:  uint64(0),
 		},
 		{
 			src:  " ",
 			kind: reflect.Float32,
-			dst: float32(0.0),
+			dst:  float32(0.0),
 		},
 		{
 			src:  " ",
 			kind: reflect.Float64,
-			dst: float64(0.0),
+			dst:  float64(0.0),
 		},
 		{
 			src:  " ",
 			kind: reflect.Bool,
-			dst: false,
+			dst:  false,
 		},
 	}
 

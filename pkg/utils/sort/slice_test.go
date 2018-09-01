@@ -1,8 +1,8 @@
 package sort
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestSortByLen(t *testing.T) {

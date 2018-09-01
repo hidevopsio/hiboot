@@ -12,17 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package log
 
 import (
+	"fmt"
 	"github.com/kataras/golog"
 	"github.com/kataras/pio"
 	"io"
-	"fmt"
 	"runtime"
 )
-
 
 //
 // Available level names are:
@@ -35,13 +33,12 @@ import (
 //
 const (
 	DebugLevel = "debug"
-	InfoLevel = "info"
-	WarnLevel = "warn"
+	InfoLevel  = "info"
+	WarnLevel  = "warn"
 	ErrorLevel = "error"
 	FatalLevel = "fatal"
-	Disable = "disable"
+	Disable    = "disable"
 )
-
 
 func callerInfo(skip int) (file string, line int, fn string) {
 	var pc uintptr
@@ -52,7 +49,7 @@ func callerInfo(skip int) (file string, line int, fn string) {
 	return
 }
 
-func withCaller(fn func(v ...interface{}), v ...interface{})  {
+func withCaller(fn func(v ...interface{}), v ...interface{}) {
 	argv := make([]interface{}, 1)
 	_, line, fnName := callerInfo(3)
 	argv[0] = fmt.Sprintf("[%v:%v] ", fnName, line)
@@ -61,7 +58,7 @@ func withCaller(fn func(v ...interface{}), v ...interface{})  {
 	fn(argv...)
 }
 
-func withCallerf(fn func(format string, v ...interface{}), format string, v ...interface{})  {
+func withCallerf(fn func(format string, v ...interface{}), format string, v ...interface{}) {
 	_, line, fnName := callerInfo(3)
 	f := fmt.Sprintf("[%v:%v] %v", fnName, line, format)
 

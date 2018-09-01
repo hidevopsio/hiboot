@@ -15,11 +15,11 @@
 package inject
 
 import (
-	"strings"
-	"reflect"
-	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
-	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
+	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
+	"reflect"
+	"strings"
 )
 
 type Tag interface {
@@ -30,12 +30,12 @@ type Tag interface {
 }
 
 type BaseTag struct {
-	properties cmap.ConcurrentMap
-	systemConfig *system.Configuration
+	properties     cmap.ConcurrentMap
+	systemConfig   *system.Configuration
 	configurations cmap.ConcurrentMap
 }
 
-func (t *BaseTag) IsSingleton() bool  {
+func (t *BaseTag) IsSingleton() bool {
 	return false
 }
 
@@ -45,7 +45,7 @@ func (t *BaseTag) Init(systemConfig *system.Configuration, configurations cmap.C
 }
 
 // TODO move to replacer ?
-func (t *BaseTag) replaceReferences(val string) interface{}  {
+func (t *BaseTag) replaceReferences(val string) interface{} {
 	var retVal interface{}
 	retVal = val
 
@@ -83,7 +83,7 @@ func (t *BaseTag) ParseProperties(tag string) cmap.ConcurrentMap {
 		n := strings.Index(v, "=")
 		if n > 0 {
 			key := v[:n]
-			val := v[n + 1:]
+			val := v[n+1:]
 			if key != "" && val != "" {
 				// check if val contains reference or env
 				// TODO: should lookup certain config instead of for loop
@@ -99,6 +99,6 @@ func (t *BaseTag) Properties() cmap.ConcurrentMap {
 	return t.properties
 }
 
-func (t *BaseTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{})  {
+func (t *BaseTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{}) {
 	return nil
 }

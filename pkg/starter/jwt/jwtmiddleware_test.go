@@ -16,21 +16,20 @@ package jwt_test
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"testing"
-	"time"
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
 	"github.com/stretchr/testify/assert"
+	"testing"
+	"time"
 )
-
 
 type FakeContext struct {
 }
 
-func (c *FakeContext) Next()  {
+func (c *FakeContext) Next() {
 	log.Debug("FakeContext.Next()")
 }
 
-func (c *FakeContext) StopExecution()  {
+func (c *FakeContext) StopExecution() {
 	log.Debug("FakeContext.Next()")
 }
 
@@ -41,7 +40,7 @@ func init() {
 func TestCheckJWT(t *testing.T) {
 	jwtToken := jwt.NewJwtToken(&jwt.Properties{
 		PrivateKeyPath: "config/ssl/app.rsa",
-		PublicKeyPath: "config/ssl/app.rsa.pub",
+		PublicKeyPath:  "config/ssl/app.rsa.pub",
 	})
 	token, err := jwtToken.Generate(jwt.Map{
 		"username": "johndoe",

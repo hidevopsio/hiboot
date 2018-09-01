@@ -15,22 +15,22 @@
 package service
 
 import (
-	"testing"
+	_ "github.com/erikstmartin/go-testdb"
+	"github.com/hidevopsio/gorm"
 	"github.com/hidevopsio/hiboot/examples/data/gorm/entity"
 	"github.com/stretchr/testify/assert"
-	_"github.com/erikstmartin/go-testdb"
-	"github.com/hidevopsio/gorm"
+	"testing"
 )
 
 var userService *UserServiceImpl
 var fakeUser = &entity.User{
-	Id: 1,
-	Name: "Bill Gates",
+	Id:       1,
+	Name:     "Bill Gates",
 	Username: "billg",
 	Password: "3948tdaD",
-	Email: "bill.gates@microsoft.com",
-	Age: 60,
-	Gender: 1,
+	Email:    "bill.gates@microsoft.com",
+	Age:      60,
+	Gender:   1,
 }
 
 func TestUserCrud(t *testing.T) {

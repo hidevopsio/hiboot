@@ -15,18 +15,18 @@
 package inject_test
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/inject"
-	"github.com/hidevopsio/hiboot/pkg/starter/data"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
-	"github.com/hidevopsio/hiboot/pkg/system"
-	"os"
-	"path/filepath"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
+	"github.com/hidevopsio/hiboot/pkg/inject"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/starter/data"
+	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/stretchr/testify/assert"
+	"os"
+	"path/filepath"
+	"testing"
 )
 
 type user struct {
@@ -408,7 +408,9 @@ func TestInject(t *testing.T) {
 	})
 
 	t.Run("should inject value and it must not be singleton", func(t *testing.T) {
-		a := &struct{ TestName string `value:"test-data-from-a"` }{}
+		a := &struct {
+			TestName string `value:"test-data-from-a"`
+		}{}
 		b := &struct{ TestName string }{}
 		err := inject.IntoObject(a)
 		assert.Equal(t, nil, err)
@@ -433,7 +435,9 @@ func TestInject(t *testing.T) {
 	})
 
 	t.Run("should inject anonymous sturct with primitive type", func(t *testing.T) {
-		a := struct{ TestObj *int `inject:""` }{}
+		a := struct {
+			TestObj *int `inject:""`
+		}{}
 		err := inject.IntoObject(&a)
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, nil, a.TestObj)

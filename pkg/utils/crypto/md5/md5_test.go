@@ -1,8 +1,8 @@
 package md5
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestMd5(t *testing.T) {

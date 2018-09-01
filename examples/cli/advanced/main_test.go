@@ -15,7 +15,6 @@
 // Line 1: main package
 package main
 
-
 import (
 	"testing"
 )

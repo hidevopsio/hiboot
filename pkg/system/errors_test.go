@@ -15,8 +15,8 @@
 package system
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestInvalidControllerError(t *testing.T) {

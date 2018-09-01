@@ -15,8 +15,8 @@
 package main
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app/web"
 	_ "github.com/hidevopsio/hiboot/examples/data/gorm/controller"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 )
 
 func main() {

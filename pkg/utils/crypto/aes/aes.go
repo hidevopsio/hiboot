@@ -2,12 +2,12 @@ package aes
 
 import (
 	"crypto/aes"
-	"io"
-	"crypto/rand"
 	"crypto/cipher"
+	"crypto/rand"
 	"encoding/base64"
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/utils/crypto"
+	"io"
 )
 
 // Encrypt string to base64 crypto using AES
@@ -22,7 +22,7 @@ func Encrypt(key []byte, text string) (string, error) {
 
 	// The IV needs to be unique, but not secure. Therefore it's common to
 	// include it at the beginning of the ciphertext.
-	ciphertext := make([]byte, aes.BlockSize + len(plaintext))
+	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		return "", err

@@ -17,8 +17,8 @@ package controllers
 import (
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"time"
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
+	"time"
 )
 
 type UserRequest struct {
@@ -28,12 +28,12 @@ type UserRequest struct {
 
 type FooRequest struct {
 	Name string `json:"name" validate:"required"`
-	Age  int `json:"age"`
+	Age  int    `json:"age"`
 }
 
 type FooResponse struct {
 	Greeting string `json:"greeting"`
-	Age  int `json:"age"`
+	Age      int    `json:"age"`
 }
 
 type fooController struct {
@@ -92,7 +92,7 @@ func (c *fooController) Get(ctx *web.Context) {
 	if ctx.RequestParams(foo) == nil {
 		ctx.ResponseBody("success", &FooResponse{
 			Greeting: "Hello, " + foo.Name,
-			Age: foo.Age })
+			Age:      foo.Age})
 	}
 }
 

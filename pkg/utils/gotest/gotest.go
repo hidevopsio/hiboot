@@ -15,13 +15,13 @@
 package gotest
 
 import (
-	"os"
-	"strings"
 	"flag"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"os"
+	"strings"
 )
 
-func IsRunning() bool  {
+func IsRunning() bool {
 
 	args := os.Args
 
@@ -45,4 +45,3 @@ func ParseArgs(args []string) {
 
 	flag.CommandLine.Parse(a)
 }
-

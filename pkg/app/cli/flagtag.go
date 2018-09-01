@@ -15,7 +15,7 @@ func init() {
 	inject.AddTag(new(flagTag))
 }
 
-func (t *flagTag) IsSingleton() bool  {
+func (t *flagTag) IsSingleton() bool {
 	return false
 }
 

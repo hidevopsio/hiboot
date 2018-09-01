@@ -15,9 +15,9 @@
 package io
 
 import (
-	"runtime"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -57,7 +57,6 @@ func EnsureWorkDir(skip int, existFile string) bool {
 	return false
 }
 
-
 func GetRelativePath(level int) string {
 	_, path, _, _ := runtime.Caller(level)
 
@@ -79,7 +78,7 @@ func write(path, filename string, cb func(f *os.File) (n int, err error)) (int, 
 		return 0, err
 	}
 
-	f, _ := os.OpenFile(filepath.Join(path, filename), os.O_RDWR | os.O_CREATE, 0666)
+	f, _ := os.OpenFile(filepath.Join(path, filename), os.O_RDWR|os.O_CREATE, 0666)
 	defer f.Close()
 	if cb != nil {
 		return cb(f)
@@ -87,7 +86,7 @@ func write(path, filename string, cb func(f *os.File) (n int, err error)) (int, 
 	return 0, err
 }
 
-func CreateFile(path, filename string) (error) {
+func CreateFile(path, filename string) error {
 	_, err := write(path, filename, nil)
 	return err
 }
@@ -119,7 +118,7 @@ func Basename(s string) string {
 func Filename(s string) string {
 	n := strings.LastIndexByte(s, filepath.Separator)
 	if n >= 0 {
-		return s[n + 1:]
+		return s[n+1:]
 	}
 	return s
 }
@@ -129,16 +128,15 @@ func BaseDir(s string) string {
 	if n > 0 {
 		return s[:n]
 	} else if n == 0 {
-		return s[:n + 1]
+		return s[:n+1]
 	}
 	return s
 }
 
-
 func DirName(s string) string {
 	n := strings.LastIndexByte(s, filepath.Separator)
 	if n >= 0 {
-		return s[n + 1:]
+		return s[n+1:]
 	}
 	return s
 }

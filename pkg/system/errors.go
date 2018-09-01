@@ -25,7 +25,6 @@ func (e *InvalidControllerError) Error() string {
 	return fmt.Sprintf("%v must be derived from web.Controller", e.Name)
 }
 
-
 type NotFoundError struct {
 	Name string
 }

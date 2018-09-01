@@ -15,7 +15,6 @@
 
 package cmd
 
-
 import (
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/hidevopsio/hiboot/pkg/log"
@@ -32,7 +31,7 @@ func (c *barCommand) Init() {
 }
 
 // OnBaz run command bar baz, return true means it won't run next action, in this case is method Run(args []string)
-func (c *barCommand) OnBaz(args []string) bool  {
+func (c *barCommand) OnBaz(args []string) bool {
 	log.Infof("on baz command")
 	return true
 }
@@ -41,4 +40,3 @@ func (c *barCommand) Run(args []string) error {
 	log.Info("handle bar command")
 	return nil
 }
-

@@ -15,18 +15,17 @@
 package web
 
 import (
-	"testing"
-	"reflect"
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/stretchr/testify/assert"
+	"reflect"
+	"testing"
 )
 
 func init() {
 	log.SetLevel(log.DebugLevel)
 }
 
-
-type FooController struct{
+type FooController struct {
 	Controller
 }
 

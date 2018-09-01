@@ -15,24 +15,24 @@
 package autoconfigure_test
 
 import (
-	"os"
-	"testing"
-	"path/filepath"
-	"github.com/stretchr/testify/assert"
-	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/system"
-	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
+	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/stretchr/testify/assert"
+	"os"
+	"path/filepath"
+	"testing"
 )
 
 type FakeProperties struct {
-	Name string			`default:"foo"`
-	Nickname string		`default:"foobar"`
-	Username string		`default:"fb"`
-	Org string			`default:"hidevopsio"`
-	Profile string		`default:"${APP_PROFILES_ACTIVE}"`
+	Name     string `default:"foo"`
+	Nickname string `default:"foobar"`
+	Username string `default:"fb"`
+	Org      string `default:"hidevopsio"`
+	Profile  string `default:"${APP_PROFILES_ACTIVE}"`
 }
 
 type FakeConfiguration struct {
@@ -40,22 +40,22 @@ type FakeConfiguration struct {
 }
 
 type FooProperties struct {
-	Name string			`default:"${fake.name}"`
-	Nickname string		`default:"foobar"`
-	Username string		`default:"fb"`
+	Name     string `default:"${fake.name}"`
+	Nickname string `default:"foobar"`
+	Username string `default:"fb"`
 }
 
 type FooConfiguration struct {
 	FakeProperties FooProperties `mapstructure:"foo"`
 }
 
-func (c *FooConfiguration ) HelloWorld() string {
+func (c *FooConfiguration) HelloWorld() string {
 	return "Hello world"
 }
 
 type Foo struct {
 	Name string
-	Bar *Bar
+	Bar  *Bar
 }
 
 type Bar struct {
@@ -100,7 +100,6 @@ func (c *FakeConfiguration) Bar() *Bar {
 	return b
 }
 
-
 func TestConfigurableFactory(t *testing.T) {
 	configPath := filepath.Join(os.TempDir(), "config")
 
@@ -108,9 +107,9 @@ func TestConfigurableFactory(t *testing.T) {
 	os.Remove(filepath.Join(configPath, fakeFile))
 	fakeContent :=
 		"app:\n" +
-		"  project: hidevopsio\n" +
-		"  name: hiboot\n" +
-		"  version: ${unknown.version:0.0.1}\n"
+			"  project: hidevopsio\n" +
+			"  name: hiboot\n" +
+			"  version: ${unknown.version:0.0.1}\n"
 	n, err := io.WriterFile(configPath, fakeFile, []byte(fakeContent))
 	assert.Equal(t, nil, err)
 	assert.Equal(t, n, len(fakeContent))
@@ -187,7 +186,7 @@ func TestConfigurableFactory(t *testing.T) {
 	})
 
 	t.Run("should add instance to factory at runtime", func(t *testing.T) {
-		fakeInstance := &struct{Name string}{Name: "fake"}
+		fakeInstance := &struct{ Name string }{Name: "fake"}
 		f.SetInstance("fakeInstance", fakeInstance)
 		gotFakeInstance := f.GetInstance("fakeInstance")
 		assert.Equal(t, fakeInstance, gotFakeInstance)

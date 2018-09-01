@@ -15,15 +15,15 @@
 package web
 
 import (
-	"reflect"
-	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"net/http"
-	"strings"
-	"path/filepath"
 	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"net/http"
+	"path/filepath"
+	"reflect"
+	"strings"
 )
 
 type request struct {

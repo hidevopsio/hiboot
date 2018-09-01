@@ -16,17 +16,16 @@ package web
 
 import (
 	"fmt"
-	"strings"
-	"reflect"
-	"net/http"
 	"github.com/fatih/camelcase"
+	"github.com/hidevopsio/hiboot/pkg/inject"
+	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
-	"github.com/hidevopsio/hiboot/pkg/system"
-	"github.com/hidevopsio/hiboot/pkg/inject"
+	"net/http"
+	"reflect"
+	"strings"
 )
-
 
 var httpMethods = []string{
 	http.MethodGet,
@@ -137,7 +136,7 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 				// parse all necessary requests and responses
 				// create new method parser here
 				hdl := new(handler)
-				hdl.parse(method, controller, contextMapping + apiContextMapping)
+				hdl.parse(method, controller, contextMapping+apiContextMapping)
 
 				route := party.Handle(httpMethod, apiContextMapping, func(ctx context.Context) {
 					hdl.call(ctx.(*Context))

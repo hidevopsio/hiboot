@@ -17,13 +17,13 @@
 package system
 
 import (
-	"fmt"
-	"github.com/spf13/viper"
-	"path/filepath"
-	"gopkg.in/yaml.v2"
 	"bytes"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
+	"path/filepath"
 	"reflect"
 )
 
@@ -45,8 +45,8 @@ func (b *Builder) New(name string) *viper.Viper {
 }
 
 // create file if it's not exist
-func (b *Builder) Init() (error) {
-	return io.CreateFile(b.Path, b.Name + "." + b.FileType)
+func (b *Builder) Init() error {
+	return io.CreateFile(b.Path, b.Name+"."+b.FileType)
 }
 
 func (b *Builder) isFileNotExist(path string) bool {
@@ -73,7 +73,7 @@ func (b *Builder) Build(profiles ...string) (interface{}, error) {
 	for _, profile := range profiles {
 		name := b.Name + "-" + profile
 		// allow the empty of the profile
-		if b.Profile == "" || b.isFileNotExist(filepath.Join(b.Path, name) + ".") {
+		if b.Profile == "" || b.isFileNotExist(filepath.Join(b.Path, name)+".") {
 			return conf, nil
 		}
 
@@ -86,12 +86,11 @@ func (b *Builder) Build(profiles ...string) (interface{}, error) {
 	return conf, nil
 }
 
-
 // build config file
 func (b *Builder) BuildWithProfile() (interface{}, error) {
 	name := b.Name + "-" + b.Profile
 	// allow the empty of the profile
-	if b.Profile == "" || b.isFileNotExist(filepath.Join(b.Path, name) + ".") {
+	if b.Profile == "" || b.isFileNotExist(filepath.Join(b.Path, name)+".") {
 		return reflector.NewReflectType(b.ConfigType), nil
 	}
 
@@ -126,9 +125,8 @@ func (b *Builder) Read(name string) (interface{}, error) {
 	return cp, err
 }
 
-
 // Save configurations to file
-func (b *Builder) Save(p interface{}) (error) {
+func (b *Builder) Save(p interface{}) error {
 
 	v := b.New(b.Name)
 
@@ -145,4 +143,3 @@ func (b *Builder) Save(p interface{}) (error) {
 
 	return v.WriteConfig()
 }
-

@@ -15,12 +15,12 @@
 package io
 
 import (
-	"os"
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"bytes"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/stretchr/testify/assert"
+	"os"
 	"path/filepath"
+	"testing"
 )
 
 const testPath = "/a/b/c.txt"
@@ -28,7 +28,6 @@ const testPath = "/a/b/c.txt"
 func init() {
 	log.SetLevel(log.DebugLevel)
 }
-
 
 func TestChangeWorkDir(t *testing.T) {
 	wd1 := GetWorkDir()
@@ -154,7 +153,7 @@ func TestEnsureWorkDir(t *testing.T) {
 
 	res = EnsureWorkDir(1, "config/application.yml")
 	assert.Equal(t, true, res)
-	assert.NotEqual(t,  wd, GetWorkDir())
+	assert.NotEqual(t, wd, GetWorkDir())
 }
 
 func TestCallerInfo(t *testing.T) {

@@ -18,7 +18,6 @@ func (a ByLen) Swap(i, j int) {
 	a[i], a[j] = a[j], a[i]
 }
 
-
 func SortByLen(s []string) {
 
 	sort.Sort(ByLen(s))

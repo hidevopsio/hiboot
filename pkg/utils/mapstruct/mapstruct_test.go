@@ -15,8 +15,8 @@
 package mapstruct
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 type Foo struct {
@@ -26,7 +26,7 @@ type Foo struct {
 func TestDecode(t *testing.T) {
 	var foo Foo
 
-	src := map[string]string {
+	src := map[string]string{
 		"name": "foo",
 	}
 

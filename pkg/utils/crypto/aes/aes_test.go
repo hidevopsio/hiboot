@@ -1,10 +1,10 @@
 package aes
 
 import (
-	"testing"
+	"crypto/aes"
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"crypto/aes"
+	"testing"
 )
 
 func TestEncrypt(t *testing.T) {

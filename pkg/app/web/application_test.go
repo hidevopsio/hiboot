@@ -15,26 +15,26 @@
 package web_test
 
 import (
-	"fmt"
-	"time"
 	"errors"
-	"testing"
-	"net/http"
-	"github.com/stretchr/testify/assert"
+	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/model"
+	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
+	"github.com/stretchr/testify/assert"
+	"net/http"
 	"os"
 	"path/filepath"
+	"testing"
+	"time"
 )
 
 type UserRequest struct {
 	model.RequestBody
-	Username string	`validate:"required"`
-	Password string	`validate:"required"`
+	Username string `validate:"required"`
+	Password string `validate:"required"`
 }
 
 type FooRequest struct {
@@ -58,21 +58,21 @@ type FoobarRequestParams struct {
 }
 
 type Bar struct {
-	Name string
+	Name     string
 	Greeting string
 }
 
 // PATH /foo
-type FooController struct{
+type FooController struct {
 	web.Controller
 	jwtToken jwt.Token
 }
 
-type ExampleController struct{
+type ExampleController struct {
 	web.Controller
 }
 
-type InvalidController struct {}
+type InvalidController struct{}
 
 func init() {
 	log.SetLevel(log.DebugLevel)
@@ -82,13 +82,13 @@ func (c *FooController) Init(jwtToken jwt.Token) {
 	c.jwtToken = jwtToken
 }
 
-func (c *FooController) Before()  {
+func (c *FooController) Before() {
 	log.Debug("FooController.Before")
 
 	c.Ctx.Next()
 }
 
-func (c *FooController) PostLogin(request *UserRequest) (response model.Response, err error)  {
+func (c *FooController) PostLogin(request *UserRequest) (response model.Response, err error) {
 	log.Debug("FooController.Login")
 
 	// you make validate username and password first
@@ -103,7 +103,7 @@ func (c *FooController) PostLogin(request *UserRequest) (response model.Response
 }
 
 // POST /
-func (c *FooController) Post(request *FooRequest) (response model.Response, err error)  {
+func (c *FooController) Post(request *FooRequest) (response model.Response, err error) {
 	log.Debug("FooController.Post")
 
 	response = new(model.BaseResponse)
@@ -114,9 +114,8 @@ func (c *FooController) Post(request *FooRequest) (response model.Response, err 
 	return
 }
 
-
 // GET /options/{options}
-func (c *FooController) GetByOptions(options []string) (response model.Response)  {
+func (c *FooController) GetByOptions(options []string) (response model.Response) {
 	type settings struct {
 		Options []string
 	}
@@ -127,9 +126,8 @@ func (c *FooController) GetByOptions(options []string) (response model.Response)
 	return
 }
 
-
 // GET /name/{name}
-func (c *FooController) GetByName(name string) (response model.Response)  {
+func (c *FooController) GetByName(name string) (response model.Response) {
 	type user struct {
 		Name string
 	}
@@ -141,13 +139,13 @@ func (c *FooController) GetByName(name string) (response model.Response)  {
 }
 
 // GET /id/{id}
-func (c *FooController) GetById(id int) string  {
+func (c *FooController) GetById(id int) string {
 	log.Debugf("FooController.Get by id: %v", id)
 	return "hello"
 }
 
 // GET /hello
-func (c *FooController) GetHello(ctx *web.Context) string  {
+func (c *FooController) GetHello(ctx *web.Context) string {
 	log.Debug("FooController.GetHello")
 	return "hello"
 }
@@ -170,16 +168,16 @@ func (c *FooController) DeleteById(id int) error {
 	return nil
 }
 
-func (c *FooController) After()  {
+func (c *FooController) After() {
 	log.Debug("FooController.After")
 }
 
 // BarController
-type BarController struct{
+type BarController struct {
 	jwt.Controller
 }
 
-func (c *BarController) Get(request *BarRequest) (response model.Response, err error)  {
+func (c *BarController) Get(request *BarRequest) (response model.Response, err error) {
 	log.Debug("BarController.Get")
 	response = new(model.BaseResponse)
 	response.SetData("Hello, " + request.Name)
@@ -191,7 +189,7 @@ type FoobarController struct {
 	web.Controller
 }
 
-func (c *FoobarController) Post(request *FoobarRequestForm) (response model.Response, err error)  {
+func (c *FoobarController) Post(request *FoobarRequestForm) (response model.Response, err error) {
 	response = new(model.BaseResponse)
 	response.SetData("Hello, " + request.Name)
 
@@ -208,7 +206,7 @@ func (c *FoobarController) Get(request *FoobarRequestParams) (response model.Res
 // Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
 // the lower cased foo will be the context mapping of the controller
 // context mapping can be overwritten by FooController.ContextMapping
-type HelloController struct{
+type HelloController struct {
 	web.Controller
 	ContextMapping string `value:"/"`
 }
@@ -223,24 +221,24 @@ func (c *HelloController) Get() string {
 // Get /all
 func (c *HelloController) GetAll() {
 
-	data := []struct{
+	data := []struct {
 		Name string
-		Age int
+		Age  int
 	}{
 		{
 			Name: "John Doe",
-			Age: 18,
+			Age:  18,
 		},
 		{
 			Name: "Zhang San",
-			Age: 25,
+			Age:  25,
 		},
 	}
 
 	c.Ctx.ResponseBody("success", data)
 }
 
-func TestWebApplication(t *testing.T)  {
+func TestWebApplication(t *testing.T) {
 	app := web.NewTestApplication(t, new(HelloController), new(FooController), new(BarController), new(FoobarController))
 
 	t.Run("should response 200 when GET /all", func(t *testing.T) {
@@ -303,14 +301,12 @@ func TestWebApplication(t *testing.T)  {
 			Expect().Status(http.StatusInternalServerError)
 	})
 
-
 	t.Run("should return success after GET /foo/hello", func(t *testing.T) {
 		app.Get("/foo/hello").
 			WithJSON(&FooRequest{Name: "John"}).
 			Expect().Status(http.StatusOK).
 			Body().Equal("Hello, World")
 	})
-
 
 	t.Run("should return http.StatusUnauthorized after GET /bar", func(t *testing.T) {
 		app.Get("/bar").
@@ -335,7 +331,7 @@ func TestWebApplication(t *testing.T)  {
 		log.Println(io.GetWorkDir())
 		jwtToken := jwt.NewJwtToken(&jwt.Properties{
 			PrivateKeyPath: "config/ssl/app.rsa",
-			PublicKeyPath: "config/ssl/app.rsa.pub",
+			PublicKeyPath:  "config/ssl/app.rsa.pub",
 		})
 		// test jwt
 		token, err := jwtToken.Generate(jwt.Map{
@@ -358,7 +354,6 @@ func TestWebApplication(t *testing.T)  {
 		}
 	})
 
-
 	t.Run("should return http.StatusOK on /foo with PUT, PATCH, DELETE methods", func(t *testing.T) {
 		app.Put("/foo/id/{id}/name/{name}/age/{age}").
 			WithPath("id", 123456).
@@ -374,7 +369,6 @@ func TestWebApplication(t *testing.T)  {
 			WithPath("age", 0).
 			Expect().Status(http.StatusOK)
 	})
-
 
 	t.Run("should return http.StatusOK on /foo with PUT, PATCH, DELETE methods", func(t *testing.T) {
 		app.Put("/foo/id/{id}/name/{name}/age/{age}").
@@ -457,7 +451,6 @@ func TestNewApplication(t *testing.T) {
 
 	t.Run("should get interface name", func(t *testing.T) {
 		type myInterface interface {
-
 		}
 
 		mi := new(myInterface)

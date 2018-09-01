@@ -15,11 +15,10 @@
 // Line 1: main package
 package main
 
-
 import (
-	"testing"
-	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"net/http"
+	"testing"
 	"time"
 )
 
@@ -33,5 +32,3 @@ func TestController(t *testing.T) {
 		Get("/").
 		Expect().Status(http.StatusOK)
 }
-
-

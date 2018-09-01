@@ -15,16 +15,16 @@
 package cli
 
 import (
-	"reflect"
-	"os"
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/inject"
+	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
+	"github.com/hidevopsio/hiboot/pkg/utils/sort"
+	"os"
+	"path/filepath"
+	"reflect"
+	"runtime"
 	"strings"
 	"sync"
-	"runtime"
-	"path/filepath"
-	"github.com/hidevopsio/hiboot/pkg/utils/sort"
-	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
-	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
 type Application interface {
@@ -40,7 +40,7 @@ type application struct {
 }
 
 type CommandNameValue struct {
-	Name string
+	Name    string
 	Command interface{}
 }
 
@@ -84,7 +84,7 @@ func NewApplication(cmd ...Command) Application {
 	return a
 }
 
-func (a *application) injectCommand(cmd Command)  {
+func (a *application) injectCommand(cmd Command) {
 	fullname := "root"
 	if cmd != nil {
 		fullname = cmd.FullName()
@@ -96,7 +96,7 @@ func (a *application) injectCommand(cmd Command)  {
 	}
 }
 
-func (a *application) Init(cmd ...Command) error  {
+func (a *application) Init(cmd ...Command) error {
 	a.BaseApplication.Init()
 	basename := filepath.Base(os.Args[0])
 	if runtime.GOOS == "windows" {
@@ -159,12 +159,9 @@ func (a *application) Root() Command {
 func (a *application) Run() {
 
 	//log.Debug(commandContainer)
-	if a.root != nil{
+	if a.root != nil {
 		if err := a.root.Exec(); err != nil {
 			os.Exit(1)
 		}
 	}
 }
-
-
-

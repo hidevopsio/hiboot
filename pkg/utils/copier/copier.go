@@ -17,12 +17,11 @@
 package copier
 
 import (
-	"reflect"
+	"database/sql"
 	"errors"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"database/sql"
+	"reflect"
 )
-
 
 func set(to, from reflect.Value) bool {
 	if from.IsValid() && to.IsValid() {
@@ -54,7 +53,6 @@ func set(to, from reflect.Value) bool {
 	}
 	return true
 }
-
 
 // Copy copy things
 func Copy(toValue interface{}, fromValue interface{}) (err error) {

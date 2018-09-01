@@ -15,12 +15,12 @@
 package system
 
 import (
-	"testing"
-	"path/filepath"
-	"os"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/stretchr/testify/assert"
+	"os"
+	"path/filepath"
+	"testing"
 )
 
 type profiles struct {
@@ -75,15 +75,12 @@ func TestBuilderBuild(t *testing.T) {
 
 }
 
-
-
 func TestBuilderBuildWithError(t *testing.T) {
 
-	b := &Builder{
-	}
+	b := &Builder{}
 
 	_, err := b.Build()
-	assert.Contains(t, err.Error(),"Not Found")
+	assert.Contains(t, err.Error(), "Not Found")
 
 }
 
@@ -147,7 +144,6 @@ func TestWrongFileFormat(t *testing.T) {
 	})
 }
 
-
 func TestProfileIsEmpty(t *testing.T) {
 
 	b := &Builder{
@@ -163,8 +159,6 @@ func TestProfileIsEmpty(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 }
-
-
 
 func TestWithoutReplacer(t *testing.T) {
 
@@ -186,7 +180,6 @@ func TestWithoutReplacer(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 }
-
 
 func TestBuilderInit(t *testing.T) {
 	b := &Builder{
@@ -213,7 +206,7 @@ func TestBuilderSave(t *testing.T) {
 
 	c := &Configuration{
 		App: App{
-			Name: "foo",
+			Name:    "foo",
 			Project: "bar",
 		},
 		Server: Server{

@@ -15,12 +15,12 @@
 package jwt
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/hidevopsio/hiboot/pkg/app"
 	mw "github.com/iris-contrib/middleware/jwt"
 )
 
-type configuration struct{
+type configuration struct {
 	app.Configuration
 
 	Properties Properties `mapstructure:"jwt"`
@@ -31,7 +31,7 @@ func init() {
 	app.AutoConfiguration(new(configuration))
 }
 
-func (c *configuration ) JwtMiddleware(jtk *jwtToken) *JwtMiddleware {
+func (c *configuration) JwtMiddleware(jtk *jwtToken) *JwtMiddleware {
 	return NewJwtMiddleware(mw.Config{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 			//log.Debug(token)
@@ -44,7 +44,7 @@ func (c *configuration ) JwtMiddleware(jtk *jwtToken) *JwtMiddleware {
 	})
 }
 
-func (c *configuration) JwtToken() Token  {
+func (c *configuration) JwtToken() Token {
 	jtk := new(jwtToken)
 	jtk.Initialize(&c.Properties)
 	return jtk

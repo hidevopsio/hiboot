@@ -15,12 +15,12 @@
 package jwt
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 type postProcessor struct {
-	jwtMiddleware *JwtMiddleware
+	jwtMiddleware      *JwtMiddleware
 	applicationContext app.ApplicationContext
 }
 
@@ -29,16 +29,16 @@ func init() {
 	app.RegisterPostProcessor(new(postProcessor))
 }
 
-func (p *postProcessor) Init(applicationContext app.ApplicationContext, jwtMiddleware *JwtMiddleware)  {
+func (p *postProcessor) Init(applicationContext app.ApplicationContext, jwtMiddleware *JwtMiddleware) {
 	p.applicationContext = applicationContext
 	p.jwtMiddleware = jwtMiddleware
 }
 
-func (p *postProcessor) BeforeInitialization(factory interface{})  {
+func (p *postProcessor) BeforeInitialization(factory interface{}) {
 	//log.Debug("[jwt] BeforeInitialization")
 }
 
-func (p *postProcessor) AfterInitialization(factory interface{})  {
+func (p *postProcessor) AfterInitialization(factory interface{}) {
 	//log.Debug("[jwt] AfterInitialization")
 
 	// use jwt
