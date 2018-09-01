@@ -131,6 +131,136 @@ func TestConvert(t *testing.T) {
 			kind: reflect.Bool,
 			dst: true,
 		},
+		{
+			src:  "",
+			kind: reflect.Int,
+			dst: int(0),
+		},
+		{
+			src:  "",
+			kind: reflect.Int8,
+			dst: int8(0),
+		},
+		{
+			src:  "",
+			kind: reflect.Int16,
+			dst: int16(0),
+		},
+		{
+			src:  "",
+			kind: reflect.Int32,
+			dst: int32(0),
+		},
+		{
+			src:  "",
+			kind: reflect.Int64,
+			dst: int64(0),
+		},
+		{
+			src:  "",
+			kind: reflect.Uint,
+			dst: uint(0),
+		},
+		{
+			src:  "",
+			kind: reflect.Uint8,
+			dst: uint8(0),
+		},
+		{
+			src:  "",
+			kind: reflect.Uint16,
+			dst: uint16(0),
+		},
+		{
+			src:  "",
+			kind: reflect.Uint32,
+			dst: uint32(0),
+		},
+		{
+			src:  "",
+			kind: reflect.Uint64,
+			dst: uint64(0),
+		},
+		{
+			src:  "",
+			kind: reflect.Float32,
+			dst: float32(0.0),
+		},
+		{
+			src:  "",
+			kind: reflect.Float64,
+			dst: float64(0.0),
+		},
+		{
+			src:  "",
+			kind: reflect.Bool,
+			dst: false,
+		},
+		{
+			src:  " ",
+			kind: reflect.Int,
+			dst: int(0),
+		},
+		{
+			src:  " ",
+			kind: reflect.Int8,
+			dst: int8(0),
+		},
+		{
+			src:  " ",
+			kind: reflect.Int16,
+			dst: int16(0),
+		},
+		{
+			src:  " ",
+			kind: reflect.Int32,
+			dst: int32(0),
+		},
+		{
+			src:  " ",
+			kind: reflect.Int64,
+			dst: int64(0),
+		},
+		{
+			src:  " ",
+			kind: reflect.Uint,
+			dst: uint(0),
+		},
+		{
+			src:  " ",
+			kind: reflect.Uint8,
+			dst: uint8(0),
+		},
+		{
+			src:  "",
+			kind: reflect.Uint16,
+			dst: uint16(0),
+		},
+		{
+			src:  " ",
+			kind: reflect.Uint32,
+			dst: uint32(0),
+		},
+		{
+			src:  " ",
+			kind: reflect.Uint64,
+			dst: uint64(0),
+		},
+		{
+			src:  " ",
+			kind: reflect.Float32,
+			dst: float32(0.0),
+		},
+		{
+			src:  " ",
+			kind: reflect.Float64,
+			dst: float64(0.0),
+		},
+		{
+			src:  " ",
+			kind: reflect.Bool,
+			dst: false,
+		},
 	}
 
 	t.Run("should convert all test data to specific type", func(t *testing.T) {

@@ -107,6 +107,8 @@ func Convert(src string, kind reflect.Kind) (retVal interface{})  {
 		val, err := strconv.ParseInt(src, 10, 8)
 		if err == nil {
 			retVal = uint8(val)
+		} else {
+			retVal = uint8(0)
 		}
 
 	case reflect.Uint16:
