@@ -17,14 +17,13 @@ package jwt
 import (
 	"testing"
 	"github.com/stretchr/testify/assert"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
 func init() {
 	log.SetLevel(log.DebugLevel)
-	wd := io.EnsureWorkDir("../../..")
-	log.Debugf("wd: %v", wd)
+	io.EnsureWorkDir(1, "config/application.yml")
 }
 
 func TestAutoConfigure(t *testing.T) {

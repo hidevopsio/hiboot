@@ -76,8 +76,7 @@ func (c *barConfiguration) BarBar() *Bar {
 
 func init() {
 	log.SetLevel(log.DebugLevel)
-	io.EnsureWorkDir("../../")
-	//app.AddConfig("fake", FakeConfiguration{})
+	io.EnsureWorkDir(1, "config/application.yml")
 }
 
 func (c *FakeConfiguration) Foo(bar *Bar) *Foo {

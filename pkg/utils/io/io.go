@@ -19,13 +19,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 func ChangeWorkDir(workDir string) error {
-
 	return os.Chdir(workDir)
-
 }
 
 func GetWorkDir() string {
@@ -33,6 +30,31 @@ func GetWorkDir() string {
 	wd, _ := os.Getwd()
 
 	return wd
+}
+
+func EnsureWorkDir(skip int, existFile string) bool {
+	var path string
+	if _, file, _, ok := runtime.Caller(2); ok && strings.Contains(os.Args[0], "go_build_") {
+		path = BaseDir(file)
+	} else {
+		path = GetWorkDir()
+	}
+	lastPath := ""
+	for {
+		//log.Debugf("%v", path)
+		configPath := filepath.Join(path, existFile)
+		if !IsPathNotExist(configPath) {
+			ChangeWorkDir(path)
+			return true
+		}
+
+		path = BaseDir(path)
+		if lastPath == path {
+			return false
+		}
+		lastPath = path
+	}
+	return false
 }
 
 
@@ -120,20 +142,6 @@ func DirName(s string) string {
 	}
 	return s
 }
-
-
-func EnsureWorkDir(path string) string  {
-	wd := GetWorkDir()
-	if ! strings.Contains(wd, path) {
-		err := ChangeWorkDir(path)
-		if err != nil {
-			log.Error(err)
-		}
-		wd = GetWorkDir()
-	}
-	return wd
-}
-
 
 func CallerInfo(skip int) (file string, line int, fn string) {
 	var pc uintptr
