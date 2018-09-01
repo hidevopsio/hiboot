@@ -27,6 +27,7 @@ import (
 	"sync"
 )
 
+// Application cli application interface
 type Application interface {
 	Run()
 	Init(cmd ...Command) error
@@ -39,6 +40,7 @@ type application struct {
 	root Command
 }
 
+// CommandNameValue
 type CommandNameValue struct {
 	Name    string
 	Command interface{}
@@ -56,10 +58,13 @@ func init() {
 	commandNames = make([]string, 0)
 }
 
+
+// HideBanner hide banner display on application start up
 func HideBanner() {
 	app.HideBanner()
 }
 
+// AddCommand add new command
 func AddCommand(parentPath string, commands ...Command) {
 	// de-duplication
 	if commandContainer[parentPath] == nil {
@@ -70,6 +75,7 @@ func AddCommand(parentPath string, commands ...Command) {
 	}
 }
 
+// GetApplication get the application instance
 func GetApplication() Application {
 	once.Do(func() {
 		cliApp = new(application)
@@ -78,6 +84,7 @@ func GetApplication() Application {
 	return cliApp
 }
 
+// NewApplication create new cli application
 func NewApplication(cmd ...Command) Application {
 	a := GetApplication()
 	a.Init(cmd...)
@@ -96,6 +103,7 @@ func (a *application) injectCommand(cmd Command) {
 	}
 }
 
+// Init initialize cli application
 func (a *application) Init(cmd ...Command) error {
 	a.BaseApplication.Init()
 	basename := filepath.Base(os.Args[0])
@@ -148,14 +156,17 @@ func (a *application) Init(cmd ...Command) error {
 	return nil
 }
 
+// SetRoot set root command
 func (a *application) SetRoot(root Command) {
 	a.root = root
 }
 
+// Root get the root command
 func (a *application) Root() Command {
 	return a.root
 }
 
+// Run run the cli application
 func (a *application) Run() {
 
 	//log.Debug(commandContainer)

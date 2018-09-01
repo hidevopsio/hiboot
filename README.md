@@ -14,6 +14,9 @@
   <a href="https://opensource.org/licenses/Apache-2.0">
       <img src="https://img.shields.io/badge/License-Apache%202.0-green.svg" />
   </a>
+  <a href="https://goreportcard.com/report/github.com/hidevopsio/hiboot">
+      <img src="https://goreportcard.com/badge/github.com/hidevopsio/hiboot" />
+  </a>
 </p>
 
 ## About
