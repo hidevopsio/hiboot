@@ -5,3 +5,9 @@ server:
 
 logging:
   level: debug
+
+grpc:
+  client:
+    greeter-client:
+      host: localhost
+      port: 7575

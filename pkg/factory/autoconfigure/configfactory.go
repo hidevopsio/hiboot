@@ -195,8 +195,7 @@ func (f *ConfigurableFactory) build(cfgContainer cmap.ConcurrentMap)  {
 
 		// inject properties
 		f.builder.ConfigType = configType
-		f.builder.Profile = name
-		cf, err := f.builder.Build()
+		cf, err := f.builder.Build(name, f.systemConfig.App.Profiles.Active)
 
 		// TODO: check if cf.DependsOn
 
