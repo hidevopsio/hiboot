@@ -149,19 +149,17 @@ func TestDirName(t *testing.T) {
 func TestEnsureWorkDir(t *testing.T) {
 	wd := GetWorkDir()
 
-	x := EnsureWorkDir("dir-does-not-exist")
-	assert.Equal(t, wd, x)
+	res := EnsureWorkDir(1, "dir-does-not-exist")
+	assert.Equal(t, false, res)
 
-	d := EnsureWorkDir("")
-	assert.Equal(t, wd, d)
-
-	d = EnsureWorkDir(wd + "/..")
-	assert.NotEqual(t, wd, d)
+	res = EnsureWorkDir(1, "config/application.yml")
+	assert.Equal(t, true, res)
+	assert.NotEqual(t,  wd, GetWorkDir())
 }
 
 func TestCallerInfo(t *testing.T) {
 	file, line, fn := CallerInfo(1)
 	assert.Contains(t, file, "io_test.go")
-	assert.Equal(t, 163, line)
+	assert.Equal(t, 161, line)
 	assert.Contains(t, fn, "TestCallerInfo")
 }

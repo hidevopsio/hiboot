@@ -23,6 +23,7 @@ import (
 	"github.com/kataras/iris/httptest"
 	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
 // TestApplicationInterface the test web application interface for unit test only
@@ -48,7 +49,7 @@ func NewTestApplication(t *testing.T, controllers ...interface{}) TestApplicatio
 	log.SetLevel(log.DebugLevel)
 	ta := new(testApplication)
 	// find and change work dir where the config/application.yml locates
-	ta.EnsureWorkDir(2)
+	io.EnsureWorkDir(2, "config/application.yml")
 	// reset
 	err := ta.Init(controllers...)
 	assert.Equal(t, nil, err)

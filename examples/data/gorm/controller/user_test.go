@@ -16,7 +16,6 @@ package controller
 
 import (
 	"testing"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"net/http"
@@ -29,7 +28,6 @@ import (
 
 func init() {
 	log.SetLevel(log.DebugLevel)
-	io.EnsureWorkDir("..")
 }
 
 var testUser entity.User
