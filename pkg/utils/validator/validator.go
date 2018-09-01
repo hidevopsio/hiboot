@@ -14,14 +14,13 @@
 
 package validator
 
-
 import (
 	"gopkg.in/go-playground/validator.v8"
 )
 
 var Validate *validator.Validate
 
-func init()  {
+func init() {
 	config := &validator.Config{TagName: "validate"}
 
 	Validate = validator.New(config)

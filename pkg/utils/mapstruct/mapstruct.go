@@ -15,11 +15,11 @@
 package mapstruct
 
 import (
-	"github.com/mitchellh/mapstructure"
 	"fmt"
+	"github.com/mitchellh/mapstructure"
 )
 
-func Decode(to interface{}, from interface{}) error  {
+func Decode(to interface{}, from interface{}) error {
 
 	config := &mapstructure.DecoderConfig{
 		WeaklyTypedInput: true,

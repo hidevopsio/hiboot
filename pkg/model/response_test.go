@@ -12,15 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package model
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-func TestResponse(t *testing.T)  {
+func TestResponse(t *testing.T) {
 	var response Response
 
 	response = new(BaseResponse)

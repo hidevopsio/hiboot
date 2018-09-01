@@ -15,22 +15,22 @@
 package web
 
 import (
+	"errors"
 	"fmt"
-	"net/http"
-	"os"
-	"path/filepath"
-	"strings"
-	"regexp"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/i18n"
 	"github.com/kataras/iris/middleware/logger"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/system"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"errors"
+	"net/http"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
 )
 
 const (
@@ -61,9 +61,8 @@ var (
 	compiledRegExp = regexp.MustCompile(`\{(.*?)\}`)
 
 	ControllersNotFoundError = errors.New("[app] controllers not found")
-	InvalidControllerError = errors.New("[app] invalid controller")
+	InvalidControllerError   = errors.New("[app] invalid controller")
 )
-
 
 func HideBanner() {
 	app.HideBanner()

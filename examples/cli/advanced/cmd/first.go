@@ -15,7 +15,7 @@ type FirstCommand struct {
 
 	// inject flag
 	Profile *string `flag:"shorthand=p,value=dev,usage=e.g. --profile=test"`
-	Timeout *int `flag:"shorthand=t,value=1,usage=e.g. --timeout=2"`
+	Timeout *int    `flag:"shorthand=t,value=1,usage=e.g. --timeout=2"`
 }
 
 func (c *FirstCommand) Init() {
@@ -29,4 +29,3 @@ func (c *FirstCommand) Run(args []string) error {
 	log.Infof("handle first command: profile=%v, timeout=%v", *c.Profile, *c.Timeout)
 	return nil
 }
-

@@ -15,9 +15,9 @@
 package cli
 
 import (
-	"testing"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func init() {
@@ -29,10 +29,10 @@ func init() {
 
 type demoCommand struct {
 	BaseCommand
-	Foo *fooCommand `cmd:""`
-	Profile *string `flag:"shorthand=p,value=dev,usage=e.g. --profile=test"`
-	IntVal *int `flag:"name=integer,shorthand=i,value=0,usage=e.g. --integer=1"`
-	BoolVal *bool `flag:"name=bool,shorthand=b,value=true,usage=e.g. --bool=true or -b"`
+	Foo     *fooCommand `cmd:""`
+	Profile *string     `flag:"shorthand=p,value=dev,usage=e.g. --profile=test"`
+	IntVal  *int        `flag:"name=integer,shorthand=i,value=0,usage=e.g. --integer=1"`
+	BoolVal *bool       `flag:"name=bool,shorthand=b,value=true,usage=e.g. --bool=true or -b"`
 }
 
 func (c *demoCommand) Init() {
@@ -51,7 +51,6 @@ type fooCommand struct {
 	Bar *barCommand `cmd:""`
 	Baz *bazCommand `cmd:""`
 }
-
 
 func (c *fooCommand) Init() {
 	c.Use = "foo"
@@ -139,7 +138,6 @@ func TestCliApplication(t *testing.T) {
 	})
 }
 
-
 // demo foo bar
 func TestCliMultiCommand(t *testing.T) {
 	fooCmd := new(fooCommand)
@@ -173,7 +171,7 @@ func TestNewApplication(t *testing.T) {
 	go NewApplication().Run()
 }
 
-type A struct{
+type A struct {
 	Name string
 }
 
@@ -181,11 +179,11 @@ func (a *A) Run(x string, y int) {
 	log.Debugf("name: %v, x: %v, y: %v", a.Name, x, y)
 }
 
-type B struct{
+type B struct {
 	A
 }
 
-func (b *B) Run(x string)  {
+func (b *B) Run(x string) {
 	log.Debugf("x: %v", x)
 	b.A.Run(x, 123)
 }

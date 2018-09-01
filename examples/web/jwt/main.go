@@ -17,12 +17,11 @@ package main
 import (
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	// starter/actuator is response for health check etc.
-	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
 	_ "github.com/hidevopsio/hiboot/examples/web/jwt/controller"
-
+	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
 )
 
-func main()  {
+func main() {
 	// create new web application and run it
 	web.NewApplication().Run()
 }

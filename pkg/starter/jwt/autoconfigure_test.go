@@ -15,10 +15,10 @@
 package jwt
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func init() {
@@ -31,7 +31,7 @@ func TestAutoConfigure(t *testing.T) {
 	config := &configuration{
 		Properties: Properties{
 			PrivateKeyPath: "config/ssl/app.rsa",
-			PublicKeyPath: "config/ssl/app.rsa.pub",
+			PublicKeyPath:  "config/ssl/app.rsa.pub",
 		},
 	}
 

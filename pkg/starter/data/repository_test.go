@@ -15,8 +15,8 @@
 package data
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestBaseRepository(t *testing.T) {

@@ -15,16 +15,15 @@
 package bolt
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/starter/data"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-
 type User struct {
-	ID string
+	ID   string
 	Name string
-	Age uint
+	Age  uint
 }
 
 type Foo struct {
@@ -32,11 +31,11 @@ type Foo struct {
 }
 type Bar struct {
 	// TODO: find model ID as the key of current record
-	Name string	`model:"ID"`
+	Name string `model:"ID"`
 }
 
 var (
-	id = "jd"
+	id   = "jd"
 	user = &User{ID: id, Name: "John Doe", Age: 18}
 )
 
@@ -44,13 +43,12 @@ func TestRepositoryCrd(t *testing.T) {
 
 	properties := &properties{
 		Database: "test.db",
-		Mode: 0600,
-		Timeout: 2,
+		Mode:     0600,
+		Timeout:  2,
 	}
 
 	r := GetRepository()
 	d := GetDataSource()
-
 
 	t.Run("should open bolt database", func(t *testing.T) {
 		err := d.Open(nil)

@@ -1,8 +1,8 @@
 package idgen
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestNext(t *testing.T) {

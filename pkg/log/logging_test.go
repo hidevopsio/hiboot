@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package log
 
 import (
-	"testing"
 	"github.com/kataras/golog"
 	"github.com/kataras/pio"
 	"os"
+	"testing"
 	"time"
 )
 
@@ -45,7 +44,6 @@ func TestScan(t *testing.T) {
 	os.Remove("foo.log")
 	os.Remove("bar.log")
 }
-
 
 func TestNewLine(t *testing.T) {
 	NewLine("\n")
@@ -83,46 +81,45 @@ func TestLogPrintln(t *testing.T) {
 }
 
 func TestLogf(t *testing.T) {
-	Logf(golog.DebugLevel,"testing %v", "...")
+	Logf(golog.DebugLevel, "testing %v", "...")
 }
 
-func TestLogDebug(t *testing.T)  {
+func TestLogDebug(t *testing.T) {
 	SetLevel(DebugLevel)
 	Debug("testing ...")
 }
 
-func TestLogDebugf(t *testing.T)  {
+func TestLogDebugf(t *testing.T) {
 	SetLevel(DebugLevel)
 	Debugf("testing %v", "...")
 }
 
-
-func TestLogInfo(t *testing.T)  {
+func TestLogInfo(t *testing.T) {
 	SetLevel(DebugLevel)
 	Info("testing ...")
 }
 
-func TestLogInfof(t *testing.T)  {
+func TestLogInfof(t *testing.T) {
 	SetLevel(DebugLevel)
 	Infof("testing %v", "...")
 }
 
-func TestWarnInfo(t *testing.T)  {
+func TestWarnInfo(t *testing.T) {
 	SetLevel(DebugLevel)
 	Warn("testing ...")
 }
 
-func TestLogWarnf(t *testing.T)  {
+func TestLogWarnf(t *testing.T) {
 	SetLevel(DebugLevel)
 	Warnf("testing %v", "...")
 }
 
-func TestLogErrorInfo(t *testing.T)  {
+func TestLogErrorInfo(t *testing.T) {
 	SetLevel(DebugLevel)
 	Error("testing ...")
 }
 
-func TestLogErrorf(t *testing.T)  {
+func TestLogErrorf(t *testing.T) {
 	SetLevel(DebugLevel)
 	Errorf("testing %v", "...")
 }

@@ -28,5 +28,3 @@ func (a *testApplication) RunTest(args ...string) (output string, err error) {
 
 	return buf.String(), err
 }
-
-

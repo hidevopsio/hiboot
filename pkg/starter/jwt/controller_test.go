@@ -15,25 +15,25 @@
 package jwt_test
 
 import (
-	"testing"
-	"net/http"
-	"time"
 	"fmt"
 	jwtgo "github.com/dgrijalva/jwt-go"
-	"github.com/stretchr/testify/assert"
-	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/model"
+	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
+	"github.com/stretchr/testify/assert"
+	"net/http"
+	"testing"
+	"time"
 )
 
 type userRequest struct {
 	model.RequestBody
-	Username string	`validate:"required"`
-	Password string	`validate:"required"`
+	Username string `validate:"required"`
+	Password string `validate:"required"`
 }
 
-type fooController struct{
+type fooController struct {
 	web.Controller
 	jwtToken jwt.Token
 	tokenStr string
@@ -50,14 +50,13 @@ func (c *fooController) Init(jwtToken jwt.Token) {
 	c.jwtToken = jwtToken
 }
 
-
-func (c *fooController) Get() string  {
+func (c *fooController) Get() string {
 	log.Debug("fooController.Get")
 
 	return "Hello, world"
 }
 
-func (c *fooController) PostLogin(request *userRequest) (response model.Response, err error)  {
+func (c *fooController) PostLogin(request *userRequest) (response model.Response, err error) {
 	log.Debug("fooController.Login")
 
 	// you make validate username and password first
@@ -73,11 +72,11 @@ func (c *fooController) PostLogin(request *userRequest) (response model.Response
 }
 
 // BarController
-type barController struct{
+type barController struct {
 	jwt.Controller
 }
 
-func (c *barController) Before()  {
+func (c *barController) Before() {
 	log.Debug("barController.Before")
 
 	_, ok := c.JwtProperties()
@@ -88,7 +87,7 @@ func (c *barController) Before()  {
 	c.Ctx.Next()
 }
 
-func (c *barController) Get() string  {
+func (c *barController) Get() string {
 	log.Debug("barController.Get")
 
 	return "Hello, world"

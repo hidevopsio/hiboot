@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"testing"
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestSecondCommands(t *testing.T) {
@@ -14,4 +14,3 @@ func TestSecondCommands(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 }
-

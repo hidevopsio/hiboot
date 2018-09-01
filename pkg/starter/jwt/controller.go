@@ -15,9 +15,9 @@
 package jwt
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"github.com/dgrijalva/jwt-go"
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 )
 
 type JwtController interface {
@@ -73,4 +73,3 @@ func (c *Controller) JwtPropertiesString() (propMap map[string]string, ok bool) 
 	}
 	return
 }
-

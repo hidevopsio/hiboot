@@ -17,19 +17,19 @@
 package copier_test
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"errors"
-	"time"
-	"reflect"
 	"github.com/hidevopsio/hiboot/pkg/utils/copier"
+	"github.com/stretchr/testify/assert"
+	"reflect"
+	"testing"
+	"time"
 )
 
 type Foo struct {
 	Name string
 }
 
-func (f *Foo) get(in string) string  {
+func (f *Foo) get(in string) string {
 	return f.Name + in
 }
 
@@ -37,20 +37,18 @@ type Bar struct {
 	Name string
 }
 
-
 type Baz struct {
 	Bar
 }
 
 type NestedFoo struct {
 	Name string
-	Foo Foo
+	Foo  Foo
 }
-
 
 type NestedBar struct {
 	Name string
-	Foo Foo
+	Foo  Foo
 }
 
 type MyString string
@@ -60,62 +58,62 @@ func TestCopier(t *testing.T) {
 	testCases := []struct {
 		name string
 		from interface{}
-		to interface{}
-		err error
-	} {
+		to   interface{}
+		err  error
+	}{
 		{
 			name: "Should copy from Foo to Bar",
-			from: &Foo{ Name: "foo"},
-			to: &Bar{},
-			err: nil,
+			from: &Foo{Name: "foo"},
+			to:   &Bar{},
+			err:  nil,
 		},
 		{
 			name: "Should copy from Bar to Baz",
-			from: &Bar{ Name: "bar"},
-			to: &Baz{},
-			err: nil,
+			from: &Bar{Name: "bar"},
+			to:   &Baz{},
+			err:  nil,
 		},
 		{
 			name: "copy to value is unaddressable",
-			from: &Foo{ Name: "foo"},
-			to: nil,
-			err: errors.New("copy to value is unaddressable"),
+			from: &Foo{Name: "foo"},
+			to:   nil,
+			err:  errors.New("copy to value is unaddressable"),
 		},
 		{
 			name: "copy source is invalid",
 			from: nil,
-			to: &Bar{},
-			err: nil,
+			to:   &Bar{},
+			err:  nil,
 		},
 		{
 			name: "should copy directly",
 			from: &Foo{Name: "foo"},
-			to: &Foo{},
-			err: nil,
+			to:   &Foo{},
+			err:  nil,
 		},
 		{
 			name: "should ignore unmatched type",
 			from: []string{"a", "b"},
-			to: &Foo{Name: "foo"},
-			err: nil,
+			to:   &Foo{Name: "foo"},
+			err:  nil,
 		},
 		{
 			name: "should copy struct slice",
 			from: &[]Foo{{Name: "foo"}, {Name: "bar"}},
-			to: &[]Bar{},
-			err: nil,
+			to:   &[]Bar{},
+			err:  nil,
 		},
 		{
 			name: "should copy struct slice",
 			from: &Foo{Name: "bar"},
-			to: &[]Bar{},
-			err: nil,
+			to:   &[]Bar{},
+			err:  nil,
 		},
 		{
 			name: "should copy struct slice",
 			from: &NestedFoo{Name: "nested foo", Foo: Foo{Name: "foo"}},
-			to: &NestedFoo{},
-			err: nil,
+			to:   &NestedFoo{},
+			err:  nil,
 		},
 	}
 	for _, testCase := range testCases {
@@ -127,7 +125,6 @@ func TestCopier(t *testing.T) {
 	}
 
 }
-
 
 type User struct {
 	Name     string
@@ -254,7 +251,7 @@ func TestCopyFromStructToSlice(t *testing.T) {
 }
 
 func TestCopyFromSliceToSlice(t *testing.T) {
-	users := []User{User{Name: "Jinzhu", Age: 18, Role: "Admin", Notes: []string{"hello world"}}, User{Name: "Jinzhu2", Age: 22, Role: "Dev", Notes: []string{"hello world", "hello"}}}
+	users := []User{{Name: "Jinzhu", Age: 18, Role: "Admin", Notes: []string{"hello world"}}, {Name: "Jinzhu2", Age: 22, Role: "Dev", Notes: []string{"hello world", "hello"}}}
 	employees := []Employee{}
 
 	if copier.Copy(&employees, users); len(employees) != 2 {
@@ -295,18 +292,18 @@ func TestEmbedded(t *testing.T) {
 		BaseField2 int
 	}
 
-	type Embed struct {
-		EmbedField1 int
-		EmbedField2 int
+	type Embedded struct {
+		EmbeddedField1 int
+		EmbeddedField2 int
 		Base
 	}
 
 	base := Base{}
-	embedded := Embed{}
+	embedded := Embedded{}
 	embedded.BaseField1 = 1
 	embedded.BaseField2 = 2
-	embedded.EmbedField1 = 3
-	embedded.EmbedField2 = 4
+	embedded.EmbeddedField1 = 3
+	embedded.EmbeddedField2 = 4
 
 	copier.Copy(&base, &embedded)
 
@@ -374,4 +371,3 @@ func TestScanner(t *testing.T) {
 		t.Errorf("Field V should be copied")
 	}
 }
-

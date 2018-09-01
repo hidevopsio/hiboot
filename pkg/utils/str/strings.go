@@ -15,13 +15,13 @@
 package str
 
 import (
-	"unicode"
-	"strings"
 	"reflect"
 	"strconv"
+	"strings"
+	"unicode"
 )
 
-const EmptyString  = ""
+const EmptyString = ""
 
 // UpperFirst upper case first character of specific string
 func UpperFirst(str string) string {
@@ -35,7 +35,6 @@ func LowerFirst(str string) string {
 	}
 	return EmptyString
 }
-
 
 // StringInSlice check if specific string is in slice
 func InSlice(a string, list []string) bool {
@@ -51,7 +50,7 @@ func InSlice(a string, list []string) bool {
 	return retVal
 }
 
-func Convert(src string, kind reflect.Kind) (retVal interface{})  {
+func Convert(src string, kind reflect.Kind) (retVal interface{}) {
 	switch kind {
 	case reflect.Slice:
 		retVal = strings.SplitN(src, ",", -1)

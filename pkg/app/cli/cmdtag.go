@@ -13,7 +13,7 @@ func init() {
 	inject.AddTag(new(cmdTag))
 }
 
-func (t *cmdTag) IsSingleton() bool  {
+func (t *cmdTag) IsSingleton() bool {
 	return true
 }
 

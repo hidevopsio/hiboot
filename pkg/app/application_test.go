@@ -1,9 +1,9 @@
 package app_test
 
 import (
-	"testing"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestApp(t *testing.T) {
@@ -61,7 +61,7 @@ func TestApp(t *testing.T) {
 	})
 
 	t.Run("should not add invalid configuration which embedded unknown interface", func(t *testing.T) {
-		type unknownInterface interface {}
+		type unknownInterface interface{}
 		type configuration struct {
 			unknownInterface
 			Properties fakeProperties `mapstructure:"fake"`
@@ -93,22 +93,22 @@ func TestApp(t *testing.T) {
 	})
 
 	t.Run("should add new component", func(t *testing.T) {
-		type fakeService interface {}
-		type fakeServiceImpl struct {fakeService}
+		type fakeService interface{}
+		type fakeServiceImpl struct{ fakeService }
 		err := app.Component(new(fakeServiceImpl))
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should add new named component", func(t *testing.T) {
-		type fakeService interface {}
-		type fakeServiceImpl struct {fakeService}
+		type fakeService interface{}
+		type fakeServiceImpl struct{ fakeService }
 		err := app.Component("myService", new(fakeServiceImpl))
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should report component name collision", func(t *testing.T) {
-		type fakeService interface {}
-		type fakeServiceImpl struct {fakeService}
+		type fakeService interface{}
+		type fakeServiceImpl struct{ fakeService }
 		err := app.Component("myService", new(fakeServiceImpl))
 		assert.Equal(t, app.ComponentNameIsTakenError, err)
 	})

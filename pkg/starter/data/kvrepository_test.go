@@ -15,18 +15,18 @@
 package data
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 type Foo struct {
-	ID string
+	ID   string
 	Name string
 }
 
 type Bar struct {
-	Id string
+	Id   string
 	Name string
 }
 

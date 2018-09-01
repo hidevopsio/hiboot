@@ -15,17 +15,14 @@
 package model
 
 var (
-	RequestTypeBody = "RequestBody"
+	RequestTypeBody   = "RequestBody"
 	RequestTypeParams = "RequestParams"
-	RequestTypeForm = "RequestForm"
-	Context = "Context"
+	RequestTypeForm   = "RequestForm"
+	Context           = "Context"
 )
 
-type RequestBody struct {}
+type RequestBody struct{}
 
+type RequestForm struct{}
 
-type RequestForm struct {}
-
-
-type RequestParams struct {}
-
+type RequestParams struct{}

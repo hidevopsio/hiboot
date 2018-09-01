@@ -15,8 +15,8 @@
 package inject
 
 import (
-	"reflect"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"reflect"
 )
 
 type valueTag struct {

@@ -15,8 +15,8 @@ package bolt
 // limitations under the License.
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 type boltConfiguration struct {
@@ -32,7 +32,7 @@ func init() {
 
 func (c *boltConfiguration) dataSource() DataSource {
 	dataSource := GetDataSource()
-	if ! dataSource.IsOpened() {
+	if !dataSource.IsOpened() {
 		err := dataSource.Open(&c.BoltProperties)
 		if err != nil {
 			log.Error(err.Error())
@@ -46,4 +46,3 @@ func (c *boltConfiguration) BoltRepository() Repository {
 	repository.SetDataSource(c.dataSource())
 	return repository
 }
-

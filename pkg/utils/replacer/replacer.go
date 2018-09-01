@@ -15,14 +15,14 @@
 package replacer
 
 import (
-	"reflect"
-	"fmt"
-	"strings"
-	"os"
-	"regexp"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"errors"
+	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"os"
+	"reflect"
+	"regexp"
+	"strings"
 )
 
 const (
@@ -30,9 +30,9 @@ const (
 )
 
 var (
-	NilPointerError = errors.New("nil pointer error")
+	NilPointerError    = errors.New("nil pointer error")
 	InvalidObjectError = errors.New("invalid object")
-	compiledRegExp = regexp.MustCompile(`\$\{(.*?)\}`)
+	compiledRegExp     = regexp.MustCompile(`\$\{(.*?)\}`)
 )
 
 // ParseVariables parse reference and env variables
@@ -44,7 +44,7 @@ func ParseVariables(src string, re *regexp.Regexp) [][]string {
 	return matches
 }
 
-func GetMatches(source string) [][]string  {
+func GetMatches(source string) [][]string {
 	return ParseVariables(source, compiledRegExp)
 }
 
@@ -61,7 +61,7 @@ func ReplaceStringVariables(source string, t interface{}) interface{} {
 		var defaultValue string
 		n := strings.Index(varName, ":")
 		if n > 0 {
-			defaultValue = varName[n + 1:]
+			defaultValue = varName[n+1:]
 			varName = varName[:n]
 			//log.Debugf("name: %v, default value: %v", varName, defaultValue)
 		}

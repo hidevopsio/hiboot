@@ -15,18 +15,18 @@
 package gorm
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/gorm"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 type User struct {
-	ID   uint `gorm:"primary_key"`
+	ID       uint `gorm:"primary_key"`
 	Username string
 	Password string
-	Age  int `gorm:"default:18"`
-	Gender  int `gorm:"default:18"`
+	Age      int `gorm:"default:18"`
+	Gender   int `gorm:"default:18"`
 }
 
 func (User) TableName() string {

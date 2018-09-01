@@ -15,12 +15,12 @@
 package replacer
 
 import (
-	"testing"
-	"regexp"
-	"os"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"reflect"
 	"github.com/stretchr/testify/assert"
+	"os"
+	"reflect"
+	"regexp"
+	"testing"
 )
 
 type Bar struct {
@@ -40,12 +40,11 @@ type Foo struct {
 
 type SubBar struct {
 	Name string
-	Age int
+	Age  int
 }
 
-
 type FooBar struct {
-	TheSubBar    SubBar `mapstructure:"foo"`
+	TheSubBar SubBar `mapstructure:"foo"`
 }
 
 func TestParseReferences(t *testing.T) {
@@ -55,8 +54,7 @@ func TestParseReferences(t *testing.T) {
 		src      interface{}
 		vars     []string
 		expected string
-
-	} {
+	}{
 		{
 			name: "test string",
 			src:  &SubBar{Name: "bar"},
@@ -73,7 +71,6 @@ func TestParseReferences(t *testing.T) {
 			},
 			expected: "18",
 		},
-
 	}
 
 	for _, testCase := range testCases {
@@ -116,14 +113,13 @@ func TestReplaceStringVariables(t *testing.T) {
 
 func TestReplaceSlice(t *testing.T) {
 	testData := []string{"foo", "bar", "baz"}
-	f := &struct{Options []string}{
+	f := &struct{ Options []string }{
 		Options: testData,
 	}
 	s := ReplaceStringVariables("${options}", f)
 	assert.NotEqual(t, nil, s)
 	assert.Equal(t, testData, s)
 }
-
 
 func TestReplaceStringVariablesWithDefaultValue(t *testing.T) {
 	f := &Foo{
@@ -139,12 +135,12 @@ func TestReplaceStringVariablesWithDefaultValue(t *testing.T) {
 
 func TestReplaceMap(t *testing.T) {
 	b := &Bar{
-		Name:    "bar",
-		SubMap: map[string]interface{} {
+		Name: "bar",
+		SubMap: map[string]interface{}{
 			"name": "${name}",
-			"nestedMap": map[string]interface{} {
+			"nestedMap": map[string]interface{}{
 				"name": "nested ${name}",
-				"age": 18,
+				"age":  18,
 			},
 		},
 	}
@@ -158,7 +154,6 @@ func TestReplaceMap(t *testing.T) {
 	assert.Equal(t, NilPointerError, err)
 }
 
-
 func TestReplaceVariable(t *testing.T) {
 	os.Setenv("FOO", "foo")
 	os.Setenv("BAR", "bar")
@@ -171,12 +166,12 @@ func TestReplaceVariable(t *testing.T) {
 			SubBar: SubBar{
 				Name: "${bar.name}",
 			},
-			SubMap: map[string]interface{} {
+			SubMap: map[string]interface{}{
 				"barName": "${bar.name}",
-				"name": "${name}",
-				"nestedMap": map[string]interface{} {
+				"name":    "${name}",
+				"nestedMap": map[string]interface{}{
 					"name": "${name}",
-					"age": 18,
+					"age":  18,
 				},
 			},
 		},

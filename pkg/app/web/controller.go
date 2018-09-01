@@ -23,4 +23,3 @@ type Controller struct {
 	ContextMapping string
 	Ctx            *Context
 }
-

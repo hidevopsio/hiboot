@@ -19,15 +19,15 @@
 package main
 
 import (
-	"golang.org/x/net/context"
+	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
-	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf"
+	"golang.org/x/net/context"
 )
 
 // server is used to implement protobuf.GreeterServer.
-type greeterServerImpl struct{
+type greeterServerImpl struct {
 }
 
 // SayHello implements helloworld.GreeterServer

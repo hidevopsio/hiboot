@@ -16,9 +16,9 @@ package bolt
 
 import (
 	"github.com/boltdb/bolt"
-	"time"
-	"sync"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"sync"
+	"time"
 )
 
 type DataSource interface {

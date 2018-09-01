@@ -29,14 +29,14 @@ type Repository interface {
 type BaseRepository struct {
 }
 
-func (r *BaseRepository) SetDataSource(dataSource interface{})  {
+func (r *BaseRepository) SetDataSource(dataSource interface{}) {
 
 }
 
-func (r *BaseRepository) DataSource() interface{}  {
+func (r *BaseRepository) DataSource() interface{} {
 	return NotImplemenedError
 }
 
-func (r *BaseRepository) CloseDataSource() error  {
+func (r *BaseRepository) CloseDataSource() error {
 	return NotImplemenedError
 }

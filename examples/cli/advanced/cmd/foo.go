@@ -15,7 +15,6 @@
 
 package cmd
 
-
 import (
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/hidevopsio/hiboot/pkg/log"
@@ -35,4 +34,3 @@ func (c *fooCommand) Run(args []string) error {
 	log.Info("handle foo command")
 	return nil
 }
-

@@ -21,9 +21,9 @@ import (
 
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
+	"github.com/hidevopsio/hiboot/pkg/utils/validator"
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/i18n"
-	"github.com/hidevopsio/hiboot/pkg/utils/validator"
 )
 
 type ExtendedContext interface {
@@ -140,7 +140,6 @@ func (ctx *Context) Translate(format string, args ...interface{}) string {
 
 	return msg
 }
-
 
 // ResponseBody set response
 func (ctx *Context) ResponseString(data string) {

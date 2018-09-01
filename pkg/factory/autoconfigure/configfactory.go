@@ -15,21 +15,21 @@
 package autoconfigure
 
 import (
-	"os"
 	"errors"
+	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
+	"github.com/hidevopsio/hiboot/pkg/inject"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
+	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
-	"path/filepath"
-	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
-	"github.com/hidevopsio/hiboot/pkg/system"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
-	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
-	"github.com/hidevopsio/hiboot/pkg/inject"
-	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 )
 
 const (
@@ -183,7 +183,7 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error)
 	return
 }
 
-func (f *ConfigurableFactory) build(cfgContainer cmap.ConcurrentMap)  {
+func (f *ConfigurableFactory) build(cfgContainer cmap.ConcurrentMap) {
 	isTestRunning := gotest.IsRunning()
 	for item := range cfgContainer.IterBuffered() {
 		name, configType := item.Key, item.Val
@@ -222,5 +222,3 @@ func (f *ConfigurableFactory) build(cfgContainer cmap.ConcurrentMap)  {
 		}
 	}
 }
-
-

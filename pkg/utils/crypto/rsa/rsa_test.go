@@ -1,10 +1,10 @@
 package rsa
 
 import (
-	"testing"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/utils/crypto"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 var invalidPrivateKey = []byte(`
@@ -13,14 +13,11 @@ MCsCAQACBQDJaQRdAgMBAAECBEPxlU0CAwDt4wIDANi/AgJC0QICBc0CAkg4
 -----END RSA PRIVATE KEY-----
 `)
 
-
 var invalidPublicKey = []byte(`
 -----BEGIN PUBLIC KEY-----
 MCAwDQYJKoZIhvcNAQEBBQADDwAwDAIFAMlpBF0CAwEAAQ==
 -----END PUBLIC KEY-----
 `)
-
-
 
 func init() {
 	log.SetLevel(log.DebugLevel)
@@ -34,7 +31,6 @@ func TestRsa(t *testing.T) {
 	log.Debugf("encrypted: %v, decrypted: %v, org: %v", string(data), string(decrypted), string(src))
 	assert.Equal(t, src, decrypted)
 }
-
 
 func TestRsaBase64(t *testing.T) {
 	src := []byte("hello")
@@ -78,4 +74,3 @@ func TestExeptions(t *testing.T) {
 		assert.Equal(t, crypto.InvalidInputError, err)
 	})
 }
-

@@ -15,16 +15,16 @@
 package bolt
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestNewBolt(t *testing.T) {
 	configuration := new(boltConfiguration)
 	configuration.BoltProperties = properties{
 		Database: "test.db",
-		Mode: 0600,
-		Timeout: 1,
+		Mode:     0600,
+		Timeout:  1,
 	}
 
 	repository := configuration.BoltRepository()

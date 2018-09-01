@@ -15,15 +15,15 @@
 package controller
 
 import (
-	"testing"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"net/http"
-	"github.com/hidevopsio/hiboot/examples/data/gorm/entity"
-	"github.com/hidevopsio/hiboot/pkg/utils/idgen"
-	"github.com/stretchr/testify/mock"
 	"errors"
+	"github.com/hidevopsio/hiboot/examples/data/gorm/entity"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/utils/idgen"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"net/http"
+	"testing"
 )
 
 func init() {
@@ -62,13 +62,13 @@ func TestCrdRequest(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	testUser = entity.User{
-		Id: id,
-		Name: "Bill Gates",
+		Id:       id,
+		Name:     "Bill Gates",
 		Username: "billg",
 		Password: "3948tdaD",
-		Email: "bill.gates@microsoft.com",
-		Age: 60,
-		Gender: 1,
+		Email:    "bill.gates@microsoft.com",
+		Age:      60,
+		Gender:   1,
 	}
 
 	t.Run("should add user with POST request", func(t *testing.T) {

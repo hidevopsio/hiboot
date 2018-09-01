@@ -15,16 +15,16 @@
 package grpc
 
 import (
-	"net"
-	"google.golang.org/grpc"
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
-	"google.golang.org/grpc/reflection"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"fmt"
-	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/factory"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+	"net"
 )
 
 type grpcConfiguration struct {
@@ -36,16 +36,16 @@ type grpcConfiguration struct {
 
 type grpcService struct {
 	name string
-	cb  interface{}
-	svc interface{}
+	cb   interface{}
+	svc  interface{}
 }
 
 var (
-	grpcServers        []*grpcService
-	grpcClients		   []*grpcService
+	grpcServers []*grpcService
+	grpcClients []*grpcService
 )
 
-func RegisterServer(cb interface{}, s interface{})  {
+func RegisterServer(cb interface{}, s interface{}) {
 	svr := &grpcService{
 		cb:  cb,
 		svc: s,
@@ -53,15 +53,15 @@ func RegisterServer(cb interface{}, s interface{})  {
 	grpcServers = append(grpcServers, svr)
 }
 
-func RegisterClient(name string, cb interface{}, s ...interface{})  {
+func RegisterClient(name string, cb interface{}, s ...interface{}) {
 	var svc interface{}
 	if s != nil && len(s) != 0 {
 		svc = s[0]
 	}
 	svr := &grpcService{
 		name: name,
-		cb:  cb,
-		svc: svc,
+		cb:   cb,
+		svc:  svc,
 	}
 	grpcClients = append(grpcClients, svr)
 }
@@ -102,7 +102,7 @@ func (c *grpcConfiguration) BuildGrpcClients() {
 			}
 		}
 		// register clientConn
-		c.instantiateFactory.SetInstance(clientInstanceName + "Conn", conn)
+		c.instantiateFactory.SetInstance(clientInstanceName+"Conn", conn)
 
 		// register client service
 		if cli.svc != nil {
@@ -140,7 +140,7 @@ func (c *grpcConfiguration) RunGrpcServers() {
 			}
 			fmt.Printf("gRPC server exit\n")
 		}()
-		<- c
+		<-c
 		log.Infof("gRPC server listening on: localhost%v", address)
 	}
 }

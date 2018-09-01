@@ -15,12 +15,12 @@
 package grpc_test
 
 import (
-	"testing"
-	pb "google.golang.org/grpc/examples/helloworld/helloworld"
-	"golang.org/x/net/context"
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
+	pb "google.golang.org/grpc/examples/helloworld/helloworld"
+	"testing"
 )
 
 func init() {
@@ -42,7 +42,7 @@ type greeterClientService struct {
 }
 
 // Init inject greeterClient and clientContext
-func (s *greeterClientService) Init(greeterClient pb.GreeterClient)  {
+func (s *greeterClientService) Init(greeterClient pb.GreeterClient) {
 	s.greeterClient = greeterClient
 }
 

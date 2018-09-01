@@ -15,35 +15,34 @@
 package inject
 
 import (
-	"reflect"
 	"errors"
-	"strings"
+	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
-	"github.com/hidevopsio/hiboot/pkg/system"
-	"github.com/hidevopsio/hiboot/pkg/factory"
+	"reflect"
+	"strings"
 )
-
 
 const (
 	injectIdentifier = "inject"
-	valueIdentifier = "value"
-	initMethodName = "Init"
+	valueIdentifier  = "value"
+	initMethodName   = "Init"
 )
 
 var (
-	InstanceContainerIsNilError = errors.New("[inject] instance container is nil")
-	NotImplementedError = errors.New("[inject] interface is not implemented")
-	InvalidObjectError      = errors.New("[inject] invalid object")
-	UnsupportedInjectionTypeError      = errors.New("[inject] unsupported injection type")
-	IllegalArgumentError = errors.New("[inject] input argument type can not be the same as receiver")
-	TagIsAlreadyExistError = errors.New("[inject] tag is already exist")
-	TagIsNilError = errors.New("[inject] tag is nil")
-	InvalidTagNameError = errors.New("[inject] invalid tag name, e.g. exampleTag")
-	SystemConfigurationError = errors.New("[inject] system is not configured")
+	InstanceContainerIsNilError   = errors.New("[inject] instance container is nil")
+	NotImplementedError           = errors.New("[inject] interface is not implemented")
+	InvalidObjectError            = errors.New("[inject] invalid object")
+	UnsupportedInjectionTypeError = errors.New("[inject] unsupported injection type")
+	IllegalArgumentError          = errors.New("[inject] input argument type can not be the same as receiver")
+	TagIsAlreadyExistError        = errors.New("[inject] tag is already exist")
+	TagIsNilError                 = errors.New("[inject] tag is nil")
+	InvalidTagNameError           = errors.New("[inject] invalid tag name, e.g. exampleTag")
+	SystemConfigurationError      = errors.New("[inject] system is not configured")
 
 	// TODO use cmap.ConcurrentMap for tagsContainer
 	tagsContainer []Tag
@@ -52,7 +51,7 @@ var (
 	fct factory.ConfigurableFactory
 )
 
-func SetFactory(f factory.ConfigurableFactory)  {
+func SetFactory(f factory.ConfigurableFactory) {
 	fct = f
 }
 
@@ -85,7 +84,6 @@ func saveInstance(name string, inst interface{}) error {
 	return fct.SetInstance(name, inst)
 }
 
-
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
 func IntoObject(object interface{}) error {
 	// TODO: save injected object to map to avoid re-injection
@@ -94,11 +92,11 @@ func IntoObject(object interface{}) error {
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
 func IntoObjectValue(object reflect.Value) error {
-    var err error
+	var err error
 
-    // TODO refactor IntoObject
-    if fct == nil {
-    	return SystemConfigurationError
+	// TODO refactor IntoObject
+	if fct == nil {
+		return SystemConfigurationError
 	}
 
 	obj := reflector.Indirect(object)
@@ -113,7 +111,7 @@ func IntoObjectValue(object reflect.Value) error {
 	}
 	systemConfig := sc.(*system.Configuration)
 
-	cs  := fct.GetInstance("configurations")
+	cs := fct.GetInstance("configurations")
 	if cs == nil {
 		return SystemConfigurationError
 	}
@@ -233,5 +231,3 @@ func IntoObjectValue(object reflect.Value) error {
 
 	return err
 }
-
-

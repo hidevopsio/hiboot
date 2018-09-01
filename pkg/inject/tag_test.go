@@ -15,9 +15,9 @@
 package inject
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
 	"reflect"
+	"testing"
 )
 
 func TestTag(t *testing.T) {
@@ -34,7 +34,7 @@ func TestTag(t *testing.T) {
 	})
 
 	t.Run("should get properties", func(t *testing.T) {
-		fakeObj := struct{Name string}{}
+		fakeObj := struct{ Name string }{}
 		objVal := reflect.ValueOf(fakeObj)
 		field := objVal.Type().Field(0)
 		f := tag.Decode(objVal, field, "fake")

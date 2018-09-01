@@ -1,8 +1,8 @@
 package web
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestDefaultConfiguration(t *testing.T) {

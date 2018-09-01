@@ -15,17 +15,17 @@
 package gorm
 
 import (
-	"fmt"
 	"errors"
-	"sync"
+	"fmt"
+	"github.com/hidevopsio/gorm"
+	_ "github.com/hidevopsio/gorm/dialects/mssql"
 	_ "github.com/hidevopsio/gorm/dialects/mysql"
 	_ "github.com/hidevopsio/gorm/dialects/postgres"
 	_ "github.com/hidevopsio/gorm/dialects/sqlite"
-	_ "github.com/hidevopsio/gorm/dialects/mssql"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/crypto/rsa"
 	"strings"
-	"github.com/hidevopsio/gorm"
-	"github.com/hidevopsio/hiboot/pkg/log"
+	"sync"
 )
 
 type Repository interface {
@@ -54,7 +54,7 @@ func GetDataSource() DataSource {
 	return ds
 }
 
-func (d *dataSource) Init(repository Repository)  {
+func (d *dataSource) Init(repository Repository) {
 	d.repository = repository
 }
 
@@ -74,7 +74,7 @@ func (d *dataSource) Open(p *properties) error {
 		parseTime = "True"
 	}
 	source := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=%v&parseTime=%v&loc=%v",
-		p.Username, password, p.Host, p.Port,  databaseName, p.Charset, parseTime, loc)
+		p.Username, password, p.Host, p.Port, databaseName, p.Charset, parseTime, loc)
 
 	d.repository, err = gorm.Open(p.Type, source)
 
@@ -108,4 +108,3 @@ func (d *dataSource) Close() error {
 func (d *dataSource) Repository() gorm.Repository {
 	return d.repository
 }
-

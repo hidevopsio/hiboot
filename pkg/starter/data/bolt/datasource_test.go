@@ -15,16 +15,16 @@
 package bolt
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestDataSource(t *testing.T) {
 
 	properties := &properties{
 		Database: "test.db",
-		Mode: 0600,
-		Timeout: 2,
+		Mode:     0600,
+		Timeout:  2,
 	}
 
 	d := GetDataSource()
@@ -42,7 +42,6 @@ func TestDataSource(t *testing.T) {
 	// close bolt database
 	d.Close()
 }
-
 
 func TestDataSourceWithEmptyFile(t *testing.T) {
 

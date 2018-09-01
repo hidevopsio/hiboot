@@ -31,7 +31,7 @@ func init() {
 
 func (c *gormConfiguration) dataSource() DataSource {
 	dataSource := GetDataSource()
-	if ! dataSource.IsOpened() {
+	if !dataSource.IsOpened() {
 		dataSource.Open(&c.GormProperties)
 	}
 	return dataSource
@@ -42,4 +42,3 @@ func (c *gormConfiguration) GormRepository() Repository {
 	dataSource := c.dataSource()
 	return dataSource.Repository()
 }
-

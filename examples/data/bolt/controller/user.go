@@ -15,11 +15,11 @@
 package controller
 
 import (
-	"net/http"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/examples/data/bolt/entity"
 	"github.com/hidevopsio/hiboot/examples/data/bolt/service"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/model"
+	"net/http"
 )
 
 //hi: RestController

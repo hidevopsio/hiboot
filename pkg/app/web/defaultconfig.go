@@ -31,4 +31,3 @@ func DefaultConfiguration() iris.Configuration {
 		Other:                       make(map[string]interface{}),
 	}
 }
-

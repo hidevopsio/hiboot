@@ -16,7 +16,7 @@ package factory
 
 import "github.com/hidevopsio/hiboot/pkg/system"
 
-type Factory interface {}
+type Factory interface{}
 
 type InstantiateFactory interface {
 	Initialized() bool

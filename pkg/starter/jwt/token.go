@@ -20,9 +20,9 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"io/ioutil"
-	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 // JwtMap is the JWT map
@@ -34,10 +34,10 @@ type Token interface {
 }
 
 type jwtToken struct {
-	verifyKey     *rsa.PublicKey
-	signKey       *rsa.PrivateKey
+	verifyKey *rsa.PublicKey
+	signKey   *rsa.PrivateKey
 	//jwtMiddleware *JwtMiddleware
-	jwtEnabled    bool
+	jwtEnabled bool
 }
 
 func NewJwtToken(p *Properties) Token {

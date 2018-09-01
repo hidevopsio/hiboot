@@ -28,7 +28,6 @@ func Decode(src []byte) (dst []byte, err error) {
 	size := coder.DecodedLen(len(src))
 	buf := make([]byte, size)
 	_, err = coder.Decode(buf, src)
-	dst = buf[:size - 1]
+	dst = buf[:size-1]
 	return
 }
-

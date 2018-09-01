@@ -15,11 +15,11 @@
 package bolt
 
 import (
+	"encoding/json"
 	"errors"
-	"sync"
 	"github.com/boltdb/bolt"
 	"github.com/hidevopsio/hiboot/pkg/starter/data"
-	"encoding/json"
+	"sync"
 )
 
 type Repository interface {
@@ -28,7 +28,7 @@ type Repository interface {
 
 type repository struct {
 	data.BaseKVRepository
-	db *bolt.DB
+	db         *bolt.DB
 	dataSource DataSource
 }
 
@@ -43,7 +43,7 @@ func GetRepository() *repository {
 	return repo
 }
 
-func (r *repository) parse(params ...interface{}) ([]byte, []byte, interface{}, error)  {
+func (r *repository) parse(params ...interface{}) ([]byte, []byte, interface{}, error) {
 	if r.db == nil {
 		return nil, nil, nil, data.InvalidDataSourceError
 	}
@@ -51,14 +51,14 @@ func (r *repository) parse(params ...interface{}) ([]byte, []byte, interface{}, 
 }
 
 // Open bolt database
-func (r *repository) SetDataSource(d interface{})  {
+func (r *repository) SetDataSource(d interface{}) {
 	if d != nil {
 		r.dataSource = d.(DataSource)
 		r.db = r.dataSource.DB()
 	}
 }
 
-func (r *repository) DataSource() interface{}  {
+func (r *repository) DataSource() interface{} {
 	return r.dataSource
 }
 
@@ -143,5 +143,3 @@ func (r *repository) Delete(params ...interface{}) error {
 	})
 	return err
 }
-
-

@@ -54,5 +54,3 @@ func main() {
 	cli.HideBanner()
 	cli.NewApplication(new(HelloCommand)).Run()
 }
-
-

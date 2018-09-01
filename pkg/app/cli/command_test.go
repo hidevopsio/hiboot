@@ -1,10 +1,9 @@
 package cli
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
-
 
 func TestCommand(t *testing.T) {
 
@@ -27,7 +26,6 @@ func TestCommand(t *testing.T) {
 		_, err := fooCmd.Find("foo")
 		assert.Equal(t, nil, err)
 	})
-
 
 	t.Run("should not found the non-exist command", func(t *testing.T) {
 		fooCmd := new(fooCommand)
@@ -52,4 +50,3 @@ func TestCommand(t *testing.T) {
 		assert.Equal(t, true, res)
 	})
 }
-

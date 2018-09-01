@@ -15,13 +15,12 @@
 package controller
 
 import (
-	"testing"
-	"net/http"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/examples/data/bolt/entity"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"net/http"
+	"testing"
 )
-
 
 func init() {
 	log.SetLevel(log.DebugLevel)

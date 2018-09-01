@@ -15,17 +15,15 @@
 // Line 1: main package
 package main
 
-
 import (
-	"testing"
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestRunMain(t *testing.T) {
 	go main()
 }
-
 
 func TestHelloCommands(t *testing.T) {
 	helloCmd := new(HelloCommand)

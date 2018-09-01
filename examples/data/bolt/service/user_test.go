@@ -15,10 +15,10 @@
 package service
 
 import (
-	"testing"
 	"github.com/hidevopsio/hiboot/examples/data/bolt/entity"
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/starter/data"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 var userService *UserService
@@ -27,7 +27,7 @@ type FakeRepository struct {
 	data.BaseKVRepository
 }
 
-func (r *FakeRepository) Get(params ...interface{}) error  {
+func (r *FakeRepository) Get(params ...interface{}) error {
 	if len(params) == 2 {
 		key := params[0].(string)
 		if key == "1" {
@@ -47,7 +47,6 @@ func init() {
 func TestCrd(t *testing.T) {
 	userService = new(UserService)
 	userService.Init(&FakeRepository{})
-
 
 	t.Run("should add user", func(t *testing.T) {
 		user := &entity.User{Id: "1", Name: "John Doe", Age: 18}

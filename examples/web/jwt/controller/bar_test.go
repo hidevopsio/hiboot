@@ -15,16 +15,15 @@
 // Line 1: main package
 package controllers
 
-
 import (
-	"testing"
-	"net/http"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"fmt"
-	"time"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"net/http"
+	"testing"
+	"time"
 )
 
 func TestBarWithToken(t *testing.T) {
@@ -32,7 +31,7 @@ func TestBarWithToken(t *testing.T) {
 	log.Println(io.GetWorkDir())
 	jwtToken := jwt.NewJwtToken(&jwt.Properties{
 		PrivateKeyPath: "config/ssl/app.rsa",
-		PublicKeyPath: "config/ssl/app.rsa.pub",
+		PublicKeyPath:  "config/ssl/app.rsa.pub",
 	})
 	pt, err := jwtToken.Generate(jwt.Map{
 		"username": "johndoe",
@@ -56,4 +55,3 @@ func TestBarWithToken(t *testing.T) {
 		})
 	}
 }
-

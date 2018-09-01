@@ -15,8 +15,8 @@
 package inject
 
 import (
-	"reflect"
 	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
+	"reflect"
 )
 
 type injectTag struct {
@@ -27,12 +27,11 @@ func init() {
 	AddTag(new(injectTag))
 }
 
-
-func (t *injectTag) IsSingleton() bool  {
+func (t *injectTag) IsSingleton() bool {
 	return true
 }
 
-func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{})  {
+func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{}) {
 	properties := t.ParseProperties(tag)
 
 	// first, find if object is already instantiated

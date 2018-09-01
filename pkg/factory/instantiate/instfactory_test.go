@@ -15,13 +15,13 @@
 package instantiate
 
 import (
-	"testing"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestInstantiateFactory(t *testing.T) {
-	type foo struct {Name string}
+	type foo struct{ Name string }
 	f := new(foo)
 
 	factory := new(InstantiateFactory)

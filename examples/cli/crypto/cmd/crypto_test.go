@@ -1,17 +1,15 @@
 package cmd
 
 import (
-	"testing"
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
-
 
 func init() {
 	log.SetLevel(log.DebugLevel)
 }
-
 
 func TestCryptoCommands(t *testing.T) {
 	cryptoCmd := new(CryptoCommand)
@@ -27,5 +25,3 @@ func TestCryptoCommands(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 }
-
-

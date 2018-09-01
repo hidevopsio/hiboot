@@ -16,9 +16,9 @@
 package controllers
 
 import (
-	"testing"
-	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"net/http"
+	"testing"
 )
 
 func GetTestApplication(t *testing.T) web.TestApplication {

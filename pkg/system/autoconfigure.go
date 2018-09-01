@@ -15,7 +15,7 @@
 package system
 
 type Configuration struct {
-	App         App          `mapstructure:"app"`
-	Server      Server       `mapstructure:"server"`
-	Logging     Logging      `mapstructure:"logging"`
+	App     App     `mapstructure:"app"`
+	Server  Server  `mapstructure:"server"`
+	Logging Logging `mapstructure:"logging"`
 }

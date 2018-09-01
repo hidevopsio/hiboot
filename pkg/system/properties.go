@@ -20,9 +20,9 @@ type Profiles struct {
 }
 
 type App struct {
-	Project        string   `json:"project" default:"hidevopsio"`
-	Name           string   `json:"name" default:"hiboot-app"`
-	Profiles       Profiles `json:"profiles"`
+	Project  string   `json:"project" default:"hidevopsio"`
+	Name     string   `json:"name" default:"hiboot-app"`
+	Profiles Profiles `json:"profiles"`
 	// TODO: should defined in application-version.yml
 	//Version        string   `json:"version" default:"0.0.1"`
 }

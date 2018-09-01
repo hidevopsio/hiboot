@@ -1,18 +1,18 @@
 package app
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"reflect"
-	"github.com/hidevopsio/hiboot/pkg/inject"
-	"github.com/hidevopsio/hiboot/pkg/system"
 	"errors"
+	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
+	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/kataras/iris/context"
-	"fmt"
+	"reflect"
 )
 
 type Application interface {
@@ -49,8 +49,8 @@ var (
 	ConfigurationNameIsTakenError = errors.New("[app] configuration name is already taken")
 	ComponentNameIsTakenError     = errors.New("[app] component name is already taken")
 
-	hideBanner          bool
-	banner                        = `
+	hideBanner bool
+	banner     = `
 ______  ____________             _____
 ___  / / /__(_)__  /_______________  /_
 __  /_/ /__  /__  __ \  __ \  __ \  __/   

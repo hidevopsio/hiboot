@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package service
 
 import (
@@ -25,7 +24,7 @@ type UserService struct {
 }
 
 // will inject BoltRepository that configured in github.com/hidevopsio/hiboot/pkg/starter/data/bolt
-func (s *UserService) Init(repository bolt.Repository)  {
+func (s *UserService) Init(repository bolt.Repository) {
 	s.repository = repository
 }
 
@@ -42,4 +41,3 @@ func (s *UserService) GetUser(id string) (*entity.User, error) {
 func (s *UserService) DeleteUser(id string) error {
 	return s.repository.Delete(id, &entity.User{})
 }
-

@@ -15,28 +15,25 @@
 package controllers
 
 import (
-	"strings"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
 	"github.com/hidevopsio/hiboot/pkg/model"
+	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
 	"net/http"
+	"strings"
 )
-
 
 type Bar struct {
 	Greeting string
 }
 
-
-type barController struct{
+type barController struct {
 	jwt.Controller
 }
 
-func init()  {
+func init() {
 	web.RestController(new(barController))
 }
-
 
 func (c *barController) Get() (response model.Response) {
 	username := c.JwtProperty("username")
