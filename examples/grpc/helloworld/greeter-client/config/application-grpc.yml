@@ -3,5 +3,5 @@
 grpc:
   client:
     greeter-client:
-      host: localhost
+      host: ${greeter-server:localhost}
       port: 7575

@@ -367,6 +367,39 @@ func TestWebApplication(t *testing.T)  {
 			Expect().Status(http.StatusOK)
 	})
 
+	t.Run("should return http.StatusOK on /foo with PUT, PATCH, DELETE methods", func(t *testing.T) {
+		app.Put("/foo/id/{id}/name/{name}/age/{age}").
+			WithPath("id", 0).
+			WithPath("name", "").
+			WithPath("age", 0).
+			Expect().Status(http.StatusOK)
+	})
+
+
+	t.Run("should return http.StatusOK on /foo with PUT, PATCH, DELETE methods", func(t *testing.T) {
+		app.Put("/foo/id/{id}/name/{name}/age/{age}").
+			WithPath("id", " ").
+			WithPath("name", " ").
+			WithPath("age", " ").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should return http.StatusOK on /foo with PUT, PATCH, DELETE methods", func(t *testing.T) {
+		app.Put("/foo/id/{id}/name/{name}/age/{age}").
+			WithPath("id", "").
+			WithPath("name", "").
+			WithPath("age", " ").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should return http.StatusOK on /foo with PUT, PATCH, DELETE methods", func(t *testing.T) {
+		app.Put("/foo/id/{id}/name/{name}/age/{age}").
+			WithPath("id", "").
+			WithPath("name", "").
+			WithPath("age", "").
+			Expect().Status(http.StatusTemporaryRedirect)
+	})
+
 	t.Run("should Get foo by id", func(t *testing.T) {
 		app.Get("/foo/id/{id}").
 			WithPath("id", 123).
