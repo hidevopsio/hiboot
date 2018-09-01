@@ -77,7 +77,7 @@ func TestWriteFile(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, len(in), n)
 
-	n, err = WriterFile("/should-not-have-access-permission", "test.txt", buf.Bytes())
+	_, err = WriterFile("/should-not-have-access-permission", "test.txt", buf.Bytes())
 	assert.Equal(t, "mkdir /should-not-have-access-permission: permission denied", err.Error())
 }
 

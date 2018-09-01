@@ -78,6 +78,9 @@ func (b *Builder) Build(profiles ...string) (interface{}, error) {
 		}
 
 		_, err = b.Read(name)
+		if err != nil {
+			break
+		}
 	}
 
 	return conf, nil

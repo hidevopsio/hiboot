@@ -105,7 +105,7 @@ func TestBuilderBuildWithProfile(t *testing.T) {
 	log.Print(c)
 
 	b.Profile = ""
-	cp, err = b.BuildWithProfile()
+	_, err = b.BuildWithProfile()
 	assert.Equal(t, nil, err)
 
 }
