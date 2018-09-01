@@ -191,7 +191,7 @@ func (f *ConfigurableFactory) build(cfgContainer cmap.ConcurrentMap)  {
 		if !isTestRunning && f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
 			continue
 		}
-		log.Infof("auto configure: %v", name)
+		log.Infof("Auto configure: %v", name)
 
 		// inject properties
 		f.builder.ConfigType = configType

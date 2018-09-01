@@ -92,7 +92,7 @@ func (c *grpcConfiguration) BuildGrpcClients() {
 		if err != nil {
 			break
 		}
-		log.Infof("grpc client connected to: %v", address)
+		log.Infof("gRPC client connected to: %v", address)
 		clientInstanceName := str.ToLowerCamel(cli.name)
 		if cli.cb != nil {
 			gRpcCli, err := reflector.CallFunc(cli.cb, conn)
@@ -138,9 +138,9 @@ func (c *grpcConfiguration) RunGrpcServers() {
 			if err := grpcServer.Serve(lis); err != nil {
 				fmt.Errorf("failed to serve: %v", err)
 			}
-			fmt.Printf("grpc server exit\n")
+			fmt.Printf("gRPC server exit\n")
 		}()
 		<- c
-		log.Infof("Grpc server listening at: %v", address)
+		log.Infof("gRPC server listening on: localhost%v", address)
 	}
 }

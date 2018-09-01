@@ -24,7 +24,6 @@ type Response interface {
 }
 
 type BaseResponse struct {
-	Response
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
