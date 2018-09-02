@@ -18,6 +18,7 @@ package main
 // import cli starter and fmt
 import (
 	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 )
 
@@ -52,6 +53,6 @@ func (c *HelloCommand) Run(args []string) error {
 func main() {
 	// create new cli application and run it
 	cli.NewApplication(new(HelloCommand)).
-		SetProperty("banner.disabled", true).
+		SetProperty(app.PropertyBannerDisabled, true).
 		Run()
 }
