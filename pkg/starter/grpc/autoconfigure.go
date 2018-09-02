@@ -141,6 +141,10 @@ func (c *grpcConfiguration) RunGrpcServers() {
 			fmt.Printf("gRPC server exit\n")
 		}()
 		<-c
-		log.Infof("gRPC server listening on: localhost%v", address)
+		svcName, err := reflector.GetName(srv.svc)
+		if err == nil {
+			log.Infof("Registered %v on gRPC server", svcName)
+		}
 	}
+	log.Infof("gRPC server listening on: localhost%v", address)
 }

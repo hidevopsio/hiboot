@@ -133,10 +133,16 @@ func (f *ConfigurableFactory) InstantiateMethod(configuration interface{}, metho
 	argv := make([]reflect.Value, numIn)
 	argv[0] = reflect.ValueOf(configuration)
 	for a := 1; a < numIn; a++ {
+		// TODO: eliminate duplications
 		mt := method.Type.In(a)
 		iTyp := reflector.IndirectType(mt)
 		mtName := str.ToLowerCamel(iTyp.Name())
 		depInst := f.GetInstance(mtName)
+		if depInst == nil {
+			pkgName := io.DirName(iTyp.PkgPath())
+			alternativeName := pkgName + iTyp.Name()
+			depInst = f.GetInstance(alternativeName)
+		}
 		if depInst == nil {
 			// TODO: check it it's dependency circle
 			depInst, err = f.InstantiateByName(configuration, strings.Title(mtName))
