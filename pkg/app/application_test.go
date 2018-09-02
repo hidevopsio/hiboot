@@ -115,8 +115,6 @@ func TestApp(t *testing.T) {
 }
 
 func TestBaseApplication(t *testing.T) {
-	app.HideBanner()
-
 	ba := new(app.BaseApplication)
 
 	ba.BeforeInitialization()
@@ -135,6 +133,8 @@ func TestBaseApplication(t *testing.T) {
 	ba.AfterInitialization()
 
 	ba.RegisterController(nil)
+
+	ba.SetProperty("foo", "bar")
 
 	ba.Use()
 }

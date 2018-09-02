@@ -56,14 +56,16 @@ type application struct {
 var (
 	// controllers global controllers container
 	registeredControllers []interface{}
-	compiledRegExp         = regexp.MustCompile(`\{(.*?)\}`)
+	compiledRegExp        = regexp.MustCompile(`\{(.*?)\}`)
 
 	ControllersNotFoundError = errors.New("[app] controllers not found")
 	InvalidControllerError   = errors.New("[app] invalid controller")
 )
 
-func HideBanner() {
-	app.HideBanner()
+// SetProperty
+func (a *application) SetProperty(name string, value interface{}) app.Application {
+	a.BaseApplication.SetProperty(name, value)
+	return a
 }
 
 // Run run web application
@@ -94,6 +96,8 @@ func (a *application) add(controllers ...interface{}) {
 
 // Init init web application
 func (a *application) build(controllers ...interface{}) error {
+	a.PrintStartupMessages()
+
 	a.webApp = iris.New()
 
 	systemConfig := a.SystemConfig()

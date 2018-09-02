@@ -17,12 +17,14 @@ import (
 
 type Application interface {
 	Init() error
+	SetProperty(name string, value interface{}) Application
 	Run()
 }
 
 type ApplicationContext interface {
 	RegisterController(controller interface{}) error
 	Use(handlers ...context.Handler)
+	GetProperty(name string) (value interface{}, ok bool)
 }
 
 type Configuration interface{}
@@ -37,6 +39,7 @@ type BaseApplication struct {
 	configurableFactory *autoconfigure.ConfigurableFactory
 	systemConfig        *system.Configuration
 	postProcessor       postProcessor
+	propertyMap         cmap.ConcurrentMap
 }
 
 var (
@@ -49,8 +52,7 @@ var (
 	ConfigurationNameIsTakenError = errors.New("[app] configuration name is already taken")
 	ComponentNameIsTakenError     = errors.New("[app] component name is already taken")
 
-	hideBanner bool
-	banner     = `
+	banner = `
 ______  ____________             _____
 ___  / / /__(_)__  /_______________  /_
 __  /_/ /__  /__  __ \  __ \  __ \  __/   
@@ -165,16 +167,37 @@ func Component(params ...interface{}) error {
 	return err
 }
 
-func HideBanner() {
-	hideBanner = true
-}
-
 // BeforeInitialization ?
-func (a *BaseApplication) Init() error {
-	if !hideBanner {
+func (a *BaseApplication) PrintStartupMessages() {
+	bannerDisabled := false
+	prop, ok := a.GetProperty("banner.disabled")
+	if ok {
+		if !prop.(bool) {
+			bannerDisabled = true
+		}
+	}
+
+	if !bannerDisabled {
 		fmt.Print(banner)
 	}
+}
+
+// SetProperty
+func (a *BaseApplication) SetProperty(name string, value interface{}) {
+	a.propertyMap.Set(name, value)
+}
+
+// GetProperty
+func (a *BaseApplication) GetProperty(name string) (value interface{}, ok bool) {
+	value, ok = a.propertyMap.Get(name)
+	return
+}
+
+// Init
+func (a *BaseApplication) Init() error {
 	a.WorkDir = io.GetWorkDir()
+
+	a.propertyMap = cmap.New()
 
 	a.configurations = cmap.New()
 	a.instances = instanceContainer
@@ -231,4 +254,3 @@ func (a *BaseApplication) RegisterController(controller interface{}) error {
 
 func (a *BaseApplication) Use(handlers ...context.Handler) {
 }
-

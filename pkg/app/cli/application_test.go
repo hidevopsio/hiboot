@@ -164,7 +164,7 @@ func TestCliMultiCommand(t *testing.T) {
 		assert.Equal(t, "root", rootCmd.GetName())
 	})
 
-	HideBanner()
+	testApp.SetProperty("foo", "bar")
 }
 
 func TestNewApplication(t *testing.T) {

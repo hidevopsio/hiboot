@@ -51,6 +51,7 @@ func (c *HelloCommand) Run(args []string) error {
 // main function
 func main() {
 	// create new cli application and run it
-	cli.HideBanner()
-	cli.NewApplication(new(HelloCommand)).Run()
+	cli.NewApplication(new(HelloCommand)).
+		SetProperty("banner.disabled", true).
+		Run()
 }
