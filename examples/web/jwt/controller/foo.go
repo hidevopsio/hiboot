@@ -12,19 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package controllers
+package controller
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
-	"time"
 )
-
-type UserRequest struct {
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
-}
 
 type FooRequest struct {
 	Name string `json:"name" validate:"required"`
@@ -38,8 +31,6 @@ type FooResponse struct {
 
 type fooController struct {
 	web.Controller
-
-	jwtToken jwt.Token
 }
 
 // init - add &FooController{} to web application
@@ -47,31 +38,10 @@ func init() {
 	web.RestController(&fooController{})
 }
 
-func (c *fooController) Init(jwtToken jwt.Token) {
-	c.jwtToken = jwtToken
-}
-
+// Before intercept all requests that coming into this controller
 func (c *fooController) Before(ctx *web.Context) {
 	log.Debug("FooController.Before")
 	ctx.Next()
-}
-
-// Post login
-// The first word of method is the http method POST, the rest is the context mapping
-func (c *fooController) PostLogin(ctx *web.Context) {
-	log.Debug("FooController.Login")
-
-	userRequest := &UserRequest{}
-	if ctx.RequestBody(userRequest) == nil {
-		jwtToken, _ := c.jwtToken.Generate(jwt.Map{
-			"username": userRequest.Username,
-			"password": userRequest.Password,
-		}, 10, time.Minute)
-
-		//log.Debugf("token: %v", *jwtToken)
-
-		ctx.ResponseBody("success", jwtToken)
-	}
 }
 
 func (c *fooController) Post(ctx *web.Context) {

@@ -1,3 +1,17 @@
+// Copyright 2018 John Deng (hi.devops.io@gmail.com).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package app
 
 import (
@@ -41,10 +55,6 @@ type BaseApplication struct {
 	postProcessor       postProcessor
 	propertyMap         cmap.ConcurrentMap
 }
-
-const (
-	PropertyBannerDisabled = "property.banner.disabled"
-)
 
 var (
 	preConfigContainer  cmap.ConcurrentMap
@@ -95,7 +105,7 @@ func validateObjectType(inst interface{}) error {
 	return InvalidObjectTypeError
 }
 
-// AutoConfiguration
+// AutoConfiguration register auto configuration struct
 func AutoConfiguration(params ...interface{}) (err error) {
 	if len(params) == 0 || params[0] == nil {
 		err = InvalidObjectTypeError
@@ -143,7 +153,7 @@ func AutoConfiguration(params ...interface{}) (err error) {
 	return err
 }
 
-// Component
+// Component register a struct instance, so that it will be injectable.
 func Component(params ...interface{}) error {
 	if len(params) == 0 || params[0] == nil {
 		return InvalidObjectTypeError

@@ -35,14 +35,11 @@ import (
 const (
 	pathSep = "/"
 
-	initMethodName = "Init"
-
-	BeforeMethod = "Before"
-	AfterMethod  = "After"
+	beforeMethod = "Before"
+	afterMethod  = "After"
 )
 
 // Application is the struct of web Application
-// TODO: application should be singleton and private
 type application struct {
 	app.BaseApplication
 	webApp          *iris.Application
@@ -62,7 +59,7 @@ var (
 	InvalidControllerError   = errors.New("[app] invalid controller")
 )
 
-// SetProperty
+// SetProperty set application property
 func (a *application) SetProperty(name string, value interface{}) app.Application {
 	a.BaseApplication.SetProperty(name, value)
 	return a
@@ -78,8 +75,7 @@ func (a *application) Run() {
 
 	a.build()
 
-	// TODO: WithCharset should be configurable
-	a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(DefaultConfiguration()))
+	a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(defaultConfiguration()))
 }
 
 func (a *application) add(controllers ...interface{}) {
@@ -163,6 +159,7 @@ func (a *application) build(controllers ...interface{}) error {
 	return nil
 }
 
+// RegisterController register controller, e.g. web.Controller, jwt.Controller, or other customized controller
 func (a *application) RegisterController(controller interface{}) error {
 	// get from controller map
 	// parse controller type
@@ -177,6 +174,7 @@ func (a *application) RegisterController(controller interface{}) error {
 	return ControllersNotFoundError
 }
 
+// Use apply middleware
 func (a *application) Use(handlers ...context.Handler) {
 	// pass user's instances
 	for _, hdl := range handlers {
