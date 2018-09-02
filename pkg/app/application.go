@@ -42,6 +42,10 @@ type BaseApplication struct {
 	propertyMap         cmap.ConcurrentMap
 }
 
+const (
+	PropertyBannerDisabled = "property.banner.disabled"
+)
+
 var (
 	preConfigContainer  cmap.ConcurrentMap
 	configContainer     cmap.ConcurrentMap
@@ -169,15 +173,8 @@ func Component(params ...interface{}) error {
 
 // BeforeInitialization ?
 func (a *BaseApplication) PrintStartupMessages() {
-	bannerDisabled := false
-	prop, ok := a.GetProperty("banner.disabled")
-	if ok {
-		if !prop.(bool) {
-			bannerDisabled = true
-		}
-	}
-
-	if !bannerDisabled {
+	prop, ok := a.GetProperty(PropertyBannerDisabled)
+	if !(ok && prop.(bool)) {
 		fmt.Print(banner)
 	}
 }

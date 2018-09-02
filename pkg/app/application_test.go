@@ -134,7 +134,9 @@ func TestBaseApplication(t *testing.T) {
 
 	ba.RegisterController(nil)
 
-	ba.SetProperty("foo", "bar")
+	ba.SetProperty(app.PropertyBannerDisabled, false)
+
+	ba.PrintStartupMessages()
 
 	ba.Use()
 }
