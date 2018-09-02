@@ -3,7 +3,7 @@ package web
 import "github.com/kataras/iris"
 
 // DefaultConfiguration returns the default configuration for an iris station, fills the main Configuration
-func DefaultConfiguration() iris.Configuration {
+func defaultConfiguration() iris.Configuration {
 	return iris.Configuration{
 		DisableStartupLog:                 false,
 		DisableInterruptHandler:           false,

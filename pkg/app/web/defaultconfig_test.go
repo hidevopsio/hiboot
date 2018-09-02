@@ -6,6 +6,6 @@ import (
 )
 
 func TestDefaultConfiguration(t *testing.T) {
-	dc := DefaultConfiguration()
+	dc := defaultConfiguration()
 	assert.Equal(t, "UTF-8", dc.Charset)
 }
