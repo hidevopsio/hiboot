@@ -87,7 +87,7 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 		numOfMethod := field.NumMethod()
 		//log.Debug("methods: ", numOfMethod)
 
-		beforeMethod, ok := fieldType.MethodByName(BeforeMethod)
+		beforeMethod, ok := fieldType.MethodByName(beforeMethod)
 		var party iris.Party
 		if ok {
 			//log.Debug("contextPath: ", contextMapping)
@@ -101,7 +101,7 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 			party = app.Party(contextMapping)
 		}
 
-		afterMethod, ok := fieldType.MethodByName(AfterMethod)
+		afterMethod, ok := fieldType.MethodByName(afterMethod)
 		if ok {
 			hdl := new(handler)
 			hdl.parse(afterMethod, controller, "")

@@ -12,19 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package app
 
-import (
-	"github.com/hidevopsio/hiboot/pkg/app/cli"
-	"github.com/stretchr/testify/assert"
-	"testing"
+const (
+	PropertyBannerDisabled = "property.banner.disabled"
 )
-
-func TestSecondCommands(t *testing.T) {
-	testApp := cli.NewTestApplication(t, new(secondCommand))
-
-	t.Run("should run second command", func(t *testing.T) {
-		_, err := testApp.RunTest("")
-		assert.Equal(t, nil, err)
-	})
-}
