@@ -58,17 +58,6 @@ func init() {
 	commandNames = make([]string, 0)
 }
 
-// AddCommand add new command
-func AddCommand(parentPath string, commands ...Command) {
-	// de-duplication
-	if commandContainer[parentPath] == nil {
-		commandNames = append(commandNames, parentPath)
-	}
-	for _, command := range commands {
-		commandContainer[parentPath] = append(commandContainer[parentPath], command)
-	}
-}
-
 // NewApplication create new cli application
 func NewApplication(cmd ...Command) Application {
 	a := new(application)
@@ -135,26 +124,6 @@ func (a *application) build() error {
 
 	if a.root != nil && a.root.HasChild() {
 		a.injectCommand(a.root)
-		//} else {
-		//	// parse commands
-		//	parentContainer := make(map[string]Command)
-		//	fullname := "root"
-		//	sort.SortByLen(commandNames)
-		//	parentContainer[fullname] = a.root
-		//	for _, cmdName := range commandNames {
-		//		commands := commandContainer[cmdName]
-		//		parent := parentContainer[cmdName]
-		//		if parent == nil {
-		//			parent = a.root
-		//		}
-		//		for _, command := range commands {
-		//			inject.IntoObjectValue(reflect.ValueOf(command))
-		//			parent.Add(command)
-		//			fullname := cmdName + "." + command.GetName()
-		//			parentContainer[fullname] = command
-		//			command.SetFullName(fullname)
-		//		}
-		//	}
 	}
 	return nil
 }

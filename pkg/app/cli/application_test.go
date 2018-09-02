@@ -22,9 +22,6 @@ import (
 
 func init() {
 	log.SetLevel(log.DebugLevel)
-	AddCommand("root", new(demoCommand))
-	AddCommand("root.demo", new(fooCommand))
-	AddCommand("root.demo.foo", new(barCommand), new(bazCommand))
 }
 
 type demoCommand struct {
