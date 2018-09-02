@@ -34,7 +34,7 @@ func GetWorkDir() string {
 
 func EnsureWorkDir(skip int, existFile string) bool {
 	var path string
-	if _, file, _, ok := runtime.Caller(2); ok && strings.Contains(os.Args[0], "go_build_") {
+	if _, file, _, ok := runtime.Caller(skip); ok && strings.Contains(os.Args[0], "go_build_") {
 		path = BaseDir(file)
 	} else {
 		path = GetWorkDir()

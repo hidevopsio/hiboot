@@ -125,13 +125,13 @@ func (c *grpcConfiguration) RunGrpcServers() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v, %v", address, err)
 	}
-	grpcServer := grpc.NewServer()
 
 	// register server
 	// Register reflection service on gRPC server.
 	for _, srv := range grpcServers {
 		c := make(chan bool)
 		go func() {
+			grpcServer := grpc.NewServer()
 			reflector.CallFunc(srv.cb, grpcServer, srv.svc)
 			reflection.Register(grpcServer)
 			c <- true
