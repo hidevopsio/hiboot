@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Line 1: main package
-package controllers
+package controller
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app/web"
@@ -36,12 +36,5 @@ func TestFooPost(t *testing.T) {
 	GetTestApplication(t).
 		Post("/foo").
 		WithJSON(FooRequest{Name: "Mike", Age: 18}).
-		Expect().Status(http.StatusOK)
-}
-
-func TestFooLogin(t *testing.T) {
-	GetTestApplication(t).
-		Post("/foo/login").
-		WithJSON(UserRequest{Username: "mike", Password: "daDg83t"}).
 		Expect().Status(http.StatusOK)
 }

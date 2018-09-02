@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Line 1: main package
-package controllers
+package controller
 
 import (
 	"fmt"

@@ -45,6 +45,7 @@ var (
 	grpcClients []*grpcService
 )
 
+// RegisterClient register server from application
 func RegisterServer(cb interface{}, s interface{}) {
 	svr := &grpcService{
 		cb:  cb,
@@ -53,6 +54,7 @@ func RegisterServer(cb interface{}, s interface{}) {
 	grpcServers = append(grpcServers, svr)
 }
 
+// RegisterClient register client from application
 func RegisterClient(name string, cb interface{}, s ...interface{}) {
 	var svc interface{}
 	if s != nil && len(s) != 0 {
@@ -70,11 +72,12 @@ func init() {
 	app.AutoConfiguration(new(grpcConfiguration))
 }
 
-// inject instanceFactory
+// Init inject instanceFactory
 func (c *grpcConfiguration) Init(instantiateFactory factory.InstantiateFactory) {
 	c.instantiateFactory = instantiateFactory
 }
 
+// RunGrpcServers create gRPC Clients that registered by application
 func (c *grpcConfiguration) BuildGrpcClients() {
 	clientProps := c.Properties.Client
 	for _, cli := range grpcClients {
@@ -114,6 +117,7 @@ func (c *grpcConfiguration) BuildGrpcClients() {
 	}
 }
 
+// RunGrpcServers create gRPC servers that registered by application
 func (c *grpcConfiguration) RunGrpcServers() {
 	// just return if grpc server is not enabled
 	if !c.Properties.Server.Enabled {
@@ -136,7 +140,7 @@ func (c *grpcConfiguration) RunGrpcServers() {
 			reflection.Register(grpcServer)
 			c <- true
 			if err := grpcServer.Serve(lis); err != nil {
-				fmt.Errorf("failed to serve: %v", err)
+				fmt.Printf("failed to serve: %v", err)
 			}
 			fmt.Printf("gRPC server exit\n")
 		}()

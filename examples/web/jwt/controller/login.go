@@ -16,35 +16,45 @@ package controller
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
-	"net/http"
-	"strings"
+	"time"
 )
 
-type Bar struct {
-	Greeting string
+// request body
+type userRequest struct {
+	model.RequestBody
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
-type barController struct {
-	jwt.Controller
+// PATH: /login
+type loginController struct {
+	web.Controller
+
+	jwtToken jwt.Token
 }
 
 func init() {
-	web.RestController(new(barController))
+	// Register Rest Controller loginController
+	web.RestController(new(loginController))
 }
 
-func (c *barController) Get() (response model.Response) {
-	username := c.JwtProperty("username")
-	password := c.JwtProperty("password")
-	log.Debugf("username: %v, password: %v", username, strings.Repeat("*", len(password)))
+// Init inject jwtToken through Init method argument
+func (c *loginController) Init(jwtToken jwt.Token) {
+	c.jwtToken = jwtToken
+}
 
-	log.Debug("BarController.SayHello")
+// Post /
+// The first word of method is the http method POST, the rest is the context mapping
+func (c *loginController) Post(request *userRequest) (response model.Response, err error) {
+	jwtToken, _ := c.jwtToken.Generate(jwt.Map{
+		"username": request.Username,
+		"password": request.Password,
+	}, 30, time.Minute)
 
 	response = new(model.BaseResponse)
-	response.SetCode(http.StatusOK)
-	response.SetMessage("success")
-	response.SetData(&Bar{Greeting: "Hello " + username})
+	response.SetData(jwtToken)
+
 	return
 }

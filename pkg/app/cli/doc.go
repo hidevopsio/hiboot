@@ -12,19 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+/*
+Package cli provides quick start framework for command line application.
 
-import (
-	"github.com/hidevopsio/hiboot/pkg/app/cli"
-	"github.com/stretchr/testify/assert"
-	"testing"
-)
+The main features of Hiboot cli application are
 
-func TestSecondCommands(t *testing.T) {
-	testApp := cli.NewTestApplication(t, new(secondCommand))
+* Dependency Injection
+* Struct Tag for dependency injection
+* Sub command handler
 
-	t.Run("should run second command", func(t *testing.T) {
-		_, err := testApp.RunTest("")
-		assert.Equal(t, nil, err)
-	})
-}
+*/
+package cli
