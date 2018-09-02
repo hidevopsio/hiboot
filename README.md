@@ -17,6 +17,9 @@
   <a href="https://goreportcard.com/report/github.com/hidevopsio/hiboot">
       <img src="https://goreportcard.com/badge/github.com/hidevopsio/hiboot" />
   </a>
+  <a href="https://godoc.org/github.com/hidevopsio/hiboot">
+      <img src="https://godoc.org/github.com/golang/gddo?status.svg" />
+  </a>
 </p>
 
 ## About
