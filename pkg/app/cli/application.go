@@ -19,7 +19,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
-	"github.com/hidevopsio/hiboot/pkg/utils/sort"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -80,7 +79,6 @@ func NewApplication(cmd ...Command)  Application {
 	a := new(application)
 	if a.initialize(cmd...) != nil {
 		log.Fatal("cli application is not initialized")
-		os.Exit(1)
 	}
 	return a
 }
@@ -134,26 +132,26 @@ func (a *application) build() error {
 
 	if a.root != nil && a.root.HasChild() {
 		a.injectCommand(a.root)
-	} else {
-		// parse commands
-		parentContainer := make(map[string]Command)
-		fullname := "root"
-		sort.SortByLen(commandNames)
-		parentContainer[fullname] = a.root
-		for _, cmdName := range commandNames {
-			commands := commandContainer[cmdName]
-			parent := parentContainer[cmdName]
-			if parent == nil {
-				parent = a.root
-			}
-			for _, command := range commands {
-				inject.IntoObjectValue(reflect.ValueOf(command))
-				parent.Add(command)
-				fullname := cmdName + "." + command.GetName()
-				parentContainer[fullname] = command
-				command.SetFullName(fullname)
-			}
-		}
+	//} else {
+	//	// parse commands
+	//	parentContainer := make(map[string]Command)
+	//	fullname := "root"
+	//	sort.SortByLen(commandNames)
+	//	parentContainer[fullname] = a.root
+	//	for _, cmdName := range commandNames {
+	//		commands := commandContainer[cmdName]
+	//		parent := parentContainer[cmdName]
+	//		if parent == nil {
+	//			parent = a.root
+	//		}
+	//		for _, command := range commands {
+	//			inject.IntoObjectValue(reflect.ValueOf(command))
+	//			parent.Add(command)
+	//			fullname := cmdName + "." + command.GetName()
+	//			parentContainer[fullname] = command
+	//			command.SetFullName(fullname)
+	//		}
+	//	}
 	}
 	return nil
 }

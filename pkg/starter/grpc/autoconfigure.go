@@ -130,10 +130,10 @@ func (c *grpcConfiguration) RunGrpcServers() {
 	// register server
 	// Register reflection service on gRPC server.
 	for _, srv := range grpcServers {
-		reflector.CallFunc(srv.cb, grpcServer, srv.svc)
-		reflection.Register(grpcServer)
 		c := make(chan bool)
 		go func() {
+			reflector.CallFunc(srv.cb, grpcServer, srv.svc)
+			reflection.Register(grpcServer)
 			c <- true
 			if err := grpcServer.Serve(lis); err != nil {
 				fmt.Errorf("failed to serve: %v", err)
