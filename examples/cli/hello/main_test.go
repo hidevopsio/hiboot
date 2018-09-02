@@ -27,7 +27,7 @@ func TestRunMain(t *testing.T) {
 
 func TestHelloCommands(t *testing.T) {
 	helloCmd := new(HelloCommand)
-	testApp := cli.NewTestApplication(helloCmd)
+	testApp := cli.NewTestApplication(t, helloCmd)
 
 	t.Run("should run hello command", func(t *testing.T) {
 		_, err := testApp.RunTest("--to", "hiboot")

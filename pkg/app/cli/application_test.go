@@ -105,7 +105,7 @@ func (c *bazCommand) Run(args []string) (err error) {
 
 // demo foo bar
 func TestCliApplication(t *testing.T) {
-	testApp := NewTestApplication(new(demoCommand))
+	testApp := NewTestApplication(t, new(demoCommand))
 
 	t.Run("should run root command", func(t *testing.T) {
 		_, err := testApp.RunTest("-p", "test", "-i", "2")
@@ -142,7 +142,7 @@ func TestCliApplication(t *testing.T) {
 func TestCliMultiCommand(t *testing.T) {
 	fooCmd := new(fooCommand)
 	barCmd := new(barCommand)
-	testApp := NewTestApplication(fooCmd, barCmd)
+	testApp := NewTestApplication(t, fooCmd, barCmd)
 
 	t.Run("should run foo command", func(t *testing.T) {
 		_, err := testApp.RunTest("foo")

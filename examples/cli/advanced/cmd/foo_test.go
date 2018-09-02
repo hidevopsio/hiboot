@@ -7,7 +7,7 @@ import (
 )
 
 func TestFooCommands(t *testing.T) {
-	testApp := cli.NewTestApplication(new(fooCommand))
+	testApp := cli.NewTestApplication(t, new(fooCommand))
 
 	t.Run("should run foo command", func(t *testing.T) {
 		_, err := testApp.RunTest()

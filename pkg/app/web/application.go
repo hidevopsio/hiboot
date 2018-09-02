@@ -26,7 +26,6 @@ import (
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/i18n"
 	"github.com/kataras/iris/middleware/logger"
-	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -48,7 +47,6 @@ type application struct {
 	app.BaseApplication
 	webApp          *iris.Application
 	jwtEnabled      bool
-	httpMethods     []string
 	anonControllers []interface{}
 	jwtControllers  []interface{}
 	dispatcher      dispatcher
@@ -57,8 +55,8 @@ type application struct {
 
 var (
 	// controllers global controllers container
-	webControllers []interface{}
-	compiledRegExp = regexp.MustCompile(`\{(.*?)\}`)
+	registeredControllers []interface{}
+	compiledRegExp         = regexp.MustCompile(`\{(.*?)\}`)
 
 	ControllersNotFoundError = errors.New("[app] controllers not found")
 	InvalidControllerError   = errors.New("[app] invalid controller")
@@ -75,6 +73,9 @@ func (a *application) Run() {
 	if conf != nil && conf.Server.Port != "" {
 		serverPort = fmt.Sprintf(":%v", conf.Server.Port)
 	}
+
+	a.build()
+
 	// TODO: WithCharset should be configurable
 	a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(DefaultConfiguration()))
 }
@@ -92,28 +93,8 @@ func (a *application) add(controllers ...interface{}) {
 }
 
 // Init init web application
-func (a *application) Init(controllers ...interface{}) error {
-
-	// run base Init
-	err := a.BaseApplication.Init(controllers...)
-	if err != nil {
-		return err
-	}
-
-	// before init
-	a.BeforeInitialization()
-
-	a.httpMethods = []string{
-		http.MethodGet,
-		http.MethodHead,
-		http.MethodPost,
-		http.MethodPut,
-		http.MethodPatch,
-		http.MethodDelete,
-		http.MethodConnect,
-		http.MethodOptions,
-		http.MethodTrace,
-	}
+func (a *application) build(controllers ...interface{}) error {
+	a.webApp = iris.New()
 
 	systemConfig := a.SystemConfig()
 	if systemConfig != nil {
@@ -127,15 +108,6 @@ func (a *application) Init(controllers ...interface{}) error {
 
 	// build auto configurations
 	a.BuildConfigurations()
-
-	a.controllerMap = make(map[string][]interface{})
-	if len(controllers) == 0 {
-		a.add(webControllers...)
-	} else {
-		a.add(controllers...)
-	}
-
-	a.webApp = iris.New()
 
 	//TODO: move out to starter/logging
 	customLogger := logger.New(logger.Config{
@@ -173,7 +145,7 @@ func (a *application) Init(controllers ...interface{}) error {
 		}
 	})
 
-	err = a.initLocale()
+	err := a.initLocale()
 	if err != nil {
 		log.Debug(err)
 	}
@@ -258,19 +230,32 @@ func (a *application) initLocale() error {
 	return nil
 }
 
+func (a *application) initialize(controllers ...interface{}) (err error) {
+	io.EnsureWorkDir(3, "config/application.yml")
+	err = a.Init()
+	if err == nil {
+		a.controllerMap = make(map[string][]interface{})
+		if len(controllers) == 0 {
+			a.add(registeredControllers...)
+		} else {
+			a.add(controllers...)
+		}
+	}
+	return
+}
+
 // Add add controller to controllers container
 func RestController(controllers ...interface{}) {
-	webControllers = append(webControllers, controllers...)
+	registeredControllers = append(registeredControllers, controllers...)
 }
 
 // NewApplication create new web application instance and init it
 func NewApplication(controllers ...interface{}) app.Application {
-	wa := new(application)
-	io.EnsureWorkDir(2, "config/application.yml")
-	err := wa.Init(controllers...)
+	a := new(application)
+	err := a.initialize(controllers...)
 	if err != nil {
 		log.Error(err)
 		os.Exit(1)
 	}
-	return wa
+	return a
 }

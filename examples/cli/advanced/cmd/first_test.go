@@ -7,7 +7,7 @@ import (
 )
 
 func TestFirstCommands(t *testing.T) {
-	testApp := cli.NewTestApplication(new(FirstCommand))
+	testApp := cli.NewTestApplication(t, new(FirstCommand))
 
 	t.Run("should run first command", func(t *testing.T) {
 		_, err := testApp.RunTest("-t", "10")
