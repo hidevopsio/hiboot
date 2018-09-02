@@ -8,7 +8,7 @@ import (
 
 func TestBarCommands(t *testing.T) {
 
-	testApp := cli.NewTestApplication(new(barCommand))
+	testApp := cli.NewTestApplication(t, new(barCommand))
 
 	t.Run("should run bar command", func(t *testing.T) {
 		_, err := testApp.RunTest()

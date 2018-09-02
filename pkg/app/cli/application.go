@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package cli provides quick start for command line application
 package cli
 
 import (
@@ -25,12 +26,12 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 // Application cli application interface
 type Application interface {
-	Run()
-	Init(cmd ...Command) error
+	app.Application
 	Root() Command
 	SetRoot(root Command)
 }
@@ -74,19 +75,13 @@ func AddCommand(parentPath string, commands ...Command) {
 	}
 }
 
-// GetApplication get the application instance
-func GetApplication() Application {
-	once.Do(func() {
-		cliApp = new(application)
-		cliApp.SetRoot(new(rootCommand))
-	})
-	return cliApp
-}
-
 // NewApplication create new cli application
-func NewApplication(cmd ...Command) Application {
-	a := GetApplication()
-	a.Init(cmd...)
+func NewApplication(cmd ...Command)  Application {
+	a := new(application)
+	if a.initialize(cmd...) != nil {
+		log.Fatal("cli application is not initialized")
+		os.Exit(1)
+	}
 	return a
 }
 
@@ -102,27 +97,35 @@ func (a *application) injectCommand(cmd Command) {
 	}
 }
 
+func (a *application) initialize(cmd ...Command) (err error) {
+	err = a.Init()
+	if err == nil {
+		var root Command
+		root = new(rootCommand)
+		numOfCmd := len(cmd)
+		if cmd != nil && numOfCmd > 0 {
+			if numOfCmd == 1 {
+				root = cmd[0]
+			} else {
+				root.Add(cmd...)
+			}
+		}
+		root.SetName("root")
+		a.SetRoot(root)
+	}
+	return
+}
+
 // Init initialize cli application
-func (a *application) Init(cmd ...Command) error {
-	a.BaseApplication.Init()
+func (a *application) build() error {
 	basename := filepath.Base(os.Args[0])
 	if runtime.GOOS == "windows" {
 		basename = strings.ToLower(basename)
 		basename = strings.TrimSuffix(basename, ".exe")
 	}
 
-	var root Command
-	root = new(rootCommand)
-	numOfCmd := len(cmd)
-	if cmd != nil && numOfCmd > 0 {
-		if numOfCmd == 1 {
-			root = cmd[0]
-		} else {
-			root.Add(cmd...)
-		}
-	}
-	root.SetName("root")
-	inject.IntoObjectValue(reflect.ValueOf(root))
+	var root = a.Root()
+	inject.IntoObject(root)
 	Register(root)
 	a.SetRoot(root)
 	if !gotest.IsRunning() {
@@ -167,7 +170,7 @@ func (a *application) Root() Command {
 
 // Run run the cli application
 func (a *application) Run() {
-
+	a.build()
 	//log.Debug(commandContainer)
 	if a.root != nil {
 		if err := a.root.Exec(); err != nil {

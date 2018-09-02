@@ -18,11 +18,6 @@ type rootCommand struct {
 	BaseCommand
 }
 
-func init() {
-	app := GetApplication()
-	app.SetRoot(new(rootCommand).SetName("root"))
-}
-
 func (c *rootCommand) Init() {
 	c.Use = "root"
 	c.Short = "root command"

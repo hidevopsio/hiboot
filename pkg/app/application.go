@@ -16,7 +16,7 @@ import (
 )
 
 type Application interface {
-	Init(args ...interface{}) error
+	Init() error
 	Run()
 }
 
@@ -170,7 +170,7 @@ func HideBanner() {
 }
 
 // BeforeInitialization ?
-func (a *BaseApplication) Init(args ...interface{}) error {
+func (a *BaseApplication) Init() error {
 	if !hideBanner {
 		fmt.Print(banner)
 	}
@@ -186,8 +186,10 @@ func (a *BaseApplication) Init(args ...interface{}) error {
 	configurableFactory := new(autoconfigure.ConfigurableFactory)
 	configurableFactory.InstantiateFactory = instanceFactory
 	a.instances.Set("configurableFactory", configurableFactory)
-
 	inject.SetFactory(configurableFactory)
+	a.configurableFactory = configurableFactory
+
+	a.BeforeInitialization()
 
 	err := configurableFactory.Initialize(a.configurations)
 	if err != nil {
@@ -196,8 +198,6 @@ func (a *BaseApplication) Init(args ...interface{}) error {
 
 	a.systemConfig = new(system.Configuration)
 	configurableFactory.BuildSystemConfig(a.systemConfig)
-
-	a.configurableFactory = configurableFactory
 
 	return nil
 }
@@ -231,3 +231,4 @@ func (a *BaseApplication) RegisterController(controller interface{}) error {
 
 func (a *BaseApplication) Use(handlers ...context.Handler) {
 }
+

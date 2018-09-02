@@ -13,7 +13,7 @@ func init() {
 
 func TestCryptoCommands(t *testing.T) {
 	cryptoCmd := new(CryptoCommand)
-	testApp := cli.NewTestApplication(cryptoCmd)
+	testApp := cli.NewTestApplication(t, cryptoCmd)
 
 	t.Run("should run crypto rsa -e", func(t *testing.T) {
 		_, err := testApp.RunTest("rsa", "-e", "-s", "hello")
