@@ -460,9 +460,7 @@ func TestNewApplication(t *testing.T) {
 		assert.Equal(t, "myInterface", typ.Name())
 	})
 
-	web.HideBanner()
-
-	go wa.Run()
+	go wa.SetProperty("banner.disabled", true).Run()
 }
 
 func TestChangingWorkDir(t *testing.T) {

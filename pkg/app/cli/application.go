@@ -18,6 +18,7 @@ package cli
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/inject"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 	"os"
 	"path/filepath"
@@ -25,7 +26,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 // Application cli application interface
@@ -58,11 +58,6 @@ func init() {
 	commandNames = make([]string, 0)
 }
 
-// HideBanner hide banner display on application start up
-func HideBanner() {
-	app.HideBanner()
-}
-
 // AddCommand add new command
 func AddCommand(parentPath string, commands ...Command) {
 	// de-duplication
@@ -75,11 +70,17 @@ func AddCommand(parentPath string, commands ...Command) {
 }
 
 // NewApplication create new cli application
-func NewApplication(cmd ...Command)  Application {
+func NewApplication(cmd ...Command) Application {
 	a := new(application)
 	if a.initialize(cmd...) != nil {
 		log.Fatal("cli application is not initialized")
 	}
+	return a
+}
+
+// SetProperty
+func (a *application) SetProperty(name string, value interface{}) app.Application {
+	a.BaseApplication.SetProperty(name, value)
 	return a
 }
 
@@ -116,6 +117,8 @@ func (a *application) initialize(cmd ...Command) (err error) {
 
 // Init initialize cli application
 func (a *application) build() error {
+	a.PrintStartupMessages()
+
 	basename := filepath.Base(os.Args[0])
 	if runtime.GOOS == "windows" {
 		basename = strings.ToLower(basename)
@@ -132,26 +135,26 @@ func (a *application) build() error {
 
 	if a.root != nil && a.root.HasChild() {
 		a.injectCommand(a.root)
-	//} else {
-	//	// parse commands
-	//	parentContainer := make(map[string]Command)
-	//	fullname := "root"
-	//	sort.SortByLen(commandNames)
-	//	parentContainer[fullname] = a.root
-	//	for _, cmdName := range commandNames {
-	//		commands := commandContainer[cmdName]
-	//		parent := parentContainer[cmdName]
-	//		if parent == nil {
-	//			parent = a.root
-	//		}
-	//		for _, command := range commands {
-	//			inject.IntoObjectValue(reflect.ValueOf(command))
-	//			parent.Add(command)
-	//			fullname := cmdName + "." + command.GetName()
-	//			parentContainer[fullname] = command
-	//			command.SetFullName(fullname)
-	//		}
-	//	}
+		//} else {
+		//	// parse commands
+		//	parentContainer := make(map[string]Command)
+		//	fullname := "root"
+		//	sort.SortByLen(commandNames)
+		//	parentContainer[fullname] = a.root
+		//	for _, cmdName := range commandNames {
+		//		commands := commandContainer[cmdName]
+		//		parent := parentContainer[cmdName]
+		//		if parent == nil {
+		//			parent = a.root
+		//		}
+		//		for _, command := range commands {
+		//			inject.IntoObjectValue(reflect.ValueOf(command))
+		//			parent.Add(command)
+		//			fullname := cmdName + "." + command.GetName()
+		//			parentContainer[fullname] = command
+		//			command.SetFullName(fullname)
+		//		}
+		//	}
 	}
 	return nil
 }
