@@ -466,8 +466,10 @@ func TestNewApplication(t *testing.T) {
 }
 
 func TestChangingWorkDir(t *testing.T) {
-	os.RemoveAll(filepath.Join(os.TempDir(), "config"))
-	io.ChangeWorkDir(os.TempDir())
+	wd := filepath.Join(os.TempDir(), "testChangingWorkDir")
+	os.RemoveAll(filepath.Join(wd, "config"))
+	os.Mkdir(wd, os.ModeDevice)
+	io.ChangeWorkDir(wd)
 	app := web.NewTestApplication(t, new(HelloController))
 	t.Run("should Get /", func(t *testing.T) {
 		app.Get("/").
