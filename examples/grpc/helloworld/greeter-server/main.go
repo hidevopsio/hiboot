@@ -39,7 +39,7 @@ func (s *greeterServerImpl) SayHello(ctx context.Context, request *protobuf.Hell
 func init() {
 	// must: register grpc server
 	// please note that greeterService must implement protobuf.GreeterServer, or it won't be registered.
-	grpc.RegisterServer(protobuf.RegisterGreeterServer, new(greeterServerImpl))
+	grpc.Server(protobuf.RegisterGreeterServer, new(greeterServerImpl))
 }
 
 func main() {

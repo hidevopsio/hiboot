@@ -29,6 +29,9 @@ Dependency injection is a concept valid for any programming language. The genera
 called Inversion of Control. According to this concept a struct should not configure its dependencies statically but
 should be configured from the outside.
 
+Dependency Injection design pattern allows us to remove the hard-coded dependencies and make our application loosely
+coupled, extendable and maintainable.
+
 A Go struct has a dependency on another struct, if it uses an instance of this struct. We call this a struct dependency.
 For example, a struct which accesses a user controller has a dependency on user service struct.
 

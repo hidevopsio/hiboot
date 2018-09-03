@@ -21,7 +21,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"net"
@@ -54,6 +53,9 @@ func RegisterServer(cb interface{}, s interface{}) {
 	grpcServers = append(grpcServers, svr)
 }
 
+// Server alias to RegisterServer
+var Server = RegisterServer
+
 // RegisterClient register client from application
 func RegisterClient(name string, cb interface{}, s ...interface{}) {
 	var svc interface{}
@@ -67,6 +69,9 @@ func RegisterClient(name string, cb interface{}, s ...interface{}) {
 	}
 	grpcClients = append(grpcClients, svr)
 }
+
+// Client register client from application, it is a alias to RegisterClient
+var Client = RegisterClient
 
 func init() {
 	app.AutoConfiguration(new(grpcConfiguration))
@@ -96,16 +101,19 @@ func (c *grpcConfiguration) BuildGrpcClients() {
 			break
 		}
 		log.Infof("gRPC client connected to: %v", address)
-		clientInstanceName := str.ToLowerCamel(cli.name)
 		if cli.cb != nil {
+			// get return type for register instance name
 			gRpcCli, err := reflector.CallFunc(cli.cb, conn)
 			if err == nil {
-				// register grpc client
-				c.instantiateFactory.SetInstance(clientInstanceName, gRpcCli)
+				clientInstanceName, err := reflector.GetName(gRpcCli)
+				if err == nil {
+					// register grpc client
+					c.instantiateFactory.SetInstance(clientInstanceName, gRpcCli)
+					// register clientConn
+					c.instantiateFactory.SetInstance(clientInstanceName+"Conn", conn)
+				}
 			}
 		}
-		// register clientConn
-		c.instantiateFactory.SetInstance(clientInstanceName+"Conn", conn)
 
 		// register client service
 		if cli.svc != nil {
