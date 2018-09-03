@@ -14,7 +14,7 @@ func init() {
 	//}
 }
 
-// Next generate next id as uint64
+// Next generates next id as an uint64
 func Next() (id uint64, err error) {
 	var i uint64
 	i, err = sf.NextID()
@@ -24,7 +24,7 @@ func Next() (id uint64, err error) {
 	return
 }
 
-// NextString generate next id as string
+// NextString generates next id as a string
 func NextString() (id string, err error) {
 	var i uint64
 	i, err = sf.NextID()
