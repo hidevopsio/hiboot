@@ -39,7 +39,7 @@ func (m *HelloRequest) Reset()         { *m = HelloRequest{} }
 func (m *HelloRequest) String() string { return proto.CompactTextString(m) }
 func (*HelloRequest) ProtoMessage()    {}
 func (*HelloRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_helloworld_4c98e1d579ae72cb, []int{0}
+	return fileDescriptor_helloworld_1eee5d55ead23ca0, []int{0}
 }
 func (m *HelloRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HelloRequest.Unmarshal(m, b)
@@ -78,7 +78,7 @@ func (m *HelloReply) Reset()         { *m = HelloReply{} }
 func (m *HelloReply) String() string { return proto.CompactTextString(m) }
 func (*HelloReply) ProtoMessage()    {}
 func (*HelloReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_helloworld_4c98e1d579ae72cb, []int{1}
+	return fileDescriptor_helloworld_1eee5d55ead23ca0, []int{1}
 }
 func (m *HelloReply) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_HelloReply.Unmarshal(m, b)
@@ -118,86 +118,86 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// GreeterClient is the client API for Greeter service.
+// GreeterServiceClient is the client API for GreeterService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type GreeterClient interface {
+type GreeterServiceClient interface {
 	// Sends a greeting
 	SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
 }
 
-type greeterClient struct {
+type greeterServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewGreeterClient(cc *grpc.ClientConn) GreeterClient {
-	return &greeterClient{cc}
+func NewGreeterServiceClient(cc *grpc.ClientConn) GreeterServiceClient {
+	return &greeterServiceClient{cc}
 }
 
-func (c *greeterClient) SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error) {
+func (c *greeterServiceClient) SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error) {
 	out := new(HelloReply)
-	err := c.cc.Invoke(ctx, "/protobuf.Greeter/SayHello", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/protobuf.GreeterService/SayHello", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// GreeterServer is the server API for Greeter service.
-type GreeterServer interface {
+// GreeterServiceServer is the server API for GreeterService service.
+type GreeterServiceServer interface {
 	// Sends a greeting
 	SayHello(context.Context, *HelloRequest) (*HelloReply, error)
 }
 
-func RegisterGreeterServer(s *grpc.Server, srv GreeterServer) {
-	s.RegisterService(&_Greeter_serviceDesc, srv)
+func RegisterGreeterServiceServer(s *grpc.Server, srv GreeterServiceServer) {
+	s.RegisterService(&_GreeterService_serviceDesc, srv)
 }
 
-func _Greeter_SayHello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _GreeterService_SayHello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(HelloRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GreeterServer).SayHello(ctx, in)
+		return srv.(GreeterServiceServer).SayHello(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/protobuf.Greeter/SayHello",
+		FullMethod: "/protobuf.GreeterService/SayHello",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GreeterServer).SayHello(ctx, req.(*HelloRequest))
+		return srv.(GreeterServiceServer).SayHello(ctx, req.(*HelloRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _Greeter_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "protobuf.Greeter",
-	HandlerType: (*GreeterServer)(nil),
+var _GreeterService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "protobuf.GreeterService",
+	HandlerType: (*GreeterServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "SayHello",
-			Handler:    _Greeter_SayHello_Handler,
+			Handler:    _GreeterService_SayHello_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "helloworld.proto",
 }
 
-func init() { proto.RegisterFile("helloworld.proto", fileDescriptor_helloworld_4c98e1d579ae72cb) }
+func init() { proto.RegisterFile("helloworld.proto", fileDescriptor_helloworld_1eee5d55ead23ca0) }
 
-var fileDescriptor_helloworld_4c98e1d579ae72cb = []byte{
-	// 180 bytes of a gzipped FileDescriptorProto
+var fileDescriptor_helloworld_1eee5d55ead23ca0 = []byte{
+	// 187 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xc8, 0x48, 0xcd, 0xc9,
 	0xc9, 0x2f, 0xcf, 0x2f, 0xca, 0x49, 0xd1, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x00, 0x53,
 	0x49, 0xa5, 0x69, 0x4a, 0x4a, 0x5c, 0x3c, 0x1e, 0x20, 0xd9, 0xa0, 0xd4, 0xc2, 0xd2, 0xd4, 0xe2,
 	0x12, 0x21, 0x21, 0x2e, 0x96, 0xbc, 0xc4, 0xdc, 0x54, 0x09, 0x46, 0x05, 0x46, 0x0d, 0xce, 0x20,
 	0x30, 0x5b, 0x49, 0x8d, 0x8b, 0x0b, 0xaa, 0xa6, 0x20, 0xa7, 0x52, 0x48, 0x82, 0x8b, 0x3d, 0x37,
-	0xb5, 0xb8, 0x38, 0x31, 0x1d, 0xa6, 0x08, 0xc6, 0x35, 0x72, 0xe5, 0x62, 0x77, 0x2f, 0x4a, 0x4d,
-	0x2d, 0x49, 0x2d, 0x12, 0xb2, 0xe2, 0xe2, 0x08, 0x4e, 0xac, 0x04, 0xeb, 0x12, 0x12, 0xd3, 0x83,
-	0xd9, 0xa6, 0x87, 0x6c, 0x95, 0x94, 0x08, 0x86, 0x78, 0x41, 0x4e, 0xa5, 0x12, 0x83, 0x93, 0x01,
-	0x97, 0x74, 0x66, 0xbe, 0x5e, 0x7a, 0x51, 0x41, 0xb2, 0x5e, 0x6a, 0x45, 0x62, 0x6e, 0x41, 0x4e,
-	0x6a, 0xb1, 0x1e, 0xc2, 0x07, 0x4e, 0xfc, 0x60, 0xc5, 0xe1, 0x20, 0x76, 0x00, 0x48, 0x7f, 0x00,
-	0x63, 0x12, 0x1b, 0xd8, 0x20, 0x63, 0x40, 0x00, 0x00, 0x00, 0xff, 0xff, 0xd3, 0x8f, 0xb6, 0x2e,
-	0xe9, 0x00, 0x00, 0x00,
+	0xb5, 0xb8, 0x38, 0x31, 0x1d, 0xa6, 0x08, 0xc6, 0x35, 0xf2, 0xe1, 0xe2, 0x73, 0x2f, 0x4a, 0x4d,
+	0x2d, 0x49, 0x2d, 0x0a, 0x4e, 0x2d, 0x2a, 0xcb, 0x4c, 0x4e, 0x15, 0xb2, 0xe2, 0xe2, 0x08, 0x4e,
+	0xac, 0x04, 0x6b, 0x16, 0x12, 0xd3, 0x83, 0x59, 0xaa, 0x87, 0x6c, 0xa3, 0x94, 0x08, 0x86, 0x78,
+	0x41, 0x4e, 0xa5, 0x12, 0x83, 0x93, 0x01, 0x97, 0x74, 0x66, 0xbe, 0x5e, 0x7a, 0x51, 0x41, 0xb2,
+	0x5e, 0x6a, 0x45, 0x62, 0x6e, 0x41, 0x4e, 0x6a, 0xb1, 0x1e, 0xc2, 0x23, 0x4e, 0xfc, 0x60, 0xc5,
+	0xe1, 0x20, 0x76, 0x00, 0x48, 0x7f, 0x00, 0x63, 0x12, 0x1b, 0xd8, 0x20, 0x63, 0x40, 0x00, 0x00,
+	0x00, 0xff, 0xff, 0x2c, 0x3b, 0x09, 0x37, 0xf0, 0x00, 0x00, 0x00,
 }

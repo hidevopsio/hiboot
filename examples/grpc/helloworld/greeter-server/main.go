@@ -27,11 +27,11 @@ import (
 )
 
 // server is used to implement protobuf.GreeterServer.
-type greeterServerImpl struct {
+type greeterServiceServerImpl struct {
 }
 
 // SayHello implements helloworld.GreeterServer
-func (s *greeterServerImpl) SayHello(ctx context.Context, request *protobuf.HelloRequest) (*protobuf.HelloReply, error) {
+func (s *greeterServiceServerImpl) SayHello(ctx context.Context, request *protobuf.HelloRequest) (*protobuf.HelloReply, error) {
 	// response to client
 	return &protobuf.HelloReply{Message: "Hello " + request.Name}, nil
 }
@@ -39,7 +39,7 @@ func (s *greeterServerImpl) SayHello(ctx context.Context, request *protobuf.Hell
 func init() {
 	// must: register grpc server
 	// please note that greeterService must implement protobuf.GreeterServer, or it won't be registered.
-	grpc.Server(protobuf.RegisterGreeterServer, new(greeterServerImpl))
+	grpc.Server(protobuf.RegisterGreeterServiceServer, new(greeterServiceServerImpl))
 }
 
 func main() {

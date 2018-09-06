@@ -28,13 +28,13 @@ import (
 type greeterController struct {
 	// embedded web.Controller
 	web.Controller
-	// declare greeterClient
-	greeterClient protobuf.GreeterClient
+	// declare GreeterServiceClient
+	greeterServiceClient protobuf.GreeterServiceClient
 }
 
 // Init inject greeterClient
-func (c *greeterController) Init(greeterClient protobuf.GreeterClient) {
-	c.greeterClient = greeterClient
+func (c *greeterController) Init(greeterClient protobuf.GreeterServiceClient) {
+	c.greeterServiceClient = greeterClient
 }
 
 // GET /greeter/name/{name}
@@ -42,7 +42,7 @@ func (c *greeterController) GetByName(name string) string {
 
 	// call grpc server method
 	// pass context.Background() for the sake of simplicity
-	response, err := c.greeterClient.SayHello(context.Background(), &protobuf.HelloRequest{Name: name})
+	response, err := c.greeterServiceClient.SayHello(context.Background(), &protobuf.HelloRequest{Name: name})
 
 	// got response
 	if err == nil {
@@ -64,7 +64,7 @@ func init() {
 	//       host: localhost # server host
 	//       port: 7575      # server port
 	//
-	grpc.Client("greeter-client", protobuf.NewGreeterClient)
+	grpc.Client("greeter-client", protobuf.NewGreeterServiceClient)
 
 	// must: register greeterController
 	web.RestController(new(greeterController))
