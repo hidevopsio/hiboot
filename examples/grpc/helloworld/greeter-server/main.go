@@ -13,6 +13,7 @@
 // limitations under the License.
 
 // if protoc report command not found error, should install proto and protc-gen-go
+// find protoc install instruction on http://google.github.io/proto-lens/installing-protoc.html
 // go get -u -v github.com/golang/protobuf/{proto,protoc-gen-go}
 //go:generate protoc -I ../protobuf --go_out=plugins=grpc:../protobuf ../protobuf/helloworld.proto
 
