@@ -38,9 +38,6 @@ For example, a struct which accesses a user controller has a dependency on user 
 Ideally Go struct should be as independent as possible from other Go struct. This increases the possibility of reusing
 these struct and to be able to test them independently from other struct.
 
-If the Go struct creates an instance of another struct via the new operator, it cannot be used (and tested)
-independently from this struct and this is called a hard dependency.
-
 The following example shows a struct which has no hard dependencies.
 
 */
