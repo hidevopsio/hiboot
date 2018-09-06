@@ -8,6 +8,6 @@ logging:
 
 grpc:
   client:
-    greeter-client:
+    greeter-services:
       host: localhost
       port: 7575

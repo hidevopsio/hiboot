@@ -63,11 +63,11 @@ func init() {
 	//
 	// grpc:
 	//   client:
-	// 	   greeter-client:   # client name
+	// 	   greeter-services:   # client name
 	//       host: localhost # server host
 	//       port: 7575      # server port
 	//
-	grpc.Client("greeter-client", protobuf.NewGreeterServiceClient)
+	grpc.Client("greeter-services", protobuf.NewGreeterServiceClient)
 
 	// must: register greeterController
 	web.RestController(new(greeterController))
