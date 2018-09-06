@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"testing"
-	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"net/http"
+	"testing"
 )
 
 func TestFooLogin(t *testing.T) {

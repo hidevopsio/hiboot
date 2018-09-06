@@ -15,10 +15,10 @@
 package web_test
 
 import (
-	"time"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"time"
 )
 
 // This example shows that jwtToken is injected through method Init,
@@ -60,4 +60,3 @@ func (c *loginController) Post(request *userRequest) (response model.Response, e
 
 	return
 }
-
