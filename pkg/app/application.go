@@ -20,7 +20,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
@@ -57,9 +56,7 @@ type BaseApplication struct {
 }
 
 var (
-	preConfigContainer  cmap.ConcurrentMap
-	configContainer     cmap.ConcurrentMap
-	postConfigContainer cmap.ConcurrentMap
+	configContainer     [][]interface{}
 	instanceContainer   cmap.ConcurrentMap
 
 	InvalidObjectTypeError        = errors.New("[app] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
@@ -77,23 +74,38 @@ _  __  / _  / _  /_/ / /_/ / /_/ / /_     Hiboot Application Framework
 )
 
 func init() {
-	preConfigContainer = cmap.New()
-	configContainer = cmap.New()
-	postConfigContainer = cmap.New()
 	instanceContainer = cmap.New()
 }
-
-func parseInstance(eliminator string, params ...interface{}) (name string, inst interface{}) {
-
-	if len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String {
-		name = params[0].(string)
-		inst = params[1]
-	} else {
-		name = reflector.ParseObjectName(params[0], eliminator)
-		inst = params[0]
-	}
-	return
-}
+//
+//func parseObjectName(eliminator string, inst interface{}) string  {
+//	name := reflector.ParseObjectName(inst, eliminator)
+//	if reflect.TypeOf(inst).Kind() == reflect.Func {
+//
+//	}
+//
+//	if name == "" || name == eliminator {
+//		name = reflector.ParseObjectPkgName(inst)
+//	}
+//	return name
+//}
+//
+//func parseInstance(eliminator string, params ...interface{}) (name string, inst interface{}) {
+//
+//	hasTwoParams := len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String
+//
+//	if hasTwoParams {
+//		inst = params[1]
+//		name = params[0].(string)
+//	} else {
+//		inst = params[0]
+//	}
+//
+//	if !hasTwoParams {
+//		name = parseObjectName(eliminator, inst)
+//	}
+//
+//	return
+//}
 
 func validateObjectType(inst interface{}) error {
 	val := reflect.ValueOf(inst)
@@ -107,53 +119,28 @@ func validateObjectType(inst interface{}) error {
 
 // AutoConfiguration register auto configuration struct
 func AutoConfiguration(params ...interface{}) (err error) {
-	if len(params) == 0 || params[0] == nil {
-		err = InvalidObjectTypeError
-		log.Error(err)
-		return
-	}
-	name, inst := parseInstance("Configuration", params...)
-	if name == "" || name == "configuration" {
-		name = reflector.ParseObjectPkgName(params[0])
-	}
+	cfg := make([]interface{}, 2)
 
-	ifcField := reflector.GetEmbeddedInterfaceField(inst)
-	var c cmap.ConcurrentMap
-	if ifcField.Anonymous {
-		switch ifcField.Name {
-		case "Configuration":
-			c = configContainer
-		case "PreConfiguration":
-			c = preConfigContainer
-		case "PostConfiguration":
-			c = postConfigContainer
-		default:
-			err = InvalidObjectTypeError
-			return
+	hasTwoParams := len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String
+	if hasTwoParams {
+		cfg[0] = params[0]
+		cfg[1] = params[1]
+	} else {
+		cfg[0] = params[0]
+	}
+	if cfg[0] != nil {
+		kind := reflect.TypeOf(cfg[0]).Kind()
+		if kind == reflect.Func || kind == reflect.Ptr{
+			configContainer = append(configContainer, cfg)
+			return nil
 		}
-	} else {
-		err = InvalidObjectTypeError
-		log.Error(err)
-		return
 	}
 
-	if _, ok := c.Get(name); ok {
-		err = ConfigurationNameIsTakenError
-		log.Error(err)
-		return
-	}
-
-	err = validateObjectType(inst)
-	if err == nil {
-		c.Set(name, inst)
-	} else {
-		log.Error(err)
-	}
-
-	return err
+	return InvalidObjectTypeError
 }
 
 // Component register a struct instance, so that it will be injectable.
+// starter should register component type
 func Component(params ...interface{}) error {
 	if len(params) == 0 || params[0] == nil {
 		return InvalidObjectTypeError
@@ -238,7 +225,7 @@ func (a *BaseApplication) SystemConfig() *system.Configuration {
 }
 
 func (a *BaseApplication) BuildConfigurations() {
-	a.configurableFactory.Build(preConfigContainer, configContainer, postConfigContainer)
+	a.configurableFactory.Build(configContainer)
 }
 
 func (a *BaseApplication) ConfigurableFactory() *autoconfigure.ConfigurableFactory {

@@ -26,7 +26,7 @@ import (
 	"net"
 )
 
-type grpcConfiguration struct {
+type configuration struct {
 	app.Configuration
 	Properties properties `mapstructure:"grpc"`
 
@@ -74,16 +74,22 @@ func RegisterClient(name string, cb interface{}, s ...interface{}) {
 var Client = RegisterClient
 
 func init() {
-	app.AutoConfiguration(new(grpcConfiguration))
+	app.AutoConfiguration(newConfiguration)
+}
+
+func newConfiguration(instantiateFactory factory.InstantiateFactory) *configuration {
+	return &configuration{
+		instantiateFactory: instantiateFactory,
+	}
 }
 
 // Init inject instanceFactory
-func (c *grpcConfiguration) Init(instantiateFactory factory.InstantiateFactory) {
+func (c *configuration) Init(instantiateFactory factory.InstantiateFactory) {
 	c.instantiateFactory = instantiateFactory
 }
 
 // RunGrpcServers create gRPC Clients that registered by application
-func (c *grpcConfiguration) BuildGrpcClients() {
+func (c *configuration) BuildGrpcClients() {
 	clientProps := c.Properties.Client
 	for _, cli := range grpcClients {
 		prop := new(client)
@@ -126,7 +132,7 @@ func (c *grpcConfiguration) BuildGrpcClients() {
 }
 
 // RunGrpcServers create gRPC servers that registered by application
-func (c *grpcConfiguration) RunGrpcServers() {
+func (c *configuration) RunGrpcServers() {
 	// just return if grpc server is not enabled
 	if !c.Properties.Server.Enabled {
 		return

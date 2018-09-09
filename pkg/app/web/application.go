@@ -19,17 +19,13 @@ import (
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
-	"github.com/kataras/iris/middleware/i18n"
 	"github.com/kataras/iris/middleware/logger"
 	"os"
-	"path/filepath"
 	"regexp"
-	"strings"
 )
 
 const (
@@ -94,8 +90,6 @@ func (a *application) add(controllers ...interface{}) {
 func (a *application) build(controllers ...interface{}) error {
 	a.PrintStartupMessages()
 
-	a.webApp = iris.New()
-
 	systemConfig := a.SystemConfig()
 	if systemConfig != nil {
 		log.SetLevel(systemConfig.Logging.Level)
@@ -145,18 +139,15 @@ func (a *application) build(controllers ...interface{}) error {
 		}
 	})
 
-	err := a.initLocale()
-	if err != nil {
-		log.Debug(err)
-	}
+	// inject Components`
 
 	// first register anon controllers
-	err = a.RegisterController(new(AnonController))
+	err := a.RegisterController(new(AnonController))
 
 	// call AfterInitialization with factory interface
 	a.AfterInitialization()
 
-	return nil
+	return err
 }
 
 // RegisterController register controller, e.g. web.Controller, jwt.Controller, or other customized controller
@@ -182,58 +173,12 @@ func (a *application) Use(handlers ...context.Handler) {
 	}
 }
 
-func (a *application) initLocale() error {
-	// TODO: localePath should be configurable in application.yml
-	// locale:
-	//   en-US: ./config/i18n/en-US.ini
-	//   cn-ZH: ./config/i18n/cn-ZH.ini
-	// TODO: or
-	// locale:
-	//   path: ./config/i18n/
-	localePath := "config/i18n/"
-	if io.IsPathNotExist(localePath) {
-		return &system.NotFoundError{Name: localePath}
-	}
-
-	// parse language files
-	languages := make(map[string]string)
-	err := filepath.Walk(localePath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			log.Fatal(err)
-		}
-		//*files = append(*files, path)
-		lng := strings.Replace(path, localePath, "", 1)
-		lng = io.BaseDir(lng)
-		lng = io.Basename(lng)
-
-		if lng != "" && path != localePath+lng {
-			//languages[lng] = path
-			if languages[lng] == "" {
-				languages[lng] = path
-			} else {
-				languages[lng] = languages[lng] + ", " + path
-			}
-			//log.Debugf("%v, %v", lng, languages[lng])
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
-	globalLocale := i18n.New(i18n.Config{
-		Default:      "en-US",
-		URLParameter: "lang",
-		Languages:    languages,
-	})
-
-	a.webApp.Use(globalLocale)
-
-	return nil
-}
-
 func (a *application) initialize(controllers ...interface{}) (err error) {
 	io.EnsureWorkDir(3, "config/application.yml")
+
+	// new iris app
+	a.webApp = iris.New()
+
 	err = a.Init()
 	if err == nil {
 		a.controllerMap = make(map[string][]interface{})
