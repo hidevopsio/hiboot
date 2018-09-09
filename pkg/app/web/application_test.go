@@ -22,6 +22,8 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
+	_ "github.com/hidevopsio/hiboot/pkg/starter/locale"
+	_ "github.com/hidevopsio/hiboot/pkg/starter/logging"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/stretchr/testify/assert"

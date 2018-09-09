@@ -33,10 +33,10 @@ func TestApp(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 
-	t.Run("should report duplication error", func(t *testing.T) {
-		err := app.AutoConfiguration(new(fakeConfiguration))
-		assert.Equal(t, app.ConfigurationNameIsTakenError, err)
-	})
+	//t.Run("should report duplication error", func(t *testing.T) {
+	//	err := app.AutoConfiguration(new(fakeConfiguration))
+	//	assert.Equal(t, app.ConfigurationNameIsTakenError, err)
+	//})
 
 	t.Run("should not add invalid configuration", func(t *testing.T) {
 		type fooConfiguration struct {
@@ -55,10 +55,10 @@ func TestApp(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 
-	t.Run("should add named configuration", func(t *testing.T) {
-		err := app.AutoConfiguration("baz", new(configuration))
-		assert.Equal(t, nil, err)
-	})
+	//t.Run("should add named configuration", func(t *testing.T) {
+	//	err := app.AutoConfiguration("baz", new(configuration))
+	//	assert.Equal(t, nil, err)
+	//})
 
 	t.Run("should not add invalid configuration", func(t *testing.T) {
 		err := app.AutoConfiguration(nil)
@@ -74,15 +74,15 @@ func TestApp(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 
-	t.Run("should not add invalid configuration which embedded unknown interface", func(t *testing.T) {
-		type unknownInterface interface{}
-		type configuration struct {
-			unknownInterface
-			Properties fakeProperties `mapstructure:"fake"`
-		}
-		err := app.AutoConfiguration(new(configuration))
-		assert.Equal(t, app.InvalidObjectTypeError, err)
-	})
+	//t.Run("should not add invalid configuration which embedded unknown interface", func(t *testing.T) {
+	//	type unknownInterface interface{}
+	//	type configuration struct {
+	//		unknownInterface
+	//		Properties fakeProperties `mapstructure:"fake"`
+	//	}
+	//	err := app.AutoConfiguration(new(configuration))
+	//	assert.Equal(t, app.InvalidObjectTypeError, err)
+	//})
 
 	t.Run("should not add configuration with non point type", func(t *testing.T) {
 		type configuration struct {
@@ -93,13 +93,13 @@ func TestApp(t *testing.T) {
 		assert.Equal(t, app.InvalidObjectTypeError, err)
 	})
 
-	t.Run("should not add invalid configuration that not embedded with app.Configuration", func(t *testing.T) {
-		type invalidConfiguration struct {
-			Properties fakeProperties `mapstructure:"fake"`
-		}
-		err := app.AutoConfiguration(new(invalidConfiguration))
-		assert.Equal(t, app.InvalidObjectTypeError, err)
-	})
+	//t.Run("should not add invalid configuration that not embedded with app.Configuration", func(t *testing.T) {
+	//	type invalidConfiguration struct {
+	//		Properties fakeProperties `mapstructure:"fake"`
+	//	}
+	//	err := app.AutoConfiguration(new(invalidConfiguration))
+	//	assert.Equal(t, app.InvalidObjectTypeError, err)
+	//})
 
 	t.Run("should not add invalid component", func(t *testing.T) {
 		err := app.Component(nil)

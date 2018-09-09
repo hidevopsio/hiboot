@@ -25,6 +25,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"github.com/hidevopsio/hiboot/pkg/inject"
+	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
 type FakeProperties struct {
@@ -36,6 +38,7 @@ type FakeProperties struct {
 }
 
 type FakeConfiguration struct {
+	app.Configuration
 	FakeProperties FakeProperties `mapstructure:"fake"`
 }
 
@@ -46,7 +49,20 @@ type FooProperties struct {
 }
 
 type FooConfiguration struct {
+	app.Configuration
 	FakeProperties FooProperties `mapstructure:"foo"`
+}
+
+type FooBarConfiguration struct {
+	app.Configuration
+	FakeProperties FooProperties `mapstructure:"foo"`
+	foobar *FooBar
+}
+
+func newFooBarConfiguration(foobar *FooBar) *FooBarConfiguration  {
+	return &FooBarConfiguration{
+		foobar: foobar,
+	}
 }
 
 func (c *FooConfiguration) HelloWorld() string {
@@ -132,6 +148,22 @@ func TestConfigurableFactory(t *testing.T) {
 	f.InstantiateFactory.Initialize(cmap.New())
 	f.Initialize(configContainers)
 
+	inject.SetFactory(f)
+
+	t.Run("should parse instance name via object", func(t *testing.T) {
+		name, inst := f.ParseInstance("Configuration", new(FooBarConfiguration))
+		assert.Equal(t, "fooBar", name)
+		assert.NotEqual(t, nil, inst)
+	})
+
+	t.Run("should parse object instance name via constructor", func(t *testing.T) {
+		testName := "foobar"
+		f.SetInstance("fooBar", &FooBar{Name: testName})
+		name, inst := f.ParseInstance("Configuration", newFooBarConfiguration)
+		assert.Equal(t, "fooBar", name)
+		assert.Equal(t, testName, inst.(*FooBarConfiguration).foobar.Name)
+	})
+
 	t.Run("should build app config", func(t *testing.T) {
 		io.ChangeWorkDir(os.TempDir())
 		err := f.BuildSystemConfig(system.Configuration{})
@@ -148,12 +180,12 @@ func TestConfigurableFactory(t *testing.T) {
 	_, err = io.WriterFile(configPath, fooFile, []byte(fooContent))
 	assert.Equal(t, nil, err)
 
-	container := cmap.New()
+	container := make([][]interface{}, 0)
 	fooConfig := new(FooConfiguration)
-	container.Set("foo", fooConfig)
+	container = append(container, []interface{}{fooConfig})
 	fakeCfg := new(FakeConfiguration)
-	container.Set("fake", fakeCfg)
-	container.Set("fakeFake", FakeConfiguration{})
+	container = append(container, []interface{}{fakeCfg})
+	container = append(container, []interface{}{"fakeFake", FakeConfiguration{}})
 
 	f.Build(container)
 
@@ -193,11 +225,12 @@ func TestConfigurableFactory(t *testing.T) {
 	})
 
 	t.Run("should get foo configuration", func(t *testing.T) {
-		assert.Equal(t, "Hello world", f.GetInstance("helloWorld").(string))
+		helloWorld := f.GetInstance("helloWorld")
+		assert.NotEqual(t, nil, helloWorld)
+		assert.Equal(t, "Hello world", helloWorld.(string))
 
 		assert.Equal(t, "hiboot foo", fooConfig.FakeProperties.Nickname)
 		assert.Equal(t, "bar", fooConfig.FakeProperties.Username)
 		assert.Equal(t, "foo", fooConfig.FakeProperties.Name)
 	})
-
 }

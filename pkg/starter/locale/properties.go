@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package starter
+package locale
 
 type Properties struct {
-	Enabled   bool   `json:"enabled"`
-	DependsOn string `json:"depends_on"`
-	Before    string `json:"before"`
-	After     string `json:"after"`
+	Default string `json:"default" default:"en-US"`
+	URLParameter string `json:"url_parameter" default:"lang"`
+	LocalePath string `json:"locale_path" default:"config/i18n/"`
 }

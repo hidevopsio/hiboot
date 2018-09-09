@@ -20,6 +20,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
 	"strings"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 var InvalidInputError = errors.New("input is invalid")
@@ -237,7 +238,11 @@ func CallFunc(object interface{}, args ...interface{}) (interface{}, error) {
 }
 
 func HasEmbeddedField(object interface{}, name string) bool {
+	log.Debugf("HasEmbeddedField: %v", name)
 	typ := IndirectType(reflect.TypeOf(object))
+	if typ.Kind() != reflect.Struct {
+		return false
+	}
 	field, ok := typ.FieldByName(name)
 	return field.Anonymous && ok
 }
