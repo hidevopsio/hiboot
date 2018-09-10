@@ -23,9 +23,9 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/idgen"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"gorm.io/gorm"
 	"net/http"
 	"testing"
+	"github.com/hidevopsio/gorm"
 )
 
 func init() {
