@@ -15,11 +15,11 @@
 package logging
 
 import (
-	"testing"
 	"github.com/hidevopsio/hiboot/pkg/app/fake"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/stretchr/testify/assert"
 	"reflect"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"testing"
 )
 
 func TestConfiguration(t *testing.T) {

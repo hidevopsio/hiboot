@@ -41,9 +41,9 @@ const (
 )
 
 var (
-	InvalidMethodError           = errors.New("[factory] method is invalid")
-	FactoryCannotBeNilError      = errors.New("[factory] InstantiateFactory can not be nil")
-	FactoryIsNotInitializedError = errors.New("[factory] InstantiateFactory is not initialized")
+	InvalidMethodError            = errors.New("[factory] method is invalid")
+	FactoryCannotBeNilError       = errors.New("[factory] InstantiateFactory can not be nil")
+	FactoryIsNotInitializedError  = errors.New("[factory] InstantiateFactory is not initialized")
 	InvalidObjectTypeError        = errors.New("[factory] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
 	ConfigurationNameIsTakenError = errors.New("[factory] configuration name is already taken")
 	ComponentNameIsTakenError     = errors.New("[factory] component name is already taken")
