@@ -71,6 +71,18 @@ func (c *userController) GetById(id uint64) (response model.Response, err error)
 	return
 }
 
+// GetById GET /id/{id}
+func (c *userController) GetAll() (response model.Response, err error) {
+	users, err := c.userService.GetAll()
+	response = new(model.BaseResponse)
+	if err != nil {
+		response.SetCode(http.StatusNotFound)
+	} else {
+		response.SetData(users)
+	}
+	return
+}
+
 // DeleteById DELETE /id/{id}
 func (c *userController) DeleteById(id uint64) (response model.Response, err error) {
 	err = c.userService.DeleteUser(id)
