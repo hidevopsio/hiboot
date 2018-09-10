@@ -16,18 +16,18 @@ package locale
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"path/filepath"
-	"os"
-	"strings"
-	"github.com/kataras/iris/middleware/i18n"
-	"github.com/kataras/iris/context"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/kataras/iris/context"
+	"github.com/kataras/iris/middleware/i18n"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 type configuration struct {
 	app.Configuration
-	Properties Properties `mapstructure:"locale"`
+	Properties         Properties `mapstructure:"locale"`
 	applicationContext app.ApplicationContext
 }
 

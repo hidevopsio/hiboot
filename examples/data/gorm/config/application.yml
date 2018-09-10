@@ -6,6 +6,8 @@ app:
   name: gorm-demo
   profiles:
     include:
+    - locale
+    - logging
     - gorm
 
 logging:

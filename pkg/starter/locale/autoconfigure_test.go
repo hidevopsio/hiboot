@@ -15,11 +15,11 @@
 package locale
 
 import (
-	"testing"
 	"github.com/hidevopsio/hiboot/pkg/app/fake"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/stretchr/testify/assert"
 	"reflect"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"testing"
 )
 
 func TestConfiguration(t *testing.T) {
@@ -33,9 +33,9 @@ func TestConfiguration(t *testing.T) {
 	t.Run("should get handler", func(t *testing.T) {
 		io.EnsureWorkDir(1, "config/application.yml")
 		c.Properties = Properties{
-			Default: "en-US",
+			Default:      "en-US",
 			URLParameter: "lang",
-			LocalePath: "config/i18n/",
+			LocalePath:   "config/i18n/",
 		}
 		c.LocaleHandler()
 	})

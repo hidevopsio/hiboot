@@ -18,12 +18,16 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	_ "github.com/hidevopsio/hiboot/pkg/starter/locale"
+	_ "github.com/hidevopsio/hiboot/pkg/starter/logging"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 	"os"
+	"reflect"
 	"regexp"
 )
 
@@ -37,12 +41,13 @@ const (
 // Application is the struct of web Application
 type application struct {
 	app.BaseApplication
-	webApp          *iris.Application
-	jwtEnabled      bool
-	anonControllers []interface{}
-	jwtControllers  []interface{}
-	dispatcher      dispatcher
-	controllerMap   map[string][]interface{}
+	webApp     *iris.Application
+	jwtEnabled bool
+	//anonControllers []interface{}
+	//jwtControllers  []interface{}
+	controllers   []interface{}
+	dispatcher    dispatcher
+	controllerMap map[string][]interface{}
 }
 
 var (
@@ -75,12 +80,16 @@ func (a *application) Run() {
 
 func (a *application) add(controllers ...interface{}) {
 	for _, controller := range controllers {
-
-		ifcField := reflector.GetEmbeddedInterfaceField(controller)
+		ctrl := controller
+		// TODO: should run it before register
+		if reflect.TypeOf(controller).Kind() == reflect.Func {
+			ctrl, _ = inject.IntoFunc(controller)
+		}
+		ifcField := reflector.GetEmbeddedInterfaceField(ctrl)
 		if ifcField.Anonymous {
 			ctrlTypeName := ifcField.Name
-			controllers := a.controllerMap[ctrlTypeName]
-			a.controllerMap[ctrlTypeName] = append(controllers, controller)
+			ctrls := a.controllerMap[ctrlTypeName]
+			a.controllerMap[ctrlTypeName] = append(ctrls, ctrl)
 		}
 	}
 }
@@ -112,12 +121,15 @@ func (a *application) build(controllers ...interface{}) error {
 		}
 	})
 
+	// categorize controllers
+	a.controllerMap = make(map[string][]interface{})
+	a.add(a.controllers...)
+
 	// first register anon controllers
 	err := a.RegisterController(new(AnonController))
 
 	// call AfterInitialization with factory interface
 	a.AfterInitialization()
-
 	return err
 }
 
@@ -152,11 +164,10 @@ func (a *application) initialize(controllers ...interface{}) (err error) {
 
 	err = a.Initialize()
 	if err == nil {
-		a.controllerMap = make(map[string][]interface{})
 		if len(controllers) == 0 {
-			a.add(registeredControllers...)
+			a.controllers = registeredControllers
 		} else {
-			a.add(controllers...)
+			a.controllers = controllers
 		}
 	}
 	return
@@ -169,6 +180,7 @@ func RestController(controllers ...interface{}) {
 
 // NewApplication create new web application instance and init it
 func NewApplication(controllers ...interface{}) app.Application {
+	log.SetLevel("error") // set debug level to error first
 	a := new(application)
 	err := a.initialize(controllers...)
 	if err != nil {

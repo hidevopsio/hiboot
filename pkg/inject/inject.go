@@ -177,7 +177,7 @@ func IntoObjectValue(object reflect.Value) error {
 		if injectedObject != nil && fieldObj.CanSet() {
 			fov := reflect.ValueOf(injectedObject)
 			fieldObj.Set(fov)
-			log.Debugf("Injected %v.(%v) into %v.%v", injectedObject, fov.Type(), obj.Type(), f.Name)
+			log.Infof("Injected %v.(%v) into %v.%v", injectedObject, fov.Type(), obj.Type(), f.Name)
 		}
 
 		//log.Debugf("- kind: %v, %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type(), f.Name)

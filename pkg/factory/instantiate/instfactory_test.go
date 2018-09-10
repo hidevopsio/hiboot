@@ -15,10 +15,10 @@
 package instantiate_test
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 )
 
 type FooBar struct {
@@ -26,7 +26,7 @@ type FooBar struct {
 }
 
 type fooBarService struct {
-	Name string
+	Name   string
 	fooBar *FooBar
 }
 
@@ -38,7 +38,7 @@ type BarServiceImpl struct {
 	BarService
 }
 
-func (s *BarServiceImpl) Bar() string  {
+func (s *BarServiceImpl) Bar() string {
 	return "bar"
 }
 

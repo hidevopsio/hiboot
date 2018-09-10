@@ -22,8 +22,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
-	_ "github.com/hidevopsio/hiboot/pkg/starter/locale"
-	_ "github.com/hidevopsio/hiboot/pkg/starter/logging"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/stretchr/testify/assert"
@@ -81,7 +79,7 @@ type FooBar struct {
 	Name string
 }
 
-type FooBarService struct{
+type FooBarService struct {
 	fooBar *FooBar
 }
 
@@ -232,6 +230,13 @@ func (c *FoobarController) Get(request *FoobarRequestParams) (response model.Res
 type HelloController struct {
 	web.Controller
 	ContextMapping string `value:"/"`
+	fooBar         *FooBar
+}
+
+func newHelloController(fooBar *FooBar) *HelloController {
+	return &HelloController{
+		fooBar: fooBar,
+	}
 }
 
 // Get hello
@@ -491,7 +496,7 @@ func TestChangingWorkDir(t *testing.T) {
 	os.RemoveAll(filepath.Join(wd, "config"))
 	os.Mkdir(wd, os.ModeDevice)
 	io.ChangeWorkDir(wd)
-	wta := web.NewTestApplication(t, new(HelloController))
+	wta := web.NewTestApplication(t, newHelloController)
 	t.Run("should Get /", func(t *testing.T) {
 		wta.Get("/").
 			Expect().Status(http.StatusOK)

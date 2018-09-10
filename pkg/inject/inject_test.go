@@ -15,6 +15,7 @@
 package inject_test
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
@@ -27,7 +28,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
 type user struct {

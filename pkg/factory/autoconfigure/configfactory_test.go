@@ -15,8 +15,10 @@
 package autoconfigure_test
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
+	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
@@ -25,8 +27,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"github.com/hidevopsio/hiboot/pkg/inject"
-	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
 type FakeProperties struct {
@@ -47,7 +47,6 @@ type unknownConfiguration struct {
 }
 
 type FooInterface interface {
-
 }
 
 type unsupportedConfiguration struct {
@@ -74,17 +73,17 @@ type BarConfiguration struct {
 type FooBarConfiguration struct {
 	app.Configuration
 	FakeProperties FooProperties `mapstructure:"foo"`
-	foobar *FooBar
+	foobar         *FooBar
 }
 
-func newFooBarConfiguration(foobar *FooBar) *FooBarConfiguration  {
+func newFooBarConfiguration(foobar *FooBar) *FooBarConfiguration {
 	return &FooBarConfiguration{
 		foobar: foobar,
 	}
 }
 
 func (c *FooConfiguration) HelloWorld(foo *Foo) string {
-	return  foo.Name + ": Hello world"
+	return foo.Name + ": Hello world"
 }
 
 func (c *FooConfiguration) Bar() *Bar {
@@ -94,7 +93,6 @@ func (c *FooConfiguration) Bar() *Bar {
 func (c *FooConfiguration) Foo(bar *Bar) *Foo {
 	return &Foo{Name: "foo"}
 }
-
 
 type Foo struct {
 	Name string

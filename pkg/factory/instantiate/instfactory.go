@@ -17,18 +17,18 @@ package instantiate
 import (
 	"errors"
 	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/inject"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"reflect"
-	"github.com/hidevopsio/hiboot/pkg/inject"
-	"strings"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"reflect"
+	"strings"
 )
 
 var (
-	NotInitializedError = errors.New("InstantiateFactory is not initialized")
-	InvalidObjectTypeError        = errors.New("[factory] invalid Component")
+	NotInitializedError    = errors.New("InstantiateFactory is not initialized")
+	InvalidObjectTypeError = errors.New("[factory] invalid Component")
 )
 
 type InstantiateFactory struct {
@@ -42,7 +42,6 @@ func (f *InstantiateFactory) Initialize(instanceMap cmap.ConcurrentMap) {
 func (f *InstantiateFactory) Initialized() bool {
 	return f.instanceMap != nil
 }
-
 
 func (f *InstantiateFactory) IsValidObjectType(inst interface{}) bool {
 	val := reflect.ValueOf(inst)
@@ -82,7 +81,6 @@ func (f *InstantiateFactory) ParseInstance(eliminator string, params ...interfac
 
 	return
 }
-
 
 func (f *InstantiateFactory) BuildComponents(components [][]interface{}) (err error) {
 	for _, item := range components {

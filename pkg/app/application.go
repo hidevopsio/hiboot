@@ -55,8 +55,8 @@ type BaseApplication struct {
 }
 
 var (
-	configContainer     [][]interface{}
-	componentContainer  [][]interface{}
+	configContainer    [][]interface{}
+	componentContainer [][]interface{}
 
 	InvalidObjectTypeError        = errors.New("[app] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
 	ConfigurationNameIsTakenError = errors.New("[app] configuration name is already taken")
@@ -75,6 +75,7 @@ _  __  / _  / _  /_/ / /_/ / /_/ / /_     Hiboot Application Framework
 func init() {
 	//instanceContainer = cmap.New()
 }
+
 //
 //func parseObjectName(eliminator string, inst interface{}) string  {
 //	name := reflector.ParseObjectName(inst, eliminator)
@@ -116,7 +117,7 @@ func validateObjectType(inst interface{}) error {
 	return InvalidObjectTypeError
 }
 
-func hasTwoParams(params ...interface{}) bool  {
+func hasTwoParams(params ...interface{}) bool {
 	return len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String
 }
 
@@ -138,7 +139,7 @@ func appendParams(container [][]interface{}, params ...interface{}) (retVal [][]
 	}
 	if inst != nil {
 		kind := reflect.TypeOf(inst).Kind()
-		if kind == reflect.Func || kind == reflect.Ptr{
+		if kind == reflect.Func || kind == reflect.Ptr {
 			retVal = append(container, item)
 			return
 		}
