@@ -22,7 +22,6 @@ import (
 	"testing"
 )
 
-var userService *UserServiceImpl
 var fakeUser = &entity.User{
 	Id:       1,
 	Name:     "Bill Gates",
@@ -34,9 +33,8 @@ var fakeUser = &entity.User{
 }
 
 func TestUserCrud(t *testing.T) {
-	userService = new(UserServiceImpl)
 	fakeRepository := new(gorm.FakeRepository)
-	userService.Init(fakeRepository)
+	userService := newUserService(fakeRepository)
 
 	t.Run("should return error if user is nil", func(t *testing.T) {
 		err := userService.AddUser((*entity.User)(nil))

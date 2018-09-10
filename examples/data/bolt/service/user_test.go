@@ -21,8 +21,6 @@ import (
 	"testing"
 )
 
-var userService *UserService
-
 type FakeRepository struct {
 	data.BaseKVRepository
 }
@@ -45,8 +43,7 @@ func init() {
 }
 
 func TestCrd(t *testing.T) {
-	userService = new(UserService)
-	userService.Init(&FakeRepository{})
+	userService := newUserService(&FakeRepository{})
 
 	t.Run("should add user", func(t *testing.T) {
 		user := &entity.User{Id: "1", Name: "John Doe", Age: 18}

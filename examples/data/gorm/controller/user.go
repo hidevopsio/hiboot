@@ -41,12 +41,14 @@ type userController struct {
 }
 
 func init() {
-	web.RestController(new(userController))
+	web.RestController(newUserController)
 }
 
 // Init inject userService automatically
-func (c *userController) Init(userService service.UserService) {
-	c.userService = userService
+func newUserController(userService service.UserService) *userController {
+	return &userController{
+		userService: userService,
+	}
 }
 
 // Post POST /user

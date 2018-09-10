@@ -37,13 +37,15 @@ type UserServiceImpl struct {
 
 func init() {
 	// register UserServiceImpl
-	app.Component(new(UserServiceImpl))
+	app.Component(newUserService)
 }
 
 // will inject BoltRepository that configured in github.com/hidevopsio/hiboot/pkg/starter/data/bolt
-func (s *UserServiceImpl) Init(repository gorm.Repository) {
-	s.repository = repository
+func newUserService(repository gorm.Repository) UserService {
 	repository.AutoMigrate(&entity.User{})
+	return &UserServiceImpl{
+		repository: repository,
+	}
 }
 
 func (s *UserServiceImpl) AddUser(user *entity.User) (err error) {

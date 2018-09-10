@@ -24,7 +24,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
-	"strings"
 )
 
 const (
@@ -74,18 +73,6 @@ func getInstanceByName(name string, instType reflect.Type) (inst interface{}) {
 	name = str.ToLowerCamel(name)
 	if fct != nil {
 		inst = fct.GetInstance(name)
-		// TODO: we should pro load all candidates into instances for improving performance.
-		// if inst is nil, and the object type is an interface
-		// then try to find the instance that embedded with the interface
-		//if !ok && instType.Kind() == reflect.Interface {
-		//	for _, ist := range fct.Items() {
-		//		//log.Debug(n)
-		//		if ist != nil && reflector.HasEmbeddedField(ist, instType.Name()) {
-		//			inst = ist
-		//			break
-		//		}
-		//	}
-		//}
 	}
 	return
 }
@@ -228,7 +215,7 @@ func parseMethodInput(inType reflect.Type) (paramValue reflect.Value, ok bool) {
 	//log.Debugf("pkg: %v", pkgName)
 	inst := getInstanceByName(inTypeName, inType)
 	if inst == nil {
-		alternativeName := strings.Title(pkgName) + inTypeName
+		alternativeName := pkgName + inTypeName
 		inst = getInstanceByName(alternativeName, inType)
 	}
 	ok = true

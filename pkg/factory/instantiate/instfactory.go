@@ -84,6 +84,9 @@ func (f *InstantiateFactory) ParseInstance(eliminator string, params ...interfac
 func (f *InstantiateFactory) BuildComponents(components [][]interface{}) (err error) {
 	for _, item := range components {
 		name, inst := f.ParseInstance("", item...)
+		if inst == nil {
+			return InvalidObjectTypeError
+		}
 		// use interface name if it's available as use does not specify its name
 		field := reflector.GetEmbeddedInterfaceField(inst)
 		if field.Anonymous {
