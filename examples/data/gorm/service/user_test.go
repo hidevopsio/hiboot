@@ -22,7 +22,7 @@ import (
 	"testing"
 )
 
-var fakeUser = &entity.User{
+var fakeUser = entity.User{
 	Id:       1,
 	Name:     "Bill Gates",
 	Username: "billg",
@@ -42,7 +42,7 @@ func TestUserCrud(t *testing.T) {
 	})
 
 	t.Run("should add user", func(t *testing.T) {
-		err := userService.AddUser(fakeUser)
+		err := userService.AddUser(&fakeUser)
 		assert.Equal(t, nil, err)
 	})
 
@@ -53,9 +53,16 @@ func TestUserCrud(t *testing.T) {
 		assert.NotEqual(t, 0, u.Id)
 	})
 
+	t.Run("should generate user id", func(t *testing.T) {
+		fakeRepository.Mock("Find", &[]entity.User{fakeUser}).Expect(nil)
+		users, err := userService.GetAll()
+		assert.Equal(t, nil, err)
+		assert.NotEqual(t, 0, users)
+	})
+
 	t.Run("should get user that added above", func(t *testing.T) {
 		// call mock method mocker.First(fakeUser).Expected(nil)
-		fakeRepository.Mock("First", fakeUser).Expect(nil)
+		fakeRepository.Mock("First", &fakeUser).Expect(nil)
 
 		u, err := userService.GetUser(1)
 		assert.Equal(t, nil, err)
