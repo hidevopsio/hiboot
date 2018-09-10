@@ -77,11 +77,7 @@ func (c *userController) GetById(id uint64) (response model.Response, err error)
 func (c *userController) GetAll() (response model.Response, err error) {
 	users, err := c.userService.GetAll()
 	response = new(model.BaseResponse)
-	if err != nil {
-		response.SetCode(http.StatusNotFound)
-	} else {
-		response.SetData(users)
-	}
+	response.SetData(users)
 	return
 }
 
