@@ -119,13 +119,6 @@ func TestApp(t *testing.T) {
 		err := app.Component("myService", new(fakeServiceImpl))
 		assert.Equal(t, nil, err)
 	})
-
-	t.Run("should report component name collision", func(t *testing.T) {
-		type fakeService interface{}
-		type fakeServiceImpl struct{ fakeService }
-		err := app.Component("myService", new(fakeServiceImpl))
-		assert.Equal(t, app.ComponentNameIsTakenError, err)
-	})
 }
 
 func TestBaseApplication(t *testing.T) {
@@ -133,7 +126,7 @@ func TestBaseApplication(t *testing.T) {
 
 	ba.BeforeInitialization()
 
-	err := ba.Init()
+	err := ba.Initialize()
 	assert.Equal(t, nil, err)
 
 	sc := ba.SystemConfig()

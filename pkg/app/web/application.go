@@ -23,7 +23,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
-	"github.com/kataras/iris/middleware/logger"
 	"os"
 	"regexp"
 )
@@ -103,32 +102,6 @@ func (a *application) build(controllers ...interface{}) error {
 	// build auto configurations
 	a.BuildConfigurations()
 
-	//TODO: move out to starter/logging
-	customLogger := logger.New(logger.Config{
-		// Status displays status code
-		Status: true,
-		// IP displays request's remote address
-		IP: true,
-		// Method displays the http method
-		Method: true,
-		// Path displays the request path
-		Path: true,
-		// Query appends the url query to the Path.
-		//Query: true,
-
-		//Columns: true,
-
-		// if !empty then its contents derives from `ctx.Values().Get("logger_message")
-		// will be added to the logs.
-		MessageContextKeys: []string{"logger_message"},
-
-		// if !empty then its contents derives from `ctx.GetHeader("User-Agent")
-		MessageHeaderKeys: []string{"User-Agent"},
-	})
-
-	// TODO: it should be configurable
-	a.webApp.Use(customLogger)
-
 	// The only one Required:
 	// here is how you define how your own context will
 	// be created and acquired from the iris' generic context pool.
@@ -138,8 +111,6 @@ func (a *application) build(controllers ...interface{}) error {
 			Context: context.NewContext(a.webApp),
 		}
 	})
-
-	// inject Components`
 
 	// first register anon controllers
 	err := a.RegisterController(new(AnonController))
@@ -179,7 +150,7 @@ func (a *application) initialize(controllers ...interface{}) (err error) {
 	// new iris app
 	a.webApp = iris.New()
 
-	err = a.Init()
+	err = a.Initialize()
 	if err == nil {
 		a.controllerMap = make(map[string][]interface{})
 		if len(controllers) == 0 {

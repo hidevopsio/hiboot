@@ -42,6 +42,19 @@ type FakeConfiguration struct {
 	FakeProperties FakeProperties `mapstructure:"fake"`
 }
 
+type unknownConfiguration struct {
+	FakeProperties FakeProperties `mapstructure:"fake"`
+}
+
+type FooInterface interface {
+
+}
+
+type unsupportedConfiguration struct {
+	FooInterface
+	FakeProperties FakeProperties `mapstructure:"fake"`
+}
+
 type FooProperties struct {
 	Name     string `default:"${fake.name}"`
 	Nickname string `default:"foobar"`
@@ -49,7 +62,12 @@ type FooProperties struct {
 }
 
 type FooConfiguration struct {
-	app.Configuration
+	app.PreConfiguration
+	FakeProperties FooProperties `mapstructure:"foo"`
+}
+
+type BarConfiguration struct {
+	app.PostConfiguration
 	FakeProperties FooProperties `mapstructure:"foo"`
 }
 
@@ -65,9 +83,18 @@ func newFooBarConfiguration(foobar *FooBar) *FooBarConfiguration  {
 	}
 }
 
-func (c *FooConfiguration) HelloWorld() string {
-	return "Hello world"
+func (c *FooConfiguration) HelloWorld(foo *Foo) string {
+	return  foo.Name + ": Hello world"
 }
+
+func (c *FooConfiguration) Bar() *Bar {
+	return &Bar{Name: "foo"}
+}
+
+func (c *FooConfiguration) Foo(bar *Bar) *Foo {
+	return &Foo{Name: "foo"}
+}
+
 
 type Foo struct {
 	Name string
@@ -180,14 +207,17 @@ func TestConfigurableFactory(t *testing.T) {
 	_, err = io.WriterFile(configPath, fooFile, []byte(fooContent))
 	assert.Equal(t, nil, err)
 
-	container := make([][]interface{}, 0)
 	fooConfig := new(FooConfiguration)
-	container = append(container, []interface{}{fooConfig})
 	fakeCfg := new(FakeConfiguration)
-	container = append(container, []interface{}{fakeCfg})
-	container = append(container, []interface{}{"fakeFake", FakeConfiguration{}})
-
-	f.Build(container)
+	f.Build([][]interface{}{
+		{fooConfig},
+		{fakeCfg},
+		{new(BarConfiguration)},
+		{new(BarConfiguration)},
+		{new(unknownConfiguration)},
+		{new(unsupportedConfiguration)},
+		{"fakeFake", FakeConfiguration{}},
+	})
 
 	t.Run("should instantiate by name", func(t *testing.T) {
 		bc := new(barConfiguration)
@@ -227,7 +257,7 @@ func TestConfigurableFactory(t *testing.T) {
 	t.Run("should get foo configuration", func(t *testing.T) {
 		helloWorld := f.GetInstance("helloWorld")
 		assert.NotEqual(t, nil, helloWorld)
-		assert.Equal(t, "Hello world", helloWorld.(string))
+		assert.Equal(t, "foo: Hello world", helloWorld.(string))
 
 		assert.Equal(t, "hiboot foo", fooConfig.FakeProperties.Nickname)
 		assert.Equal(t, "bar", fooConfig.FakeProperties.Username)
