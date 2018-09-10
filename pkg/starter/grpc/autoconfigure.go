@@ -83,11 +83,6 @@ func newConfiguration(instantiateFactory factory.InstantiateFactory) *configurat
 	}
 }
 
-// Init inject instanceFactory
-func (c *configuration) Init(instantiateFactory factory.InstantiateFactory) {
-	c.instantiateFactory = instantiateFactory
-}
-
 // RunGrpcServers create gRPC Clients that registered by application
 func (c *configuration) BuildGrpcClients() {
 	clientProps := c.Properties.Client

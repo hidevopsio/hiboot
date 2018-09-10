@@ -23,13 +23,12 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/kataras/iris/context"
 	"reflect"
 )
 
 type Application interface {
-	Init() error
+	Initialize() error
 	SetProperty(name string, value interface{}) Application
 	Run()
 }
@@ -57,7 +56,7 @@ type BaseApplication struct {
 
 var (
 	configContainer     [][]interface{}
-	instanceContainer   cmap.ConcurrentMap
+	componentContainer  [][]interface{}
 
 	InvalidObjectTypeError        = errors.New("[app] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
 	ConfigurationNameIsTakenError = errors.New("[app] configuration name is already taken")
@@ -74,7 +73,7 @@ _  __  / _  / _  /_/ / /_/ / /_/ / /_     Hiboot Application Framework
 )
 
 func init() {
-	instanceContainer = cmap.New()
+	//instanceContainer = cmap.New()
 }
 //
 //func parseObjectName(eliminator string, inst interface{}) string  {
@@ -117,55 +116,48 @@ func validateObjectType(inst interface{}) error {
 	return InvalidObjectTypeError
 }
 
-// AutoConfiguration register auto configuration struct
-func AutoConfiguration(params ...interface{}) (err error) {
-	cfg := make([]interface{}, 2)
+func hasTwoParams(params ...interface{}) bool  {
+	return len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String
+}
 
-	hasTwoParams := len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String
-	if hasTwoParams {
-		cfg[0] = params[0]
-		cfg[1] = params[1]
-	} else {
-		cfg[0] = params[0]
+func appendParams(container [][]interface{}, params ...interface{}) (retVal [][]interface{}, err error) {
+	retVal = container
+	if len(params) == 0 || params[0] == nil {
+		err = InvalidObjectTypeError
+		return
 	}
-	if cfg[0] != nil {
-		kind := reflect.TypeOf(cfg[0]).Kind()
+
+	item := make([]interface{}, 2)
+	inst := params[0]
+	if hasTwoParams(params...) {
+		item[0] = params[0]
+		item[1] = params[1]
+		inst = params[1]
+	} else {
+		item[0] = params[0]
+	}
+	if inst != nil {
+		kind := reflect.TypeOf(inst).Kind()
 		if kind == reflect.Func || kind == reflect.Ptr{
-			configContainer = append(configContainer, cfg)
-			return nil
+			retVal = append(container, item)
+			return
 		}
 	}
+	err = InvalidObjectTypeError
+	return
+}
 
-	return InvalidObjectTypeError
+// AutoConfiguration register auto configuration struct
+func AutoConfiguration(params ...interface{}) (err error) {
+	configContainer, err = appendParams(configContainer, params...)
+	return
 }
 
 // Component register a struct instance, so that it will be injectable.
 // starter should register component type
-func Component(params ...interface{}) error {
-	if len(params) == 0 || params[0] == nil {
-		return InvalidObjectTypeError
-	}
-	var name string
-	var inst interface{}
-	if len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String {
-		name = params[0].(string)
-		inst = params[1]
-	} else {
-		inst = params[0]
-		ifcField := reflector.GetEmbeddedInterfaceField(inst)
-		if ifcField.Anonymous {
-			name = ifcField.Name
-		}
-	}
-	if _, ok := instanceContainer.Get(name); ok {
-		return ComponentNameIsTakenError
-	}
-
-	err := validateObjectType(inst)
-	if err == nil {
-		instanceContainer.Set(name, inst)
-	}
-	return err
+func Component(params ...interface{}) (err error) {
+	componentContainer, err = appendParams(componentContainer, params...)
+	return
 }
 
 // BeforeInitialization ?
@@ -188,20 +180,20 @@ func (a *BaseApplication) GetProperty(name string) (value interface{}, ok bool) 
 }
 
 // Init
-func (a *BaseApplication) Init() error {
+func (a *BaseApplication) Initialize() error {
 	a.WorkDir = io.GetWorkDir()
 
 	a.propertyMap = cmap.New()
 
 	a.configurations = cmap.New()
-	a.instances = instanceContainer
+	a.instances = cmap.New()
 
-	instanceFactory := new(instantiate.InstantiateFactory)
-	instanceFactory.Initialize(a.instances)
-	a.instances.Set("instanceFactory", instanceFactory)
+	instantiateFactory := new(instantiate.InstantiateFactory)
+	instantiateFactory.Initialize(a.instances)
+	a.instances.Set("instantiateFactory", instantiateFactory)
 
 	configurableFactory := new(autoconfigure.ConfigurableFactory)
-	configurableFactory.InstantiateFactory = instanceFactory
+	configurableFactory.InstantiateFactory = instantiateFactory
 	a.instances.Set("configurableFactory", configurableFactory)
 	inject.SetFactory(configurableFactory)
 	a.configurableFactory = configurableFactory
@@ -225,6 +217,9 @@ func (a *BaseApplication) SystemConfig() *system.Configuration {
 }
 
 func (a *BaseApplication) BuildConfigurations() {
+	// build components
+	a.configurableFactory.BuildComponents(componentContainer)
+	// build configurations
 	a.configurableFactory.Build(configContainer)
 }
 

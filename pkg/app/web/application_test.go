@@ -77,8 +77,28 @@ type ExampleController struct {
 
 type InvalidController struct{}
 
+type FooBar struct {
+	Name string
+}
+
+type FooBarService struct{
+	fooBar *FooBar
+}
+
+func newFooBarService(fooBar *FooBar) *FooBarService {
+	return &FooBarService{
+		fooBar: fooBar,
+	}
+}
+
+func (s *FooBarService) FooBar() *FooBar {
+	return s.fooBar
+}
+
 func init() {
 	log.SetLevel(log.DebugLevel)
+	app.Component(&FooBar{Name: "fooBar"})
+	app.Component(newFooBarService)
 }
 
 func (c *FooController) Init(jwtToken jwt.Token) {

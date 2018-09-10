@@ -60,7 +60,9 @@ var (
 
 // SetFactory set factory from app
 func SetFactory(f factory.ConfigurableFactory) {
-	fct = f
+	if fct == nil {
+		fct = f
+	}
 }
 
 // AddTag add new tag
@@ -70,22 +72,20 @@ func AddTag(tag Tag) {
 
 func getInstanceByName(name string, instType reflect.Type) (inst interface{}) {
 	name = str.ToLowerCamel(name)
-	var ok bool
 	if fct != nil {
 		inst = fct.GetInstance(name)
 		// TODO: we should pro load all candidates into instances for improving performance.
 		// if inst is nil, and the object type is an interface
 		// then try to find the instance that embedded with the interface
-		log.Debugf("getInstanceByName: %v", name)
-		if !ok && instType.Kind() == reflect.Interface {
-			for _, ist := range fct.Items() {
-				//log.Debug(n)
-				if ist != nil && reflector.HasEmbeddedField(ist, instType.Name()) {
-					inst = ist
-					break
-				}
-			}
-		}
+		//if !ok && instType.Kind() == reflect.Interface {
+		//	for _, ist := range fct.Items() {
+		//		//log.Debug(n)
+		//		if ist != nil && reflector.HasEmbeddedField(ist, instType.Name()) {
+		//			inst = ist
+		//			break
+		//		}
+		//	}
+		//}
 	}
 	return
 }
@@ -226,7 +226,6 @@ func parseMethodInput(inType reflect.Type) (paramValue reflect.Value, ok bool) {
 	inTypeName := inType.Name()
 	pkgName := io.DirName(inType.PkgPath())
 	//log.Debugf("pkg: %v", pkgName)
-
 	inst := getInstanceByName(inTypeName, inType)
 	if inst == nil {
 		alternativeName := strings.Title(pkgName) + inTypeName

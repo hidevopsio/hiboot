@@ -60,47 +60,6 @@ type ConfigurableFactory struct {
 	postConfigContainer cmap.ConcurrentMap
 }
 
-
-func validateObjectType(inst interface{}) error {
-	val := reflect.ValueOf(inst)
-	//log.Println(val.Kind())
-	//log.Println(reflect.Indirect(val).Kind())
-	if val.Kind() == reflect.Ptr && reflect.Indirect(val).Kind() == reflect.Struct {
-		return nil
-	}
-	return InvalidObjectTypeError
-}
-
-func (f *ConfigurableFactory) ParseInstance(eliminator string, params ...interface{}) (name string, inst interface{}) {
-
-	hasTwoParams := len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String
-
-	if hasTwoParams {
-		inst = params[1]
-		name = params[0].(string)
-	} else {
-		inst = params[0]
-	}
-
-	if !hasTwoParams {
-		if reflect.TypeOf(inst).Kind() == reflect.Func {
-			// call func
-			var err error
-			inst, err = inject.IntoFunc(inst)
-			if err != nil {
-				return "", nil
-			}
-		}
-		name = reflector.ParseObjectName(inst, eliminator)
-		if name == "" || strings.ToLower(name) == strings.ToLower(eliminator) {
-			name = reflector.ParseObjectPkgName(inst)
-		}
-	}
-
-	return
-}
-
-
 func (f *ConfigurableFactory) Initialize(configurations cmap.ConcurrentMap) (err error) {
 	if f.InstantiateFactory == nil {
 		return FactoryCannotBeNilError
@@ -192,11 +151,8 @@ func (f *ConfigurableFactory) Build(configs [][]interface{}) {
 			continue
 		}
 
-		err := validateObjectType(inst)
-		if err == nil {
+		if f.IsValidObjectType(inst) {
 			c.Set(name, inst)
-		} else {
-			log.Error(err)
 		}
 	}
 
@@ -234,7 +190,7 @@ func (f *ConfigurableFactory) InstantiateMethod(configuration interface{}, metho
 		depInst := f.GetInstance(mtName)
 		if depInst == nil {
 			pkgName := io.DirName(iTyp.PkgPath())
-			alternativeName := pkgName + iTyp.Name()
+			alternativeName := str.ToLowerCamel(pkgName) + iTyp.Name()
 			depInst = f.GetInstance(alternativeName)
 		}
 		if depInst == nil {
