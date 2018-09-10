@@ -12,11 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package starter
+package logging
 
 type Properties struct {
-	Enabled   bool   `json:"enabled"`
-	DependsOn string `json:"depends_on"`
-	Before    string `json:"before"`
-	After     string `json:"after"`
+	Level string `json:"level" default:"info"`
 }

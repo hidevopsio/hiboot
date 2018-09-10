@@ -85,7 +85,7 @@ func (a *application) injectCommand(cmd Command) {
 }
 
 func (a *application) initialize(cmd ...Command) (err error) {
-	err = a.Init()
+	err = a.Initialize()
 	if err == nil {
 		var root Command
 		root = new(rootCommand)
