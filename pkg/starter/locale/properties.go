@@ -12,14 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package locale
 
-import (
-	_ "github.com/hidevopsio/hiboot/examples/data/gorm/controller"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
-)
-
-func main() {
-	web.NewApplication().Run()
+type Properties struct {
+	Default      string `json:"default" default:"en-US"`
+	URLParameter string `json:"url_parameter" default:"lang"`
+	LocalePath   string `json:"locale_path" default:"config/i18n/"`
 }

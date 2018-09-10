@@ -15,6 +15,7 @@
 package inject_test
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
@@ -61,6 +62,7 @@ type fakeProperties struct {
 }
 
 type fakeConfiguration struct {
+	app.Configuration
 	Properties fakeProperties `mapstructure:"fake"`
 }
 
@@ -95,6 +97,7 @@ func (c *fakeConfiguration) FooUser() *FooUser {
 }
 
 type fooConfiguration struct {
+	app.Configuration
 }
 
 type fooService struct {
@@ -279,10 +282,10 @@ func TestInject(t *testing.T) {
 
 	inject.SetFactory(configurableFactory)
 
-	configs := cmap.New()
+	configs := make([][]interface{}, 0)
 	fakeConfig := new(fakeConfiguration)
-	configs.Set("fake", fakeConfig)
-	configs.Set("foo", fooConfiguration{})
+	configs = append(configs, []interface{}{fakeConfig})
+	configs = append(configs, []interface{}{fooConfiguration{}})
 	configurableFactory.Build(configs)
 
 	t.Run("should inject default string", func(t *testing.T) {

@@ -41,9 +41,12 @@ const (
 )
 
 var (
-	InvalidMethodError           = errors.New("[factory] method is invalid")
-	FactoryCannotBeNilError      = errors.New("[factory] InstantiateFactory can not be nil")
-	FactoryIsNotInitializedError = errors.New("[factory] InstantiateFactory is not initialized")
+	InvalidMethodError            = errors.New("[factory] method is invalid")
+	FactoryCannotBeNilError       = errors.New("[factory] InstantiateFactory can not be nil")
+	FactoryIsNotInitializedError  = errors.New("[factory] InstantiateFactory is not initialized")
+	InvalidObjectTypeError        = errors.New("[factory] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
+	ConfigurationNameIsTakenError = errors.New("[factory] configuration name is already taken")
+	ComponentNameIsTakenError     = errors.New("[factory] component name is already taken")
 )
 
 type ConfigurableFactory struct {
@@ -51,6 +54,10 @@ type ConfigurableFactory struct {
 	configurations cmap.ConcurrentMap
 	systemConfig   *system.Configuration
 	builder        *system.Builder
+
+	preConfigContainer  cmap.ConcurrentMap
+	configContainer     cmap.ConcurrentMap
+	postConfigContainer cmap.ConcurrentMap
 }
 
 func (f *ConfigurableFactory) Initialize(configurations cmap.ConcurrentMap) (err error) {
@@ -62,6 +69,10 @@ func (f *ConfigurableFactory) Initialize(configurations cmap.ConcurrentMap) (err
 	}
 	f.configurations = configurations
 	f.SetInstance("configurations", configurations)
+
+	f.preConfigContainer = cmap.New()
+	f.configContainer = cmap.New()
+	f.postConfigContainer = cmap.New()
 	return
 }
 
@@ -106,10 +117,49 @@ func (f *ConfigurableFactory) BuildSystemConfig(configType interface{}) (err err
 	return err
 }
 
-func (f *ConfigurableFactory) Build(configs ...cmap.ConcurrentMap) {
-	for _, configMap := range configs {
-		f.build(configMap)
+func (f *ConfigurableFactory) Build(configs [][]interface{}) {
+	// categorize configurations first, then inject object if necessary
+	var c cmap.ConcurrentMap
+	for _, item := range configs {
+		name, inst := f.ParseInstance("Configuration", item...)
+		if name == "" || name == "configuration" {
+			continue
+		}
+
+		ifcField := reflector.GetEmbeddedInterfaceField(inst)
+
+		if ifcField.Anonymous {
+			switch ifcField.Name {
+			case "Configuration":
+				c = f.configContainer
+			case "PreConfiguration":
+				c = f.preConfigContainer
+			case "PostConfiguration":
+				c = f.postConfigContainer
+			default:
+				continue
+			}
+		} else {
+			err := InvalidObjectTypeError
+			log.Error(err)
+			continue
+		}
+
+		if _, ok := c.Get(name); ok {
+			err := ConfigurationNameIsTakenError
+			log.Error(err)
+			continue
+		}
+
+		if f.IsValidObjectType(inst) {
+			c.Set(name, inst)
+		}
 	}
+
+	f.build(f.preConfigContainer)
+	f.build(f.configContainer)
+	f.build(f.postConfigContainer)
+
 }
 
 func (f *ConfigurableFactory) InstantiateByName(configuration interface{}, name string) (inst interface{}, err error) {
@@ -140,7 +190,7 @@ func (f *ConfigurableFactory) InstantiateMethod(configuration interface{}, metho
 		depInst := f.GetInstance(mtName)
 		if depInst == nil {
 			pkgName := io.DirName(iTyp.PkgPath())
-			alternativeName := pkgName + iTyp.Name()
+			alternativeName := str.ToLowerCamel(pkgName) + iTyp.Name()
 			depInst = f.GetInstance(alternativeName)
 		}
 		if depInst == nil {

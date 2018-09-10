@@ -12,14 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package logging
 
 import (
-	_ "github.com/hidevopsio/hiboot/examples/data/gorm/controller"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
+	"github.com/hidevopsio/hiboot/pkg/app/fake"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/stretchr/testify/assert"
+	"reflect"
+	"testing"
 )
 
-func main() {
-	web.NewApplication().Run()
+func TestConfiguration(t *testing.T) {
+	c := newConfiguration(new(fake.ApplicationContext))
+
+	t.Run("should get nil handler", func(t *testing.T) {
+		lh := c.LoggerHandler()
+		assert.IsType(t, reflect.Func, reflect.TypeOf(lh).Kind())
+	})
+
+	t.Run("should get handler", func(t *testing.T) {
+		io.EnsureWorkDir(1, "config/application.yml")
+		c.Properties = Properties{
+			Level: "debug",
+		}
+		c.LoggerHandler()
+	})
 }
