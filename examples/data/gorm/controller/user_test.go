@@ -96,6 +96,15 @@ func TestCrdRequest(t *testing.T) {
 			Expect().Status(http.StatusOK)
 	})
 
+	svc.On("GetAll").Return(&[]entity.User{testUser}, nil)
+
+	t.Run("should get user with GET request", func(t *testing.T) {
+		// Then Get User
+		// e.g. GET /user/id/123456
+		testApp.Get("/user/all").
+			Expect().Status(http.StatusOK)
+	})
+
 	// assert that the expectations were met
 	svc.AssertExpectations(t)
 
