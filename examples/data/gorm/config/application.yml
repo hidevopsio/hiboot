@@ -6,6 +6,7 @@ app:
   name: gorm-demo
   profiles:
     include:
+    - actuator
     - locale
     - logging
     - gorm

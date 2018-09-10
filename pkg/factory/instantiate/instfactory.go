@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/inject"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
@@ -89,7 +88,7 @@ func (f *InstantiateFactory) BuildComponents(components [][]interface{}) (err er
 		field := reflector.GetEmbeddedInterfaceField(inst)
 		if field.Anonymous {
 			name = str.ToLowerCamel(field.Name)
-			log.Debugf("component %v has embedded field: %v", inst, name)
+			//log.Debugf("component %v has embedded field: %v", inst, name)
 		}
 		if name == "" {
 			continue

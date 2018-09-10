@@ -25,6 +25,7 @@ import (
 type UserService interface {
 	AddUser(user *entity.User) (err error)
 	GetUser(id uint64) (user *entity.User, err error)
+	GetAll() (user *[]entity.User, err error)
 	DeleteUser(id uint64) (err error)
 }
 
@@ -59,6 +60,12 @@ func (s *UserServiceImpl) AddUser(user *entity.User) (err error) {
 func (s *UserServiceImpl) GetUser(id uint64) (user *entity.User, err error) {
 	user = &entity.User{}
 	err = s.repository.Where("id = ?", id).First(user).Error()
+	return
+}
+
+func (s *UserServiceImpl) GetAll() (users *[]entity.User, err error) {
+	users = &[]entity.User{}
+	err = s.repository.Find(users).Error()
 	return
 }
 
