@@ -37,12 +37,14 @@ type loginController struct {
 
 func init() {
 	// Register Rest Controller loginController
-	web.RestController(new(loginController))
+	web.RestController(newLoginController)
 }
 
 // Init inject jwtToken through Init method argument
-func (c *loginController) Init(jwtToken jwt.Token) {
-	c.jwtToken = jwtToken
+func newLoginController(jwtToken jwt.Token) *loginController {
+	return &loginController{
+		jwtToken: jwtToken,
+	}
 }
 
 // Post /

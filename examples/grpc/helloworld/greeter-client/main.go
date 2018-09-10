@@ -36,8 +36,10 @@ type greeterController struct {
 }
 
 // Init inject greeterClient
-func (c *greeterController) Init(greeterClient protobuf.GreeterServiceClient) {
-	c.greeterServiceClient = greeterClient
+func newGreeterController(greeterClient protobuf.GreeterServiceClient) *greeterController {
+	return &greeterController{
+		greeterServiceClient: greeterClient,
+	}
 }
 
 // GET /greeter/name/{name}
@@ -70,7 +72,7 @@ func init() {
 	grpc.Client("greeter-services", protobuf.NewGreeterServiceClient)
 
 	// must: register greeterController
-	web.RestController(new(greeterController))
+	web.RestController(newGreeterController)
 }
 
 func main() {

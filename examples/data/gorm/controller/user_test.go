@@ -17,11 +17,13 @@ package controller
 import (
 	"errors"
 	"github.com/hidevopsio/hiboot/examples/data/gorm/entity"
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/idgen"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 	"net/http"
 	"testing"
 )
@@ -50,13 +52,19 @@ func (s *fakeService) DeleteUser(id uint64) (err error) {
 	return
 }
 
+func (s *fakeService) GetAll() (users *[]entity.User, err error) {
+	users = &[]entity.User{}
+	args := s.Called()
+	return args[0].(*[]entity.User), args.Error(1)
+}
+
 func TestCrdRequest(t *testing.T) {
-	userController := new(userController)
-	app := web.NewTestApplication(t, userController)
+	app.Component(new(gorm.FakeRepository))
 	svc := new(fakeService)
+	userController := newUserController(svc)
+	testApp := web.NewTestApplication(t, userController)
 
 	// TODO: if os.Getenv("INTEGRATION_TEST") == false {
-	userController.Init(svc)
 
 	id, err := idgen.Next()
 	assert.Equal(t, nil, err)
@@ -73,7 +81,7 @@ func TestCrdRequest(t *testing.T) {
 
 	t.Run("should add user with POST request", func(t *testing.T) {
 		// First, let's Post User
-		app.Post("/user").
+		testApp.Post("/user").
 			WithJSON(testUser).
 			Expect().Status(http.StatusOK)
 	})
@@ -83,7 +91,7 @@ func TestCrdRequest(t *testing.T) {
 	t.Run("should get user with GET request", func(t *testing.T) {
 		// Then Get User
 		// e.g. GET /user/id/123456
-		app.Get("/user/id/{id}").
+		testApp.Get("/user/id/{id}").
 			WithPath("id", id).
 			Expect().Status(http.StatusOK)
 	})
@@ -97,7 +105,7 @@ func TestCrdRequest(t *testing.T) {
 
 	t.Run("should return 404 if trying to find a record that does not exist", func(t *testing.T) {
 		// Then Get User
-		app.Get("/user/id/{id}").
+		testApp.Get("/user/id/{id}").
 			WithPath("id", unknownId).
 			Expect().Status(http.StatusNotFound)
 	})
@@ -107,7 +115,7 @@ func TestCrdRequest(t *testing.T) {
 
 	t.Run("should delete the record with DELETE request", func(t *testing.T) {
 		// Finally Delete User
-		app.Delete("/user/id/{id}").
+		testApp.Delete("/user/id/{id}").
 			WithPath("id", id).
 			Expect().Status(http.StatusOK)
 	})

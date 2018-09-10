@@ -218,10 +218,10 @@ func (a *BaseApplication) SystemConfig() *system.Configuration {
 }
 
 func (a *BaseApplication) BuildConfigurations() {
-	// build components
-	a.configurableFactory.BuildComponents(componentContainer)
 	// build configurations
 	a.configurableFactory.Build(configContainer)
+	// build components
+	a.configurableFactory.BuildComponents(componentContainer)
 }
 
 func (a *BaseApplication) ConfigurableFactory() *autoconfigure.ConfigurableFactory {
