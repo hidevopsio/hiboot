@@ -15,17 +15,12 @@
 package inject
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
-	"strconv"
-	"strings"
 )
 
 type defaultTag struct {
 	BaseTag
-}
-
-func init() {
-	AddTag(new(defaultTag))
 }
 
 func (t *defaultTag) IsSingleton() bool {
@@ -34,121 +29,24 @@ func (t *defaultTag) IsSingleton() bool {
 
 func (t *defaultTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{}) {
 	if tag != "" {
-		fieldVal := object.FieldByName(field.Name).Interface()
-		//log.Debugf("field: %v, value: %v", field.Name, fieldVal)
+		//log.Debug(valueTag)
 
 		// check if filed type is slice
 		kind := field.Type.Kind()
+		needConvert := true
 		switch kind {
 		case reflect.Slice:
-			if len(fieldVal.([]string)) == 0 {
-				retVal = t.replaceReferences(tag)
-				if retVal == tag {
-					retVal = strings.SplitN(tag, ",", -1)
-				}
+			retVal = t.replaceReferences(tag)
+			if retVal != tag {
+				needConvert = false
 			}
 		case reflect.String:
-			if fieldVal.(string) == "" {
-				retVal = t.replaceReferences(tag)
-			}
-		case reflect.Int:
-			if fieldVal.(int) == 0 {
-				val, err := strconv.ParseInt(tag, 10, 32)
-				if err == nil {
-					retVal = int(val)
-				}
-			}
-		case reflect.Int8:
-			if fieldVal.(int8) == 0 {
-				val, err := strconv.ParseInt(tag, 10, 8)
-				if err == nil {
-					retVal = int8(val)
-				}
-			}
+			retVal = t.replaceReferences(tag)
+			needConvert = false
+		}
 
-		case reflect.Int16:
-			if fieldVal.(int16) == 0 {
-				val, err := strconv.ParseInt(tag, 10, 16)
-				if err == nil {
-					retVal = int16(val)
-				}
-			}
-
-		case reflect.Int32:
-			if fieldVal.(int32) == 0 {
-				val, err := strconv.ParseInt(tag, 10, 32)
-				if err == nil {
-					retVal = int32(val)
-				}
-			}
-
-		case reflect.Int64:
-			if fieldVal.(int64) == 0 {
-				val, err := strconv.ParseInt(tag, 10, 64)
-				if err == nil {
-					retVal = int64(val)
-				}
-			}
-
-		case reflect.Uint:
-			if fieldVal.(uint) == 0 {
-				val, err := strconv.ParseInt(tag, 10, 32)
-				if err == nil {
-					retVal = uint(val)
-				}
-			}
-		case reflect.Uint8:
-			if fieldVal.(uint8) == 0 {
-				val, err := strconv.ParseInt(tag, 10, 8)
-				if err == nil {
-					retVal = uint8(val)
-				}
-			}
-
-		case reflect.Uint16:
-			if fieldVal.(uint16) == 0 {
-				val, err := strconv.ParseInt(tag, 10, 16)
-				if err == nil {
-					retVal = uint16(val)
-				}
-			}
-
-		case reflect.Uint32:
-			if fieldVal.(uint32) == 0 {
-				val, err := strconv.ParseInt(tag, 10, 32)
-				if err == nil {
-					retVal = uint32(val)
-				}
-			}
-
-		case reflect.Uint64:
-			if fieldVal.(uint64) == 0 {
-				val, err := strconv.ParseInt(tag, 10, 64)
-				if err == nil {
-					retVal = uint64(val)
-				}
-			}
-		case reflect.Float32:
-			if fieldVal.(float32) == 0.0 {
-				val, err := strconv.ParseFloat(tag, 32)
-				if err == nil {
-					retVal = float32(val)
-				}
-			}
-		case reflect.Float64:
-			if fieldVal.(float64) == 0.0 {
-				val, err := strconv.ParseFloat(tag, 64)
-				if err == nil {
-					retVal = val
-				}
-			}
-		case reflect.Bool:
-			if fieldVal.(bool) == false {
-				val, err := strconv.ParseBool(tag)
-				if err == nil {
-					retVal = val
-				}
-			}
+		if needConvert {
+			retVal = str.Convert(tag, kind)
 		}
 	}
 	return retVal

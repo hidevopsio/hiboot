@@ -15,5 +15,13 @@
 package logging
 
 type Properties struct {
-	Level string `json:"level" default:"info"`
+	Level       string   `json:"level" default:"info"`
+	Status      bool     `json:"status" default:"true"`
+	IP          bool     `json:"ip" default:"true"`
+	Method      bool     `json:"method" default:"true"`
+	Path        bool     `json:"path" default:"true"`
+	Query       bool     `json:"query" default:"false"`
+	Columns     bool     `json:"columns" default:"false"`
+	ContextKeys []string `json:"context_keys" default:"logger_message"`
+	HeaderKeys  []string `json:"header_keys" default:"User-Agent"`
 }

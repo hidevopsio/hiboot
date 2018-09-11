@@ -85,59 +85,26 @@ func newConfiguration(instantiateFactory factory.InstantiateFactory) *configurat
 	}
 }
 
+// ClientConnector is the interface that connect to grpc client
+// it can be injected to struct at runtime
+func (c *configuration) ClientConnector() ClientConnector {
+	return newClientConnector(c.instantiateFactory)
+}
+
 // RunGrpcServers create gRPC Clients that registered by application
-func (c *configuration) BuildGrpcClients() {
+func (c *configuration) BuildGrpcClients(cc ClientConnector) {
 	clientProps := c.Properties.Client
 	for _, cli := range grpcClients {
-		prop := new(client)
+		prop := new(ClientProperties)
 		if err := mapstruct.Decode(prop, clientProps[cli.name]); err != nil {
 			log.Error(err)
 			break
 		}
-		host := prop.Host
-		if host == "" {
-			host = cli.name
-		}
-		address := host + ":" + prop.Port
-		conn := c.instantiateFactory.GetInstance(cli.name)
-		var err error
-		if conn == nil {
-			// connect to grpc server
-			conn, err = grpc.Dial(address, grpc.WithInsecure())
-			c.instantiateFactory.SetInstance(cli.name, conn)
-			if err != nil {
-				log.Errorf("failed to connect to grpc server %v", address)
-				break
-			}
-			log.Infof("gRPC client connected to: %v", address)
-		}
-		if cli.cb != nil {
-			// get return type for register instance name
-			gRpcCli, err := reflector.CallFunc(cli.cb, conn)
-			if err == nil {
-				clientInstanceName, err := reflector.GetName(gRpcCli)
-				if err == nil {
-					// register grpc client
-					c.instantiateFactory.SetInstance(clientInstanceName, gRpcCli)
-					// register clientConn
-					c.instantiateFactory.SetInstance(clientInstanceName+"Conn", conn)
-
-					log.Infof("Registered gRPC client %v", clientInstanceName)
-				}
-			}
-		}
-
-		// register client service
-		if cli.svc != nil {
-			svcName, err := reflector.GetName(cli.svc)
-			if err == nil {
-				c.instantiateFactory.SetInstance(svcName, cli.svc)
-			}
-		}
-
+		cc.Connect(cli.name, cli.cb, prop)
 	}
 }
 
+// GrpcServer create new gRpc Server
 func (c *configuration) GrpcServer() *grpc.Server {
 	// just return if grpc server is not enabled
 	if !c.Properties.Server.Enabled {

@@ -87,13 +87,17 @@ func saveInstance(name string, inst interface{}) error {
 }
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
+func DefaultValue(object interface{}) error {
+	return IntoObjectValue(reflect.ValueOf(object), new(defaultTag))
+}
+
+// IntoObject injects instance into the tagged field with `inject:"instanceName"`
 func IntoObject(object interface{}) error {
-	// TODO: save injected object to map to avoid re-injection
 	return IntoObjectValue(reflect.ValueOf(object))
 }
 
 // IntoObjectValue injects instance into the tagged field with `inject:"instanceName"`
-func IntoObjectValue(object reflect.Value) error {
+func IntoObjectValue(object reflect.Value, tags ...Tag) error {
 	var err error
 
 	// TODO refactor IntoObject
@@ -107,6 +111,12 @@ func IntoObjectValue(object reflect.Value) error {
 		return InvalidObjectError
 	}
 
+	var targetTags []Tag
+	if len(tags) != 0 {
+		targetTags = tags
+	} else {
+		targetTags = tagsContainer
+	}
 	sc := fct.GetInstance("systemConfiguration")
 	if sc == nil {
 		return SystemConfigurationError
@@ -139,7 +149,7 @@ func IntoObjectValue(object reflect.Value) error {
 		// TODO: assume that the f.Name of value and inject tag is not the same
 		injectedObject = getInstanceByName(f.Name, f.Type)
 		if injectedObject == nil {
-			for _, tagImpl := range tagsContainer {
+			for _, tagImpl := range targetTags {
 				tagName := reflector.ParseObjectName(tagImpl, "Tag")
 				if tagName == "" {
 					return InvalidTagNameError
@@ -165,7 +175,7 @@ func IntoObjectValue(object reflect.Value) error {
 		if injectedObject != nil && fieldObj.CanSet() {
 			fov := reflect.ValueOf(injectedObject)
 			fieldObj.Set(fov)
-			log.Infof("Injected %v.(%v) into %v.%v", injectedObject, fov.Type(), obj.Type(), f.Name)
+			log.Debugf("Injected %v.(%v) into %v.%v", injectedObject, fov.Type(), obj.Type(), f.Name)
 		}
 
 		//log.Debugf("- kind: %v, %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type(), f.Name)
@@ -174,7 +184,7 @@ func IntoObjectValue(object reflect.Value) error {
 		filedKind := filedObject.Kind()
 		canNested := filedKind == reflect.Struct
 		if canNested && fieldObj.IsValid() && fieldObj.CanSet() && filedObject.Type() != obj.Type() {
-			err = IntoObjectValue(fieldObj)
+			err = IntoObjectValue(fieldObj, tags...)
 		}
 	}
 
@@ -194,7 +204,7 @@ func IntoObjectValue(object reflect.Value) error {
 				//log.Debugf("kind: %v == %v, %v, %v ", obj.Kind(), reflect.Struct, paramValue.IsValid(), paramValue.CanSet())
 				paramObject := reflect.Indirect(val)
 				if val.IsValid() && paramObject.IsValid() && paramObject.Type() != obj.Type() && paramObject.Kind() == reflect.Struct {
-					err = IntoObjectValue(val)
+					err = IntoObjectValue(val, tags...)
 				}
 			} else {
 				break

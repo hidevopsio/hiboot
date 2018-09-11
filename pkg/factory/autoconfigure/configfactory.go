@@ -88,33 +88,32 @@ func (f *ConfigurableFactory) Configuration(name string) interface{} {
 	return nil
 }
 
-func (f *ConfigurableFactory) BuildSystemConfig(configType interface{}) (err error) {
+func (f *ConfigurableFactory) BuildSystemConfig() (systemConfig *system.Configuration, err error) {
 	workDir := io.GetWorkDir()
-
+	systemConfig = new(system.Configuration)
 	profile := os.Getenv(appProfilesActive)
 	f.builder = &system.Builder{
 		Path:       filepath.Join(workDir, config),
 		Name:       application,
 		FileType:   yaml,
 		Profile:    profile,
-		ConfigType: configType,
+		ConfigType: systemConfig,
 	}
 
-	systemConfig, err := f.builder.Build()
-
-	if err == nil {
-		f.systemConfig = systemConfig.(*system.Configuration)
-	} else {
-		f.systemConfig = new(system.Configuration)
+	f.SetInstance("systemConfiguration", systemConfig)
+	inject.DefaultValue(systemConfig)
+	_, err = f.builder.Build()
+	if err != nil {
+		return
 	}
 	// TODO: should separate instance to system and app
-	f.SetInstance("systemConfiguration", f.systemConfig)
-	inject.IntoObject(f.systemConfig)
-	replacer.Replace(f.systemConfig, f.systemConfig)
+	inject.IntoObject(systemConfig)
+	replacer.Replace(systemConfig, systemConfig)
 
-	f.configurations.Set(System, f.systemConfig)
+	f.configurations.Set(System, systemConfig)
 
-	return err
+	f.systemConfig = systemConfig
+	return systemConfig, err
 }
 
 func (f *ConfigurableFactory) Build(configs [][]interface{}) {
@@ -175,7 +174,7 @@ func (f *ConfigurableFactory) InstantiateMethod(configuration interface{}, metho
 	//log.Debugf("method: %v", methodName)
 	instanceName := str.LowerFirst(methodName)
 	if inst = f.GetInstance(instanceName); inst != nil {
-		log.Debugf("instance %v already exist", instanceName)
+		//log.Debugf("instance %v exists", instanceName)
 		return
 	}
 	numIn := method.Type.NumIn()
@@ -239,6 +238,13 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error)
 	return
 }
 
+func (f *ConfigurableFactory) appProfilesActive() string {
+	if f.systemConfig == nil {
+		return os.Getenv(appProfilesActive)
+	}
+	return f.systemConfig.App.Profiles.Active
+}
+
 func (f *ConfigurableFactory) build(cfgContainer cmap.ConcurrentMap) {
 	isTestRunning := gotest.IsRunning()
 	for item := range cfgContainer.IterBuffered() {
@@ -247,14 +253,17 @@ func (f *ConfigurableFactory) build(cfgContainer cmap.ConcurrentMap) {
 		if !isTestRunning && f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
 			continue
 		}
-		log.Infof("Auto configure: %v", name)
+		log.Infof("Auto configure %v starter", name)
 
 		// inject properties
 		f.builder.ConfigType = configType
-		cf, err := f.builder.Build(name, f.systemConfig.App.Profiles.Active)
+
+		// inject default value
+		inject.DefaultValue(configType)
+
+		cf, err := f.builder.Build(name, f.appProfilesActive())
 
 		// TODO: check if cf.DependsOn
-
 		if cf == nil {
 			log.Warnf("failed to build %v configuration with error %v", name, err)
 		} else {

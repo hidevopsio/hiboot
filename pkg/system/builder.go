@@ -77,7 +77,7 @@ func (b *Builder) Build(profiles ...string) (interface{}, error) {
 		// allow the empty of the profile
 		configFile := filepath.Join(b.Path, name)
 		if profile == "" || b.isFileNotExist(configFile+".") {
-			log.Debugf("config file: %v does not exist", configFile)
+			//log.Debugf("config file: %v does not exist", configFile)
 			return conf, nil
 		}
 
