@@ -16,6 +16,7 @@ package controller
 
 import (
 	"errors"
+	"github.com/hidevopsio/gorm"
 	"github.com/hidevopsio/hiboot/examples/data/gorm/entity"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
@@ -25,7 +26,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"net/http"
 	"testing"
-	"github.com/hidevopsio/gorm"
 )
 
 func init() {

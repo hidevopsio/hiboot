@@ -57,7 +57,8 @@ func TestUserCrud(t *testing.T) {
 		fakeRepository.Mock("Find", &[]entity.User{fakeUser}).Expect(nil)
 		users, err := userService.GetAll()
 		assert.Equal(t, nil, err)
-		assert.NotEqual(t, 0, users)
+		assert.Equal(t, 1, len(*users))
+		assert.Equal(t, "Bill Gates", (*users)[0].Name)
 	})
 
 	t.Run("should get user that added above", func(t *testing.T) {

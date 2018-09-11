@@ -34,24 +34,30 @@ If you are a Java developer, you can start coding in Go without learning curve.
 
 * Web MVC (Model-View-Controller).
 * Auto Configuration, pre-create instance with properties configs for dependency injection.
-* Dependency injection with struct tag name **\`inject:""\`** or **Init** method.
+* Dependency injection with struct tag name **\`inject:""\`** or **Constructor** func.
 
 ## Features
 
 * **Apps**
     * cli - command line application
     * web - web application
+
 * **Starters**
     * actuator - health check
+    * locale - locale starter
+    * logging - customized logging settings
+    * jwt - jwt starter
     * grpc - grpc application starter
     * bolt - bolt database starter
     * gorm - gorm orm starter, support mysql, postgres, mssql, sqlite
+
 * **Tags** 
     * inject - inject generic instance into object
     * default - inject default value into struct object 
     * value - inject string value or references / variables into struct string field
     * cmd - inject command into parent command for cli application
     * flag - inject flag / options into command object
+
 * **Utils** 
     * cmap - concurrent map
     * copier - copy between struct

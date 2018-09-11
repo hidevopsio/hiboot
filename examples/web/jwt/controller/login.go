@@ -21,13 +21,6 @@ import (
 	"time"
 )
 
-// request body
-type userRequest struct {
-	model.RequestBody
-	Username string `json:"username" validate:"required"`
-	Password string `json:"password" validate:"required"`
-}
-
 // PATH: /login
 type loginController struct {
 	web.Controller
@@ -35,12 +28,19 @@ type loginController struct {
 	jwtToken jwt.Token
 }
 
+type userRequest struct {
+	// embedded field model.RequestBody mark that userRequest is request body
+	model.RequestBody
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+}
+
 func init() {
-	// Register Rest Controller loginController
+	// Register Rest Controller through constructor newLoginController
 	web.RestController(newLoginController)
 }
 
-// Init inject jwtToken through Init method argument
+// Init inject jwtToken through the argument jwtToken jwt.Token on constructor
 func newLoginController(jwtToken jwt.Token) *loginController {
 	return &loginController{
 		jwtToken: jwtToken,
