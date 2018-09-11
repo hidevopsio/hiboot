@@ -34,7 +34,7 @@ type FakeProperties struct {
 	Nickname string `default:"foobar"`
 	Username string `default:"fb"`
 	Org      string `default:"hidevopsio"`
-	Profile  string `default:"${APP_PROFILES_ACTIVE}"`
+	Profile  string `default:"${APP_PROFILES_ACTIVE:dev}"`
 }
 
 type FakeConfiguration struct {
