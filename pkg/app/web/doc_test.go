@@ -34,17 +34,22 @@ type loginController struct {
 }
 
 type userRequest struct {
+	// embedded field model.RequestBody mark that userRequest is request body
+	model.RequestBody
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
 }
 
 func init() {
-	web.RestController(new(loginController))
+	// Register Rest Controller through constructor newLoginController
+	web.RestController(newLoginController)
 }
 
-// Init inject jwtToken through Init method argument
-func (c *loginController) Init(jwtToken jwt.Token) {
-	c.jwtToken = jwtToken
+// Init inject jwtToken through the argument jwtToken jwt.Token on constructor
+func newLoginController(jwtToken jwt.Token) *loginController {
+	return &loginController{
+		jwtToken: jwtToken,
+	}
 }
 
 // Post /
