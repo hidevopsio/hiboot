@@ -16,6 +16,7 @@ package inject
 
 import (
 	"errors"
+	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system"
@@ -249,11 +250,12 @@ func IntoFunc(object interface{}) (retVal interface{}, err error) {
 		numIn := fn.Type().NumIn()
 		inputs := make([]reflect.Value, numIn)
 		for i := 0; i < numIn; i++ {
-			val, ok := parseMethodInput(fn.Type().In(i))
+			fnInType := fn.Type().In(i)
+			val, ok := parseMethodInput(fnInType)
 			if ok {
 				inputs[i] = val
 			} else {
-				return nil, InvalidInputError
+				return nil, fmt.Errorf("%v is not injected", fnInType.Name())
 			}
 
 			paramObject := reflect.Indirect(val)

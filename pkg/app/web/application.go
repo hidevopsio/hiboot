@@ -64,24 +64,31 @@ func (a *application) SetProperty(name string, value interface{}) app.Applicatio
 }
 
 // Run run web application
-func (a *application) Run() {
+func (a *application) Run() (err error) {
 	serverPort := ":8080"
 	conf := a.SystemConfig()
 	if conf != nil && conf.Server.Port != "" {
 		serverPort = fmt.Sprintf(":%v", conf.Server.Port)
 	}
 
-	a.build()
+	err = a.build()
+	if err != nil {
+		return
+	}
 
-	a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(defaultConfiguration()))
+	err = a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(defaultConfiguration()))
+	return
 }
 
-func (a *application) add(controllers ...interface{}) {
+func (a *application) add(controllers ...interface{}) (err error) {
 	for _, controller := range controllers {
 		ctrl := controller
 		// TODO: should run it before register
 		if reflect.TypeOf(controller).Kind() == reflect.Func {
-			ctrl, _ = inject.IntoFunc(controller)
+			ctrl, err = inject.IntoFunc(controller)
+			if err != nil {
+				return
+			}
 		}
 		ifcField := reflector.GetEmbeddedInterfaceField(ctrl)
 		if ifcField.Anonymous {
@@ -90,10 +97,11 @@ func (a *application) add(controllers ...interface{}) {
 			a.controllerMap[ctrlTypeName] = append(ctrls, ctrl)
 		}
 	}
+	return
 }
 
 // Init init web application
-func (a *application) build(controllers ...interface{}) error {
+func (a *application) build(controllers ...interface{}) (err error) {
 	a.PrintStartupMessages()
 
 	systemConfig := a.SystemConfig()
@@ -121,10 +129,13 @@ func (a *application) build(controllers ...interface{}) error {
 
 	// categorize controllers
 	a.controllerMap = make(map[string][]interface{})
-	a.add(a.controllers...)
+	err = a.add(a.controllers...)
+	if err != nil {
+		return
+	}
 
 	// first register anon controllers
-	err := a.RegisterController(new(AnonController))
+	a.RegisterController(new(AnonController))
 
 	// call AfterInitialization with factory interface
 	a.AfterInitialization()

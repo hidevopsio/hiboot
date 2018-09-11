@@ -46,9 +46,11 @@ var (
 
 // RegisterClient register server from application
 func RegisterServer(cb interface{}, s interface{}) {
+	svrName, _ := reflector.GetName(s)
 	svr := &grpcService{
-		cb:  cb,
-		svc: s,
+		name: svrName,
+		cb:   cb,
+		svc:  s,
 	}
 	grpcServers = append(grpcServers, svr)
 }
@@ -89,6 +91,7 @@ func (c *configuration) BuildGrpcClients() {
 	for _, cli := range grpcClients {
 		prop := new(client)
 		if err := mapstruct.Decode(prop, clientProps[cli.name]); err != nil {
+			log.Error(err)
 			break
 		}
 		host := prop.Host
@@ -96,12 +99,18 @@ func (c *configuration) BuildGrpcClients() {
 			host = cli.name
 		}
 		address := host + ":" + prop.Port
-		// connect to grpc server
-		conn, err := grpc.Dial(address, grpc.WithInsecure())
-		if err != nil {
-			break
+		conn := c.instantiateFactory.GetInstance(cli.name)
+		var err error
+		if conn == nil {
+			// connect to grpc server
+			conn, err = grpc.Dial(address, grpc.WithInsecure())
+			c.instantiateFactory.SetInstance(cli.name, conn)
+			if err != nil {
+				log.Errorf("failed to connect to grpc server %v", address)
+				break
+			}
+			log.Infof("gRPC client connected to: %v", address)
 		}
-		log.Infof("gRPC client connected to: %v", address)
 		if cli.cb != nil {
 			// get return type for register instance name
 			gRpcCli, err := reflector.CallFunc(cli.cb, conn)
@@ -112,6 +121,8 @@ func (c *configuration) BuildGrpcClients() {
 					c.instantiateFactory.SetInstance(clientInstanceName, gRpcCli)
 					// register clientConn
 					c.instantiateFactory.SetInstance(clientInstanceName+"Conn", conn)
+
+					log.Infof("Registered gRPC client %v", clientInstanceName)
 				}
 			}
 		}
@@ -123,13 +134,22 @@ func (c *configuration) BuildGrpcClients() {
 				c.instantiateFactory.SetInstance(svcName, cli.svc)
 			}
 		}
+
 	}
 }
 
-// RunGrpcServers create gRPC servers that registered by application
-func (c *configuration) RunGrpcServers() {
+func (c *configuration) GrpcServer() *grpc.Server {
 	// just return if grpc server is not enabled
 	if !c.Properties.Server.Enabled {
+		return nil
+	}
+	return grpc.NewServer()
+}
+
+// RunGrpcServers create gRPC servers that registered by application
+func (c *configuration) RunGrpcServers(grpcServer *grpc.Server) {
+	// just return if grpc server is not enabled
+	if !c.Properties.Server.Enabled || grpcServer == nil {
 		return
 	}
 
@@ -141,23 +161,23 @@ func (c *configuration) RunGrpcServers() {
 
 	// register server
 	// Register reflection service on gRPC server.
-	for _, srv := range grpcServers {
-		c := make(chan bool)
-		go func() {
-			grpcServer := grpc.NewServer()
+	chn := make(chan bool)
+	go func() {
+		for _, srv := range grpcServers {
 			reflector.CallFunc(srv.cb, grpcServer, srv.svc)
-			reflection.Register(grpcServer)
-			c <- true
-			if err := grpcServer.Serve(lis); err != nil {
-				fmt.Printf("failed to serve: %v", err)
+			svcName, err := reflector.GetName(srv.svc)
+			if err == nil {
+				log.Infof("Registered %v on gRPC server", svcName)
 			}
-			fmt.Printf("gRPC server exit\n")
-		}()
-		<-c
-		svcName, err := reflector.GetName(srv.svc)
-		if err == nil {
-			log.Infof("Registered %v on gRPC server", svcName)
 		}
-	}
+		reflection.Register(grpcServer)
+		chn <- true
+		if err := grpcServer.Serve(lis); err != nil {
+			fmt.Printf("failed to serve: %v", err)
+		}
+		fmt.Printf("gRPC server exit\n")
+	}()
+	<-chn
+
 	log.Infof("gRPC server listening on: localhost%v", address)
 }

@@ -30,7 +30,7 @@ import (
 type Application interface {
 	Initialize() error
 	SetProperty(name string, value interface{}) Application
-	Run()
+	Run() error
 }
 
 type ApplicationContext interface {
