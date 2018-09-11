@@ -86,7 +86,7 @@ func saveInstance(name string, inst interface{}) error {
 	return fct.SetInstance(name, inst)
 }
 
-// IntoObject injects instance into the tagged field with `inject:"instanceName"`
+// DefaultValue injects instance into the tagged field with `inject:"instanceName"`
 func DefaultValue(object interface{}) error {
 	return IntoObjectValue(reflect.ValueOf(object), new(defaultTag))
 }
@@ -253,7 +253,7 @@ func parseMethodInput(inType reflect.Type) (paramValue reflect.Value, ok bool) {
 	return
 }
 
-// IntoMethod inject object into method and return instance
+// IntoFunc inject object into func and return instance
 func IntoFunc(object interface{}) (retVal interface{}, err error) {
 	fn := reflect.ValueOf(object)
 	if fn.Kind() == reflect.Func {

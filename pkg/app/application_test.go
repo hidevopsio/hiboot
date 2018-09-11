@@ -18,7 +18,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/stretchr/testify/assert"
-	"sync"
 	"testing"
 )
 
@@ -128,12 +127,6 @@ func TestApp(t *testing.T) {
 }
 
 func TestBaseApplication(t *testing.T) {
-	var mu sync.Mutex
-	mu.Lock()
-	defer mu.Unlock()
-
-	log.Println("================== Begin ======================")
-
 	ba := new(app.BaseApplication)
 
 	ba.BeforeInitialization()
@@ -160,5 +153,4 @@ func TestBaseApplication(t *testing.T) {
 
 	ba.Use()
 
-	log.Println("================== End ======================")
 }
