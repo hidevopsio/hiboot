@@ -6,9 +6,9 @@ server:
 logging:
   level: debug
 
-#grpc:
-#  client:
-#    hello-world-service:
-#      host: localhost # or greeter-server.${app.project}-${app.profiles.active}
-#      port: 7575
+grpc:
+  client:
+    hello-world-service:
+      host: localhost # or greeter-server.${app.project}-${app.profiles.active}
+      port: 7575
 

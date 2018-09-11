@@ -107,7 +107,8 @@ func (a *application) build(controllers ...interface{}) (err error) {
 	systemConfig := a.SystemConfig()
 	if systemConfig != nil {
 		log.SetLevel(systemConfig.Logging.Level)
-		log.Infof("Starting Hiboot web application %v on localhost with PID %v (%v)", systemConfig.App.Name, os.Getpid(), a.WorkDir)
+		log.Infof("Starting Hiboot web application %v on localhost with PID %v", systemConfig.App.Name, os.Getpid())
+		log.Infof("Working directory: %v", a.WorkDir)
 		log.Infof("The following profiles are active: %v, %v", systemConfig.App.Profiles.Active, systemConfig.App.Profiles.Include)
 	}
 

@@ -25,6 +25,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/kataras/iris/context"
 	"reflect"
+	"sync"
 )
 
 type Application interface {
@@ -52,6 +53,7 @@ type BaseApplication struct {
 	systemConfig        *system.Configuration
 	postProcessor       postProcessor
 	propertyMap         cmap.ConcurrentMap
+	mu                  sync.Mutex
 }
 
 var (
@@ -182,6 +184,9 @@ func (a *BaseApplication) GetProperty(name string) (value interface{}, ok bool) 
 
 // Init
 func (a *BaseApplication) Initialize() error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+
 	a.WorkDir = io.GetWorkDir()
 
 	a.propertyMap = cmap.New()
@@ -206,8 +211,7 @@ func (a *BaseApplication) Initialize() error {
 		return err
 	}
 
-	a.systemConfig = new(system.Configuration)
-	configurableFactory.BuildSystemConfig(a.systemConfig)
+	a.systemConfig, err = configurableFactory.BuildSystemConfig()
 
 	return nil
 }

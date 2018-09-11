@@ -21,7 +21,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/starter/data"
-	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/stretchr/testify/assert"
@@ -278,7 +277,7 @@ func TestInject(t *testing.T) {
 	configurableFactory.InstantiateFactory = new(instantiate.InstantiateFactory)
 	configurableFactory.InstantiateFactory.Initialize(instances)
 	configurableFactory.Initialize(configurations)
-	configurableFactory.BuildSystemConfig(system.Configuration{})
+	configurableFactory.BuildSystemConfig()
 
 	inject.SetFactory(configurableFactory)
 
@@ -444,5 +443,41 @@ func TestInject(t *testing.T) {
 		err := inject.IntoObject(&a)
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, nil, a.TestObj)
+	})
+
+	t.Run("should inject object through func", func(t *testing.T) {
+
+		obj, err := inject.IntoFunc(func(user *FooUser) *fooService {
+			assert.NotEqual(t, nil, user)
+			return &fooService{
+				FooUser: user,
+			}
+		})
+		assert.Equal(t, nil, err)
+		assert.NotEqual(t, nil, obj)
+	})
+
+	t.Run("should inject object through func", func(t *testing.T) {
+
+		obj, err := inject.IntoFunc(func(user *FooUser) {
+			assert.NotEqual(t, nil, user)
+		})
+		assert.Equal(t, nil, err)
+		assert.Equal(t, nil, obj)
+	})
+
+	t.Run("should failed to inject object through func with empty interface", func(t *testing.T) {
+
+		obj, err := inject.IntoFunc(func(user interface{}) *fooService {
+			return &fooService{}
+		})
+		assert.NotEqual(t, nil, err)
+		assert.Equal(t, nil, obj)
+	})
+
+	t.Run("should failed to inject object through nil func", func(t *testing.T) {
+		obj, err := inject.IntoFunc(nil)
+		assert.NotEqual(t, nil, err)
+		assert.Equal(t, nil, obj)
 	})
 }

@@ -19,6 +19,7 @@ package system
 import (
 	"bytes"
 	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/spf13/viper"
@@ -63,6 +64,7 @@ func (b *Builder) Build(profiles ...string) (interface{}, error) {
 
 	conf, err := b.Read(b.Name)
 	if err != nil {
+		log.Errorf("failed to read: %v", b.Name)
 		return nil, err
 	}
 
@@ -73,12 +75,15 @@ func (b *Builder) Build(profiles ...string) (interface{}, error) {
 	for _, profile := range profiles {
 		name := b.Name + "-" + profile
 		// allow the empty of the profile
-		if b.Profile == "" || b.isFileNotExist(filepath.Join(b.Path, name)+".") {
+		configFile := filepath.Join(b.Path, name)
+		if profile == "" || b.isFileNotExist(configFile+".") {
+			//log.Debugf("config file: %v does not exist", configFile)
 			return conf, nil
 		}
 
 		_, err = b.Read(name)
 		if err != nil {
+			log.Errorf("failed to read config file: %v", configFile)
 			break
 		}
 	}
