@@ -60,6 +60,7 @@ type ConfigurableFactory struct {
 	postConfigContainer cmap.ConcurrentMap
 }
 
+// Initialize initialize ConfigurableFactory
 func (f *ConfigurableFactory) Initialize(configurations cmap.ConcurrentMap) (err error) {
 	if f.InstantiateFactory == nil {
 		return FactoryCannotBeNilError
@@ -76,10 +77,12 @@ func (f *ConfigurableFactory) Initialize(configurations cmap.ConcurrentMap) (err
 	return
 }
 
+// SystemConfiguration getter
 func (f *ConfigurableFactory) SystemConfiguration() *system.Configuration {
 	return f.systemConfig
 }
 
+// Configuration getter
 func (f *ConfigurableFactory) Configuration(name string) interface{} {
 	cfg, ok := f.configurations.Get(name)
 	if ok {
@@ -88,6 +91,7 @@ func (f *ConfigurableFactory) Configuration(name string) interface{} {
 	return nil
 }
 
+// BuildSystemConfig build system configuration
 func (f *ConfigurableFactory) BuildSystemConfig() (systemConfig *system.Configuration, err error) {
 	workDir := io.GetWorkDir()
 	systemConfig = new(system.Configuration)
@@ -116,6 +120,7 @@ func (f *ConfigurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 	return systemConfig, err
 }
 
+// Build build all auto configurations
 func (f *ConfigurableFactory) Build(configs [][]interface{}) {
 	// categorize configurations first, then inject object if necessary
 	var c cmap.ConcurrentMap
@@ -161,6 +166,7 @@ func (f *ConfigurableFactory) Build(configs [][]interface{}) {
 
 }
 
+// InstantiateByName instantiate by method name
 func (f *ConfigurableFactory) InstantiateByName(configuration interface{}, name string) (inst interface{}, err error) {
 	objVal := reflect.ValueOf(configuration)
 	method, ok := objVal.Type().MethodByName(name)
@@ -170,6 +176,7 @@ func (f *ConfigurableFactory) InstantiateByName(configuration interface{}, name 
 	return nil, InvalidMethodError
 }
 
+// InstantiateMethod instantiate by iterated methods
 func (f *ConfigurableFactory) InstantiateMethod(configuration interface{}, method reflect.Method, methodName string) (inst interface{}, err error) {
 	//log.Debugf("method: %v", methodName)
 	instanceName := str.LowerFirst(methodName)
@@ -212,6 +219,7 @@ func (f *ConfigurableFactory) InstantiateMethod(configuration interface{}, metho
 	return
 }
 
+// Instantiate run instantiation by method
 func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error) {
 	cv := reflect.ValueOf(configuration)
 
@@ -238,6 +246,7 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error)
 	return
 }
 
+// appProfilesActive getter
 func (f *ConfigurableFactory) appProfilesActive() string {
 	if f.systemConfig == nil {
 		return os.Getenv(appProfilesActive)
@@ -245,6 +254,7 @@ func (f *ConfigurableFactory) appProfilesActive() string {
 	return f.systemConfig.App.Profiles.Active
 }
 
+// build
 func (f *ConfigurableFactory) build(cfgContainer cmap.ConcurrentMap) {
 	isTestRunning := gotest.IsRunning()
 	for item := range cfgContainer.IterBuffered() {
