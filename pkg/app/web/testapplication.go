@@ -28,7 +28,7 @@ import (
 // TestApplicationInterface the test web application interface for unit test only
 type TestApplication interface {
 	app.Application
-	RunTestServer(t *testing.T) *httpexpect.Expect
+	RunTestServer(t *testing.T) (expect *httpexpect.Expect, err error)
 	Request(method, path string, pathargs ...interface{}) *httpexpect.Request
 	Post(path string, pathargs ...interface{}) *httpexpect.Request
 	Get(path string, pathargs ...interface{}) *httpexpect.Request
@@ -49,14 +49,18 @@ func NewTestApplication(t *testing.T, controllers ...interface{}) TestApplicatio
 	a := new(testApplication)
 	err := a.initialize(controllers...)
 	assert.Equal(t, nil, err)
-	a.expect = a.RunTestServer(t)
+	a.expect, err = a.RunTestServer(t)
+	assert.Equal(t, nil, err)
 	return a
 }
 
 // RunTestServer run the test server
-func (a *testApplication) RunTestServer(t *testing.T) *httpexpect.Expect {
-	a.build()
-	return httptest.New(t, a.webApp)
+func (a *testApplication) RunTestServer(t *testing.T) (expect *httpexpect.Expect, err error) {
+	err = a.build()
+	if err != nil {
+		return
+	}
+	return httptest.New(t, a.webApp), nil
 }
 
 // Request request for unit test

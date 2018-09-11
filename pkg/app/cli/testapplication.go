@@ -19,7 +19,8 @@ func NewTestApplication(t *testing.T, cmd ...Command) TestApplication {
 	a := new(testApplication)
 	err := a.initialize(cmd...)
 	assert.Equal(t, nil, err)
-	a.build()
+	err = a.build()
+	assert.Equal(t, nil, err)
 	return a
 }
 

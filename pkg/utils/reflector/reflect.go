@@ -263,6 +263,9 @@ func GetEmbeddedInterfaceFieldByType(typ reflect.Type) (field reflect.StructFiel
 }
 
 func GetEmbeddedInterfaceField(object interface{}) (field reflect.StructField) {
+	if object == nil {
+		return
+	}
 	typ := IndirectType(reflect.TypeOf(object))
 	return GetEmbeddedInterfaceFieldByType(typ)
 }
