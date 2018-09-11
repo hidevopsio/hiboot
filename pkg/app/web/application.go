@@ -20,8 +20,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	_ "github.com/hidevopsio/hiboot/pkg/starter/locale"
-	_ "github.com/hidevopsio/hiboot/pkg/starter/logging"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/kataras/iris"
