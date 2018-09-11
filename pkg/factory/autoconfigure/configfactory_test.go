@@ -20,7 +20,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/stretchr/testify/assert"
@@ -34,7 +33,7 @@ type FakeProperties struct {
 	Nickname string `default:"foobar"`
 	Username string `default:"fb"`
 	Org      string `default:"hidevopsio"`
-	Profile  string `default:"${APP_PROFILES_ACTIVE}"`
+	Profile  string `default:"${APP_PROFILES_ACTIVE:dev}"`
 }
 
 type FakeConfiguration struct {
@@ -191,7 +190,7 @@ func TestConfigurableFactory(t *testing.T) {
 
 	t.Run("should build app config", func(t *testing.T) {
 		io.ChangeWorkDir(os.TempDir())
-		err := f.BuildSystemConfig(system.Configuration{})
+		_, err := f.BuildSystemConfig()
 		assert.Equal(t, nil, err)
 	})
 

@@ -16,9 +16,14 @@ package app_test
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
+
+func init() {
+	log.SetLevel(log.DebugLevel)
+}
 
 func TestApp(t *testing.T) {
 	type fakeProperties struct {
@@ -132,6 +137,7 @@ func TestBaseApplication(t *testing.T) {
 	sc := ba.SystemConfig()
 	assert.NotEqual(t, nil, sc)
 
+	// TODO: check concurrency issue during test
 	ba.BuildConfigurations()
 
 	cf := ba.ConfigurableFactory()
@@ -146,4 +152,5 @@ func TestBaseApplication(t *testing.T) {
 	ba.PrintStartupMessages()
 
 	ba.Use()
+
 }

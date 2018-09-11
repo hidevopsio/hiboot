@@ -40,24 +40,24 @@ func init() {
 func (c *configuration) LoggerHandler() context.Handler {
 	loggerHandler := logger.New(logger.Config{
 		// Status displays status code
-		Status: true,
+		Status: c.Properties.Status,
 		// IP displays request's remote address
-		IP: true,
+		IP: c.Properties.IP,
 		// Method displays the http method
-		Method: true,
+		Method: c.Properties.Method,
 		// Path displays the request path
-		Path: true,
+		Path: c.Properties.Path,
 		// Query appends the url query to the Path.
-		//Query: true,
+		Query: c.Properties.Query,
 
-		//Columns: true,
+		Columns: c.Properties.Columns,
 
 		// if !empty then its contents derives from `ctx.Values().Get("logger_message")
 		// will be added to the logs.
-		MessageContextKeys: []string{"logger_message"},
+		MessageContextKeys: c.Properties.ContextKeys,
 
 		// if !empty then its contents derives from `ctx.GetHeader("User-Agent")
-		MessageHeaderKeys: []string{"User-Agent"},
+		MessageHeaderKeys: c.Properties.HeaderKeys,
 	})
 
 	c.applicationContext.Use(loggerHandler)

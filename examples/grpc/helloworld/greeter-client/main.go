@@ -25,6 +25,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
+	_ "github.com/hidevopsio/hiboot/pkg/starter/logging"
 	"golang.org/x/net/context"
 )
 

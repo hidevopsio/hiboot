@@ -28,7 +28,8 @@ type keepAlive struct {
 	Timeout uint64 `json:"timeout" default:"120"`
 }
 
-type client struct {
+// ClientProperties used for grpc client injection
+type ClientProperties struct {
 	Host      string    `json:"host"`
 	Port      string    `json:"port" default:"7575"`
 	PlainText bool      `json:"plain_text" default:"true"`
