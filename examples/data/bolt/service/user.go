@@ -16,6 +16,7 @@ package service
 
 import (
 	"github.com/hidevopsio/hiboot/examples/data/bolt/entity"
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/starter/data/bolt"
 )
 
@@ -23,9 +24,15 @@ type UserService struct {
 	repository bolt.Repository
 }
 
+func init() {
+	app.Component(newUserService)
+}
+
 // will inject BoltRepository that configured in github.com/hidevopsio/hiboot/pkg/starter/data/bolt
-func (s *UserService) Init(repository bolt.Repository) {
-	s.repository = repository
+func newUserService(repository bolt.Repository) *UserService {
+	return &UserService{
+		repository: repository,
+	}
 }
 
 func (s *UserService) AddUser(user *entity.User) error {

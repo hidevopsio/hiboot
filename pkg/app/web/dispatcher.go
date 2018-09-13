@@ -42,7 +42,7 @@ var httpMethods = []string{
 type dispatcher struct {
 }
 
-func (d *dispatcher) register(app *iris.Application, controllers []interface{}) error {
+func (d *dispatcher) register(app *iris.Application, controllers []interface{}) (err error) {
 	for _, c := range controllers {
 		field := reflect.ValueOf(c)
 

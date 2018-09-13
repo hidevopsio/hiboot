@@ -4,6 +4,6 @@ grpc:
   server:
     enabled: true
   client:
-    greeter-client:
+    greeter-service:
       host: localhost
       port: 7575

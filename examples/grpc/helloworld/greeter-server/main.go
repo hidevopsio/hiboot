@@ -13,6 +13,7 @@
 // limitations under the License.
 
 // if protoc report command not found error, should install proto and protc-gen-go
+// find protoc install instruction on http://google.github.io/proto-lens/installing-protoc.html
 // go get -u -v github.com/golang/protobuf/{proto,protoc-gen-go}
 //go:generate protoc -I ../protobuf --go_out=plugins=grpc:../protobuf ../protobuf/helloworld.proto
 
@@ -27,19 +28,30 @@ import (
 )
 
 // server is used to implement protobuf.GreeterServer.
-type greeterServerImpl struct {
+type helloServiceServerImpl struct {
 }
 
 // SayHello implements helloworld.GreeterServer
-func (s *greeterServerImpl) SayHello(ctx context.Context, request *protobuf.HelloRequest) (*protobuf.HelloReply, error) {
+func (s *helloServiceServerImpl) SayHello(ctx context.Context, request *protobuf.HelloRequest) (*protobuf.HelloReply, error) {
 	// response to client
 	return &protobuf.HelloReply{Message: "Hello " + request.Name}, nil
+}
+
+// server is used to implement protobuf.GreeterServer.
+type holaServiceServerImpl struct {
+}
+
+// SayHello implements helloworld.GreeterServer
+func (s *holaServiceServerImpl) SayHola(ctx context.Context, request *protobuf.HolaRequest) (*protobuf.HolaReply, error) {
+	// response to client
+	return &protobuf.HolaReply{Message: "Hola " + request.Name}, nil
 }
 
 func init() {
 	// must: register grpc server
 	// please note that greeterService must implement protobuf.GreeterServer, or it won't be registered.
-	grpc.RegisterServer(protobuf.RegisterGreeterServer, new(greeterServerImpl))
+	grpc.Server(protobuf.RegisterHelloServiceServer, new(helloServiceServerImpl))
+	grpc.Server(protobuf.RegisterHolaServiceServer, new(holaServiceServerImpl))
 }
 
 func main() {

@@ -85,7 +85,7 @@ func (a *application) injectCommand(cmd Command) {
 }
 
 func (a *application) initialize(cmd ...Command) (err error) {
-	err = a.Init()
+	err = a.Initialize()
 	if err == nil {
 		var root Command
 		root = new(rootCommand)
@@ -138,12 +138,13 @@ func (a *application) Root() Command {
 }
 
 // Run run the cli application
-func (a *application) Run() {
+func (a *application) Run() (err error) {
 	a.build()
 	//log.Debug(commandContainer)
 	if a.root != nil {
-		if err := a.root.Exec(); err != nil {
-			os.Exit(1)
+		if err = a.root.Exec(); err != nil {
+			return
 		}
 	}
+	return
 }

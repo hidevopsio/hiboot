@@ -17,6 +17,9 @@ package main
 import (
 	_ "github.com/hidevopsio/hiboot/examples/data/bolt/controller"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
+	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
+	_ "github.com/hidevopsio/hiboot/pkg/starter/locale"
+	_ "github.com/hidevopsio/hiboot/pkg/starter/logging"
 )
 
 func main() {

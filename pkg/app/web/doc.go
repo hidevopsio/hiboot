@@ -21,7 +21,7 @@ Web MVC (Model-View-Controller).
 
 Auto Configuration, pre-created instance with properties configs for dependency injection.
 
-Dependency injection with struct tag name `inject:""` or Init method.
+Dependency injection with the struct tag `inject:""` or the constructor.
 
 Dependency injection in Go
 
@@ -29,14 +29,14 @@ Dependency injection is a concept valid for any programming language. The genera
 called Inversion of Control. According to this concept a struct should not configure its dependencies statically but
 should be configured from the outside.
 
+Dependency Injection design pattern allows us to remove the hard-coded dependencies and make our application loosely
+coupled, extendable and maintainable.
+
 A Go struct has a dependency on another struct, if it uses an instance of this struct. We call this a struct dependency.
 For example, a struct which accesses a user controller has a dependency on user service struct.
 
 Ideally Go struct should be as independent as possible from other Go struct. This increases the possibility of reusing
 these struct and to be able to test them independently from other struct.
-
-If the Go struct creates an instance of another struct via the new operator, it cannot be used (and tested)
-independently from this struct and this is called a hard dependency.
 
 The following example shows a struct which has no hard dependencies.
 

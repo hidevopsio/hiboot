@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// if protoc report command not found error, should install proto and protc-gen-go
+// find protoc install instruction on http://google.github.io/proto-lens/installing-protoc.html
+// go get -u -v github.com/golang/protobuf/{proto,protoc-gen-go}
 //go:generate protoc -I ../protobuf --go_out=plugins=grpc:../protobuf ../protobuf/helloworld.proto
 
 package main
@@ -19,30 +22,65 @@ package main
 import (
 	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
+	_ "github.com/hidevopsio/hiboot/pkg/starter/logging"
 	"golang.org/x/net/context"
 )
 
 // controller
-type greeterController struct {
+type helloController struct {
 	// embedded web.Controller
 	web.Controller
-	// declare greeterClient
-	greeterClient protobuf.GreeterClient
+	// declare HelloServiceClient
+	helloServiceClient protobuf.HelloServiceClient
 }
 
-// Init inject greeterClient
-func (c *greeterController) Init(greeterClient protobuf.GreeterClient) {
-	c.greeterClient = greeterClient
+// Init inject helloServiceClient
+func newHelloController(helloServiceClient protobuf.HelloServiceClient) *helloController {
+	return &helloController{
+		helloServiceClient: helloServiceClient,
+	}
 }
 
 // GET /greeter/name/{name}
-func (c *greeterController) GetByName(name string) string {
+func (c *helloController) GetByName(name string) string {
 
 	// call grpc server method
 	// pass context.Background() for the sake of simplicity
-	response, err := c.greeterClient.SayHello(context.Background(), &protobuf.HelloRequest{Name: name})
+	response, err := c.helloServiceClient.SayHello(context.Background(), &protobuf.HelloRequest{Name: name})
+
+	// got response
+	if err == nil {
+		return response.Message
+	}
+
+	// response with err
+	return err.Error()
+}
+
+// controller
+type holaController struct {
+	// embedded web.Controller
+	web.Controller
+	// declare HolaServiceClient
+	holaServiceClient protobuf.HolaServiceClient
+}
+
+// Init inject holaServiceClient
+func newHolaController(holaServiceClient protobuf.HolaServiceClient) *holaController {
+	return &holaController{
+		holaServiceClient: holaServiceClient,
+	}
+}
+
+// GET /greeter/name/{name}
+func (c *holaController) GetByName(name string) string {
+
+	// call grpc server method
+	// pass context.Background() for the sake of simplicity
+	response, err := c.holaServiceClient.SayHola(context.Background(), &protobuf.HolaRequest{Name: name})
 
 	// got response
 	if err == nil {
@@ -60,17 +98,20 @@ func init() {
 	//
 	// grpc:
 	//   client:
-	// 	   greeter-client:   # client name
+	// 	   greeter-services:   # client name
 	//       host: localhost # server host
 	//       port: 7575      # server port
 	//
-	grpc.RegisterClient("greeter-client", protobuf.NewGreeterClient)
+	grpc.Client("hello-world-service", protobuf.NewHelloServiceClient)
+	grpc.Client("hello-world-service", protobuf.NewHolaServiceClient)
 
 	// must: register greeterController
-	web.RestController(new(greeterController))
+	web.RestController(newHelloController)
+	web.RestController(newHolaController)
 }
 
 func main() {
 	// create new web application and run it
-	web.NewApplication().Run()
+	err := web.NewApplication().Run()
+	log.Debug(err)
 }

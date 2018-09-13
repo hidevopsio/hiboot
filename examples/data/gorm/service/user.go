@@ -25,6 +25,7 @@ import (
 type UserService interface {
 	AddUser(user *entity.User) (err error)
 	GetUser(id uint64) (user *entity.User, err error)
+	GetAll() (user *[]entity.User, err error)
 	DeleteUser(id uint64) (err error)
 }
 
@@ -36,13 +37,15 @@ type UserServiceImpl struct {
 
 func init() {
 	// register UserServiceImpl
-	app.Component(new(UserServiceImpl))
+	app.Component(newUserService)
 }
 
 // will inject BoltRepository that configured in github.com/hidevopsio/hiboot/pkg/starter/data/bolt
-func (s *UserServiceImpl) Init(repository gorm.Repository) {
-	s.repository = repository
+func newUserService(repository gorm.Repository) UserService {
 	repository.AutoMigrate(&entity.User{})
+	return &UserServiceImpl{
+		repository: repository,
+	}
 }
 
 func (s *UserServiceImpl) AddUser(user *entity.User) (err error) {
@@ -59,6 +62,12 @@ func (s *UserServiceImpl) AddUser(user *entity.User) (err error) {
 func (s *UserServiceImpl) GetUser(id uint64) (user *entity.User, err error) {
 	user = &entity.User{}
 	err = s.repository.Where("id = ?", id).First(user).Error()
+	return
+}
+
+func (s *UserServiceImpl) GetAll() (users *[]entity.User, err error) {
+	users = &[]entity.User{}
+	err = s.repository.Find(users).Error()
 	return
 }
 
