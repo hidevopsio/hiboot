@@ -12,5 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// package grpc provides hiboot web application service examples that communicate with gRpc protocol
+// Package grpc provides hiboot web application service examples that communicate with gRpc protocol
 package grpc

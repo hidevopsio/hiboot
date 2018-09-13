@@ -24,4 +24,3 @@ func Example_RequestBody() {
 		Password string
 	}
 }
-
