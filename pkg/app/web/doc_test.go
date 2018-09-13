@@ -24,7 +24,9 @@ import (
 // This example shows that jwtToken is injected through method Init,
 // once you imported "github.com/hidevopsio/hiboot/pkg/starter/jwt",
 // jwtToken jwt.Token will be injectable.
-func Example() {}
+func Example() {
+
+}
 
 // PATH: /login
 type loginController struct {

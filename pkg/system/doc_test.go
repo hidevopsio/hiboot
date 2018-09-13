@@ -12,22 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package factory provides InstantiateFactory and ConfigurableFactory interface
-package factory
+package system_test
 
-import "github.com/hidevopsio/hiboot/pkg/system"
+//This example shows how to use the system build
+func Example() {
 
-type Factory interface{}
-
-type InstantiateFactory interface {
-	Initialized() bool
-	SetInstance(name string, instance interface{}) (err error)
-	GetInstance(name string) (inst interface{})
-	Items() map[string]interface{}
-}
-
-type ConfigurableFactory interface {
-	InstantiateFactory
-	SystemConfiguration() *system.Configuration
-	Configuration(name string) interface{}
 }

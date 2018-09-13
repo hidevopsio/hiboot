@@ -12,22 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package factory provides InstantiateFactory and ConfigurableFactory interface
-package factory
+package log_test
 
-import "github.com/hidevopsio/hiboot/pkg/system"
+import "github.com/hidevopsio/hiboot/pkg/log"
 
-type Factory interface{}
+//This example shows the log usages
+func Example() {
 
-type InstantiateFactory interface {
-	Initialized() bool
-	SetInstance(name string, instance interface{}) (err error)
-	GetInstance(name string) (inst interface{})
-	Items() map[string]interface{}
-}
+	log.SetLevel(log.DebugLevel)
 
-type ConfigurableFactory interface {
-	InstantiateFactory
-	SystemConfiguration() *system.Configuration
-	Configuration(name string) interface{}
+	log.Debug("this is debug prints")
 }
