@@ -15,16 +15,18 @@
 package web_test
 
 import (
-	"time"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"time"
 )
 
 // This example shows that jwtToken is injected through method Init,
 // once you imported "github.com/hidevopsio/hiboot/pkg/starter/jwt",
 // jwtToken jwt.Token will be injectable.
-func Example() {}
+func Example() {
+
+}
 
 // PATH: /login
 type loginController struct {
@@ -34,17 +36,22 @@ type loginController struct {
 }
 
 type userRequest struct {
+	// embedded field model.RequestBody mark that userRequest is request body
+	model.RequestBody
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
 }
 
 func init() {
-	web.RestController(new(loginController))
+	// Register Rest Controller through constructor newLoginController
+	web.RestController(newLoginController)
 }
 
-// Init inject jwtToken through Init method argument
-func (c *loginController) Init(jwtToken jwt.Token) {
-	c.jwtToken = jwtToken
+// Init inject jwtToken through the argument jwtToken jwt.Token on constructor
+func newLoginController(jwtToken jwt.Token) *loginController {
+	return &loginController{
+		jwtToken: jwtToken,
+	}
 }
 
 // Post /
@@ -60,4 +67,3 @@ func (c *loginController) Post(request *userRequest) (response model.Response, e
 
 	return
 }
-

@@ -22,8 +22,7 @@ import (
 	"testing"
 )
 
-var userService *UserServiceImpl
-var fakeUser = &entity.User{
+var fakeUser = entity.User{
 	Id:       1,
 	Name:     "Bill Gates",
 	Username: "billg",
@@ -34,9 +33,8 @@ var fakeUser = &entity.User{
 }
 
 func TestUserCrud(t *testing.T) {
-	userService = new(UserServiceImpl)
 	fakeRepository := new(gorm.FakeRepository)
-	userService.Init(fakeRepository)
+	userService := newUserService(fakeRepository)
 
 	t.Run("should return error if user is nil", func(t *testing.T) {
 		err := userService.AddUser((*entity.User)(nil))
@@ -44,7 +42,7 @@ func TestUserCrud(t *testing.T) {
 	})
 
 	t.Run("should add user", func(t *testing.T) {
-		err := userService.AddUser(fakeUser)
+		err := userService.AddUser(&fakeUser)
 		assert.Equal(t, nil, err)
 	})
 
@@ -55,9 +53,17 @@ func TestUserCrud(t *testing.T) {
 		assert.NotEqual(t, 0, u.Id)
 	})
 
+	t.Run("should generate user id", func(t *testing.T) {
+		fakeRepository.Mock("Find", &[]entity.User{fakeUser}).Expect(nil)
+		users, err := userService.GetAll()
+		assert.Equal(t, nil, err)
+		assert.Equal(t, 1, len(*users))
+		assert.Equal(t, "Bill Gates", (*users)[0].Name)
+	})
+
 	t.Run("should get user that added above", func(t *testing.T) {
 		// call mock method mocker.First(fakeUser).Expected(nil)
-		fakeRepository.Mock("First", fakeUser).Expect(nil)
+		fakeRepository.Mock("First", &fakeUser).Expect(nil)
 
 		u, err := userService.GetUser(1)
 		assert.Equal(t, nil, err)

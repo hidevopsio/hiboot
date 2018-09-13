@@ -6,6 +6,8 @@ app:
   name: jwt-example
   profiles:
     include:
+    - locale
+    - logging
     - jwt
 
 logging:

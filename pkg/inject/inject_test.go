@@ -15,12 +15,12 @@
 package inject_test
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/starter/data"
-	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/stretchr/testify/assert"
@@ -61,6 +61,7 @@ type fakeProperties struct {
 }
 
 type fakeConfiguration struct {
+	app.Configuration
 	Properties fakeProperties `mapstructure:"fake"`
 }
 
@@ -95,6 +96,7 @@ func (c *fakeConfiguration) FooUser() *FooUser {
 }
 
 type fooConfiguration struct {
+	app.Configuration
 }
 
 type fooService struct {
@@ -275,14 +277,14 @@ func TestInject(t *testing.T) {
 	configurableFactory.InstantiateFactory = new(instantiate.InstantiateFactory)
 	configurableFactory.InstantiateFactory.Initialize(instances)
 	configurableFactory.Initialize(configurations)
-	configurableFactory.BuildSystemConfig(system.Configuration{})
+	configurableFactory.BuildSystemConfig()
 
 	inject.SetFactory(configurableFactory)
 
-	configs := cmap.New()
+	configs := make([][]interface{}, 0)
 	fakeConfig := new(fakeConfiguration)
-	configs.Set("fake", fakeConfig)
-	configs.Set("foo", fooConfiguration{})
+	configs = append(configs, []interface{}{fakeConfig})
+	configs = append(configs, []interface{}{fooConfiguration{}})
 	configurableFactory.Build(configs)
 
 	t.Run("should inject default string", func(t *testing.T) {
@@ -441,5 +443,41 @@ func TestInject(t *testing.T) {
 		err := inject.IntoObject(&a)
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, nil, a.TestObj)
+	})
+
+	t.Run("should inject object through func", func(t *testing.T) {
+
+		obj, err := inject.IntoFunc(func(user *FooUser) *fooService {
+			assert.NotEqual(t, nil, user)
+			return &fooService{
+				FooUser: user,
+			}
+		})
+		assert.Equal(t, nil, err)
+		assert.NotEqual(t, nil, obj)
+	})
+
+	t.Run("should inject object through func", func(t *testing.T) {
+
+		obj, err := inject.IntoFunc(func(user *FooUser) {
+			assert.NotEqual(t, nil, user)
+		})
+		assert.Equal(t, nil, err)
+		assert.Equal(t, nil, obj)
+	})
+
+	t.Run("should failed to inject object through func with empty interface", func(t *testing.T) {
+
+		obj, err := inject.IntoFunc(func(user interface{}) *fooService {
+			return &fooService{}
+		})
+		assert.NotEqual(t, nil, err)
+		assert.Equal(t, nil, obj)
+	})
+
+	t.Run("should failed to inject object through nil func", func(t *testing.T) {
+		obj, err := inject.IntoFunc(nil)
+		assert.NotEqual(t, nil, err)
+		assert.Equal(t, nil, obj)
 	})
 }

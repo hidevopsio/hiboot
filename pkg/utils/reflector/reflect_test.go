@@ -330,6 +330,9 @@ type Test struct {
 }
 
 func TestEmbedded(t *testing.T) {
+	type fooInterface interface {
+	}
+
 	testCases := []struct {
 		name      string
 		source    interface{}

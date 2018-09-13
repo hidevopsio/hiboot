@@ -21,7 +21,10 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/model"
+	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
+	_ "github.com/hidevopsio/hiboot/pkg/starter/locale"
+	_ "github.com/hidevopsio/hiboot/pkg/starter/logging"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/stretchr/testify/assert"
@@ -75,8 +78,28 @@ type ExampleController struct {
 
 type InvalidController struct{}
 
+type FooBar struct {
+	Name string
+}
+
+type FooBarService struct {
+	fooBar *FooBar
+}
+
+func newFooBarService(fooBar *FooBar) *FooBarService {
+	return &FooBarService{
+		fooBar: fooBar,
+	}
+}
+
+func (s *FooBarService) FooBar() *FooBar {
+	return s.fooBar
+}
+
 func init() {
 	log.SetLevel(log.DebugLevel)
+	app.Component(&FooBar{Name: "fooBar"})
+	app.Component(newFooBarService)
 }
 
 func (c *FooController) Init(jwtToken jwt.Token) {
@@ -210,6 +233,13 @@ func (c *FoobarController) Get(request *FoobarRequestParams) (response model.Res
 type HelloController struct {
 	web.Controller
 	ContextMapping string `value:"/"`
+	fooBar         *FooBar
+}
+
+func newHelloController(fooBar *FooBar) *HelloController {
+	return &HelloController{
+		fooBar: fooBar,
+	}
 }
 
 // Get hello
@@ -469,7 +499,7 @@ func TestChangingWorkDir(t *testing.T) {
 	os.RemoveAll(filepath.Join(wd, "config"))
 	os.Mkdir(wd, os.ModeDevice)
 	io.ChangeWorkDir(wd)
-	wta := web.NewTestApplication(t, new(HelloController))
+	wta := web.NewTestApplication(t, newHelloController)
 	t.Run("should Get /", func(t *testing.T) {
 		wta.Get("/").
 			Expect().Status(http.StatusOK)

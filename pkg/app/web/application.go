@@ -18,18 +18,15 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
-	"github.com/kataras/iris/middleware/i18n"
-	"github.com/kataras/iris/middleware/logger"
 	"os"
-	"path/filepath"
+	"reflect"
 	"regexp"
-	"strings"
 )
 
 const (
@@ -42,12 +39,13 @@ const (
 // Application is the struct of web Application
 type application struct {
 	app.BaseApplication
-	webApp          *iris.Application
-	jwtEnabled      bool
-	anonControllers []interface{}
-	jwtControllers  []interface{}
-	dispatcher      dispatcher
-	controllerMap   map[string][]interface{}
+	webApp     *iris.Application
+	jwtEnabled bool
+	//anonControllers []interface{}
+	//jwtControllers  []interface{}
+	controllers   []interface{}
+	dispatcher    dispatcher
+	controllerMap map[string][]interface{}
 }
 
 var (
@@ -66,40 +64,51 @@ func (a *application) SetProperty(name string, value interface{}) app.Applicatio
 }
 
 // Run run web application
-func (a *application) Run() {
+func (a *application) Run() (err error) {
 	serverPort := ":8080"
 	conf := a.SystemConfig()
 	if conf != nil && conf.Server.Port != "" {
 		serverPort = fmt.Sprintf(":%v", conf.Server.Port)
 	}
 
-	a.build()
+	err = a.build()
+	if err != nil {
+		return
+	}
 
-	a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(defaultConfiguration()))
+	err = a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(defaultConfiguration()))
+	return
 }
 
-func (a *application) add(controllers ...interface{}) {
+func (a *application) add(controllers ...interface{}) (err error) {
 	for _, controller := range controllers {
-
-		ifcField := reflector.GetEmbeddedInterfaceField(controller)
+		ctrl := controller
+		// TODO: should run it before register
+		if reflect.TypeOf(controller).Kind() == reflect.Func {
+			ctrl, err = inject.IntoFunc(controller)
+			if err != nil {
+				return
+			}
+		}
+		ifcField := reflector.GetEmbeddedInterfaceField(ctrl)
 		if ifcField.Anonymous {
 			ctrlTypeName := ifcField.Name
-			controllers := a.controllerMap[ctrlTypeName]
-			a.controllerMap[ctrlTypeName] = append(controllers, controller)
+			ctrls := a.controllerMap[ctrlTypeName]
+			a.controllerMap[ctrlTypeName] = append(ctrls, ctrl)
 		}
 	}
+	return
 }
 
 // Init init web application
-func (a *application) build(controllers ...interface{}) error {
+func (a *application) build(controllers ...interface{}) (err error) {
 	a.PrintStartupMessages()
-
-	a.webApp = iris.New()
 
 	systemConfig := a.SystemConfig()
 	if systemConfig != nil {
 		log.SetLevel(systemConfig.Logging.Level)
-		log.Infof("Starting Hiboot web application %v on localhost with PID %v (%v)", systemConfig.App.Name, os.Getpid(), a.WorkDir)
+		log.Infof("Starting Hiboot web application %v on localhost with PID %v", systemConfig.App.Name, os.Getpid())
+		log.Infof("Working directory: %v", a.WorkDir)
 		log.Infof("The following profiles are active: %v, %v", systemConfig.App.Profiles.Active, systemConfig.App.Profiles.Include)
 	}
 
@@ -108,32 +117,6 @@ func (a *application) build(controllers ...interface{}) error {
 
 	// build auto configurations
 	a.BuildConfigurations()
-
-	//TODO: move out to starter/logging
-	customLogger := logger.New(logger.Config{
-		// Status displays status code
-		Status: true,
-		// IP displays request's remote address
-		IP: true,
-		// Method displays the http method
-		Method: true,
-		// Path displays the request path
-		Path: true,
-		// Query appends the url query to the Path.
-		//Query: true,
-
-		//Columns: true,
-
-		// if !empty then its contents derives from `ctx.Values().Get("logger_message")
-		// will be added to the logs.
-		MessageContextKeys: []string{"logger_message"},
-
-		// if !empty then its contents derives from `ctx.GetHeader("User-Agent")
-		MessageHeaderKeys: []string{"User-Agent"},
-	})
-
-	// TODO: it should be configurable
-	a.webApp.Use(customLogger)
 
 	// The only one Required:
 	// here is how you define how your own context will
@@ -145,18 +128,19 @@ func (a *application) build(controllers ...interface{}) error {
 		}
 	})
 
-	err := a.initLocale()
+	// categorize controllers
+	a.controllerMap = make(map[string][]interface{})
+	err = a.add(a.controllers...)
 	if err != nil {
-		log.Debug(err)
+		return
 	}
 
 	// first register anon controllers
-	err = a.RegisterController(new(AnonController))
+	a.RegisterController(new(AnonController))
 
 	// call AfterInitialization with factory interface
 	a.AfterInitialization()
-
-	return nil
+	return err
 }
 
 // RegisterController register controller, e.g. web.Controller, jwt.Controller, or other customized controller
@@ -182,65 +166,18 @@ func (a *application) Use(handlers ...context.Handler) {
 	}
 }
 
-func (a *application) initLocale() error {
-	// TODO: localePath should be configurable in application.yml
-	// locale:
-	//   en-US: ./config/i18n/en-US.ini
-	//   cn-ZH: ./config/i18n/cn-ZH.ini
-	// TODO: or
-	// locale:
-	//   path: ./config/i18n/
-	localePath := "config/i18n/"
-	if io.IsPathNotExist(localePath) {
-		return &system.NotFoundError{Name: localePath}
-	}
-
-	// parse language files
-	languages := make(map[string]string)
-	err := filepath.Walk(localePath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			log.Fatal(err)
-		}
-		//*files = append(*files, path)
-		lng := strings.Replace(path, localePath, "", 1)
-		lng = io.BaseDir(lng)
-		lng = io.Basename(lng)
-
-		if lng != "" && path != localePath+lng {
-			//languages[lng] = path
-			if languages[lng] == "" {
-				languages[lng] = path
-			} else {
-				languages[lng] = languages[lng] + ", " + path
-			}
-			//log.Debugf("%v, %v", lng, languages[lng])
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
-	globalLocale := i18n.New(i18n.Config{
-		Default:      "en-US",
-		URLParameter: "lang",
-		Languages:    languages,
-	})
-
-	a.webApp.Use(globalLocale)
-
-	return nil
-}
-
 func (a *application) initialize(controllers ...interface{}) (err error) {
 	io.EnsureWorkDir(3, "config/application.yml")
-	err = a.Init()
+
+	// new iris app
+	a.webApp = iris.New()
+
+	err = a.Initialize()
 	if err == nil {
-		a.controllerMap = make(map[string][]interface{})
 		if len(controllers) == 0 {
-			a.add(registeredControllers...)
+			a.controllers = registeredControllers
 		} else {
-			a.add(controllers...)
+			a.controllers = controllers
 		}
 	}
 	return
@@ -253,6 +190,7 @@ func RestController(controllers ...interface{}) {
 
 // NewApplication create new web application instance and init it
 func NewApplication(controllers ...interface{}) app.Application {
+	log.SetLevel("error") // set debug level to error first
 	a := new(application)
 	err := a.initialize(controllers...)
 	if err != nil {

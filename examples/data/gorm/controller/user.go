@@ -41,12 +41,14 @@ type userController struct {
 }
 
 func init() {
-	web.RestController(new(userController))
+	web.RestController(newUserController)
 }
 
 // Init inject userService automatically
-func (c *userController) Init(userService service.UserService) {
-	c.userService = userService
+func newUserController(userService service.UserService) *userController {
+	return &userController{
+		userService: userService,
+	}
 }
 
 // Post POST /user
@@ -68,6 +70,14 @@ func (c *userController) GetById(id uint64) (response model.Response, err error)
 	} else {
 		response.SetData(user)
 	}
+	return
+}
+
+// GetById GET /id/{id}
+func (c *userController) GetAll() (response model.Response, err error) {
+	users, err := c.userService.GetAll()
+	response = new(model.BaseResponse)
+	response.SetData(users)
 	return
 }
 

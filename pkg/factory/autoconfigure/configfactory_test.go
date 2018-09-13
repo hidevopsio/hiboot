@@ -15,10 +15,11 @@
 package autoconfigure_test
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
+	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/stretchr/testify/assert"
@@ -32,10 +33,23 @@ type FakeProperties struct {
 	Nickname string `default:"foobar"`
 	Username string `default:"fb"`
 	Org      string `default:"hidevopsio"`
-	Profile  string `default:"${APP_PROFILES_ACTIVE}"`
+	Profile  string `default:"${APP_PROFILES_ACTIVE:dev}"`
 }
 
 type FakeConfiguration struct {
+	app.Configuration
+	FakeProperties FakeProperties `mapstructure:"fake"`
+}
+
+type unknownConfiguration struct {
+	FakeProperties FakeProperties `mapstructure:"fake"`
+}
+
+type FooInterface interface {
+}
+
+type unsupportedConfiguration struct {
+	FooInterface
 	FakeProperties FakeProperties `mapstructure:"fake"`
 }
 
@@ -46,11 +60,37 @@ type FooProperties struct {
 }
 
 type FooConfiguration struct {
+	app.PreConfiguration
 	FakeProperties FooProperties `mapstructure:"foo"`
 }
 
-func (c *FooConfiguration) HelloWorld() string {
-	return "Hello world"
+type BarConfiguration struct {
+	app.PostConfiguration
+	FakeProperties FooProperties `mapstructure:"foo"`
+}
+
+type FooBarConfiguration struct {
+	app.Configuration
+	FakeProperties FooProperties `mapstructure:"foo"`
+	foobar         *FooBar
+}
+
+func newFooBarConfiguration(foobar *FooBar) *FooBarConfiguration {
+	return &FooBarConfiguration{
+		foobar: foobar,
+	}
+}
+
+func (c *FooConfiguration) HelloWorld(foo *Foo) string {
+	return foo.Name + ": Hello world"
+}
+
+func (c *FooConfiguration) Bar() *Bar {
+	return &Bar{Name: "foo"}
+}
+
+func (c *FooConfiguration) Foo(bar *Bar) *Foo {
+	return &Foo{Name: "foo"}
 }
 
 type Foo struct {
@@ -132,9 +172,25 @@ func TestConfigurableFactory(t *testing.T) {
 	f.InstantiateFactory.Initialize(cmap.New())
 	f.Initialize(configContainers)
 
+	inject.SetFactory(f)
+
+	t.Run("should parse instance name via object", func(t *testing.T) {
+		name, inst := f.ParseInstance("Configuration", new(FooBarConfiguration))
+		assert.Equal(t, "fooBar", name)
+		assert.NotEqual(t, nil, inst)
+	})
+
+	t.Run("should parse object instance name via constructor", func(t *testing.T) {
+		testName := "foobar"
+		f.SetInstance("fooBar", &FooBar{Name: testName})
+		name, inst := f.ParseInstance("Configuration", newFooBarConfiguration)
+		assert.Equal(t, "fooBar", name)
+		assert.Equal(t, testName, inst.(*FooBarConfiguration).foobar.Name)
+	})
+
 	t.Run("should build app config", func(t *testing.T) {
 		io.ChangeWorkDir(os.TempDir())
-		err := f.BuildSystemConfig(system.Configuration{})
+		_, err := f.BuildSystemConfig()
 		assert.Equal(t, nil, err)
 	})
 
@@ -148,14 +204,17 @@ func TestConfigurableFactory(t *testing.T) {
 	_, err = io.WriterFile(configPath, fooFile, []byte(fooContent))
 	assert.Equal(t, nil, err)
 
-	container := cmap.New()
 	fooConfig := new(FooConfiguration)
-	container.Set("foo", fooConfig)
 	fakeCfg := new(FakeConfiguration)
-	container.Set("fake", fakeCfg)
-	container.Set("fakeFake", FakeConfiguration{})
-
-	f.Build(container)
+	f.Build([][]interface{}{
+		{fooConfig},
+		{fakeCfg},
+		{new(BarConfiguration)},
+		{new(BarConfiguration)},
+		{new(unknownConfiguration)},
+		{new(unsupportedConfiguration)},
+		{"fakeFake", FakeConfiguration{}},
+	})
 
 	t.Run("should instantiate by name", func(t *testing.T) {
 		bc := new(barConfiguration)
@@ -193,11 +252,12 @@ func TestConfigurableFactory(t *testing.T) {
 	})
 
 	t.Run("should get foo configuration", func(t *testing.T) {
-		assert.Equal(t, "Hello world", f.GetInstance("helloWorld").(string))
+		helloWorld := f.GetInstance("helloWorld")
+		assert.NotEqual(t, nil, helloWorld)
+		assert.Equal(t, "foo: Hello world", helloWorld.(string))
 
 		assert.Equal(t, "hiboot foo", fooConfig.FakeProperties.Nickname)
 		assert.Equal(t, "bar", fooConfig.FakeProperties.Username)
 		assert.Equal(t, "foo", fooConfig.FakeProperties.Name)
 	})
-
 }

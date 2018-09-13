@@ -33,4 +33,9 @@ func TestBarCommands(t *testing.T) {
 		_, err := testApp.RunTest("baz")
 		assert.Equal(t, nil, err)
 	})
+
+	t.Run("should run buz command", func(t *testing.T) {
+		_, err := testApp.RunTest("buz")
+		assert.Equal(t, nil, err)
+	})
 }

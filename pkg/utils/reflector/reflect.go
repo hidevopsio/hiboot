@@ -237,7 +237,11 @@ func CallFunc(object interface{}, args ...interface{}) (interface{}, error) {
 }
 
 func HasEmbeddedField(object interface{}, name string) bool {
+	//log.Debugf("HasEmbeddedField: %v", name)
 	typ := IndirectType(reflect.TypeOf(object))
+	if typ.Kind() != reflect.Struct {
+		return false
+	}
 	field, ok := typ.FieldByName(name)
 	return field.Anonymous && ok
 }
@@ -259,6 +263,9 @@ func GetEmbeddedInterfaceFieldByType(typ reflect.Type) (field reflect.StructFiel
 }
 
 func GetEmbeddedInterfaceField(object interface{}) (field reflect.StructField) {
+	if object == nil {
+		return
+	}
 	typ := IndirectType(reflect.TypeOf(object))
 	return GetEmbeddedInterfaceFieldByType(typ)
 }
@@ -282,6 +289,7 @@ func ParseObjectPkgName(obj interface{}) string {
 	return name
 }
 
+// GetPkgPath
 func GetPkgPath(object interface{}) string {
 	objType := IndirectType(reflect.TypeOf(object))
 	return objType.PkgPath()
