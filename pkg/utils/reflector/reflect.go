@@ -289,7 +289,7 @@ func ParseObjectPkgName(obj interface{}) string {
 	return name
 }
 
-// GetPkgPath
+// GetPkgPath get the package patch
 func GetPkgPath(object interface{}) string {
 	objType := IndirectType(reflect.TypeOf(object))
 	return objType.PkgPath()

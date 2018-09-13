@@ -18,4 +18,3 @@ package utils_test
 func Example() {
 
 }
-

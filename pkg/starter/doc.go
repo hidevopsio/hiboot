@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 /*
 Package starter provides quick starters for hiboot cli/web application
 

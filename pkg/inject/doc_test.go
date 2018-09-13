@@ -15,8 +15,8 @@
 package inject_test
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 )
 
 //This example shows that the dependency is injected through the constructor
@@ -46,7 +46,7 @@ func newHelloService() HelloService {
 }
 
 // SayHello is a service method implementation
-func (s *helloServiceImpl) SayHello(name string) string  {
+func (s *helloServiceImpl) SayHello(name string) string {
 	return "Hello" + name
 }
 
@@ -73,4 +73,3 @@ func (c *helloController) Get(name string) string {
 func main() {
 	web.NewApplication().Run()
 }
-

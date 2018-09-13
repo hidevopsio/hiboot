@@ -18,4 +18,3 @@ package system_test
 func Example() {
 
 }
-

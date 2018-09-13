@@ -23,4 +23,3 @@ func Example() {
 
 	log.Debug("this is debug prints")
 }
-

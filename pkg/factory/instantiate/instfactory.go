@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// package instantiate implement InstantiateFactory
+// Package instantiate implement InstantiateFactory
 package instantiate
 
 import (
 	"errors"
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/inject"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
 	"strings"
-	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 var (
