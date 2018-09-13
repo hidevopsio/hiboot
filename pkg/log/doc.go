@@ -11,22 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-// Package fake provides fake.ApplicationContext for testing
-package fake
 
-import "github.com/kataras/iris/context"
 
-type ApplicationContext struct {
-}
+/*
+Package log provides logging with level debug, info, warn, error, fatal.
 
-func (a *ApplicationContext) RegisterController(controller interface{}) error {
-	return nil
-}
 
-func (a *ApplicationContext) Use(handlers ...context.Handler) {
-
-}
-
-func (a *ApplicationContext) GetProperty(name string) (value interface{}, ok bool) {
-	return
-}
+*/
+package log

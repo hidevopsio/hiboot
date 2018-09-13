@@ -12,14 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 /*
-Package web provides quick start framework for web application.
-
-Main features of Hiboot web application
-
-Web MVC (Model-View-Controller).
-
-Auto Configuration, pre-created instance with properties configs for dependency injection.
+Package inject implements dependency injection.
 
 Dependency injection with the struct tag `inject:""` or the constructor.
 
@@ -41,4 +36,4 @@ these struct and to be able to test them independently from other struct.
 The following example shows a struct which has no hard dependencies.
 
 */
-package web
+package inject

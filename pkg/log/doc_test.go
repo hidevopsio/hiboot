@@ -11,22 +11,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-// Package fake provides fake.ApplicationContext for testing
-package fake
 
-import "github.com/kataras/iris/context"
+package log_test
 
-type ApplicationContext struct {
+import "github.com/hidevopsio/hiboot/pkg/log"
+
+//This example shows the log usages
+func Example() {
+
+	log.SetLevel(log.DebugLevel)
+
+	log.Debug("this is debug prints")
 }
 
-func (a *ApplicationContext) RegisterController(controller interface{}) error {
-	return nil
-}
-
-func (a *ApplicationContext) Use(handlers ...context.Handler) {
-
-}
-
-func (a *ApplicationContext) GetProperty(name string) (value interface{}, ok bool) {
-	return
-}

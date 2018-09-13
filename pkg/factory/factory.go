@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// package factory provides InstantiateFactory and ConfigurableFactory interface
 package factory
 
 import "github.com/hidevopsio/hiboot/pkg/system"
