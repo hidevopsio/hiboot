@@ -59,17 +59,14 @@ func RegisterServer(cb interface{}, s interface{}) {
 var Server = RegisterServer
 
 // RegisterClient register client from application
-func RegisterClient(name string, cb interface{}, s ...interface{}) {
-	var svc interface{}
-	if s != nil && len(s) != 0 {
-		svc = s[0]
+func RegisterClient(name string, cbs ...interface{}) {
+	for _, cb := range cbs {
+		svr := &grpcService{
+			name: name,
+			cb:   cb,
+		}
+		grpcClients = append(grpcClients, svr)
 	}
-	svr := &grpcService{
-		name: name,
-		cb:   cb,
-		svc:  svc,
-	}
-	grpcClients = append(grpcClients, svr)
 }
 
 // Client register client from application, it is a alias to RegisterClient
