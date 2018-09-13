@@ -289,6 +289,7 @@ func ParseObjectPkgName(obj interface{}) string {
 	return name
 }
 
+// GetPkgPath
 func GetPkgPath(object interface{}) string {
 	objType := IndirectType(reflect.TypeOf(object))
 	return objType.PkgPath()

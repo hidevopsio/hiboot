@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package app provides abstract layer for cli/web application
 package app
 
 import (

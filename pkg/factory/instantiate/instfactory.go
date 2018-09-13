@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// package instantiate implement InstantiateFactory
 package instantiate
 
 import (
@@ -23,6 +24,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
 	"strings"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 var (
@@ -67,9 +69,20 @@ func (f *InstantiateFactory) ParseInstance(eliminator string, params ...interfac
 		if reflect.TypeOf(inst).Kind() == reflect.Func {
 			// call func
 			var err error
-			inst, err = inject.IntoFunc(inst)
+			fn := inst
+			inst, err = inject.IntoFunc(fn)
 			if err != nil {
 				return "", nil
+			}
+			// name should get from fn out
+			fnVal := reflect.ValueOf(fn)
+			if fnVal.Type().NumOut() == 1 {
+				retTyp := fnVal.Type().Out(0)
+				log.Debugf("[factory] constructor return type: %v, kind: %v", retTyp.Name(), retTyp.Kind())
+				if retTyp.Kind() == reflect.Interface {
+					name = retTyp.Name()
+					return name, inst
+				}
 			}
 		}
 		name = reflector.ParseObjectName(inst, eliminator)
@@ -111,6 +124,8 @@ func (f *InstantiateFactory) SetInstance(name string, instance interface{}) (err
 	if !f.Initialized() {
 		return NotInitializedError
 	}
+
+	name = str.ToLowerCamel(name)
 
 	if _, ok := f.instanceMap.Get(name); ok {
 		return fmt.Errorf("instance name %v is already taken", name)
