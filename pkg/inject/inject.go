@@ -60,9 +60,9 @@ var (
 
 // SetFactory set factory from app
 func SetFactory(f factory.ConfigurableFactory) {
-	if fct == nil {
-		fct = f
-	}
+	//if fct == nil {
+	fct = f
+	//}
 }
 
 // AddTag add new tag

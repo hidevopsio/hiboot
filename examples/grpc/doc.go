@@ -12,22 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package factory provides InstantiateFactory and ConfigurableFactory interface
-package factory
-
-import "github.com/hidevopsio/hiboot/pkg/system"
-
-type Factory interface{}
-
-type InstantiateFactory interface {
-	Initialized() bool
-	SetInstance(name string, instance interface{}) (err error)
-	GetInstance(name string) (inst interface{})
-	Items() map[string]interface{}
-}
-
-type ConfigurableFactory interface {
-	InstantiateFactory
-	SystemConfiguration() *system.Configuration
-	Configuration(name string) interface{}
-}
+// Package grpc provides hiboot web application service examples that communicate with gRpc protocol
+package grpc

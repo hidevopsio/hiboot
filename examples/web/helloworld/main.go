@@ -13,6 +13,8 @@
 // limitations under the License.
 
 // Line 1: main package
+
+// Package helloworld provides the quick start web application example
 package main
 
 // Line 2: import web starter from hiboot

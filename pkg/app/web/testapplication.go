@@ -57,9 +57,7 @@ func NewTestApplication(t *testing.T, controllers ...interface{}) TestApplicatio
 // RunTestServer run the test server
 func (a *testApplication) RunTestServer(t *testing.T) (expect *httpexpect.Expect, err error) {
 	err = a.build()
-	if err != nil {
-		return
-	}
+	assert.Equal(t, nil, err)
 	return httptest.New(t, a.webApp), nil
 }
 
