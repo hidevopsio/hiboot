@@ -98,16 +98,18 @@ func init() {
 	//
 	// grpc:
 	//   client:
-	// 	   greeter-services:   # client name
+	// 	   hello-world-service:   # client name
 	//       host: localhost # server host
 	//       port: 7575      # server port
 	//
-	grpc.Client("hello-world-service", protobuf.NewHelloServiceClient)
-	grpc.Client("hello-world-service", protobuf.NewHolaServiceClient)
+	grpc.Client("hello-world-service",
+		protobuf.NewHelloServiceClient,
+		protobuf.NewHolaServiceClient)
 
-	// must: register greeterController
-	web.RestController(newHelloController)
-	web.RestController(newHolaController)
+	// must: register Rest Controller
+	web.RestController(
+		newHelloController,
+		newHolaController)
 }
 
 func main() {
