@@ -71,8 +71,6 @@
     "etcdserver/api/v3rpc/rpctypes",
     "etcdserver/etcdserverpb",
     "mvcc/mvccpb",
-    "pkg/tlsutil",
-    "pkg/transport",
     "pkg/types",
   ]
   pruneopts = ""
@@ -851,7 +849,6 @@
     "github.com/boltdb/bolt",
     "github.com/coreos/etcd/clientv3",
     "github.com/coreos/etcd/mvcc/mvccpb",
-    "github.com/coreos/etcd/pkg/transport",
     "github.com/dgrijalva/jwt-go",
     "github.com/erikstmartin/go-testdb",
     "github.com/fatih/camelcase",
