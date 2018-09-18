@@ -38,7 +38,7 @@ var fakeUser = entity.User{
 	Gender:   1,
 }
 
-func newId(t *testing.T) string {
+func newID(t *testing.T) string {
 	id, err := idgen.NextString()
 	fakeUser.Id = id
 	assert.Equal(t, nil, err)
@@ -49,7 +49,7 @@ func TestUserCrud(t *testing.T) {
 	fakeRepository := new(fake.Repository)
 	userService := newUserService(fakeRepository)
 
-	id := newId(t)
+	id := newID(t)
 	t.Run("should return error if user is nil", func(t *testing.T) {
 		err := userService.AddUser(id, (*entity.User)(nil))
 		assert.NotEqual(t, nil, err)
@@ -64,7 +64,7 @@ func TestUserCrud(t *testing.T) {
 	})
 
 	simulationErr := errors.New("simulation err")
-	id = newId(t)
+	id = newID(t)
 	fakeRepository.On("Put", nil, id).Return((*clientv3.PutResponse)(nil), simulationErr)
 	t.Run("should add user", func(t *testing.T) {
 		err := userService.AddUser(id, &fakeUser)
@@ -72,7 +72,7 @@ func TestUserCrud(t *testing.T) {
 	})
 
 	recordNotFound := errors.New("record not found")
-	id = newId(t)
+	id = newID(t)
 	fakeRepository.On("Get", nil, id).Return((*clientv3.GetResponse)(nil), recordNotFound)
 	t.Run("should generate user id", func(t *testing.T) {
 		//u := &entity.User{}
@@ -88,7 +88,7 @@ func TestUserCrud(t *testing.T) {
 		Value: fakeUserBuf,
 	}
 	getRes.Kvs = append(getRes.Kvs, kv)
-	id = newId(t)
+	id = newID(t)
 	fakeRepository.On("Get", nil, id).Return(getRes, nil)
 	t.Run("should generate user id", func(t *testing.T) {
 		//u := &entity.User{}
@@ -105,7 +105,7 @@ func TestUserCrud(t *testing.T) {
 		Value: []byte("test"),
 	}
 	getRes.Kvs = append(getRes.Kvs, kv)
-	id = newId(t)
+	id = newID(t)
 	fakeRepository.On("Get", nil, id).Return(getRes, nil)
 	t.Run("should generate user id", func(t *testing.T) {
 		//u := &entity.User{}
@@ -115,7 +115,7 @@ func TestUserCrud(t *testing.T) {
 		log.Debug("Error %v", err)
 		assert.NotEqual(t, getRes, nil)
 	})
-	id = newId(t)
+	id = newID(t)
 	fakeRepository.On("Delete", nil, id).Return((*clientv3.DeleteResponse)(nil), nil)
 	t.Run("should delete user", func(t *testing.T) {
 		err := userService.DeleteUser(id)
