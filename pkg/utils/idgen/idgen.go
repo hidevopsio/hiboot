@@ -2,6 +2,7 @@ package idgen
 
 import (
 	"github.com/sony/sonyflake"
+	"fmt"
 )
 
 var sf *sonyflake.Sonyflake
@@ -29,7 +30,7 @@ func NextString() (id string, err error) {
 	var i uint64
 	i, err = sf.NextID()
 	if err == nil {
-		id = string(i)
+		id = fmt.Sprintf("%d", i)
 	}
 	return
 }
