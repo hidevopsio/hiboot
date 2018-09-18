@@ -17,8 +17,8 @@ package service
 import (
 	"encoding/json"
 	"errors"
-	"github.com/coreos/etcd/clientv3"
-	"github.com/coreos/etcd/mvcc/mvccpb"
+	"go.etcd.io/etcd/clientv3"
+	"go.etcd.io/etcd/mvcc/mvccpb"
 	_ "github.com/erikstmartin/go-testdb"
 	"github.com/hidevopsio/hiboot/examples/data/etcd/entity"
 	"github.com/hidevopsio/hiboot/pkg/log"
