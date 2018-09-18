@@ -20,8 +20,8 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/utils/copier"
-	"net/http"
 	"github.com/hidevopsio/hiboot/pkg/utils/idgen"
+	"net/http"
 )
 
 type userRequest struct {

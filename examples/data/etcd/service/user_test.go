@@ -15,17 +15,17 @@
 package service
 
 import (
-	_ "github.com/erikstmartin/go-testdb"
-	"github.com/hidevopsio/hiboot/examples/data/etcd/entity"
-	"github.com/hidevopsio/hiboot/pkg/starter/data/etcd/fake"
-	"github.com/stretchr/testify/assert"
-	"testing"
-	"go.etcd.io/etcd/clientv3"
-	"github.com/hidevopsio/hiboot/pkg/utils/idgen"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"encoding/json"
 	"errors"
+	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
+	_ "github.com/erikstmartin/go-testdb"
+	"github.com/hidevopsio/hiboot/examples/data/etcd/entity"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/starter/data/etcd/fake"
+	"github.com/hidevopsio/hiboot/pkg/utils/idgen"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 var fakeUser = entity.User{
@@ -73,7 +73,7 @@ func TestUserCrud(t *testing.T) {
 
 	recordNotFound := errors.New("record not found")
 	id = newId(t)
-	fakeRepository.On("Get", nil, id).Return((*clientv3.GetResponse)(nil),recordNotFound)
+	fakeRepository.On("Get", nil, id).Return((*clientv3.GetResponse)(nil), recordNotFound)
 	t.Run("should generate user id", func(t *testing.T) {
 		//u := &entity.User{}
 		_, err := userService.GetUser(id)
@@ -81,15 +81,15 @@ func TestUserCrud(t *testing.T) {
 		assert.NotEqual(t, recordNotFound, nil)
 	})
 
-	fakeUserBuf,_ := json.Marshal(&fakeUser)
+	fakeUserBuf, _ := json.Marshal(&fakeUser)
 	getRes := new(clientv3.GetResponse)
 	kv := &mvccpb.KeyValue{
-		Key:            []byte("test"),
+		Key:   []byte("test"),
 		Value: fakeUserBuf,
 	}
 	getRes.Kvs = append(getRes.Kvs, kv)
 	id = newId(t)
-	fakeRepository.On("Get", nil, id).Return(getRes,nil)
+	fakeRepository.On("Get", nil, id).Return(getRes, nil)
 	t.Run("should generate user id", func(t *testing.T) {
 		//u := &entity.User{}
 		var err error
@@ -99,15 +99,14 @@ func TestUserCrud(t *testing.T) {
 		assert.NotEqual(t, getRes, nil)
 	})
 
-
 	getRes = new(clientv3.GetResponse)
 	kv = &mvccpb.KeyValue{
-		Key:            []byte("test"),
+		Key:   []byte("test"),
 		Value: []byte("test"),
 	}
 	getRes.Kvs = append(getRes.Kvs, kv)
 	id = newId(t)
-	fakeRepository.On("Get", nil, id).Return(getRes,nil)
+	fakeRepository.On("Get", nil, id).Return(getRes, nil)
 	t.Run("should generate user id", func(t *testing.T) {
 		//u := &entity.User{}
 		var err error

@@ -67,10 +67,12 @@
   name = "github.com/coreos/etcd"
   packages = [
     "auth/authpb",
+    "clientv3",
     "etcdserver/api/v3rpc/rpctypes",
     "etcdserver/etcdserverpb",
     "mvcc/mvccpb",
     "pkg/tlsutil",
+    "pkg/transport",
     "pkg/types",
   ]
   pruneopts = ""
@@ -693,17 +695,6 @@
   revision = "ecda9a501e8220fae3b4b600c3db4b0ba22cfc68"
 
 [[projects]]
-  digest = "1:b4db6b7d53a74b5abc1ae87921536138fe66a2788a0d205892c97e19d1b84683"
-  name = "go.etcd.io/etcd"
-  packages = [
-    "clientv3",
-    "pkg/transport",
-  ]
-  pruneopts = ""
-  revision = "fca8add78a9d926166eb739b8e4a124434025ba3"
-  version = "v3.3.9"
-
-[[projects]]
   branch = "master"
   digest = "1:47ff8b3229cff95d3cf3738c7a8461fdeacd3f46801e54d301a62500605ce202"
   name = "golang.org/x/crypto"
@@ -858,7 +849,9 @@
   analyzer-version = 1
   input-imports = [
     "github.com/boltdb/bolt",
+    "github.com/coreos/etcd/clientv3",
     "github.com/coreos/etcd/mvcc/mvccpb",
+    "github.com/coreos/etcd/pkg/transport",
     "github.com/dgrijalva/jwt-go",
     "github.com/erikstmartin/go-testdb",
     "github.com/fatih/camelcase",
@@ -884,8 +877,6 @@
     "github.com/spf13/viper",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/mock",
-    "go.etcd.io/etcd/clientv3",
-    "go.etcd.io/etcd/pkg/transport",
     "golang.org/x/net/context",
     "google.golang.org/grpc",
     "google.golang.org/grpc/examples/helloworld/helloworld",

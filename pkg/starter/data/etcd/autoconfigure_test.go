@@ -1,10 +1,10 @@
 package etcd
 
 import (
+	"github.com/coreos/etcd/clientv3"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/starter/data/etcd/fake"
 	"github.com/stretchr/testify/assert"
-	"go.etcd.io/etcd/clientv3"
 	"testing"
 )
 
