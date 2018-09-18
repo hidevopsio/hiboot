@@ -1,8 +1,8 @@
 package fake
 
 import (
-	"go.etcd.io/etcd/clientv3"
 	"github.com/stretchr/testify/mock"
+	"go.etcd.io/etcd/clientv3"
 	"golang.org/x/net/context"
 )
 

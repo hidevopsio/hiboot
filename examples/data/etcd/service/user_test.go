@@ -17,14 +17,14 @@ package service
 import (
 	"encoding/json"
 	"errors"
-	"go.etcd.io/etcd/clientv3"
-	"go.etcd.io/etcd/mvcc/mvccpb"
 	_ "github.com/erikstmartin/go-testdb"
 	"github.com/hidevopsio/hiboot/examples/data/etcd/entity"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/starter/data/etcd/fake"
 	"github.com/hidevopsio/hiboot/pkg/utils/idgen"
 	"github.com/stretchr/testify/assert"
+	"go.etcd.io/etcd/clientv3"
+	"go.etcd.io/etcd/mvcc/mvccpb"
 	"testing"
 )
 

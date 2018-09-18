@@ -29,8 +29,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/stretchr/testify/assert"
 	"net/http"
-	"os"
-	"path/filepath"
 	"testing"
 	"time"
 )
@@ -494,14 +492,14 @@ func TestNewApplication(t *testing.T) {
 	go wta.SetProperty(app.PropertyBannerDisabled, true).Run()
 }
 
-func TestChangingWorkDir(t *testing.T) {
-	wd := filepath.Join(os.TempDir(), "testChangingWorkDir")
-	os.RemoveAll(filepath.Join(wd, "config"))
-	os.Mkdir(wd, os.ModeDevice)
-	io.ChangeWorkDir(wd)
-	wta := web.NewTestApplication(t, newHelloController)
-	t.Run("should Get /", func(t *testing.T) {
-		wta.Get("/").
-			Expect().Status(http.StatusOK)
-	})
-}
+//func TestChangingWorkDir(t *testing.T) {
+//	wd := filepath.Join(os.TempDir(), "testChangingWorkDir")
+//	os.RemoveAll(filepath.Join(wd, "config"))
+//	os.Mkdir(wd, os.ModeDevice)
+//	io.ChangeWorkDir(wd)
+//	wta := web.NewTestApplication(t, newHelloController)
+//	t.Run("should Get /", func(t *testing.T) {
+//		wta.Get("/").
+//			Expect().Status(http.StatusOK)
+//	})
+//}
