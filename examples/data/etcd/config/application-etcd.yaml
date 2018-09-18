@@ -1,0 +1,12 @@
+# config file for testing
+# filename should be application-etcd.yml
+
+etcd:
+  type: etcd
+  dialTimeout: 5
+  requestTimeout: 10
+  endpoints: 172.16.10.47:2379
+  cert:
+    certFile: config/certs/etcd.pem
+    keyFile: config/certs/etcd-key.pem
+    trustedCAFile: config/certs/ca.pem

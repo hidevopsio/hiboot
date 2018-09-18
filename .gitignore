@@ -20,3 +20,5 @@ application-fake.yml
 vendor/
 
 .vscode/
+
+certs/
