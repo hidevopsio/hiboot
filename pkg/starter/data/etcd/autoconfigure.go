@@ -16,10 +16,10 @@ package etcd
 
 import (
 	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/pkg/transport"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"time"
-	"github.com/coreos/etcd/pkg/transport"
 )
 
 type Repository interface {

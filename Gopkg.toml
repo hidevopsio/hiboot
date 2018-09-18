@@ -54,5 +54,9 @@
   version = "8.18.2"
 
 [[constraint]]
+  name = "github.com/coreos/etcd"
+  version = "v3.2.13"
+
+[[constraint]]
   name = "github.com/hidevopsio/gorm"
   version = "2.0.1"
