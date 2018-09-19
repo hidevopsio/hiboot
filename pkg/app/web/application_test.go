@@ -491,4 +491,3 @@ func TestNewApplication(t *testing.T) {
 
 	go wta.SetProperty(app.PropertyBannerDisabled, true).Run()
 }
-

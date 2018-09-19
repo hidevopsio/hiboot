@@ -131,7 +131,6 @@ func (a *application) Root() Command {
 	return a.root
 }
 
-
 // SetProperty set application property
 func (a *application) SetProperty(name string, value interface{}) app.Application {
 	a.BaseApplication.SetProperty(name, value)
