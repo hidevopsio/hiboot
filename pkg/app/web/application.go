@@ -63,6 +63,11 @@ func (a *application) SetProperty(name string, value interface{}) app.Applicatio
 	return a
 }
 
+// Initialize init application
+func (a *application) Initialize() error {
+	return a.BaseApplication.Initialize()
+}
+
 // Run run web application
 func (a *application) Run() (err error) {
 	serverPort := ":8080"

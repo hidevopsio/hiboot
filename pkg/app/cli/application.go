@@ -66,12 +66,6 @@ func NewApplication(cmd ...Command) Application {
 	return a
 }
 
-// SetProperty
-func (a *application) SetProperty(name string, value interface{}) app.Application {
-	a.BaseApplication.SetProperty(name, value)
-	return a
-}
-
 func (a *application) injectCommand(cmd Command) {
 	fullname := "root"
 	if cmd != nil {
@@ -135,6 +129,18 @@ func (a *application) SetRoot(root Command) {
 // Root get the root command
 func (a *application) Root() Command {
 	return a.root
+}
+
+
+// SetProperty set application property
+func (a *application) SetProperty(name string, value interface{}) app.Application {
+	a.BaseApplication.SetProperty(name, value)
+	return a
+}
+
+// Initialize init application
+func (a *application) Initialize() error {
+	return a.BaseApplication.Initialize()
 }
 
 // Run run the cli application

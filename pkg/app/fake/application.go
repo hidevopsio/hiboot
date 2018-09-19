@@ -31,3 +31,7 @@ func (a *ApplicationContext) Use(handlers ...context.Handler) {
 func (a *ApplicationContext) GetProperty(name string) (value interface{}, ok bool) {
 	return
 }
+
+func (a *ApplicationContext) GetInstance(name string) (instance interface{}) {
+	return
+}
