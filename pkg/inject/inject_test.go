@@ -20,7 +20,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/starter/data"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/stretchr/testify/assert"
@@ -35,7 +34,6 @@ type user struct {
 }
 
 type fakeRepository struct {
-	data.BaseKVRepository
 }
 
 type fakeProperties struct {
@@ -68,7 +66,8 @@ type fakeConfiguration struct {
 type fakeDataSource struct {
 }
 
-type FakeRepository data.Repository
+type FakeRepository interface {
+}
 
 type FooUser struct {
 	Name string
@@ -84,7 +83,6 @@ type Tag struct {
 
 func (c *fakeConfiguration) FakeRepository() FakeRepository {
 	repo := new(fakeRepository)
-	repo.SetDataSource(new(fakeDataSource))
 	return repo
 }
 

@@ -1,8 +1,8 @@
 package idgen
 
 import (
-	"github.com/sony/sonyflake"
 	"fmt"
+	"github.com/sony/sonyflake"
 )
 
 var sf *sonyflake.Sonyflake

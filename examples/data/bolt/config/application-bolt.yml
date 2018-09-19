@@ -1,7 +1,0 @@
-# config file for testing
-# filename should be application-bolt.yml
-
-bolt:
-  database: ${app.name:test}.db # database file path, e.g. /var/lib/data/bolt.db or relative path bolt.db
-  mode: 0600 # database file permission
-  timeout: 1 # connection timeout in second
