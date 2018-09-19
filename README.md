@@ -48,8 +48,6 @@ If you are a Java developer, you can start coding in Go without learning curve.
     * logging - customized logging settings
     * jwt - jwt starter
     * grpc - grpc application starter
-    * bolt - bolt database starter
-    * gorm - gorm orm starter, support mysql, postgres, mssql, sqlite
 
 * **Tags** 
     * inject - inject generic instance into object
