@@ -21,4 +21,5 @@ func TestApplicationContext(t *testing.T) {
 	ac.RegisterController(nil)
 	ac.Use()
 	ac.GetProperty("foo")
+	ac.GetInstance("bar")
 }

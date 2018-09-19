@@ -31,7 +31,7 @@ func TestCommand(t *testing.T) {
 		fooCmd := new(fooCommand)
 		fooCmd.SetName("foo")
 		_, err := fooCmd.Find("bar")
-		assert.Equal(t, CommandNotFoundError, err)
+		assert.Equal(t, ErrCommandNotFound, err)
 	})
 
 	t.Run("should run command handler", func(t *testing.T) {

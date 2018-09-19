@@ -28,22 +28,29 @@ import (
 )
 
 var (
-	NotInitializedError    = errors.New("InstantiateFactory is not initialized")
-	InvalidObjectTypeError = errors.New("[factory] invalid Component")
+	// ErrNotInitialized InstantiateFactory is not initialized
+	ErrNotInitialized = errors.New("[factory] InstantiateFactory is not initialized")
+
+	// ErrInvalidObjectType invalid object type
+	ErrInvalidObjectType = errors.New("[factory] invalid object type")
 )
 
+// InstantiateFactory is the factory that responsible for object instantiation
 type InstantiateFactory struct {
 	instanceMap cmap.ConcurrentMap
 }
 
+// Initialize init the factory
 func (f *InstantiateFactory) Initialize(instanceMap cmap.ConcurrentMap) {
 	f.instanceMap = instanceMap
 }
 
+// Initialized check if factory is initialized
 func (f *InstantiateFactory) Initialized() bool {
 	return f.instanceMap != nil
 }
 
+// IsValidObjectType check if is valid object type
 func (f *InstantiateFactory) IsValidObjectType(inst interface{}) bool {
 	val := reflect.ValueOf(inst)
 	//log.Println(val.Kind())
@@ -54,6 +61,7 @@ func (f *InstantiateFactory) IsValidObjectType(inst interface{}) bool {
 	return false
 }
 
+// ParseInstance parse object name and type
 func (f *InstantiateFactory) ParseInstance(eliminator string, params ...interface{}) (name string, inst interface{}) {
 
 	hasTwoParams := len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String
@@ -94,11 +102,12 @@ func (f *InstantiateFactory) ParseInstance(eliminator string, params ...interfac
 	return
 }
 
+// BuildComponents build all registered components
 func (f *InstantiateFactory) BuildComponents(components [][]interface{}) (err error) {
 	for _, item := range components {
 		name, inst := f.ParseInstance("", item...)
 		if inst == nil {
-			return InvalidObjectTypeError
+			return ErrInvalidObjectType
 		}
 		// use interface name if it's available as use does not specify its name
 		field := reflector.GetEmbeddedInterfaceField(inst)
@@ -120,9 +129,10 @@ func (f *InstantiateFactory) BuildComponents(components [][]interface{}) (err er
 	return
 }
 
+// SetInstance save instance
 func (f *InstantiateFactory) SetInstance(name string, instance interface{}) (err error) {
 	if !f.Initialized() {
-		return NotInitializedError
+		return ErrNotInitialized
 	}
 
 	name = str.ToLowerCamel(name)
@@ -135,6 +145,7 @@ func (f *InstantiateFactory) SetInstance(name string, instance interface{}) (err
 	return
 }
 
+// GetInstance get instance by name
 func (f *InstantiateFactory) GetInstance(name string) (inst interface{}) {
 	if !f.Initialized() {
 		return nil
@@ -148,6 +159,7 @@ func (f *InstantiateFactory) GetInstance(name string) (inst interface{}) {
 	return
 }
 
+// Items return instance map
 func (f *InstantiateFactory) Items() map[string]interface{} {
 	if !f.Initialized() {
 		return nil

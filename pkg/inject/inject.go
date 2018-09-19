@@ -28,40 +28,38 @@ import (
 )
 
 const (
-	injectIdentifier = "inject"
-	valueIdentifier  = "value"
-	initMethodName   = "Init"
+	initMethodName = "Init"
 )
 
 var (
-	// NotImplementedError: the interface is not implemented
-	NotImplementedError = errors.New("[inject] interface is not implemented")
-	// InvalidObjectError: the object is invalid
-	InvalidObjectError = errors.New("[inject] invalid object")
-	// InvalidTagNameError the tag name is invalid
-	InvalidTagNameError = errors.New("[inject] invalid tag name, e.g. exampleTag")
-	// SystemConfigurationError system is not configured
-	SystemConfigurationError = errors.New("[inject] system is not configured")
+	// ErrNotImplemented: the interface is not implemented
+	ErrNotImplemented = errors.New("[inject] interface is not implemented")
 
-	// InvalidInputError
-	InvalidInputError = errors.New("[inject] invalid input")
-	// InvalidFuncError
-	InvalidFuncError = errors.New("[inject] invalid func")
+	// ErrInvalidObject: the object is invalid
+	ErrInvalidObject = errors.New("[inject] invalid object")
 
-	// FactoryIsNilError
-	FactoryIsNilError = errors.New("[inject] factory is nil")
+	// ErrInvalidTagName the tag name is invalid
+	ErrInvalidTagName = errors.New("[inject] invalid tag name, e.g. exampleTag")
 
-	// TODO use cmap.ConcurrentMap for tagsContainer
+	// ErrSystemConfiguration system is not configured
+	ErrSystemConfiguration = errors.New("[inject] system is not configured")
+
+	// ErrInvalidFunc the function is invalid
+	ErrInvalidFunc = errors.New("[inject] invalid func")
+
+	// ErrFactoryIsNil factory is invalid
+	ErrFactoryIsNil = errors.New("[inject] factory is nil")
+
 	tagsContainer []Tag
 
 	//instancesMap cmap.ConcurrentMap
-	fct factory.ConfigurableFactory
+	appFactory factory.ConfigurableFactory
 )
 
 // SetFactory set factory from app
 func SetFactory(f factory.ConfigurableFactory) {
 	//if fct == nil {
-	fct = f
+	appFactory = f
 	//}
 }
 
@@ -72,18 +70,18 @@ func AddTag(tag Tag) {
 
 func getInstanceByName(name string, instType reflect.Type) (inst interface{}) {
 	name = str.ToLowerCamel(name)
-	if fct != nil {
-		inst = fct.GetInstance(name)
+	if appFactory != nil {
+		inst = appFactory.GetInstance(name)
 	}
 	return
 }
 
 func saveInstance(name string, inst interface{}) error {
 	name = str.LowerFirst(name)
-	if fct == nil {
-		return FactoryIsNilError
+	if appFactory == nil {
+		return ErrFactoryIsNil
 	}
-	return fct.SetInstance(name, inst)
+	return appFactory.SetInstance(name, inst)
 }
 
 // DefaultValue injects instance into the tagged field with `inject:"instanceName"`
@@ -101,14 +99,14 @@ func IntoObjectValue(object reflect.Value, tags ...Tag) error {
 	var err error
 
 	// TODO refactor IntoObject
-	if fct == nil {
-		return SystemConfigurationError
+	if appFactory == nil {
+		return ErrSystemConfiguration
 	}
 
 	obj := reflector.Indirect(object)
 	if obj.Kind() != reflect.Struct {
 		log.Errorf("[inject] object: %v, kind: %v", object, obj.Kind())
-		return InvalidObjectError
+		return ErrInvalidObject
 	}
 
 	var targetTags []Tag
@@ -117,15 +115,15 @@ func IntoObjectValue(object reflect.Value, tags ...Tag) error {
 	} else {
 		targetTags = tagsContainer
 	}
-	sc := fct.GetInstance("systemConfiguration")
+	sc := appFactory.GetInstance("systemConfiguration")
 	if sc == nil {
-		return SystemConfigurationError
+		return ErrSystemConfiguration
 	}
 	systemConfig := sc.(*system.Configuration)
 
-	cs := fct.GetInstance("configurations")
+	cs := appFactory.GetInstance("configurations")
 	if cs == nil {
-		return SystemConfigurationError
+		return ErrSystemConfiguration
 	}
 	configurations := cs.(cmap.ConcurrentMap)
 
@@ -152,7 +150,7 @@ func IntoObjectValue(object reflect.Value, tags ...Tag) error {
 			for _, tagImpl := range targetTags {
 				tagName := reflector.ParseObjectName(tagImpl, "Tag")
 				if tagName == "" {
-					return InvalidTagNameError
+					return ErrInvalidTagName
 				}
 				tag, ok := f.Tag.Lookup(tagName)
 				if ok {
@@ -280,5 +278,5 @@ func IntoFunc(object interface{}) (retVal interface{}, err error) {
 			return nil, nil
 		}
 	}
-	return nil, InvalidFuncError
+	return nil, ErrInvalidFunc
 }

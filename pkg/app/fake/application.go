@@ -17,17 +17,26 @@ package fake
 
 import "github.com/kataras/iris/context"
 
+// ApplicationContext application context
 type ApplicationContext struct {
 }
 
+// RegisterController register controller by interface
 func (a *ApplicationContext) RegisterController(controller interface{}) error {
 	return nil
 }
 
+// Use use middleware
 func (a *ApplicationContext) Use(handlers ...context.Handler) {
 
 }
 
+// GetProperty get application property by name
 func (a *ApplicationContext) GetProperty(name string) (value interface{}, ok bool) {
+	return
+}
+
+// GetInstance get application instance by name
+func (a *ApplicationContext) GetInstance(name string) (instance interface{}) {
 	return
 }

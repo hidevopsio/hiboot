@@ -167,17 +167,17 @@ func TestSetFieldValue(t *testing.T) {
 	t.Run("should not set invalid object", func(t *testing.T) {
 		x := 123
 		err := SetFieldValue(x, "Name", 321)
-		assert.Equal(t, InvalidInputError, err)
+		assert.Equal(t, ErrInvalidInput, err)
 	})
 
 	t.Run("should not set invalid object", func(t *testing.T) {
 		err := SetFieldValue((*Foo)(nil), "Name", value)
-		assert.Equal(t, InvalidInputError, err)
+		assert.Equal(t, ErrInvalidInput, err)
 	})
 
 	t.Run("should not set invalid object", func(t *testing.T) {
 		err := SetFieldValue(foo, "nickname", value)
-		assert.Equal(t, FieldCanNotBeSetError, err)
+		assert.Equal(t, ErrFieldCanNotBeSet, err)
 	})
 }
 
@@ -283,7 +283,7 @@ func TestGetName(t *testing.T) {
 
 	t.Run("should return InvalidInputError if input is nil", func(t *testing.T) {
 		_, err := GetLowerCaseObjectName((*Foo)(nil))
-		assert.Equal(t, InvalidInputError, err)
+		assert.Equal(t, ErrInvalidInput, err)
 	})
 }
 
@@ -310,7 +310,7 @@ func TestCallMethodByName(t *testing.T) {
 
 	t.Run("should call method by name", func(t *testing.T) {
 		_, err := CallMethodByName(foo, "NotExistMethod")
-		assert.Equal(t, InvalidMethodError, err)
+		assert.Equal(t, ErrInvalidMethod, err)
 	})
 
 }
@@ -463,7 +463,7 @@ func TestCallFunc(t *testing.T) {
 
 	t.Run("should call func", func(t *testing.T) {
 		_, err := CallFunc(int(1))
-		assert.Equal(t, InvalidFuncError, err)
+		assert.Equal(t, ErrInvalidFunc, err)
 	})
 }
 
