@@ -53,8 +53,11 @@ var (
 	registeredControllers []interface{}
 	compiledRegExp        = regexp.MustCompile(`\{(.*?)\}`)
 
-	ControllersNotFoundError = errors.New("[app] controllers not found")
-	InvalidControllerError   = errors.New("[app] invalid controller")
+	// ErrControllersNotFound controller not found
+	ErrControllersNotFound = errors.New("[app] controllers not found")
+
+	// ErrInvalidController invalid controller
+	ErrInvalidController = errors.New("[app] invalid controller")
 )
 
 // SetProperty set application property
@@ -154,13 +157,13 @@ func (a *application) RegisterController(controller interface{}) error {
 	// parse controller type
 	controllerInterfaceName, err := reflector.GetName(controller)
 	if err != nil {
-		return InvalidControllerError
+		return ErrInvalidController
 	}
 	controllers, ok := a.controllerMap[controllerInterfaceName]
 	if ok {
 		return a.dispatcher.register(a.webApp, controllers)
 	}
-	return ControllersNotFoundError
+	return ErrControllersNotFound
 }
 
 // Use apply middleware

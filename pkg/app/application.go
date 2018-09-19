@@ -63,7 +63,8 @@ var (
 	configContainer    [][]interface{}
 	componentContainer [][]interface{}
 
-	InvalidObjectTypeError = errors.New("[app] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
+	// ErrInvalidObjectType indicates that configuration type is invalid
+	ErrInvalidObjectType = errors.New("[app] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
 
 	banner = `
 ______  ____________             _____
@@ -82,7 +83,7 @@ func hasTwoParams(params ...interface{}) bool {
 func appendParams(container [][]interface{}, params ...interface{}) (retVal [][]interface{}, err error) {
 	retVal = container
 	if len(params) == 0 || params[0] == nil {
-		err = InvalidObjectTypeError
+		err = ErrInvalidObjectType
 		return
 	}
 
@@ -102,7 +103,7 @@ func appendParams(container [][]interface{}, params ...interface{}) (retVal [][]
 			return
 		}
 	}
-	err = InvalidObjectTypeError
+	err = ErrInvalidObjectType
 	return
 }
 

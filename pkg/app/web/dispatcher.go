@@ -67,7 +67,7 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 		// get context mapping
 		cp := fieldValue.FieldByName("ContextMapping")
 		if !cp.IsValid() {
-			return &system.InvalidControllerError{Name: fieldName}
+			return &system.ErrInvalidController{Name: fieldName}
 		}
 		contextMapping := fmt.Sprintf("%v", cp.Interface())
 

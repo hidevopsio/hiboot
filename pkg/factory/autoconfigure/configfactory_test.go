@@ -160,13 +160,13 @@ func TestConfigurableFactory(t *testing.T) {
 
 	t.Run("should check if factory is FactoryCannotBeNilError", func(t *testing.T) {
 		err := f.Initialize(nil)
-		assert.Equal(t, autoconfigure.FactoryCannotBeNilError, err)
+		assert.Equal(t, autoconfigure.ErrFactoryCannotBeNil, err)
 	})
 
 	f.InstantiateFactory = new(instantiate.InstantiateFactory)
 	t.Run("should check if factory is FactoryIsNotInitializedError", func(t *testing.T) {
 		err := f.Initialize(nil)
-		assert.Equal(t, autoconfigure.FactoryIsNotInitializedError, err)
+		assert.Equal(t, autoconfigure.ErrFactoryIsNotInitialized, err)
 	})
 
 	f.InstantiateFactory.Initialize(cmap.New())
@@ -219,7 +219,7 @@ func TestConfigurableFactory(t *testing.T) {
 	t.Run("should instantiate by name", func(t *testing.T) {
 		bc := new(barConfiguration)
 		_, err := f.InstantiateByName(bc, "Bar")
-		assert.Equal(t, autoconfigure.InvalidMethodError, err)
+		assert.Equal(t, autoconfigure.ErrInvalidMethod, err)
 	})
 
 	t.Run("should instantiate by name", func(t *testing.T) {

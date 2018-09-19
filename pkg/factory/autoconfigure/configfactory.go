@@ -42,12 +42,23 @@ const (
 )
 
 var (
-	InvalidMethodError            = errors.New("[factory] method is invalid")
-	FactoryCannotBeNilError       = errors.New("[factory] InstantiateFactory can not be nil")
-	FactoryIsNotInitializedError  = errors.New("[factory] InstantiateFactory is not initialized")
-	InvalidObjectTypeError        = errors.New("[factory] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
-	ConfigurationNameIsTakenError = errors.New("[factory] configuration name is already taken")
-	ComponentNameIsTakenError     = errors.New("[factory] component name is already taken")
+	// ErrInvalidMethod method is invalid
+	ErrInvalidMethod = errors.New("[factory] method is invalid")
+
+	// ErrFactoryCannotBeNil means that the InstantiateFactory can not be nil
+	ErrFactoryCannotBeNil = errors.New("[factory] InstantiateFactory can not be nil")
+
+	// ErrFactoryIsNotInitialized means that the InstantiateFactory is not initialized
+	ErrFactoryIsNotInitialized = errors.New("[factory] InstantiateFactory is not initialized")
+
+	// ErrInvalidObjectType means that the Configuration type is invalid, it should embeds app.PreConfiguration
+	ErrInvalidObjectType = errors.New("[factory] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
+
+	// ErrConfigurationNameIsTaken means that the configuration name is already taken
+	ErrConfigurationNameIsTaken = errors.New("[factory] configuration name is already taken")
+
+	// ErrComponentNameIsTaken means that the component name is already taken
+	ErrComponentNameIsTaken = errors.New("[factory] component name is already taken")
 )
 
 type ConfigurableFactory struct {
@@ -64,10 +75,10 @@ type ConfigurableFactory struct {
 // Initialize initialize ConfigurableFactory
 func (f *ConfigurableFactory) Initialize(configurations cmap.ConcurrentMap) (err error) {
 	if f.InstantiateFactory == nil {
-		return FactoryCannotBeNilError
+		return ErrFactoryCannotBeNil
 	}
 	if !f.Initialized() {
-		return FactoryIsNotInitializedError
+		return ErrFactoryIsNotInitialized
 	}
 	f.configurations = configurations
 	f.SetInstance("configurations", configurations)
@@ -145,13 +156,13 @@ func (f *ConfigurableFactory) Build(configs [][]interface{}) {
 				continue
 			}
 		} else {
-			err := InvalidObjectTypeError
+			err := ErrInvalidObjectType
 			log.Error(err)
 			continue
 		}
 
 		if _, ok := c.Get(name); ok {
-			err := ConfigurationNameIsTakenError
+			err := ErrConfigurationNameIsTaken
 			log.Error(err)
 			continue
 		}
@@ -174,7 +185,7 @@ func (f *ConfigurableFactory) InstantiateByName(configuration interface{}, name 
 	if ok {
 		return f.InstantiateMethod(configuration, method, name)
 	}
-	return nil, InvalidMethodError
+	return nil, ErrInvalidMethod
 }
 
 // InstantiateMethod instantiate by iterated methods

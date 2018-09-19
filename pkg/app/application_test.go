@@ -48,7 +48,7 @@ func TestApp(t *testing.T) {
 			Properties fakeProperties `mapstructure:"fake"`
 		}
 		err := app.AutoConfiguration(fooConfiguration{})
-		assert.Equal(t, app.InvalidObjectTypeError, err)
+		assert.Equal(t, app.ErrInvalidObjectType, err)
 	})
 
 	type configuration struct {
@@ -67,7 +67,7 @@ func TestApp(t *testing.T) {
 
 	t.Run("should not add invalid configuration", func(t *testing.T) {
 		err := app.AutoConfiguration(nil)
-		assert.Equal(t, app.InvalidObjectTypeError, err)
+		assert.Equal(t, app.ErrInvalidObjectType, err)
 	})
 
 	t.Run("should add configuration with pkg name", func(t *testing.T) {
@@ -95,7 +95,7 @@ func TestApp(t *testing.T) {
 			Properties fakeProperties `mapstructure:"fake"`
 		}
 		err := app.AutoConfiguration(configuration{})
-		assert.Equal(t, app.InvalidObjectTypeError, err)
+		assert.Equal(t, app.ErrInvalidObjectType, err)
 	})
 
 	//t.Run("should not add invalid configuration that not embedded with app.Configuration", func(t *testing.T) {
@@ -108,7 +108,7 @@ func TestApp(t *testing.T) {
 
 	t.Run("should not add invalid component", func(t *testing.T) {
 		err := app.Component(nil)
-		assert.Equal(t, app.InvalidObjectTypeError, err)
+		assert.Equal(t, app.ErrInvalidObjectType, err)
 	})
 
 	t.Run("should add new component", func(t *testing.T) {
