@@ -137,12 +137,10 @@ func (b *Builder) Save(p interface{}) error {
 
 	y, err := yaml.Marshal(p)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
 		return err
 	}
 	err = v.ReadConfig(bytes.NewBuffer(y))
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
 		return err
 	}
 

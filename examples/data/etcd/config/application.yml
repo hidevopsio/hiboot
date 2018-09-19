@@ -1,0 +1,16 @@
+# config file for testing
+# filename should be application.yml
+
+app:
+  project: examples
+  name: etcd-demo
+  profiles:
+    include:
+    - actuator
+    - locale
+    - logging
+    - etcd
+
+logging:
+  level: info
+
