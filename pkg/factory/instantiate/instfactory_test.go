@@ -59,7 +59,7 @@ func TestInstantiateFactory(t *testing.T) {
 		assert.Equal(t, nil, inst)
 
 		err := factory.SetInstance("foo", nil)
-		assert.Equal(t, instantiate.NotInitializedError, err)
+		assert.Equal(t, instantiate.ErrNotInitialized, err)
 
 		item := factory.Items()
 		assert.Equal(t, 0, len(item))

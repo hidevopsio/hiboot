@@ -21,6 +21,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
@@ -39,6 +40,7 @@ type ApplicationContext interface {
 	RegisterController(controller interface{}) error
 	Use(handlers ...context.Handler)
 	GetProperty(name string) (value interface{}, ok bool)
+	GetInstance(name string) (instance interface{})
 }
 
 type Configuration interface{}
@@ -61,9 +63,8 @@ var (
 	configContainer    [][]interface{}
 	componentContainer [][]interface{}
 
-	InvalidObjectTypeError        = errors.New("[app] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
-	ConfigurationNameIsTakenError = errors.New("[app] configuration name is already taken")
-	ComponentNameIsTakenError     = errors.New("[app] component name is already taken")
+	// ErrInvalidObjectType indicates that configuration type is invalid
+	ErrInvalidObjectType = errors.New("[app] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
 
 	banner = `
 ______  ____________             _____
@@ -75,51 +76,6 @@ _  __  / _  / _  /_/ / /_/ / /_/ / /_     Hiboot Application Framework
 `
 )
 
-func init() {
-	//instanceContainer = cmap.New()
-}
-
-//
-//func parseObjectName(eliminator string, inst interface{}) string  {
-//	name := reflector.ParseObjectName(inst, eliminator)
-//	if reflect.TypeOf(inst).Kind() == reflect.Func {
-//
-//	}
-//
-//	if name == "" || name == eliminator {
-//		name = reflector.ParseObjectPkgName(inst)
-//	}
-//	return name
-//}
-//
-//func parseInstance(eliminator string, params ...interface{}) (name string, inst interface{}) {
-//
-//	hasTwoParams := len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String
-//
-//	if hasTwoParams {
-//		inst = params[1]
-//		name = params[0].(string)
-//	} else {
-//		inst = params[0]
-//	}
-//
-//	if !hasTwoParams {
-//		name = parseObjectName(eliminator, inst)
-//	}
-//
-//	return
-//}
-
-func validateObjectType(inst interface{}) error {
-	val := reflect.ValueOf(inst)
-	//log.Println(val.Kind())
-	//log.Println(reflect.Indirect(val).Kind())
-	if val.Kind() == reflect.Ptr && reflect.Indirect(val).Kind() == reflect.Struct {
-		return nil
-	}
-	return InvalidObjectTypeError
-}
-
 func hasTwoParams(params ...interface{}) bool {
 	return len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String
 }
@@ -127,7 +83,7 @@ func hasTwoParams(params ...interface{}) bool {
 func appendParams(container [][]interface{}, params ...interface{}) (retVal [][]interface{}, err error) {
 	retVal = container
 	if len(params) == 0 || params[0] == nil {
-		err = InvalidObjectTypeError
+		err = ErrInvalidObjectType
 		return
 	}
 
@@ -147,7 +103,7 @@ func appendParams(container [][]interface{}, params ...interface{}) (retVal [][]
 			return
 		}
 	}
-	err = InvalidObjectTypeError
+	err = ErrInvalidObjectType
 	return
 }
 
@@ -164,7 +120,7 @@ func Component(params ...interface{}) (err error) {
 	return
 }
 
-// BeforeInitialization ?
+// PrintStartupMessages prints startup messages
 func (a *BaseApplication) PrintStartupMessages() {
 	prop, ok := a.GetProperty(PropertyBannerDisabled)
 	if !(ok && prop.(bool)) {
@@ -172,18 +128,19 @@ func (a *BaseApplication) PrintStartupMessages() {
 	}
 }
 
-// SetProperty
-func (a *BaseApplication) SetProperty(name string, value interface{}) {
+// SetProperty set application property
+func (a *BaseApplication) SetProperty(name string, value interface{}) Application {
 	a.propertyMap.Set(name, value)
+	return a
 }
 
-// GetProperty
+// GetProperty get application property
 func (a *BaseApplication) GetProperty(name string) (value interface{}, ok bool) {
 	value, ok = a.propertyMap.Get(name)
 	return
 }
 
-// Init
+// Initialize init application
 func (a *BaseApplication) Initialize() error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -208,12 +165,9 @@ func (a *BaseApplication) Initialize() error {
 	a.BeforeInitialization()
 
 	err := configurableFactory.Initialize(a.configurations)
-	if err != nil {
-		return err
+	if err == nil {
+		a.systemConfig, err = configurableFactory.BuildSystemConfig()
 	}
-
-	a.systemConfig, err = configurableFactory.BuildSystemConfig()
-
 	return nil
 }
 
@@ -222,6 +176,7 @@ func (a *BaseApplication) SystemConfig() *system.Configuration {
 	return a.systemConfig
 }
 
+// BuildConfigurations get BuildConfigurations
 func (a *BaseApplication) BuildConfigurations() {
 	// build configurations
 	a.configurableFactory.Build(configContainer)
@@ -229,23 +184,42 @@ func (a *BaseApplication) BuildConfigurations() {
 	a.configurableFactory.BuildComponents(componentContainer)
 }
 
+// ConfigurableFactory get ConfigurableFactory
 func (a *BaseApplication) ConfigurableFactory() *autoconfigure.ConfigurableFactory {
 	return a.configurableFactory
 }
 
+// BeforeInitialization pre initialization
 func (a *BaseApplication) BeforeInitialization() {
 	// pass user's instances
 	a.postProcessor.BeforeInitialization(a.configurableFactory)
 }
 
+// AfterInitialization post initialization
 func (a *BaseApplication) AfterInitialization(configs ...cmap.ConcurrentMap) {
 	// pass user's instances
 	a.postProcessor.AfterInitialization(a.configurableFactory)
 }
 
+// RegisterController register controller by interface
 func (a *BaseApplication) RegisterController(controller interface{}) error {
 	return nil
 }
 
+// Use use middleware handlers
 func (a *BaseApplication) Use(handlers ...context.Handler) {
+}
+
+// Run run the application
+func (a *BaseApplication) Run() error {
+	log.Warn("application is not implemented!")
+	return nil
+}
+
+// GetInstance get application instance by name
+func (a *BaseApplication) GetInstance(name string) (instance interface{}) {
+	if a.configurableFactory != nil {
+		instance = a.configurableFactory.GetInstance(name)
+	}
+	return
 }

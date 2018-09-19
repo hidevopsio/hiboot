@@ -22,10 +22,19 @@ import (
 	"strings"
 )
 
-var InvalidInputError = errors.New("input is invalid")
-var InvalidMethodError = errors.New("method is invalid")
-var InvalidFuncError = errors.New("func is invalid")
-var FieldCanNotBeSetError = errors.New("field can not be set")
+var (
+	// ErrInvalidInput means that the input is invalid
+	ErrInvalidInput = errors.New("input is invalid")
+
+	// ErrInvalidMethod means that the method is invalid
+	ErrInvalidMethod = errors.New("method is invalid")
+
+	// ErrInvalidFunc means that the func is invalid
+	ErrInvalidFunc = errors.New("func is invalid")
+
+	// ErrFieldCanNotBeSet means that the field can not be set
+	ErrFieldCanNotBeSet = errors.New("field can not be set")
+)
 
 func NewReflectType(st interface{}) interface{} {
 	ct := reflect.TypeOf(st)
@@ -93,17 +102,17 @@ func SetFieldValue(object interface{}, name string, value interface{}) error {
 	obj := Indirect(reflect.ValueOf(object))
 
 	if !obj.IsValid() {
-		return InvalidInputError
+		return ErrInvalidInput
 	}
 
 	if obj.Kind() != reflect.Struct {
-		return InvalidInputError
+		return ErrInvalidInput
 	}
 
 	fieldObj := obj.FieldByName(name)
 
 	if !fieldObj.CanSet() {
-		return FieldCanNotBeSetError
+		return ErrFieldCanNotBeSet
 	}
 
 	fov := reflect.ValueOf(value)
@@ -167,7 +176,7 @@ func GetType(data interface{}) (typ reflect.Type, err error) {
 
 	// Return is from value is invalid
 	if !dv.IsValid() {
-		err = InvalidInputError
+		err = ErrInvalidInput
 		return
 	}
 	typ = dv.Type()
@@ -215,7 +224,7 @@ func CallMethodByName(object interface{}, name string, args ...interface{}) (int
 			return nil, nil
 		}
 	}
-	return nil, InvalidMethodError
+	return nil, ErrInvalidMethod
 }
 
 func CallFunc(object interface{}, args ...interface{}) (interface{}, error) {
@@ -233,7 +242,7 @@ func CallFunc(object interface{}, args ...interface{}) (interface{}, error) {
 			return nil, nil
 		}
 	}
-	return nil, InvalidFuncError
+	return nil, ErrInvalidFunc
 }
 
 func HasEmbeddedField(object interface{}, name string) bool {

@@ -33,7 +33,8 @@ const (
 	actionPrefix = "On"
 )
 
-var CommandNotFoundError = errors.New("command not found")
+// ErrCommandNotFound command not found error
+var ErrCommandNotFound = errors.New("command not found")
 
 type BaseCommand struct {
 	cobra.Command
@@ -143,5 +144,5 @@ func (c *BaseCommand) Find(name string) (Command, error) {
 			return cmd, nil
 		}
 	}
-	return nil, CommandNotFoundError
+	return nil, ErrCommandNotFound
 }
