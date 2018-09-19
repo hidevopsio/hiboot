@@ -16,20 +16,21 @@ package system
 
 import "fmt"
 
-type InvalidControllerError struct {
+type ErrInvalidController struct {
 	Name string
 }
 
-func (e *InvalidControllerError) Error() string {
+func (e *ErrInvalidController) Error() string {
 	// TODO: locale
 	return fmt.Sprintf("%v must be derived from web.Controller", e.Name)
 }
 
-type NotFoundError struct {
+// ErrNotFound resource not found error
+type ErrNotFound struct {
 	Name string
 }
 
-func (e *NotFoundError) Error() string {
+func (e *ErrNotFound) Error() string {
 	// TODO: locale
 	return fmt.Sprintf("%v is not found", e.Name)
 }

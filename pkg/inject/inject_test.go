@@ -381,12 +381,12 @@ func TestInject(t *testing.T) {
 
 	t.Run("should inject slice value", func(t *testing.T) {
 		err := inject.IntoObject((*MethodInjectionService)(nil))
-		assert.Equal(t, inject.InvalidObjectError, err)
+		assert.Equal(t, inject.ErrInvalidObject, err)
 	})
 
 	t.Run("should inject slice value", func(t *testing.T) {
 		err := inject.IntoObject((*string)(nil))
-		assert.Equal(t, inject.InvalidObjectError, err)
+		assert.Equal(t, inject.ErrInvalidObject, err)
 	})
 
 	t.Run("should ignore to inject with invalid struct type BazService", func(t *testing.T) {
