@@ -2,14 +2,6 @@
 
 
 [[projects]]
-  digest = "1:2b10b9a545074605403d32baf9dda24b7582976ba7e9b46c4c7b9da9edac03e7"
-  name = "cloud.google.com/go"
-  packages = ["civil"]
-  pruneopts = ""
-  revision = "aad3f485ee528456e0768f20397b4d9dd941e755"
-  version = "v0.25.0"
-
-[[projects]]
   digest = "1:289dd4d7abfb3ad2b5f728fbe9b1d5c1bf7d265a3eb9ef92869af1f7baba4c7a"
   name = "github.com/BurntSushi/toml"
   packages = ["."]
@@ -55,31 +47,12 @@
   revision = "b565731e1464263de0bda75f2e45d97b54b60110"
 
 [[projects]]
-  digest = "1:ed112122ed4a920d944cc99b9d00b0441c11685939c28462c719488d36fe29aa"
-  name = "github.com/boltdb/bolt"
-  packages = ["."]
-  pruneopts = ""
-  revision = "2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8"
-  version = "v1.3.1"
-
-[[projects]]
   digest = "1:56c130d885a4aacae1dd9c7b71cfe39912c7ebc1ff7d2b46083c8812996dc43b"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   pruneopts = ""
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
-
-[[projects]]
-  branch = "master"
-  digest = "1:59d26e030b4edadff17e264d382f0631eac378de47073c9aa0da2b73e243f682"
-  name = "github.com/denisenkom/go-mssqldb"
-  packages = [
-    ".",
-    "internal/cp",
-  ]
-  pruneopts = ""
-  revision = "242fa5aa1b45aeb9fcdfeee88822982e3f548e22"
 
 [[projects]]
   digest = "1:6098222470fe0172157ce9bbef5d2200df4edde17ee649c5d6e48330e4afa4c6"
@@ -99,14 +72,6 @@
   ]
   pruneopts = ""
   revision = "cdade1c073850f4ffc70a829e31235ea6892853b"
-
-[[projects]]
-  branch = "master"
-  digest = "1:358f9731027e87f8ae3a7e52f0473031be47d1e041295b3c0afc84dc779c0666"
-  name = "github.com/erikstmartin/go-testdb"
-  packages = ["."]
-  pruneopts = ""
-  revision = "8d10e4a1bae52cd8b81ffdec3445890d6dccab3d"
 
 [[projects]]
   branch = "master"
@@ -147,14 +112,6 @@
   packages = ["."]
   pruneopts = ""
   revision = "6f8212e8d10df7383609d3c377ca08884d8f3ec0"
-
-[[projects]]
-  digest = "1:c07de423ca37dc2765396d6971599ab652a339538084b9b58c9f7fc533b28525"
-  name = "github.com/go-sql-driver/mysql"
-  packages = ["."]
-  pruneopts = ""
-  revision = "d523deb1b23d913de5bdada721a6071e71283618"
-  version = "v1.4.0"
 
 [[projects]]
   digest = "1:3dd078fda7500c341bc26cfbc6c6a34614f295a2457149fc1045cab767cbcf18"
@@ -205,20 +162,6 @@
   ]
   pruneopts = ""
   revision = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168"
-
-[[projects]]
-  digest = "1:e069a6c4f07e7d5686819cf020cd8ca10f710e3b374df835303473bef3ecaca4"
-  name = "github.com/hidevopsio/gorm"
-  packages = [
-    ".",
-    "dialects/mssql",
-    "dialects/mysql",
-    "dialects/postgres",
-    "dialects/sqlite",
-  ]
-  pruneopts = ""
-  revision = "c63e030600d114f09f451c887732f616e5a6da48"
-  version = "v2.0.1"
 
 [[projects]]
   digest = "1:788735d9cba7f51b7cc86e6c7ba7b40b0b7c7b374bf3a0b5fa7c929fa2af2da8"
@@ -275,22 +218,6 @@
   pruneopts = ""
   revision = "1060fbb0ce08a72c50c612e8e5bdc8076c28343d"
   version = "v10"
-
-[[projects]]
-  branch = "master"
-  digest = "1:d0b151e4f07350afcca336335d5d3698e91ed95e9ffb54fe894806e8899590ef"
-  name = "github.com/jinzhu/copier"
-  packages = ["."]
-  pruneopts = ""
-  revision = "7e38e58719c33e0d44d585c4ab477a30f8cb82dd"
-
-[[projects]]
-  branch = "master"
-  digest = "1:d9a7385b84d8187fd94e0357045c6fa1147ca94caa56fdd539336c7c102fc728"
-  name = "github.com/jinzhu/inflection"
-  packages = ["."]
-  pruneopts = ""
-  revision = "04140366298a54a039076d798123ffa108fff46c"
 
 [[projects]]
   branch = "master"
@@ -404,18 +331,6 @@
   version = "v1.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:09792d732b079867772cdbabdf7dc54ef9f9d04c998a9ce6226657151fccbb94"
-  name = "github.com/lib/pq"
-  packages = [
-    ".",
-    "hstore",
-    "oid",
-  ]
-  pruneopts = ""
-  revision = "90697d60dd844d5ef6ff15135d0203f65d2f53b8"
-
-[[projects]]
   digest = "1:961dc3b1d11f969370533390fdf203813162980c858e1dabe827b60940c909a5"
   name = "github.com/magiconair/properties"
   packages = ["."]
@@ -438,14 +353,6 @@
   pruneopts = ""
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
   version = "v0.0.3"
-
-[[projects]]
-  digest = "1:bc03901fc8f0965ccba8bc453eae21a9b04f95999eab664c7de6dc7290f4e8f4"
-  name = "github.com/mattn/go-sqlite3"
-  packages = ["."]
-  pruneopts = ""
-  revision = "25ecb14adfc7543176f7d85291ec7dba82c6f7e4"
-  version = "v1.9.0"
 
 [[projects]]
   branch = "master"
@@ -595,19 +502,10 @@
   version = "v1.0.2"
 
 [[projects]]
-  digest = "1:711eebe744c0151a9d09af2315f0bb729b2ec7637ef4c410fa90a18ef74b65b6"
-  name = "github.com/stretchr/objx"
-  packages = ["."]
-  pruneopts = ""
-  revision = "477a77ecc69700c7cdeb1fa9e129548e1c1c393c"
-  version = "v0.1.1"
-
-[[projects]]
   digest = "1:a30066593578732a356dc7e5d7f78d69184ca65aeeff5939241a3ab10559bb06"
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
-    "mock",
     "require",
   ]
   pruneopts = ""
@@ -672,7 +570,6 @@
   packages = [
     "acme",
     "acme/autocert",
-    "md4",
   ]
   pruneopts = ""
   revision = "d6449816ce06963d9d136eee5a56fca5b0616e7e"
@@ -727,14 +624,6 @@
   pruneopts = ""
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
-
-[[projects]]
-  digest = "1:c1771ca6060335f9768dff6558108bc5ef6c58506821ad43377ee23ff059e472"
-  name = "google.golang.org/appengine"
-  packages = ["cloudsql"]
-  pruneopts = ""
-  revision = "b1f26356af11148e710935ed1ac8a7f5702c7612"
-  version = "v1.1.0"
 
 [[projects]]
   branch = "master"
@@ -818,16 +707,9 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/boltdb/bolt",
     "github.com/dgrijalva/jwt-go",
-    "github.com/erikstmartin/go-testdb",
     "github.com/fatih/camelcase",
     "github.com/golang/protobuf/proto",
-    "github.com/hidevopsio/gorm",
-    "github.com/hidevopsio/gorm/dialects/mssql",
-    "github.com/hidevopsio/gorm/dialects/mysql",
-    "github.com/hidevopsio/gorm/dialects/postgres",
-    "github.com/hidevopsio/gorm/dialects/sqlite",
     "github.com/iris-contrib/httpexpect",
     "github.com/iris-contrib/middleware/jwt",
     "github.com/kataras/golog",
@@ -843,7 +725,6 @@
     "github.com/spf13/pflag",
     "github.com/spf13/viper",
     "github.com/stretchr/testify/assert",
-    "github.com/stretchr/testify/mock",
     "golang.org/x/net/context",
     "google.golang.org/grpc",
     "google.golang.org/grpc/examples/helloworld/helloworld",
