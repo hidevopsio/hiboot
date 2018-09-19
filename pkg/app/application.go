@@ -21,13 +21,13 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/kataras/iris/context"
 	"reflect"
 	"sync"
-	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 type Application interface {
@@ -63,7 +63,7 @@ var (
 	configContainer    [][]interface{}
 	componentContainer [][]interface{}
 
-	InvalidObjectTypeError        = errors.New("[app] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
+	InvalidObjectTypeError = errors.New("[app] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
 
 	banner = `
 ______  ____________             _____
@@ -74,7 +74,6 @@ _  __  / _  / _  /_/ / /_/ / /_/ / /_     Hiboot Application Framework
 
 `
 )
-
 
 func hasTwoParams(params ...interface{}) bool {
 	return len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String
@@ -165,12 +164,9 @@ func (a *BaseApplication) Initialize() error {
 	a.BeforeInitialization()
 
 	err := configurableFactory.Initialize(a.configurations)
-	if err != nil {
-		return err
+	if err == nil {
+		a.systemConfig, err = configurableFactory.BuildSystemConfig()
 	}
-
-	a.systemConfig, err = configurableFactory.BuildSystemConfig()
-
 	return nil
 }
 

@@ -140,6 +140,8 @@ func TestBaseApplication(t *testing.T) {
 	// TODO: check concurrency issue during test
 	ba.BuildConfigurations()
 
+	ba.GetInstance("foo")
+
 	cf := ba.ConfigurableFactory()
 	assert.NotEqual(t, nil, cf)
 
@@ -152,5 +154,9 @@ func TestBaseApplication(t *testing.T) {
 	ba.PrintStartupMessages()
 
 	ba.Use()
+
+	ba.Run()
+
+	ba.GetInstance("foo")
 
 }
