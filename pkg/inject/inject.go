@@ -32,10 +32,10 @@ const (
 )
 
 var (
-	// ErrNotImplemented: the interface is not implemented
+	// ErrNotImplemented the interface is not implemented
 	ErrNotImplemented = errors.New("[inject] interface is not implemented")
 
-	// ErrInvalidObject: the object is invalid
+	// ErrInvalidObject the object is invalid
 	ErrInvalidObject = errors.New("[inject] invalid object")
 
 	// ErrInvalidTagName the tag name is invalid

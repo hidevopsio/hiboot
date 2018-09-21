@@ -202,18 +202,21 @@ func (f *ConfigurableFactory) InstantiateMethod(configuration interface{}, metho
 	argv[0] = reflect.ValueOf(configuration)
 	for a := 1; a < numIn; a++ {
 		// TODO: eliminate duplications
-		mt := method.Type.In(a)
-		iTyp := reflector.IndirectType(mt)
-		mtName := str.ToLowerCamel(iTyp.Name())
-		depInst := f.GetInstance(mtName)
+		mth := method.Type.In(a)
+		iTyp := reflector.IndirectType(mth)
+		mthName := str.ToLowerCamel(iTyp.Name())
+		depInst := f.GetInstance(mthName)
 		if depInst == nil {
 			pkgName := io.DirName(iTyp.PkgPath())
 			alternativeName := str.ToLowerCamel(pkgName) + iTyp.Name()
 			depInst = f.GetInstance(alternativeName)
-		}
-		if depInst == nil {
-			// TODO: check it it's dependency circle
-			depInst, err = f.InstantiateByName(configuration, strings.Title(mtName))
+			if depInst == nil {
+				// TODO: check it it's dependency circle
+				depInst, err = f.InstantiateByName(configuration, strings.Title(mthName))
+				if err != nil {
+					depInst, err = f.InstantiateByName(configuration, strings.Title(alternativeName))
+				}
+			}
 		}
 		if depInst == nil {
 			log.Errorf("[factory] failed to inject dependency as it can not be found")
