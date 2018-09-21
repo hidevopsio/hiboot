@@ -26,6 +26,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"reflect"
 )
 
 type FakeProperties struct {
@@ -36,10 +37,6 @@ type FakeProperties struct {
 	Profile  string `default:"${APP_PROFILES_ACTIVE:dev}"`
 }
 
-type FakeConfiguration struct {
-	app.Configuration
-	FakeProperties FakeProperties `mapstructure:"fake"`
-}
 
 type unknownConfiguration struct {
 	FakeProperties FakeProperties `mapstructure:"fake"`
@@ -119,6 +116,12 @@ func init() {
 	io.EnsureWorkDir(1, "config/application.yml")
 }
 
+
+type FakeConfiguration struct {
+	app.Configuration
+	FakeProperties FakeProperties `mapstructure:"fake"`
+}
+
 func (c *FakeConfiguration) Foo(bar *Bar) *Foo {
 	f := new(Foo)
 	f.Name = c.FakeProperties.Name
@@ -138,6 +141,35 @@ func (c *FakeConfiguration) Bar() *Bar {
 	b.Name = "bar"
 
 	return b
+}
+
+
+type EarthConfiguration struct {
+	app.Configuration
+}
+
+type Land struct {
+	Mountain *Mountain
+}
+
+type Tree struct {
+}
+
+type Mountain struct {
+	Tree *Tree
+}
+
+func (c *EarthConfiguration) Land(mountain *Mountain) *Land {
+	return &Land{Mountain: mountain}
+}
+
+func (c *EarthConfiguration) Mountain(tree *Tree) *Mountain {
+	return &Mountain{Tree: tree}
+}
+
+
+func (c *EarthConfiguration) AutoconfigureTestTree() *Tree {
+	return &Tree{}
 }
 
 func TestConfigurableFactory(t *testing.T) {
@@ -227,6 +259,17 @@ func TestConfigurableFactory(t *testing.T) {
 		bb, err := f.InstantiateByName(bc, "BarBar")
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, nil, bb)
+	})
+
+
+	t.Run("should instantiate by name", func(t *testing.T) {
+		fc := new(EarthConfiguration)
+		objVal := reflect.ValueOf(fc)
+		method, ok := objVal.Type().MethodByName("Land")
+		assert.Equal(t, true, ok)
+		fb, err := f.InstantiateMethod(fc, method, "Land")
+		assert.Equal(t, nil, err)
+		assert.NotEqual(t, nil, fb)
 	})
 
 	t.Run("should get SystemConfiguration", func(t *testing.T) {

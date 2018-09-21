@@ -16,6 +16,7 @@ package system
 
 import "fmt"
 
+// ErrInvalidController invalid controller
 type ErrInvalidController struct {
 	Name string
 }
