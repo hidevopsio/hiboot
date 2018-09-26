@@ -17,6 +17,7 @@ package autoconfigure
 
 import (
 	"errors"
+	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure/depends"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
@@ -30,6 +31,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 )
 
@@ -67,9 +69,9 @@ type ConfigurableFactory struct {
 	systemConfig   *system.Configuration
 	builder        *system.Builder
 
-	preConfigContainer  cmap.ConcurrentMap
-	configContainer     cmap.ConcurrentMap
-	postConfigContainer cmap.ConcurrentMap
+	preConfigureContainer  []interface{}
+	configureContainer     []interface{}
+	postConfigureContainer []interface{}
 }
 
 // Initialize initialize ConfigurableFactory
@@ -83,9 +85,6 @@ func (f *ConfigurableFactory) Initialize(configurations cmap.ConcurrentMap) (err
 	f.configurations = configurations
 	f.SetInstance("configurations", configurations)
 
-	f.preConfigContainer = cmap.New()
-	f.configContainer = cmap.New()
-	f.postConfigContainer = cmap.New()
 	return
 }
 
@@ -135,7 +134,6 @@ func (f *ConfigurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 // Build build all auto configurations
 func (f *ConfigurableFactory) Build(configs [][]interface{}) {
 	// categorize configurations first, then inject object if necessary
-	var c cmap.ConcurrentMap
 	for _, item := range configs {
 		name, inst := f.ParseInstance("Configuration", item...)
 		if name == "" || name == "configuration" {
@@ -147,11 +145,11 @@ func (f *ConfigurableFactory) Build(configs [][]interface{}) {
 		if ifcField.Anonymous {
 			switch ifcField.Name {
 			case "Configuration":
-				c = f.configContainer
+				f.configureContainer = append(f.configureContainer, inst)
 			case "PreConfiguration":
-				c = f.preConfigContainer
+				f.preConfigureContainer = append(f.preConfigureContainer, inst)
 			case "PostConfiguration":
-				c = f.postConfigContainer
+				f.postConfigureContainer = append(f.postConfigureContainer, inst)
 			default:
 				continue
 			}
@@ -160,21 +158,11 @@ func (f *ConfigurableFactory) Build(configs [][]interface{}) {
 			log.Error(err)
 			continue
 		}
-
-		if _, ok := c.Get(name); ok {
-			err := ErrConfigurationNameIsTaken
-			log.Error(err)
-			continue
-		}
-
-		if f.IsValidObjectType(inst) {
-			c.Set(name, inst)
-		}
 	}
 
-	f.build(f.preConfigContainer)
-	f.build(f.configContainer)
-	f.build(f.postConfigContainer)
+	f.build(f.preConfigureContainer)
+	f.build(f.configureContainer)
+	f.build(f.postConfigureContainer)
 
 }
 
@@ -212,6 +200,7 @@ func (f *ConfigurableFactory) InstantiateMethod(configuration interface{}, metho
 			depInst = f.GetInstance(alternativeName)
 			if depInst == nil {
 				// TODO: check it it's dependency circle
+				// TODO: check if it depends on the instance of another configuration
 				depInst, err = f.InstantiateByName(configuration, strings.Title(mthName))
 				if err != nil {
 					depInst, err = f.InstantiateByName(configuration, strings.Title(alternativeName))
@@ -270,10 +259,14 @@ func (f *ConfigurableFactory) appProfilesActive() string {
 }
 
 // build
-func (f *ConfigurableFactory) build(cfgContainer cmap.ConcurrentMap) {
+func (f *ConfigurableFactory) build(cfgContainer []interface{}) {
+	// sort dependencies
+	sort.Sort(depends.ByDependency(cfgContainer))
+
 	isTestRunning := gotest.IsRunning()
-	for item := range cfgContainer.IterBuffered() {
-		name, configType := item.Key, item.Val
+	for _, item := range cfgContainer {
+		name, configType := f.ParseInstance("Configuration", item)
+
 		// TODO: should check if profiles is enabled str.InSlice(name, sysconf.App.Profiles.Include)
 		if !isTestRunning && f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
 			continue
