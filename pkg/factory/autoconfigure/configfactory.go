@@ -69,10 +69,6 @@ type ConfigurableFactory struct {
 	systemConfig   *system.Configuration
 	builder        *system.Builder
 
-	preConfigContainer  cmap.ConcurrentMap
-	configContainer     cmap.ConcurrentMap
-	postConfigContainer cmap.ConcurrentMap
-
 	preConfigureContainer  []interface{}
 	configureContainer     []interface{}
 	postConfigureContainer []interface{}
@@ -89,9 +85,6 @@ func (f *ConfigurableFactory) Initialize(configurations cmap.ConcurrentMap) (err
 	f.configurations = configurations
 	f.SetInstance("configurations", configurations)
 
-	f.preConfigContainer = cmap.New()
-	f.configContainer = cmap.New()
-	f.postConfigContainer = cmap.New()
 	return
 }
 

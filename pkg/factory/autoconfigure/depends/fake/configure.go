@@ -16,6 +16,7 @@ package fake
 
 import "github.com/hidevopsio/hiboot/pkg/app"
 
+// Configuration fake.Configuration for test only
 type Configuration struct {
 	app.Configuration `depends:"foo"`
 }
