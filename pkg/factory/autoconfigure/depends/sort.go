@@ -21,6 +21,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 )
 
+// ByDependency sort by the configuration dependency which specified by tag depends
 type ByDependency []interface{}
 
 func (s ByDependency) Len() int {
