@@ -25,8 +25,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
-	"testing"
 	"reflect"
+	"testing"
 )
 
 type FakeProperties struct {
@@ -36,7 +36,6 @@ type FakeProperties struct {
 	Org      string `default:"hidevopsio"`
 	Profile  string `default:"${APP_PROFILES_ACTIVE:dev}"`
 }
-
 
 type unknownConfiguration struct {
 	FakeProperties FakeProperties `mapstructure:"fake"`
@@ -63,13 +62,48 @@ type FooConfiguration struct {
 
 type BarConfiguration struct {
 	app.PostConfiguration
-	FakeProperties FooProperties `mapstructure:"foo"`
+	FakeProperties FooProperties `mapstructure:"bar"`
 }
 
 type FooBarConfiguration struct {
 	app.Configuration
-	FakeProperties FooProperties `mapstructure:"foo"`
+	FakeProperties FooProperties `mapstructure:"foobar"`
 	foobar         *FooBar
+}
+
+type mercury struct {
+	jupiter *jupiter
+}
+
+type mars struct {
+	mercury *mercury
+}
+
+type jupiter struct {
+}
+
+type marsConfiguration struct {
+	app.Configuration `depends:"mercuryConfiguration"`
+}
+
+func (c *marsConfiguration) Mars(m *mercury) *mars {
+	return &mars{mercury: m}
+}
+
+type mercuryConfiguration struct {
+	app.Configuration `depends:"jupiterConfiguration"`
+}
+
+func (c *mercuryConfiguration) Mercury(j *jupiter) *mercury {
+	return &mercury{jupiter: j}
+}
+
+type jupiterConfiguration struct {
+	app.Configuration
+}
+
+func (c *jupiterConfiguration) Jupiter() *jupiter {
+	return new(jupiter)
 }
 
 func newFooBarConfiguration(foobar *FooBar) *FooBarConfiguration {
@@ -116,33 +150,36 @@ func init() {
 	io.EnsureWorkDir(1, "config/application.yml")
 }
 
-
-type FakeConfiguration struct {
+type fakeConfiguration struct {
 	app.Configuration
 	FakeProperties FakeProperties `mapstructure:"fake"`
 }
 
-func (c *FakeConfiguration) Foo(bar *Bar) *Foo {
+type foobarConfiguration struct {
+	app.Configuration
+	FakeProperties FakeProperties `mapstructure:"foobar"`
+}
+
+func (c *foobarConfiguration) Foo(bar *Bar) *Foo {
 	f := new(Foo)
 	f.Name = c.FakeProperties.Name
 	f.Bar = bar
 	return f
 }
 
-func (c *FakeConfiguration) FooBar(foo *Foo) *FooBar {
+func (c *foobarConfiguration) FooBar(foo *Foo) *FooBar {
 	f := new(FooBar)
 	f.Name = foo.Name
 
 	return f
 }
 
-func (c *FakeConfiguration) Bar() *Bar {
+func (c *foobarConfiguration) Bar() *Bar {
 	b := new(Bar)
 	b.Name = "bar"
 
 	return b
 }
-
 
 type EarthConfiguration struct {
 	app.Configuration
@@ -166,7 +203,6 @@ func (c *EarthConfiguration) Land(mountain *Mountain) *Land {
 func (c *EarthConfiguration) Mountain(tree *Tree) *Mountain {
 	return &Mountain{Tree: tree}
 }
-
 
 func (c *EarthConfiguration) AutoconfigureTestTree() *Tree {
 	return &Tree{}
@@ -237,15 +273,17 @@ func TestConfigurableFactory(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	fooConfig := new(FooConfiguration)
-	fakeCfg := new(FakeConfiguration)
+	fakeCfg := new(fakeConfiguration)
 	f.Build([][]interface{}{
 		{fooConfig},
 		{fakeCfg},
 		{new(BarConfiguration)},
-		{new(BarConfiguration)},
+		{new(marsConfiguration)},
+		{new(jupiterConfiguration)},
+		{new(mercuryConfiguration)},
 		{new(unknownConfiguration)},
 		{new(unsupportedConfiguration)},
-		{"fakeFake", FakeConfiguration{}},
+		{foobarConfiguration{}},
 	})
 
 	t.Run("should instantiate by name", func(t *testing.T) {
@@ -260,7 +298,6 @@ func TestConfigurableFactory(t *testing.T) {
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, nil, bb)
 	})
-
 
 	t.Run("should instantiate by name", func(t *testing.T) {
 		fc := new(EarthConfiguration)
