@@ -18,10 +18,11 @@ import (
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/hidevopsio/hiboot/pkg/utils/crypto/rsa"
+	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
 // define the command
-type CryptoCommand struct {
+type rootCommand struct {
 	// embedding cli.BaseCommand in each command
 	cli.BaseCommand
 	// inject (bind) flag to field 'Source', 'Encrypt', and 'Decrypt', so that it can be used on Run method, please note that the data type must be pointer
@@ -31,8 +32,12 @@ type CryptoCommand struct {
 	Key     *string `flag:"shorthand=k,usage=run with option --key or -k for rsa key"`
 }
 
-// Init constructor
-func (c *CryptoCommand) Init() {
+func init() {
+	app.Component(newRootCommand)
+}
+
+func newRootCommand() *rootCommand {
+	c := new(rootCommand)
 	c.Use = "crypto"
 	c.Short = "crypto command"
 	c.Long = "run crypto command to encrypt/decrypt "
@@ -41,10 +46,11 @@ crypto rsa -h
 crypto rsa -e -s "text to encrypt"
 crypto rsa -d -s "text to decrypt"
 `
+	return c
 }
 
 // Run OnRsa for crypto command rsa
-func (c *CryptoCommand) OnRsa(args []string) bool {
+func (c *rootCommand) OnRsa(args []string) bool {
 	if *c.Decrypt {
 		res, err := rsa.DecryptBase64([]byte(*c.Source), []byte(*c.Key))
 		if err == nil {

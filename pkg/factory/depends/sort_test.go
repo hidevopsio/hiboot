@@ -16,13 +16,13 @@ package depends_test
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure/depends"
-	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure/depends/fake"
-	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure/depends/foo"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"sort"
 	"testing"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends/bar"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends/fake"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends/foo"
+	"github.com/magiconair/properties/assert"
 )
 
 type fooConfiguration struct {
@@ -45,16 +45,28 @@ type grantConfiguration struct {
 	app.Configuration `depends:"fake.Configuration"`
 }
 
-type cyclingChildConfiguration struct {
+type circularChildConfiguration struct {
 	app.Configuration `depends:"cyclingParentConfiguration"`
 }
 
-type cyclingParentConfiguration struct {
+type circularParentConfiguration struct {
 	app.Configuration `depends:"cyclingGrantConfiguration"`
 }
 
-type cyclingGrantConfiguration struct {
-	app.Configuration `depends:"cyclingChildConfiguration"`
+type circularGrantConfiguration struct {
+	app.Configuration `depends:"cyclingParentConfiguration"`
+}
+
+type circularChildConfiguration2 struct {
+	app.Configuration `depends:"cyclingParentConfiguration2"`
+}
+
+type circularParentConfiguration2 struct {
+	app.Configuration `depends:"cyclingGrantConfiguration2"`
+}
+
+type circularGrantConfiguration2 struct {
+	app.Configuration `depends:"cyclingChildConfiguration2"`
 }
 
 func TestSort(t *testing.T) {
@@ -68,25 +80,25 @@ func TestSort(t *testing.T) {
 	}{
 		{
 			title:          "should sort dependencies",
-			configurations: []interface{}{new(fooConfiguration), new(childConfiguration), new(parentConfiguration), new(grantConfiguration), new(fake.Configuration), new(foo.Configuration), new(barConfiguration)},
+			configurations: []interface{}{new(fooConfiguration), new(bar.Configuration), new(childConfiguration), new(parentConfiguration), new(grantConfiguration), new(fake.Configuration), new(foo.Configuration), new(barConfiguration)},
 			err:            nil,
 		},
 		{
 			title:          "should fail to sort with cycling dependencies",
-			configurations: []interface{}{new(cyclingChildConfiguration), new(cyclingParentConfiguration), new(cyclingGrantConfiguration)},
-			err:            nil,
+			configurations: []interface{}{new(circularChildConfiguration), new(circularParentConfiguration), new(circularGrantConfiguration)},
+			err:            depends.ErrCircularDependency,
+		},
+		{
+			title:          "should fail to sort with cycling dependencies 2",
+			configurations: []interface{}{new(circularChildConfiguration2), new(circularParentConfiguration2), new(circularGrantConfiguration2)},
+			err:            depends.ErrCircularDependency,
 		},
 	}
 
 	for _, data := range testData {
 		t.Run(data.title, func(t *testing.T) {
-			sort.Sort(depends.ByDependency(data.configurations))
-			for i, item := range data.configurations {
-				name, _ := reflector.GetName(item)
-				pkgName := reflector.ParseObjectPkgName(item)
-				t, _ := reflector.FindEmbeddedFieldTag(item, "depends")
-				log.Debugf("[after] %v: %v.%v -> %v", i, pkgName, name, t)
-			}
+			_, err := depends.Resolve(data.configurations)
+			assert.Equal(t, data.err, err)
 		})
 	}
 }

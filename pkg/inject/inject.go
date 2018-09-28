@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/system"
-	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
@@ -115,17 +113,6 @@ func IntoObjectValue(object reflect.Value, tags ...Tag) error {
 	} else {
 		targetTags = tagsContainer
 	}
-	sc := appFactory.GetInstance("systemConfiguration")
-	if sc == nil {
-		return ErrSystemConfiguration
-	}
-	systemConfig := sc.(*system.Configuration)
-
-	cs := appFactory.GetInstance("configurations")
-	if cs == nil {
-		return ErrSystemConfiguration
-	}
-	configurations := cs.(cmap.ConcurrentMap)
 
 	// field injection
 	for _, f := range reflector.DeepFields(object.Type()) {
@@ -154,15 +141,15 @@ func IntoObjectValue(object reflect.Value, tags ...Tag) error {
 				}
 				tag, ok := f.Tag.Lookup(tagName)
 				if ok {
-					tagImpl.Init(systemConfig, configurations)
+					tagImpl.Init(appFactory)
 					injectedObject = tagImpl.Decode(object, f, tag)
 					if injectedObject != nil {
-						if tagImpl.IsSingleton() {
-							err := saveInstance(f.Name, injectedObject)
-							if err != nil {
-								log.Warnf("instance %v is already exist", f.Name)
-							}
-						}
+						//if tagImpl.IsSingleton() {
+						//	err := saveInstance(f.Name, injectedObject)
+						//	if err != nil {
+						//		log.Warnf("instance %v is already exist", f.Name)
+						//	}
+						//}
 						// ONLY one tag should be used for dependency injection
 						break
 					}
@@ -221,7 +208,7 @@ func parseMethodInput(inType reflect.Type) (paramValue reflect.Value, ok bool) {
 	inType = reflector.IndirectType(inType)
 	inTypeName := inType.Name()
 	pkgName := io.DirName(inType.PkgPath())
-	//log.Debugf("pkg: %v", pkgName)
+	log.Debugf("pkg: %v", pkgName)
 	inst := getInstanceByName(inTypeName, inType)
 	if inst == nil {
 		alternativeName := pkgName + inTypeName
@@ -229,13 +216,16 @@ func parseMethodInput(inType reflect.Type) (paramValue reflect.Value, ok bool) {
 	}
 	ok = true
 	if inst == nil {
-		//log.Debug(inType.Kind())
+		log.Debug(inType.Kind())
 		switch inType.Kind() {
 		// interface and slice creation is not supported
 		case reflect.Interface, reflect.Slice:
 			ok = false
 			break
 		default:
+			// should find instance in the component container first
+
+			// if it is not found, then create new instance
 			paramValue = reflect.New(inType)
 			inst = paramValue.Interface()
 			err := saveInstance(inTypeName, inst)

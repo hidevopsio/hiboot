@@ -104,6 +104,9 @@ func (f *InstantiateFactory) ParseInstance(eliminator string, params ...interfac
 
 // BuildComponents build all registered components
 func (f *InstantiateFactory) BuildComponents(components [][]interface{}) (err error) {
+	//TODO: should sort components according to dependency tree first
+
+	// then build components
 	for _, item := range components {
 		name, inst := f.ParseInstance("", item...)
 		if inst == nil {
