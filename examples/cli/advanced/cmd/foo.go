@@ -17,16 +17,32 @@ package cmd
 import (
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/examples/cli/advanced/model"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/spf13/cobra"
 )
 
 type fooCommand struct {
 	cli.BaseCommand
+
+	foo *model.Foo
 }
 
-func (c *fooCommand) Init() {
-	c.Use = "foo"
-	c.Short = "foo command"
-	c.Long = "Run foo command"
+func newFooCommand(foo *model.Foo) *fooCommand {
+	return &fooCommand{
+		foo: foo,
+		BaseCommand: cli.BaseCommand {
+			Command: cobra.Command {
+				Use: "foo",
+				Short: "foo command",
+				Long: "Run foo command",
+			},
+		},
+	}
+}
+
+func init() {
+	app.Component(newFooCommand)
 }
 
 func (c *fooCommand) Run(args []string) error {

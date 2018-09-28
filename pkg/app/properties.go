@@ -16,4 +16,5 @@ package app
 
 const (
 	PropertyBannerDisabled = "property.banner.disabled"
+	PropertyAppProfilesInclude = "property.app.profiles.include"
 )

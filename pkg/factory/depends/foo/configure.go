@@ -12,18 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package foo
 
-import (
-	"github.com/hidevopsio/hiboot/pkg/app/cli"
-	"github.com/hidevopsio/hiboot/pkg/app"
-	_ "github.com/hidevopsio/hiboot/examples/cli/advanced/cmd"
-	_ "github.com/hidevopsio/hiboot/examples/cli/advanced/config"
-)
+import "github.com/hidevopsio/hiboot/pkg/app"
 
-func main() {
-	// create new cli application and run it
-	cli.NewApplication().
-		SetProperty(app.PropertyAppProfilesInclude, "config").
-		Run()
+// Configuration foo.Configuration for test only
+type Configuration struct {
+	app.Configuration
 }

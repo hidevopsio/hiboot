@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package fake
+package bar
 
 import "github.com/hidevopsio/hiboot/pkg/app"
 
-// Configuration fake.Configuration for test only
+// Configuration foo.Configuration for test only
 type Configuration struct {
-	app.Configuration `depends:"foo"`
+	app.Configuration
 }

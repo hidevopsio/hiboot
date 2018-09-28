@@ -17,18 +17,24 @@ package cmd
 import (
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
 type secondCommand struct {
 	cli.BaseCommand
-	Foo *fooCommand `cmd:""`
-	Bar *barCommand `cmd:""`
 }
 
-func (c *secondCommand) Init() {
+func init() {
+	app.Component(newSecondCommand)
+}
+
+func newSecondCommand(foo *fooCommand, bar *barCommand) *secondCommand {
+	c := new(secondCommand)
 	c.Use = "second"
 	c.Short = "second command"
 	c.Long = "Run second command"
+	c.Add(foo, bar)
+	return c
 }
 
 func (c *secondCommand) Run(args []string) error {

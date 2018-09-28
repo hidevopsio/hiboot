@@ -28,11 +28,13 @@ import (
 	"github.com/kataras/iris/context"
 	"reflect"
 	"sync"
+	"strings"
 )
 
 type Application interface {
 	Initialize() error
 	SetProperty(name string, value interface{}) Application
+	GetProperty(name string) (value interface{}, ok bool)
 	Run() error
 }
 
@@ -222,4 +224,18 @@ func (a *BaseApplication) GetInstance(name string) (instance interface{}) {
 		instance = a.configurableFactory.GetInstance(name)
 	}
 	return
+}
+
+
+// Run run the application
+func (a *BaseApplication) AppendProfiles(app Application) error {
+	profiles, ok := app.GetProperty(PropertyAppProfilesInclude)
+	if ok {
+		appProfilesInclude := strings.SplitN(profiles.(string), ",", -1)
+		if a.systemConfig != nil {
+			a.systemConfig.App.Profiles.Include =
+				append(a.systemConfig.App.Profiles.Include, appProfilesInclude...)
+		}
+	}
+	return nil
 }

@@ -112,6 +112,7 @@ func (a *application) add(controllers ...interface{}) (err error) {
 func (a *application) build(controllers ...interface{}) (err error) {
 	a.PrintStartupMessages()
 
+	a.AppendProfiles(a)
 	systemConfig := a.SystemConfig()
 	if systemConfig != nil {
 		log.SetLevel(systemConfig.Logging.Level)

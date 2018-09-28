@@ -17,7 +17,6 @@ package autoconfigure
 
 import (
 	"errors"
-	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure/depends"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
@@ -31,8 +30,8 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"sort"
 	"strings"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends"
 )
 
 const (
@@ -261,46 +260,47 @@ func (f *ConfigurableFactory) appProfilesActive() string {
 // build
 func (f *ConfigurableFactory) build(cfgContainer []interface{}) {
 	// sort dependencies
-	sort.Sort(depends.ByDependency(cfgContainer))
+	cfgContainer, err := depends.Resolve(cfgContainer)
+	if err == nil {
+		isTestRunning := gotest.IsRunning()
+		for _, item := range cfgContainer {
+			name, configType := f.ParseInstance("Configuration", item)
 
-	isTestRunning := gotest.IsRunning()
-	for _, item := range cfgContainer {
-		name, configType := f.ParseInstance("Configuration", item)
-
-		// TODO: should check if profiles is enabled str.InSlice(name, sysconf.App.Profiles.Include)
-		if !isTestRunning && f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
-			continue
-		}
-		log.Infof("Auto configure %v starter", name)
-
-		// inject properties
-		f.builder.ConfigType = configType
-
-		// inject default value
-		inject.DefaultValue(configType)
-
-		cf, err := f.builder.Build(name, f.appProfilesActive())
-
-		// TODO: check if cf.DependsOn
-		if cf == nil {
-			log.Warnf("failed to build %v configuration with error %v", name, err)
-		} else {
-			// replace references and environment variables
-			if f.systemConfig != nil {
-				replacer.Replace(cf, f.systemConfig)
+			// TODO: should check if profiles is enabled str.InSlice(name, sysconf.App.Profiles.Include)
+			if !isTestRunning && f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
+				continue
 			}
-			inject.IntoObject(cf)
-			replacer.Replace(cf, cf)
+			log.Infof("Auto configure %v starter", name)
 
-			// instantiation
-			if err == nil {
-				// create instances
-				f.Instantiate(cf)
-				// save configuration
-				if _, ok := f.configurations.Get(name); ok {
-					log.Fatalf("[factory] configuration name %v is already taken", name)
+			// inject properties
+			f.builder.ConfigType = configType
+
+			// inject default value
+			inject.DefaultValue(configType)
+
+			cf, err := f.builder.Build(name, f.appProfilesActive())
+
+			// TODO: check if cf.DependsOn
+			if cf == nil {
+				log.Warnf("failed to build %v configuration with error %v", name, err)
+			} else {
+				// replace references and environment variables
+				if f.systemConfig != nil {
+					replacer.Replace(cf, f.systemConfig)
 				}
-				f.configurations.Set(name, cf)
+				inject.IntoObject(cf)
+				replacer.Replace(cf, cf)
+
+				// instantiation
+				if err == nil {
+					// create instances
+					f.Instantiate(cf)
+					// save configuration
+					if _, ok := f.configurations.Get(name); ok {
+						log.Fatalf("[factory] configuration name %v is already taken", name)
+					}
+					f.configurations.Set(name, cf)
+				}
 			}
 		}
 	}
