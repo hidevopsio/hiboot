@@ -15,7 +15,10 @@
 // Package factory provides InstantiateFactory and ConfigurableFactory interface
 package factory
 
-import "github.com/hidevopsio/hiboot/pkg/system"
+import (
+	"github.com/hidevopsio/hiboot/pkg/system"
+	"reflect"
+)
 
 type Factory interface{}
 
@@ -24,10 +27,20 @@ type InstantiateFactory interface {
 	SetInstance(name string, instance interface{}) (err error)
 	GetInstance(name string) (inst interface{})
 	Items() map[string]interface{}
+	AppendComponent(c ...interface{})
 }
 
 type ConfigurableFactory interface {
 	InstantiateFactory
 	SystemConfiguration() *system.Configuration
 	Configuration(name string) interface{}
+}
+
+type MetaData struct {
+	Kind    reflect.Kind
+	Name    string
+	Alias   string
+	PkgName string
+	Object  interface{}
+	ExtDep  []string
 }

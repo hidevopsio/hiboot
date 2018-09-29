@@ -20,8 +20,8 @@ import (
 	"testing"
 )
 
-func TestFirstCommands(t *testing.T) {
-	testApp := cli.NewTestApplication(t, new(rootCommand))
+func TestRootCommands(t *testing.T) {
+	testApp := cli.NewTestApplication(t)
 
 	t.Run("should run first command", func(t *testing.T) {
 		_, err := testApp.RunTest("-t", "10")
@@ -40,6 +40,16 @@ func TestFirstCommands(t *testing.T) {
 
 	t.Run("should run bar command", func(t *testing.T) {
 		_, err := testApp.RunTest("second", "bar")
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should run bar command", func(t *testing.T) {
+		_, err := testApp.RunTest("second", "bar", "baz")
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should run bar command", func(t *testing.T) {
+		_, err := testApp.RunTest("second", "bar", "buz")
 		assert.Equal(t, nil, err)
 	})
 

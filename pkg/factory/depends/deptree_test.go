@@ -50,7 +50,7 @@ func TestDepTree(t *testing.T) {
 	workingGraph = append(workingGraph, nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH, nodeI, nodeJ, nodeK)
 
 	fmt.Printf(">>> A working dependency graph\n")
-	displayGraph(workingGraph)
+	displayDependencyGraph(workingGraph, log.Debug)
 
 	resolved, err := resolveGraph(workingGraph)
 	if err != nil {
@@ -72,7 +72,7 @@ func TestDepTree(t *testing.T) {
 	brokenGraph = append(brokenGraph, nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH, nodeI, nodeJ, nodeK)
 
 	fmt.Printf(">>> A broken dependency graph with circular dependency\n")
-	displayGraph(brokenGraph)
+	displayDependencyGraph(brokenGraph, log.Debug)
 
 	resolved, err = resolveGraph(brokenGraph)
 	if err != nil {
@@ -92,7 +92,7 @@ func TestDep(t *testing.T) {
 		NewNode(4, "e"))
 
 	fmt.Printf(">>> A working dependency graph\n")
-	displayGraph(workingGraph)
+	displayDependencyGraph(workingGraph, log.Debug)
 
 	resolved, err := resolveGraph(workingGraph)
 	if err != nil {

@@ -29,6 +29,7 @@ import (
 	"reflect"
 	"sync"
 	"strings"
+	"github.com/hidevopsio/hiboot/pkg/factory"
 )
 
 type Application interface {
@@ -62,8 +63,8 @@ type BaseApplication struct {
 }
 
 var (
-	configContainer    [][]interface{}
-	componentContainer [][]interface{}
+	configContainer    []*factory.MetaData
+	componentContainer []*factory.MetaData
 
 	// ErrInvalidObjectType indicates that configuration type is invalid
 	ErrInvalidObjectType = errors.New("[app] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
@@ -78,30 +79,14 @@ _  __  / _  / _  /_/ / /_/ / /_/ / /_     Hiboot Application Framework
 `
 )
 
-func hasTwoParams(params ...interface{}) bool {
-	return len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String
-}
-
-func appendParams(container [][]interface{}, params ...interface{}) (retVal [][]interface{}, err error) {
+func appendParam(eliminator string, container []*factory.MetaData, params ...interface{}) (retVal []*factory.MetaData, err error) {
 	retVal = container
-	if len(params) == 0 || params[0] == nil {
-		err = ErrInvalidObjectType
-		return
-	}
-
-	item := make([]interface{}, 2)
-	inst := params[0]
-	if hasTwoParams(params...) {
-		item[0] = params[0]
-		item[1] = params[1]
-		inst = params[1]
-	} else {
-		item[0] = params[0]
-	}
-	if inst != nil {
-		kind := reflect.TypeOf(inst).Kind()
+	metaData := factory.ParseParams(eliminator, params...)
+	if metaData.Object != nil {
+		kind := reflect.TypeOf(metaData.Object).Kind()
 		if kind == reflect.Func || kind == reflect.Ptr {
-			retVal = append(container, item)
+			metaData.Kind = kind
+			retVal = append(retVal, metaData)
 			return
 		}
 	}
@@ -109,18 +94,38 @@ func appendParams(container [][]interface{}, params ...interface{}) (retVal [][]
 	return
 }
 
+func appendParams(eliminator string, container []*factory.MetaData, params ...interface{}) (retVal []*factory.MetaData, err error) {
+	retVal = container
+	if len(params) == 0 || params[0] == nil {
+		err = ErrInvalidObjectType
+		return
+	}
+
+	if len(params) > 1 && reflect.TypeOf(params[0]).Kind() != reflect.String {
+		for _, param := range params {
+			retVal, err = appendParam(eliminator, retVal, param)
+		}
+	} else {
+		retVal, err = appendParam(eliminator, retVal, params...)
+	}
+	return
+}
+
 // AutoConfiguration register auto configuration struct
 func AutoConfiguration(params ...interface{}) (err error) {
-	configContainer, err = appendParams(configContainer, params...)
+	configContainer, err = appendParams(autoconfigure.PostfixConfiguration, configContainer, params...)
 	return
 }
 
 // Component register a struct instance, so that it will be injectable.
 // starter should register component type
 func Component(params ...interface{}) (err error) {
-	componentContainer, err = appendParams(componentContainer, params...)
+	componentContainer, err = appendParams("", componentContainer, params...)
 	return
 }
+
+// Register register all component into container
+var Register = Component
 
 // PrintStartupMessages prints startup messages
 func (a *BaseApplication) PrintStartupMessages() {
@@ -155,7 +160,7 @@ func (a *BaseApplication) Initialize() error {
 	a.instances = cmap.New()
 
 	instantiateFactory := new(instantiate.InstantiateFactory)
-	instantiateFactory.Initialize(a.instances)
+	instantiateFactory.Initialize(a.instances, componentContainer)
 	a.instances.Set("instantiateFactory", instantiateFactory)
 
 	configurableFactory := new(autoconfigure.ConfigurableFactory)
@@ -183,7 +188,7 @@ func (a *BaseApplication) BuildConfigurations() {
 	// build configurations
 	a.configurableFactory.Build(configContainer)
 	// build components
-	a.configurableFactory.BuildComponents(componentContainer)
+	a.configurableFactory.BuildComponents()
 }
 
 // ConfigurableFactory get ConfigurableFactory
@@ -225,7 +230,6 @@ func (a *BaseApplication) GetInstance(name string) (instance interface{}) {
 	}
 	return
 }
-
 
 // Run run the application
 func (a *BaseApplication) AppendProfiles(app Application) error {

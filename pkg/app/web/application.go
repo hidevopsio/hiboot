@@ -34,6 +34,7 @@ const (
 
 	beforeMethod = "Before"
 	afterMethod  = "After"
+	applicationContext = "applicationContext"
 )
 
 // Application is the struct of web Application
@@ -122,7 +123,8 @@ func (a *application) build(controllers ...interface{}) (err error) {
 	}
 
 	f := a.ConfigurableFactory()
-	f.SetInstance("applicationContext", a)
+	f.AppendComponent(applicationContext, a)
+	f.SetInstance(applicationContext, a)
 
 	// build auto configurations
 	a.BuildConfigurations()
@@ -192,8 +194,12 @@ func (a *application) initialize(controllers ...interface{}) (err error) {
 	return
 }
 
+// TODO: use app.Register for all
 // Add add controller to controllers container
 func RestController(controllers ...interface{}) {
+	// add controller to component
+	app.Component(controllers...)
+	// add to registeredControllers as well
 	registeredControllers = append(registeredControllers, controllers...)
 }
 

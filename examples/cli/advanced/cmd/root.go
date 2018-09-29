@@ -28,8 +28,8 @@ type rootCommand struct {
 	cli.BaseCommand
 
 	//TODO: inject flag
-	Profile *string `flag:"shorthand=p,value=dev,usage=e.g. --profile=test"`
-	Timeout *int    `flag:"shorthand=t,value=1,usage=e.g. --timeout=2"`
+	Profile string `flag:"shorthand=p,value=dev,usage=e.g. --profile=test"`
+	Timeout int    `flag:"shorthand=t,value=1,usage=e.g. --timeout=2"`
 }
 
 func init() {
@@ -42,12 +42,14 @@ func newRootCommand(second *secondCommand) *rootCommand {
 	c.Short = "first command"
 	c.Long = "Run first command"
 	c.ValidArgs = []string{"baz"}
-
+	pflags := c.PersistentFlags()
+	pflags.StringVarP(&c.Profile, "profile", "p", "dev", "e.g. --profile=test")
+	pflags.IntVarP(&c.Timeout, "timeout", "t", 1, "e.g. --timeout=1")
 	c.Add(second)
 	return c
 }
 
 func (c *rootCommand) Run(args []string) error {
-	log.Infof("handle first command: profile=%v, timeout=%v", *c.Profile, *c.Timeout)
+	log.Infof("handle first command: profile=%v, timeout=%v", c.Profile, c.Timeout)
 	return nil
 }

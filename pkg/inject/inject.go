@@ -208,7 +208,7 @@ func parseMethodInput(inType reflect.Type) (paramValue reflect.Value, ok bool) {
 	inType = reflector.IndirectType(inType)
 	inTypeName := inType.Name()
 	pkgName := io.DirName(inType.PkgPath())
-	log.Debugf("pkg: %v", pkgName)
+	//log.Debugf("pkg: %v", pkgName)
 	inst := getInstanceByName(inTypeName, inType)
 	if inst == nil {
 		alternativeName := pkgName + inTypeName

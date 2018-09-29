@@ -44,7 +44,7 @@ func (c *barCommand) OnBaz(args []string) bool {
 
 // OnBuz run command bar buz, return true means it won't run next action, in this case is method Run(args []string)
 func (c *barCommand) OnBuz(args []string) bool {
-	log.Infof("on baz command")
+	log.Infof("on buz command")
 	return true
 }
 

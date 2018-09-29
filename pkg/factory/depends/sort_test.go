@@ -19,10 +19,12 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"testing"
 	"github.com/hidevopsio/hiboot/pkg/factory/depends"
-	"github.com/hidevopsio/hiboot/pkg/factory/depends/bar"
-	"github.com/hidevopsio/hiboot/pkg/factory/depends/fake"
-	"github.com/hidevopsio/hiboot/pkg/factory/depends/foo"
 	"github.com/magiconair/properties/assert"
+	"github.com/hidevopsio/hiboot/pkg/factory"
+	"reflect"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends/bar"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends/foo"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends/fake"
 )
 
 type fooConfiguration struct {
@@ -46,27 +48,73 @@ type grantConfiguration struct {
 }
 
 type circularChildConfiguration struct {
-	app.Configuration `depends:"cyclingParentConfiguration"`
+	app.Configuration `depends:"circularParentConfiguration"`
 }
 
 type circularParentConfiguration struct {
-	app.Configuration `depends:"cyclingGrantConfiguration"`
+	app.Configuration `depends:"circularGrantConfiguration"`
 }
 
 type circularGrantConfiguration struct {
-	app.Configuration `depends:"cyclingParentConfiguration"`
+	app.Configuration `depends:"circularParentConfiguration"`
 }
 
 type circularChildConfiguration2 struct {
-	app.Configuration `depends:"cyclingParentConfiguration2"`
+	app.Configuration `depends:"circularParentConfiguration2"`
 }
 
 type circularParentConfiguration2 struct {
-	app.Configuration `depends:"cyclingGrantConfiguration2"`
+	app.Configuration `depends:"circularGrantConfiguration2"`
 }
 
 type circularGrantConfiguration2 struct {
-	app.Configuration `depends:"cyclingChildConfiguration2"`
+	app.Configuration `depends:"circularChildConfiguration2"`
+}
+
+type Foo struct {
+	Name string
+}
+
+type Bar struct {
+	Name string
+}
+
+type Baz struct {
+	Name string
+}
+
+type fooService struct {
+	foo *Foo
+}
+
+func newFooService(foo *Foo) *fooService {
+	return &fooService{foo: foo}
+}
+
+type barService struct {
+	bar        *Bar
+	fooService *fooService
+}
+
+func newBarService(bar *Bar, fooService *fooService) *barService {
+	return &barService{bar: bar, fooService: fooService}
+}
+
+type foobarService struct {
+	fooService *fooService
+}
+
+func newFoobarService(fooService *fooService) *foobarService {
+	return &foobarService{fooService: fooService}
+}
+
+type bazService struct {
+	bar *Bar
+	baz *Baz
+}
+
+func newBazService(bar *Bar, baz *Baz) *bazService {
+	return &bazService{bar: bar, baz: baz}
 }
 
 func TestSort(t *testing.T) {
@@ -75,30 +123,84 @@ func TestSort(t *testing.T) {
 
 	testData := []struct {
 		title          string
-		configurations []interface{}
+		configurations []*factory.MetaData
 		err            error
 	}{
 		{
-			title:          "should sort dependencies",
-			configurations: []interface{}{new(fooConfiguration), new(bar.Configuration), new(childConfiguration), new(parentConfiguration), new(grantConfiguration), new(fake.Configuration), new(foo.Configuration), new(barConfiguration)},
-			err:            nil,
+			title: "should sort dependencies",
+			configurations: []*factory.MetaData{
+				{Kind: reflect.Ptr, Object: new(fooConfiguration)},
+				{Kind: reflect.Ptr, Object: new(bar.Configuration)},
+				{Kind: reflect.Ptr, Object: new(childConfiguration)},
+				{Kind: reflect.Ptr, Object: new(fake.Configuration)},
+				{Kind: reflect.Ptr, Object: new(parentConfiguration)},
+				{Kind: reflect.Ptr, Object: new(grantConfiguration)},
+				{Kind: reflect.Func, Object: foo.NewConfiguration},
+				{Kind: reflect.Ptr, Object: new(barConfiguration)},
+			},
+			err: nil,
 		},
 		{
-			title:          "should fail to sort with cycling dependencies",
-			configurations: []interface{}{new(circularChildConfiguration), new(circularParentConfiguration), new(circularGrantConfiguration)},
-			err:            depends.ErrCircularDependency,
+			title: "should sort dependencies",
+			configurations: []*factory.MetaData{
+				{Kind: reflect.Ptr, Object: new(fake.Configuration)},
+				{Kind: reflect.Ptr, Object: new(fooConfiguration)},
+				{Kind: reflect.Ptr, Object: new(bar.Configuration)},
+				{Kind: reflect.Ptr, Object: new(childConfiguration)},
+				{Kind: reflect.Ptr, Object: new(parentConfiguration)},
+				{Kind: reflect.Ptr, Object: new(grantConfiguration)},
+				{Kind: reflect.Func, Object: foo.NewConfiguration},
+				{Kind: reflect.Ptr, Object: new(barConfiguration)},
+			},
+			err: nil,
+		},
+		//{
+		//	title: "should report some of the dependencies are not found",
+		//	configurations: []*factory.MetaData{
+		//		{Kind: reflect.Ptr, Object: new(fooConfiguration)},
+		//		{Kind: reflect.Ptr, Object: new(childConfiguration)},
+		//		{Kind: reflect.Ptr, Object: new(parentConfiguration)},
+		//		{Kind: reflect.Ptr, Object: new(grantConfiguration)},
+		//		{Kind: reflect.Ptr, Object: new(barConfiguration)},
+		//	},
+		//	err: depends.ErrCircularDependency,
+		//},
+		{
+			title: "should sort with constructor's dependencies",
+			configurations: []*factory.MetaData{
+				{Kind: reflect.Func, PkgName: "depends_test", Name: "barService", Object: newBarService},
+				{Kind: reflect.Ptr, Object: new(Bar)},
+				{Kind: reflect.Func, Object: newFooService},
+				{Kind: reflect.Ptr, Object: new(Foo)},
+				{Kind: reflect.Ptr, Object: new(Baz)},
+				{Kind: reflect.Func, Object: newBazService},
+			},
+			err: nil,
 		},
 		{
-			title:          "should fail to sort with cycling dependencies 2",
-			configurations: []interface{}{new(circularChildConfiguration2), new(circularParentConfiguration2), new(circularGrantConfiguration2)},
-			err:            depends.ErrCircularDependency,
+			title: "should fail to sort with circular dependencies",
+			configurations: []*factory.MetaData{
+				{Kind: reflect.Ptr, Object: new(circularChildConfiguration)},
+				{Kind: reflect.Ptr, Object: new(circularParentConfiguration)},
+				{Kind: reflect.Ptr, Object: new(circularGrantConfiguration)},
+			},
+			err: depends.ErrCircularDependency,
+		},
+		{
+			title: "should fail to sort with circular dependencies",
+			configurations: []*factory.MetaData{
+				{Kind: reflect.Ptr, Object: new(circularChildConfiguration2)},
+				{Kind: reflect.Ptr, Object: new(circularParentConfiguration2)},
+				{Kind: reflect.Ptr, Object: new(circularGrantConfiguration2)},
+			},
+			err: depends.ErrCircularDependency,
 		},
 	}
 
 	for _, data := range testData {
 		t.Run(data.title, func(t *testing.T) {
 			_, err := depends.Resolve(data.configurations)
-			assert.Equal(t, data.err, err)
+			assert.Equal(t, err, data.err)
 		})
 	}
 }

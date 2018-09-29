@@ -26,6 +26,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"github.com/hidevopsio/hiboot/pkg/factory"
 )
 
 type user struct {
@@ -273,16 +274,17 @@ func TestInject(t *testing.T) {
 	configurations := cmap.New()
 	configurableFactory = new(autoconfigure.ConfigurableFactory)
 	configurableFactory.InstantiateFactory = new(instantiate.InstantiateFactory)
-	configurableFactory.InstantiateFactory.Initialize(instances)
+	configurableFactory.InstantiateFactory.Initialize(instances, []*factory.MetaData{})
 	configurableFactory.Initialize(configurations)
 	configurableFactory.BuildSystemConfig()
 
 	inject.SetFactory(configurableFactory)
 
-	configs := make([][]interface{}, 0)
 	fakeConfig := new(fakeConfiguration)
-	configs = append(configs, []interface{}{fakeConfig})
-	configs = append(configs, []interface{}{fooConfiguration{}})
+	configs := []*factory.MetaData{
+		factory.ParseParams(autoconfigure.PostfixConfiguration, fakeConfig),
+		factory.ParseParams(autoconfigure.PostfixConfiguration, new(fooConfiguration)),
+	}
 	configurableFactory.Build(configs)
 
 	t.Run("should inject default string", func(t *testing.T) {

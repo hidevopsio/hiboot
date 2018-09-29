@@ -1,8 +1,9 @@
-package cli
+package cli_test
 
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
 )
 
 func TestCommand(t *testing.T) {
@@ -31,11 +32,11 @@ func TestCommand(t *testing.T) {
 		fooCmd := new(fooCommand)
 		fooCmd.SetName("foo")
 		_, err := fooCmd.Find("bar")
-		assert.Equal(t, ErrCommandNotFound, err)
+		assert.Equal(t, cli.ErrCommandNotFound, err)
 	})
 
 	t.Run("should run command handler", func(t *testing.T) {
-		cmd := new(BaseCommand)
+		cmd := new(cli.BaseCommand)
 		err := cmd.Run(nil)
 		assert.Equal(t, nil, err)
 	})
@@ -43,10 +44,10 @@ func TestCommand(t *testing.T) {
 	t.Run("should run secondary command handler", func(t *testing.T) {
 		cmd := new(fooCommand)
 
-		res := dispatch(cmd, []string{"daz"})
+		res := cli.Dispatch(cmd, []string{"daz"})
 		assert.Equal(t, false, res)
 
-		res = dispatch(cmd, []string{"buzz"})
+		res = cli.Dispatch(cmd, []string{"buzz"})
 		assert.Equal(t, true, res)
 	})
 }

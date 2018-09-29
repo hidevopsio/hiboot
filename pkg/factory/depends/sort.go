@@ -19,17 +19,13 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"reflect"
 	"strings"
-	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/factory"
 )
 
 // ByDependency sort by the configuration dependency which specified by tag depends
-type ByDependency []interface{}
+type Dep []*factory.MetaData
 
-func (s ByDependency) Len() int {
-	return len(s)
-}
-
-func (s ByDependency) Resolve() (resolved Graph, err error) {
+func (s Dep) Resolve() (resolved Graph, err error) {
 
 	var workingGraph Graph
 	var node *Node
@@ -37,6 +33,9 @@ func (s ByDependency) Resolve() (resolved Graph, err error) {
 		// find the index of its dependency
 		name := s.getFullName(item)
 		dep, ok := s.findDependencies(item)
+		for _, extDep := range item.ExtDep {
+			workingGraph = append(workingGraph, NewNode(-1, extDep))
+		}
 		if ok {
 			node = NewNode(i, name, dep...)
 		} else {
@@ -45,37 +44,43 @@ func (s ByDependency) Resolve() (resolved Graph, err error) {
 		workingGraph = append(workingGraph, node)
 	}
 	resolved, err = resolveGraph(workingGraph)
+	if err != nil {
+		displayDependencyGraph(workingGraph, log.Error)
+	}
 	return
 }
 
-func (s ByDependency) findDependencyIndex(depName string) int {
+func (s Dep) findDependencyIndex(depName string) int {
 	for i, item := range s {
-		name, _ := reflector.GetName(item)
-		if name == depName {
+		fullName := s.getFullName(item)
+
+		if item.Name == depName {
 			return i
 		}
 
-		pkgName := reflector.ParseObjectPkgName(item)
-		fullName := pkgName + "." + name
-		if fullName == depName || pkgName == depName {
+		if fullName == depName || item.PkgName == depName {
 			return i
 		}
 	}
 	return -1
 }
 
-func (s ByDependency) findDependencies(item interface{}) (dep []string, ok bool) {
+func (s Dep) findDependencies(item *factory.MetaData) (dep []string, ok bool) {
 	// first check if contains tag depends in the embedded field
 	var depName string
-	depName, ok = reflector.FindEmbeddedFieldTag(item, "depends")
+	depName, ok = reflector.FindEmbeddedFieldTag(item.Object, "depends")
 	if !ok {
 		// else check if s is the constructor and it contains other dependencies in the input arguments
-		fn := reflect.ValueOf(item)
-		if fn.Type().Kind() == reflect.Func {
+		fn := reflect.ValueOf(item.Object)
+		if item.Kind == reflect.Func {
 			numIn := fn.Type().NumIn()
 			for i := 0; i < numIn; i++ {
-				fnInType := fn.Type().In(i)
-				depName = depName + "," + fnInType.Name()
+				name := reflector.GetFullNameByType(fn.Type().In(i))
+				if depName == "" {
+					depName = name
+				} else {
+					depName = depName + "," + name
+				}
 				ok = true
 			}
 		}
@@ -83,42 +88,50 @@ func (s ByDependency) findDependencies(item interface{}) (dep []string, ok bool)
 
 	if ok {
 		dep = strings.Split(depName, ",")
-		for i, dpn := range dep {
-			depIdx := s.findDependencyIndex(dpn)
-			if depIdx > 0 {
+		for i, dp := range dep {
+			depIdx := s.findDependencyIndex(dp)
+			if depIdx >= 0 {
 				depInst := s[depIdx]
 				depFullName := s.getFullName(depInst)
 				dep[i] = depFullName
+			} else {
+				// found external dependency
+				item.ExtDep = append(item.ExtDep, dp)
+				dep[i] = dp
+				log.Warnf("dependency %v is not found", dp)
 			}
 		}
 	}
 	return
 }
 
-func (s ByDependency) getFullName(item interface{}) (name string) {
-	name, err := reflector.GetName(item)
-	if err == nil {
-		depPkgName := reflector.ParseObjectPkgName(item)
-		name = depPkgName + "." + name
+func (s Dep) getFullName(md *factory.MetaData) (name string) {
+	// check if it's func
+	if md.PkgName == "" || md.Name == "" {
+		md.PkgName, md.Name = reflector.GetPkgAndName(md.Object)
 	}
+	name = md.PkgName + "." + md.Name
 	return
 }
 
+// TODO: support multi-dimensional array/slice
 // Resolve
-func Resolve(data []interface{}) (result []interface{}, err error) {
+func Resolve(data []*factory.MetaData) (result []*factory.MetaData, err error) {
 
-	dep := ByDependency(data)
+	dep := Dep(data)
 	var resolved Graph
 	resolved, err = dep.Resolve()
 
 	if err != nil {
-		log.Errorf("Failed to resolve dependencies: %s\n", err)
-		displayGraph(resolved)
-		fmt.Println("")
+		log.Errorf("Failed to resolve dependencies: %s", err)
+		displayDependencyGraph(resolved, log.Error)
 	} else {
-		log.Infof("The dependency graph resolved successfully")
+		//log.Infof("The dependency graph resolved successfully")
+		displayDependencyGraph(resolved, log.Debug)
 		for _, item := range resolved {
-			result = append(result, data[item.index])
+			if item.index >= 0 {
+				result = append(result, data[item.index])
+			}
 		}
 	}
 	return
