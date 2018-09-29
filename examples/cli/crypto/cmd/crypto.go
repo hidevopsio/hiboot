@@ -26,10 +26,10 @@ type rootCommand struct {
 	// embedding cli.BaseCommand in each command
 	cli.BaseCommand
 	// inject (bind) flag to field 'Source', 'Encrypt', and 'Decrypt', so that it can be used on Run method, please note that the data type must be pointer
-	Source  *string `flag:"shorthand=s,usage=run with option --source=source text to encrypt or encrypt"`
-	Encrypt *bool   `flag:"shorthand=e,usage=run with option --encrypt or -e for text encryption"`
-	Decrypt *bool   `flag:"shorthand=d,usage=run with option --decrypt or -d for text decryption"`
-	Key     *string `flag:"shorthand=k,usage=run with option --key or -k for rsa key"`
+	Source  string
+	Encrypt bool
+	Decrypt bool
+	Key     string
 }
 
 func init() {
@@ -46,18 +46,23 @@ crypto rsa -h
 crypto rsa -e -s "text to encrypt"
 crypto rsa -d -s "text to decrypt"
 `
+	pflags := c.PersistentFlags()
+	pflags.StringVarP(&c.Source, "source", "s", "", "run with option --source=source text to encrypt or encrypt")
+	pflags.StringVarP(&c.Key, "key", "k", "", "run with option --key or -k for rsa key")
+	pflags.BoolVarP(&c.Encrypt, "encrypt", "e", false, "run with option --encrypt or -e for text encryption")
+	pflags.BoolVarP(&c.Decrypt, "decrypt", "d", false, "run with option --decrypt or -d for text encryption")
 	return c
 }
 
 // Run OnRsa for crypto command rsa
 func (c *rootCommand) OnRsa(args []string) bool {
-	if *c.Decrypt {
-		res, err := rsa.DecryptBase64([]byte(*c.Source), []byte(*c.Key))
+	if c.Decrypt {
+		res, err := rsa.DecryptBase64([]byte(c.Source), []byte(c.Key))
 		if err == nil {
 			fmt.Println(string(res))
 		}
 	} else {
-		res, err := rsa.EncryptBase64([]byte(*c.Source), []byte(*c.Key))
+		res, err := rsa.EncryptBase64([]byte(c.Source), []byte(c.Key))
 		if err == nil {
 			fmt.Println(string(res))
 		}

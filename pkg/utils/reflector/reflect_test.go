@@ -397,18 +397,28 @@ func TestEmbedded(t *testing.T) {
 			private:   false,
 			anonymous: false,
 		},
+		{
+			name:      "Should fail to parse non-struct source type",
+			source:    123,
+			fieldName: "A",
+			ok:        false,
+			private:   false,
+			anonymous: false,
+		},
 	}
 
 	for _, testCase := range testCases {
 		typ := IndirectType(reflect.TypeOf(testCase.source))
-		t.Run(testCase.name, func(t *testing.T) {
-			field, ok := typ.FieldByName(testCase.fieldName)
-			exported := field.PkgPath != ""
-			assert.Equal(t, testCase.ok, ok)
-			assert.Equal(t, testCase.private, exported)
-			assert.Equal(t, testCase.anonymous, field.Anonymous)
-			assert.Equal(t, testCase.fieldName, field.Name)
-		})
+		if typ.Kind() == reflect.Struct {
+			t.Run(testCase.name, func(t *testing.T) {
+				field, ok := typ.FieldByName(testCase.fieldName)
+				exported := field.PkgPath != ""
+				assert.Equal(t, testCase.ok, ok)
+				assert.Equal(t, testCase.private, exported)
+				assert.Equal(t, testCase.anonymous, field.Anonymous)
+				assert.Equal(t, testCase.fieldName, field.Name)
+			})
+		}
 
 		t.Run(testCase.name, func(t *testing.T) {
 			ok := HasEmbeddedField(testCase.source, testCase.fieldName)
@@ -467,6 +477,17 @@ func TestCallFunc(t *testing.T) {
 	})
 }
 
+type fooBarInterface interface {
+}
+
+type fooBarService struct {
+	fooBarInterface
+}
+
+func newFooBarService() *fooBarService {
+	return new(fooBarService)
+}
+
 func TestGetEmbeddedInterfaceField(t *testing.T) {
 	type fakeInterface interface{}
 	type fakeService struct{ fakeInterface }
@@ -475,6 +496,11 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 	t.Run("should return error if on nil ", func(t *testing.T) {
 		field := GetEmbeddedInterfaceField(nil)
 		assert.Equal(t, nil, field.Type)
+	})
+
+	t.Run("should return error if on nil ", func(t *testing.T) {
+		field := GetEmbeddedInterfaceField(newFooBarService)
+		assert.Equal(t, "fooBarInterface", field.Type.Name())
 	})
 
 	t.Run("should get embedded fakeInterface", func(t *testing.T) {
@@ -507,5 +533,37 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 		tag, ok := FindEmbeddedFieldTag(new(barService), "name")
 		assert.Equal(t, ok, true)
 		assert.Equal(t, "foo", tag)
+	})
+
+	t.Run("should get the object name", func(t *testing.T) {
+		name := GetFullName(Foo{})
+		assert.Equal(t, "reflector.Foo", name)
+	})
+
+	t.Run("should get the object name by object pointer", func(t *testing.T) {
+		name := GetFullName(&Foo{})
+		assert.Equal(t, "reflector.Foo", name)
+	})
+
+	t.Run("should get the object name by object function", func(t *testing.T) {
+		name := GetFullName(newFooBarService)
+		assert.Equal(t, "reflector.fooBarService", name)
+	})
+
+	t.Run("should get the object name by object pointer", func(t *testing.T) {
+		name := GetFullNameByType(reflect.TypeOf(&Foo{}))
+		assert.Equal(t, "reflector.Foo", name)
+	})
+
+	t.Run("should parse instance name via object", func(t *testing.T) {
+		pkgName, name := GetPkgAndName(new(fooBarService))
+		assert.Equal(t, "reflector", pkgName)
+		assert.Equal(t, "fooBarService", name)
+	})
+
+	t.Run("should parse instance name via object", func(t *testing.T) {
+		pkgName, name := GetPkgAndName(newFooBarService)
+		assert.Equal(t, "reflector", pkgName)
+		assert.Equal(t, "fooBarService", name)
 	})
 }

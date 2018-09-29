@@ -32,14 +32,16 @@ import (
 	"reflect"
 	"strings"
 	"github.com/hidevopsio/hiboot/pkg/factory/depends"
+	"github.com/hidevopsio/hiboot/pkg/factory"
 )
 
 const (
-	System            = "system"
-	application       = "application"
-	config            = "config"
-	yaml              = "yaml"
-	appProfilesActive = "APP_PROFILES_ACTIVE"
+	System               = "system"
+	application          = "application"
+	config               = "config"
+	yaml                 = "yaml"
+	EnvAppProfilesActive = "APP_PROFILES_ACTIVE"
+	PostfixConfiguration = "Configuration"
 )
 
 var (
@@ -68,9 +70,9 @@ type ConfigurableFactory struct {
 	systemConfig   *system.Configuration
 	builder        *system.Builder
 
-	preConfigureContainer  []interface{}
-	configureContainer     []interface{}
-	postConfigureContainer []interface{}
+	preConfigureContainer  []*factory.MetaData
+	configureContainer     []*factory.MetaData
+	postConfigureContainer []*factory.MetaData
 }
 
 // Initialize initialize ConfigurableFactory
@@ -105,7 +107,7 @@ func (f *ConfigurableFactory) Configuration(name string) interface{} {
 func (f *ConfigurableFactory) BuildSystemConfig() (systemConfig *system.Configuration, err error) {
 	workDir := io.GetWorkDir()
 	systemConfig = new(system.Configuration)
-	profile := os.Getenv(appProfilesActive)
+	profile := os.Getenv(EnvAppProfilesActive)
 	f.builder = &system.Builder{
 		Path:       filepath.Join(workDir, config),
 		Name:       application,
@@ -131,24 +133,19 @@ func (f *ConfigurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 }
 
 // Build build all auto configurations
-func (f *ConfigurableFactory) Build(configs [][]interface{}) {
+func (f *ConfigurableFactory) Build(configs []*factory.MetaData) {
 	// categorize configurations first, then inject object if necessary
 	for _, item := range configs {
-		name, inst := f.ParseInstance("Configuration", item...)
-		if name == "" || name == "configuration" {
-			continue
-		}
-
-		ifcField := reflector.GetEmbeddedInterfaceField(inst)
+		ifcField := reflector.GetEmbeddedInterfaceField(item.Object)
 
 		if ifcField.Anonymous {
 			switch ifcField.Name {
 			case "Configuration":
-				f.configureContainer = append(f.configureContainer, inst)
+				f.configureContainer = append(f.configureContainer, item)
 			case "PreConfiguration":
-				f.preConfigureContainer = append(f.preConfigureContainer, inst)
+				f.preConfigureContainer = append(f.preConfigureContainer, item)
 			case "PostConfiguration":
-				f.postConfigureContainer = append(f.postConfigureContainer, inst)
+				f.postConfigureContainer = append(f.postConfigureContainer, item)
 			default:
 				continue
 			}
@@ -217,6 +214,10 @@ func (f *ConfigurableFactory) InstantiateMethod(configuration interface{}, metho
 	if retVal != nil && retVal[0].CanInterface() {
 		inst = retVal[0].Interface()
 		//log.Debugf("instantiated: %v", instance)
+		// append inst to f.components
+		f.AppendComponent(instanceName, inst)
+
+		// save instance
 		f.SetInstance(instanceName, inst)
 	}
 	return
@@ -239,11 +240,9 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error)
 	for mi := 0; mi < numOfMethod; mi++ {
 		method := configType.Method(mi)
 		// skip Init method
-		if method.Name != "Init" {
-			_, err = f.InstantiateMethod(configuration, method, method.Name)
-			if err != nil {
-				return
-			}
+		_, err = f.InstantiateMethod(configuration, method, method.Name)
+		if err != nil {
+			return
 		}
 	}
 	return
@@ -252,19 +251,19 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error)
 // appProfilesActive getter
 func (f *ConfigurableFactory) appProfilesActive() string {
 	if f.systemConfig == nil {
-		return os.Getenv(appProfilesActive)
+		return os.Getenv(EnvAppProfilesActive)
 	}
 	return f.systemConfig.App.Profiles.Active
 }
 
 // build
-func (f *ConfigurableFactory) build(cfgContainer []interface{}) {
+func (f *ConfigurableFactory) build(cfgContainer []*factory.MetaData) {
 	// sort dependencies
-	cfgContainer, err := depends.Resolve(cfgContainer)
+	resolvedCfgs, err := depends.Resolve(cfgContainer)
 	if err == nil {
 		isTestRunning := gotest.IsRunning()
-		for _, item := range cfgContainer {
-			name, configType := f.ParseInstance("Configuration", item)
+		for _, item := range resolvedCfgs {
+			name, configType := item.Alias, item.Object
 
 			// TODO: should check if profiles is enabled str.InSlice(name, sysconf.App.Profiles.Include)
 			if !isTestRunning && f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {

@@ -80,17 +80,15 @@ func (a *application) injectCommand(cmd Command) {
 
 func (a *application) initialize(cmd ...Command) (err error) {
 	err = a.Initialize()
-	numOfCmd := len(cmd)
-	var root Command
-	if cmd != nil && numOfCmd > 0 {
-		if numOfCmd == 1 {
-			root = cmd[0]
-		} else {
-			// TODO: cmd should remove cmd[0]
-			root.Add(cmd[1:]...)
-		}
-		a.ConfigurableFactory().SetInstance("rootCommand", root)
-	}
+	//numOfCmd := len(cmd)
+	//var root Command
+	//if cmd != nil && numOfCmd > 0 {
+	//	root = cmd[0]
+	//	if numOfCmd > 1 {
+	//		root.Add(cmd[1:]...)
+	//	}
+	//	a.ConfigurableFactory().SetInstance("rootCommand", root)
+	//}
 	return
 }
 
@@ -115,17 +113,8 @@ func (a *application) build() error {
 	// set root command
 	r := f.GetInstance("rootCommand")
 	var root Command
-	if r == nil {
-		root = new(rootCommand)
-		f.SetInstance("rootCommand", root)
-		root.SetName("root")
-		inject.IntoObject(root)
-		if a.root != nil && a.root.HasChild() {
-			a.injectCommand(a.root)
-		}
-	} else {
-		root = r.(Command)
-	}
+
+	root = r.(Command)
 	Register(root)
 	a.SetRoot(root)
 	if !gotest.IsRunning() {

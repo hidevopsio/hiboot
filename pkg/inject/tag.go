@@ -61,7 +61,7 @@ func (t *BaseTag) replaceReferences(val string) interface{} {
 			// trying to find config
 			config := t.ConfigurableFactory.Configuration(configName)
 			sysConf, err := replacer.GetReferenceValue(t.systemConfig, configName)
-			if config != nil && err == nil && sysConf.IsValid() {
+			if config == nil && err == nil && sysConf.IsValid() {
 				config = t.systemConfig
 			}
 			if config != nil {

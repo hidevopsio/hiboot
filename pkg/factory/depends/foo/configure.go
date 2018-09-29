@@ -17,6 +17,10 @@ package foo
 import "github.com/hidevopsio/hiboot/pkg/app"
 
 // Configuration foo.Configuration for test only
-type Configuration struct {
+type configuration struct {
 	app.Configuration
+}
+
+func NewConfiguration() *configuration {
+	return new(configuration)
 }

@@ -31,6 +31,7 @@ import (
 	"fmt"
 
 	"github.com/deckarep/golang-set"
+	"reflect"
 )
 
 // Node represents a single node in the graph with it's dependencies
@@ -121,10 +122,18 @@ func resolveGraph(graph Graph) (Graph, error) {
 }
 
 // Displays the dependency graph
-func displayGraph(graph Graph) {
-	for _, node := range graph {
-		for _, dep := range node.deps {
-			fmt.Printf("%d: %s -> %s\n", node.index, node.name, dep)
+func displayDependencyGraph(graph Graph, logger func(v ...interface{})) {
+	output := "\n\nDependency tree:\n"
+	for i, node := range graph {
+		if len(node.deps) == 0 {
+			output += fmt.Sprintf("    %d(%d): %s ->\n", i, node.index, node.name)
+		} else {
+			for _, dep := range node.deps {
+				output += fmt.Sprintf("    %d(%d): %s -> %s\n", i, node.index, node.name, dep)
+			}
 		}
+	}
+	if reflect.TypeOf(logger).Kind() == reflect.Func {
+		logger(output)
 	}
 }

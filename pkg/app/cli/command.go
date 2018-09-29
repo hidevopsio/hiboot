@@ -59,7 +59,7 @@ type BaseCommand struct {
 }
 
 // dispatch method with OnAction prefix
-func dispatch(c Command, args []string) (next bool) {
+func Dispatch(c Command, args []string) (next bool) {
 	if len(args) > 0 && args[0] != "" {
 		methodName := actionPrefix + strings.Title(args[0])
 		result, err := reflector.CallMethodByName(c, methodName, args[1:])
@@ -73,7 +73,7 @@ func dispatch(c Command, args []string) (next bool) {
 func Register(c Command) {
 	c.EmbeddedCommand().RunE = func(cmd *cobra.Command, args []string) error {
 
-		if !dispatch(c, args) {
+		if !Dispatch(c, args) {
 			return c.Run(args)
 		}
 		return nil

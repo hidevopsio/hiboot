@@ -32,7 +32,11 @@ type barController struct {
 }
 
 func init() {
-	web.RestController(new(barController))
+	web.RestController(newBarController)
+}
+
+func newBarController() *barController {
+	return &barController{}
 }
 
 func (c *barController) Get() (response model.Response) {

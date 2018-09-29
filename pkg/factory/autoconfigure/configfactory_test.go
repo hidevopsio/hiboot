@@ -27,6 +27,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+	"github.com/hidevopsio/hiboot/pkg/factory"
 )
 
 type FakeProperties struct {
@@ -237,24 +238,10 @@ func TestConfigurableFactory(t *testing.T) {
 		assert.Equal(t, autoconfigure.ErrFactoryIsNotInitialized, err)
 	})
 
-	f.InstantiateFactory.Initialize(cmap.New())
+	f.InstantiateFactory.Initialize(cmap.New(), []*factory.MetaData{})
 	f.Initialize(configContainers)
 
 	inject.SetFactory(f)
-
-	t.Run("should parse instance name via object", func(t *testing.T) {
-		name, inst := f.ParseInstance("Configuration", new(FooBarConfiguration))
-		assert.Equal(t, "fooBar", name)
-		assert.NotEqual(t, nil, inst)
-	})
-
-	t.Run("should parse object instance name via constructor", func(t *testing.T) {
-		testName := "foobar"
-		f.SetInstance("fooBar", &FooBar{Name: testName})
-		name, inst := f.ParseInstance("Configuration", newFooBarConfiguration)
-		assert.Equal(t, "fooBar", name)
-		assert.Equal(t, testName, inst.(*FooBarConfiguration).foobar.Name)
-	})
 
 	t.Run("should build app config", func(t *testing.T) {
 		io.ChangeWorkDir(os.TempDir())
@@ -274,16 +261,17 @@ func TestConfigurableFactory(t *testing.T) {
 
 	fooConfig := new(FooConfiguration)
 	fakeCfg := new(fakeConfiguration)
-	f.Build([][]interface{}{
-		{fooConfig},
-		{fakeCfg},
-		{new(BarConfiguration)},
-		{new(marsConfiguration)},
-		{new(jupiterConfiguration)},
-		{new(mercuryConfiguration)},
-		{new(unknownConfiguration)},
-		{new(unsupportedConfiguration)},
-		{foobarConfiguration{}},
+
+	f.Build([]*factory.MetaData{
+		factory.ParseParams(autoconfigure.PostfixConfiguration, fooConfig),
+		factory.ParseParams(autoconfigure.PostfixConfiguration, fakeCfg),
+		factory.ParseParams(autoconfigure.PostfixConfiguration, new(BarConfiguration)),
+		factory.ParseParams(autoconfigure.PostfixConfiguration, new(marsConfiguration)),
+		factory.ParseParams(autoconfigure.PostfixConfiguration, new(jupiterConfiguration)),
+		factory.ParseParams(autoconfigure.PostfixConfiguration, new(mercuryConfiguration)),
+		factory.ParseParams(autoconfigure.PostfixConfiguration, new(unknownConfiguration)),
+		factory.ParseParams(autoconfigure.PostfixConfiguration, new(unsupportedConfiguration)),
+		factory.ParseParams(autoconfigure.PostfixConfiguration, foobarConfiguration{}),
 	})
 
 	t.Run("should instantiate by name", func(t *testing.T) {
