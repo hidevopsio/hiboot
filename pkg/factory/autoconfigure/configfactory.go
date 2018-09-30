@@ -17,6 +17,8 @@ package autoconfigure
 
 import (
 	"errors"
+	"github.com/hidevopsio/hiboot/pkg/factory"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
@@ -31,8 +33,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
-	"github.com/hidevopsio/hiboot/pkg/factory/depends"
-	"github.com/hidevopsio/hiboot/pkg/factory"
 )
 
 const (
@@ -263,13 +263,18 @@ func (f *ConfigurableFactory) build(cfgContainer []*factory.MetaData) {
 	if err == nil {
 		isTestRunning := gotest.IsRunning()
 		for _, item := range resolvedCfgs {
-			name, configType := item.Alias, item.Object
+			name, configType := item.Name, item.Object
 
 			// TODO: should check if profiles is enabled str.InSlice(name, sysconf.App.Profiles.Include)
 			if !isTestRunning && f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
 				continue
 			}
 			log.Infof("Auto configure %v starter", name)
+
+			// inject into func
+			if reflect.TypeOf(configType).Kind() == reflect.Func {
+				configType, err = inject.IntoFunc(configType)
+			}
 
 			// inject properties
 			f.builder.ConfigType = configType
@@ -281,7 +286,7 @@ func (f *ConfigurableFactory) build(cfgContainer []*factory.MetaData) {
 
 			// TODO: check if cf.DependsOn
 			if cf == nil {
-				log.Warnf("failed to build %v configuration with error %v", name, err)
+				log.Debugf("failed to build %v configuration with error %v", name, err)
 			} else {
 				// replace references and environment variables
 				if f.systemConfig != nil {

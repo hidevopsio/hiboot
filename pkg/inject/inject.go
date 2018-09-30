@@ -247,6 +247,7 @@ func IntoFunc(object interface{}) (retVal interface{}, err error) {
 	if fn.Kind() == reflect.Func {
 		numIn := fn.Type().NumIn()
 		inputs := make([]reflect.Value, numIn)
+		// TODO: should load function inputs when resolving dependencies to improve performance
 		for i := 0; i < numIn; i++ {
 			fnInType := fn.Type().In(i)
 			val, ok := parseMethodInput(fnInType)

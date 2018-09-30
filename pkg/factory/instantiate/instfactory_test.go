@@ -15,11 +15,11 @@
 package instantiate_test
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/hidevopsio/hiboot/pkg/factory"
 )
 
 type FooBar struct {

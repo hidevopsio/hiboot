@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/examples/cli/advanced/model"
+	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
 type configuration struct {
@@ -14,11 +14,9 @@ func init() {
 }
 
 func (c *configuration) Foo() *model.Foo {
-	return new(model.Foo)
+	return &model.Foo{Name: "foo"}
 }
 
 func (c *configuration) FooBar() *model.Foo {
-	fb := new(model.Foo)
-	fb.Name = "foobar"
-	return fb
+	return &model.Foo{Name: "foobar"}
 }

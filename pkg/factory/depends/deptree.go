@@ -53,8 +53,8 @@ var ErrCircularDependency = errors.New("circular dependency found")
 func NewNode(index int, name string, deps ...string) *Node {
 	n := &Node{
 		index: index,
-		name: name,
-		deps: deps,
+		name:  name,
+		deps:  deps,
 	}
 
 	return n

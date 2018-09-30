@@ -15,27 +15,27 @@
 package cmd
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app/cli"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/examples/cli/advanced/model"
 	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/spf13/cobra"
 )
 
 type fooCommand struct {
 	cli.BaseCommand
 
-	foo *model.Foo
+	fooBar *model.Foo
 }
 
-func newFooCommand(foo *model.Foo) *fooCommand {
+func newFooCommand(fooBar *model.Foo) *fooCommand {
 	return &fooCommand{
-		foo: foo,
-		BaseCommand: cli.BaseCommand {
-			Command: cobra.Command {
-				Use: "foo",
+		fooBar: fooBar,
+		BaseCommand: cli.BaseCommand{
+			Command: cobra.Command{
+				Use:   "foo",
 				Short: "foo command",
-				Long: "Run foo command",
+				Long:  "Run foo command",
 			},
 		},
 	}

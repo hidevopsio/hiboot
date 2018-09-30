@@ -28,7 +28,11 @@ type configuration struct {
 }
 
 func init() {
-	app.AutoConfiguration(new(configuration))
+	app.AutoConfiguration(newConfiguration)
+}
+
+func newConfiguration() *configuration {
+	return &configuration{}
 }
 
 func (c *configuration) JwtMiddleware(jtk *jwtToken) *JwtMiddleware {

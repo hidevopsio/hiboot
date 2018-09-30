@@ -18,6 +18,7 @@ package app
 import (
 	"errors"
 	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
@@ -27,9 +28,8 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/kataras/iris/context"
 	"reflect"
-	"sync"
 	"strings"
-	"github.com/hidevopsio/hiboot/pkg/factory"
+	"sync"
 )
 
 type Application interface {
@@ -82,6 +82,7 @@ _  __  / _  / _  /_/ / /_/ / /_/ / /_     Hiboot Application Framework
 func appendParam(eliminator string, container []*factory.MetaData, params ...interface{}) (retVal []*factory.MetaData, err error) {
 	retVal = container
 	metaData := factory.ParseParams(eliminator, params...)
+
 	if metaData.Object != nil {
 		kind := reflect.TypeOf(metaData.Object).Kind()
 		if kind == reflect.Func || kind == reflect.Ptr {

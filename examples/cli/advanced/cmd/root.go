@@ -15,9 +15,9 @@
 package cmd
 
 import (
+	_ "github.com/hidevopsio/hiboot/examples/cli/advanced/config"
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	_ "github.com/hidevopsio/hiboot/examples/cli/advanced/config"
 
 	"github.com/hidevopsio/hiboot/pkg/app"
 )

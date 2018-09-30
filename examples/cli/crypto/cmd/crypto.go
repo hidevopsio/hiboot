@@ -16,9 +16,9 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/hidevopsio/hiboot/pkg/utils/crypto/rsa"
-	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
 // define the command

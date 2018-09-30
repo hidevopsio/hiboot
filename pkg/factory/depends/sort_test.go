@@ -16,15 +16,15 @@ package depends_test
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"testing"
-	"github.com/hidevopsio/hiboot/pkg/factory/depends"
-	"github.com/magiconair/properties/assert"
 	"github.com/hidevopsio/hiboot/pkg/factory"
-	"reflect"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends"
 	"github.com/hidevopsio/hiboot/pkg/factory/depends/bar"
-	"github.com/hidevopsio/hiboot/pkg/factory/depends/foo"
 	"github.com/hidevopsio/hiboot/pkg/factory/depends/fake"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends/foo"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/magiconair/properties/assert"
+	"reflect"
+	"testing"
 )
 
 type fooConfiguration struct {
@@ -168,7 +168,7 @@ func TestSort(t *testing.T) {
 		{
 			title: "should sort with constructor's dependencies",
 			configurations: []*factory.MetaData{
-				{Kind: reflect.Func, PkgName: "depends_test", Name: "barService", Object: newBarService},
+				{Kind: reflect.Func, PkgName: "depends_test", TypeName: "barService", Object: newBarService},
 				{Kind: reflect.Ptr, Object: new(Bar)},
 				{Kind: reflect.Func, Object: newFooService},
 				{Kind: reflect.Ptr, Object: new(Foo)},

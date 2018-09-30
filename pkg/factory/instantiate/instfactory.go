@@ -18,13 +18,13 @@ package instantiate
 import (
 	"errors"
 	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/factory"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends"
+	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
-	"github.com/hidevopsio/hiboot/pkg/factory"
-	"github.com/hidevopsio/hiboot/pkg/factory/depends"
-	"github.com/hidevopsio/hiboot/pkg/inject"
 )
 
 var (
@@ -38,7 +38,7 @@ var (
 // InstantiateFactory is the factory that responsible for object instantiation
 type InstantiateFactory struct {
 	instanceMap cmap.ConcurrentMap
-	components []*factory.MetaData
+	components  []*factory.MetaData
 }
 
 // Initialize init the factory
@@ -63,7 +63,6 @@ func (f *InstantiateFactory) IsValidObjectType(inst interface{}) bool {
 	return false
 }
 
-
 // Initialized check if factory is initialized
 func (f *InstantiateFactory) AppendComponent(c ...interface{}) {
 	f.components = append(f.components, factory.ParseParams("", c...))
@@ -72,18 +71,19 @@ func (f *InstantiateFactory) AppendComponent(c ...interface{}) {
 // BuildComponents build all registered components
 func (f *InstantiateFactory) BuildComponents() (err error) {
 	//TODO: should sort components according to dependency tree first
-	f.components, err = depends.Resolve(f.components)
+	var resolved []*factory.MetaData
+	resolved, err = depends.Resolve(f.components)
 	// then build components
 	var obj interface{}
 	var name string
-	for _, item := range f.components {
+	for _, item := range resolved {
 		// inject dependencies into function
 		// components, controllers
 		if item.Kind == reflect.Func {
 			obj, err = inject.IntoFunc(item.Object)
-			name = item.Name
+			name = item.TypeName
 		} else {
-			name, obj = item.Name, item.Object
+			name, obj = item.TypeName, item.Object
 		}
 
 		if obj == nil {

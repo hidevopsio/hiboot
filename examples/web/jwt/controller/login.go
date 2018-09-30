@@ -41,6 +41,8 @@ func init() {
 }
 
 // Init inject jwtToken through the argument jwtToken jwt.Token on constructor
+// todo: 1. find the name jwtToken through loginController that has the type jwt.Token
+// 2. else find pkgName + typeName jwt + Token
 func newLoginController(jwtToken jwt.Token) *loginController {
 	return &loginController{
 		jwtToken: jwtToken,

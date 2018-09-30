@@ -372,7 +372,7 @@ func GetPkgAndName(object interface{}) (pkgName, name string) {
 	typ, ok := GetFuncOutType(object)
 	if ok {
 		pkgName = io.DirName(typ.PkgPath())
-		name =  typ.Name()
+		name = typ.Name()
 		return
 	}
 
@@ -387,7 +387,6 @@ func GetPkgAndName(object interface{}) (pkgName, name string) {
 func GetFullNameByType(objType reflect.Type) (name string) {
 	indTyp := IndirectType(objType)
 	depPkgName := io.DirName(indTyp.PkgPath())
-	name =  depPkgName + "." + indTyp.Name()
+	name = depPkgName + "." + indTyp.Name()
 	return
 }
-

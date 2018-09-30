@@ -1,10 +1,10 @@
 package factory
 
 import (
-	"reflect"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"strings"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"reflect"
+	"strings"
 )
 
 // ParseParams parse object name and type
@@ -32,11 +32,11 @@ func ParseParams(eliminator string, params ...interface{}) (metaData *MetaData) 
 	}
 
 	metaData = &MetaData{
-		Kind:    kind,
-		PkgName: pkgName,
-		Name:    name,
-		Alias:   shortName,
-		Object:  object,
+		Kind:     kind,
+		PkgName:  pkgName,
+		TypeName: name,
+		Name:     shortName,
+		Object:   object,
 	}
 
 	return

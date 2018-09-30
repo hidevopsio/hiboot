@@ -1,6 +1,5 @@
 package model
 
-type Foo struct{
-	Name string `json:"name" value:"foo"`
+type Foo struct {
+	Name string `json:"name"`
 }
-
