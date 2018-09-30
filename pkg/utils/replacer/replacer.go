@@ -81,7 +81,8 @@ func ReplaceStringVariables(source string, t interface{}) interface{} {
 			return refValue
 		}
 		envValue := os.Getenv(varName)
-		if envValue != "" {
+		// check if  varName == strings.ToUpper(varName), the assume that varName is environment variable
+		if envValue != "" || varName == strings.ToUpper(varName) {
 			source = strings.Replace(source, varFullName, envValue, -1)
 		}
 
