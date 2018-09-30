@@ -37,10 +37,10 @@ type ConfigurableFactory interface {
 }
 
 type MetaData struct {
-	Kind    reflect.Kind
-	Name    string
-	Alias   string
-	PkgName string
-	Object  interface{}
-	ExtDep  []string
+	Kind     reflect.Kind
+	Name     string
+	TypeName string
+	PkgName  string
+	Object   interface{}
+	ExtDep   []string
 }

@@ -32,8 +32,8 @@ import (
 const (
 	pathSep = "/"
 
-	beforeMethod = "Before"
-	afterMethod  = "After"
+	beforeMethod       = "Before"
+	afterMethod        = "After"
 	applicationContext = "applicationContext"
 )
 

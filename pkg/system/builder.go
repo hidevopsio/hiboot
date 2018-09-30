@@ -64,7 +64,7 @@ func (b *Builder) Build(profiles ...string) (interface{}, error) {
 
 	conf, err := b.Read(b.Name)
 	if err != nil {
-		log.Errorf("failed to read: %v", b.Name)
+		//log.Errorf("failed to read: %v", b.Name)
 		return nil, err
 	}
 

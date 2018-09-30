@@ -26,8 +26,8 @@ package depends
 
 import (
 	"fmt"
-	"testing"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"testing"
 )
 
 func TestDepTree(t *testing.T) {

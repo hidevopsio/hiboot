@@ -16,6 +16,7 @@ package autoconfigure_test
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
@@ -27,7 +28,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
-	"github.com/hidevopsio/hiboot/pkg/factory"
 )
 
 type FakeProperties struct {

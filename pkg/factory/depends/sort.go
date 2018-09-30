@@ -15,17 +15,17 @@
 package depends
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"reflect"
 	"strings"
-	"github.com/hidevopsio/hiboot/pkg/factory"
 )
 
 // ByDependency sort by the configuration dependency which specified by tag depends
-type Dep []*factory.MetaData
+type depResolver []*factory.MetaData
 
-func (s Dep) Resolve() (resolved Graph, err error) {
+func (s depResolver) Resolve() (resolved Graph, err error) {
 
 	var workingGraph Graph
 	var node *Node
@@ -33,6 +33,7 @@ func (s Dep) Resolve() (resolved Graph, err error) {
 		// find the index of its dependency
 		name := s.getFullName(item)
 		dep, ok := s.findDependencies(item)
+		// TODO: temp work around
 		for _, extDep := range item.ExtDep {
 			workingGraph = append(workingGraph, NewNode(-1, extDep))
 		}
@@ -50,11 +51,11 @@ func (s Dep) Resolve() (resolved Graph, err error) {
 	return
 }
 
-func (s Dep) findDependencyIndex(depName string) int {
+func (s depResolver) findDependencyIndex(depName string) int {
 	for i, item := range s {
 		fullName := s.getFullName(item)
 
-		if item.Name == depName {
+		if item.TypeName == depName {
 			return i
 		}
 
@@ -65,17 +66,31 @@ func (s Dep) findDependencyIndex(depName string) int {
 	return -1
 }
 
-func (s Dep) findDependencies(item *factory.MetaData) (dep []string, ok bool) {
+func (s depResolver) findDependencies(item *factory.MetaData) (dep []string, ok bool) {
 	// first check if contains tag depends in the embedded field
 	var depName string
 	depName, ok = reflector.FindEmbeddedFieldTag(item.Object, "depends")
 	if !ok {
 		// else check if s is the constructor and it contains other dependencies in the input arguments
-		fn := reflect.ValueOf(item.Object)
-		if item.Kind == reflect.Func {
+		outTyp, isFunc := reflector.GetFuncOutType(item.Object)
+		if isFunc {
+			fn := reflect.ValueOf(item.Object)
 			numIn := fn.Type().NumIn()
 			for i := 0; i < numIn; i++ {
-				name := reflector.GetFullNameByType(fn.Type().In(i))
+				inTyp := fn.Type().In(i)
+				indInTyp := reflector.IndirectType(inTyp)
+				var name string
+				for _, field := range reflector.DeepFields(outTyp) {
+					indFieldTyp := reflector.IndirectType(field.Type)
+					log.Debugf("%v <> %v", indFieldTyp, indInTyp)
+					if indFieldTyp == indInTyp {
+						name = field.Name
+						break
+					}
+				}
+				if name == "" {
+					name = reflector.GetFullNameByType(fn.Type().In(i))
+				}
 				if depName == "" {
 					depName = name
 				} else {
@@ -105,20 +120,19 @@ func (s Dep) findDependencies(item *factory.MetaData) (dep []string, ok bool) {
 	return
 }
 
-func (s Dep) getFullName(md *factory.MetaData) (name string) {
+func (s depResolver) getFullName(md *factory.MetaData) (name string) {
 	// check if it's func
-	if md.PkgName == "" || md.Name == "" {
-		md.PkgName, md.Name = reflector.GetPkgAndName(md.Object)
+	if md.PkgName == "" || md.TypeName == "" {
+		md.PkgName, md.TypeName = reflector.GetPkgAndName(md.Object)
 	}
-	name = md.PkgName + "." + md.Name
+	name = md.PkgName + "." + md.TypeName
 	return
 }
 
-// TODO: support multi-dimensional array/slice
-// Resolve
+// Resolve resolve dependencies
 func Resolve(data []*factory.MetaData) (result []*factory.MetaData, err error) {
 
-	dep := Dep(data)
+	dep := depResolver(data)
 	var resolved Graph
 	resolved, err = dep.Resolve()
 

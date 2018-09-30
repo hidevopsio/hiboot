@@ -70,6 +70,12 @@ type FooController struct {
 	jwtToken jwt.Token
 }
 
+func newFooController(jwtToken jwt.Token) *FooController {
+	return &FooController{
+		jwtToken: jwtToken,
+	}
+}
+
 type ExampleController struct {
 	web.Controller
 }
@@ -199,6 +205,10 @@ type BarController struct {
 	jwt.Controller
 }
 
+func newBarController() *BarController {
+	return &BarController{}
+}
+
 func (c *BarController) Get(request *BarRequest) (response model.Response, err error) {
 	log.Debug("BarController.Get")
 	response = new(model.BaseResponse)
@@ -209,6 +219,10 @@ func (c *BarController) Get(request *BarRequest) (response model.Response, err e
 
 type FoobarController struct {
 	web.Controller
+}
+
+func newFoobarController() *FoobarController {
+	return &FoobarController{}
 }
 
 func (c *FoobarController) Post(request *FoobarRequestForm) (response model.Response, err error) {
@@ -268,7 +282,7 @@ func (c *HelloController) GetAll() {
 }
 
 func TestWebApplication(t *testing.T) {
-	wta := web.NewTestApplication(t, newHelloController, new(FooController), new(BarController), new(FoobarController))
+	wta := web.NewTestApplication(t, newHelloController, newFooController, newBarController, newFoobarController)
 
 	t.Run("should response 200 when GET /all", func(t *testing.T) {
 		wta.

@@ -16,12 +16,10 @@ package cli
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 	"os"
 	"path/filepath"
-	"reflect"
 	"runtime"
 	"strings"
 	"sync"
@@ -66,29 +64,8 @@ func NewApplication(cmd ...Command) Application {
 	return a
 }
 
-func (a *application) injectCommand(cmd Command) {
-	fullname := "root"
-	if cmd != nil {
-		fullname = cmd.FullName()
-	}
-	for _, child := range cmd.Children() {
-		inject.IntoObjectValue(reflect.ValueOf(child))
-		child.SetFullName(fullname + "." + child.GetName())
-		a.injectCommand(child)
-	}
-}
-
 func (a *application) initialize(cmd ...Command) (err error) {
 	err = a.Initialize()
-	//numOfCmd := len(cmd)
-	//var root Command
-	//if cmd != nil && numOfCmd > 0 {
-	//	root = cmd[0]
-	//	if numOfCmd > 1 {
-	//		root.Add(cmd[1:]...)
-	//	}
-	//	a.ConfigurableFactory().SetInstance("rootCommand", root)
-	//}
 	return
 }
 
@@ -113,12 +90,13 @@ func (a *application) build() error {
 	// set root command
 	r := f.GetInstance("rootCommand")
 	var root Command
-
-	root = r.(Command)
-	Register(root)
-	a.SetRoot(root)
-	if !gotest.IsRunning() {
-		a.Root().EmbeddedCommand().Use = basename
+	if r != nil {
+		root = r.(Command)
+		Register(root)
+		a.SetRoot(root)
+		if !gotest.IsRunning() {
+			a.Root().EmbeddedCommand().Use = basename
+		}
 	}
 	return nil
 }

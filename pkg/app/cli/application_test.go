@@ -15,11 +15,11 @@
 package cli_test
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/app/cli"
 )
 
 func init() {
@@ -39,10 +39,10 @@ func newRootCommand(foo *fooCommand) *rootCommand {
 	c.Short = "demo command"
 	c.Long = "Run demo command"
 
-	pflags := c.PersistentFlags()
-	pflags.StringVarP(&c.Profile, "profile", "p", "dev", "e.g. --profile=test")
-	pflags.IntVarP(&c.IntVal, "integer", "i", 0, "e.g. --integer=1")
-	pflags.BoolVarP(&c.BoolVal, "bool", "b", false, "e.g. --bool=true or -b")
+	pf := c.PersistentFlags()
+	pf.StringVarP(&c.Profile, "profile", "p", "dev", "e.g. --profile=test")
+	pf.IntVarP(&c.IntVal, "integer", "i", 0, "e.g. --integer=1")
+	pf.BoolVarP(&c.BoolVal, "bool", "b", false, "e.g. --bool=true or -b")
 
 	c.Add(foo)
 	return c
@@ -85,7 +85,7 @@ type barCommand struct {
 	cli.BaseCommand
 }
 
-func newBarCommand() *barCommand  {
+func newBarCommand() *barCommand {
 	c := new(barCommand)
 	c.Use = "bar"
 	c.Short = "bar command"
@@ -103,7 +103,7 @@ type bazCommand struct {
 	cli.BaseCommand
 }
 
-func newBazCommand() *bazCommand  {
+func newBazCommand() *bazCommand {
 	c := new(bazCommand)
 	c.Use = "baz"
 	c.Short = "baz command"
@@ -151,6 +151,7 @@ func TestCliApplication(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 }
+
 //
 //// demo foo bar
 //func TestCliMultiCommand(t *testing.T) {

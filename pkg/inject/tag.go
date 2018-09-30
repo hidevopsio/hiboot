@@ -15,12 +15,12 @@
 package inject
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
 	"reflect"
 	"strings"
-	"github.com/hidevopsio/hiboot/pkg/factory"
 )
 
 type Tag interface {

@@ -17,7 +17,7 @@ func init() {
 	web.RestController(newHealthController)
 }
 
-func newHealthController() *healthController  {
+func newHealthController() *healthController {
 	return &healthController{}
 }
 

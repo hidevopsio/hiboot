@@ -15,10 +15,10 @@
 package main
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app/cli"
-	"github.com/hidevopsio/hiboot/pkg/app"
 	_ "github.com/hidevopsio/hiboot/examples/cli/advanced/cmd"
 	_ "github.com/hidevopsio/hiboot/examples/cli/advanced/config"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
 )
 
 func main() {

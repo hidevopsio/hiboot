@@ -1,9 +1,9 @@
 package cli_test
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/hidevopsio/hiboot/pkg/app/cli"
 )
 
 func TestCommand(t *testing.T) {
