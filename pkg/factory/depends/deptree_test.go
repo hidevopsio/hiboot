@@ -27,8 +27,8 @@ package depends
 import (
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"testing"
 	"github.com/magiconair/properties/assert"
+	"testing"
 )
 
 func TestDepTree(t *testing.T) {
@@ -57,14 +57,11 @@ func TestDepTree(t *testing.T) {
 	resolved, err := resolveGraph(workingGraph)
 	assert.Equal(t, nil, err)
 	if err != nil {
-		log.Debugf("Failed to resolve dependency graph: %s\n", err)
+		log.Errorf("Failed to resolve dependency graph: %s\n", err)
 	} else {
 		log.Debugf("The dependency graph resolved successfully")
 	}
-
-	for _, node := range resolved {
-		log.Debugf(node.data.Name)
-	}
+	displayDependencyGraph(resolved, log.Debug)
 
 	//
 	// A broken dependency graph with circular dependency
@@ -80,8 +77,9 @@ func TestDepTree(t *testing.T) {
 	resolved, err = resolveGraph(brokenGraph)
 	assert.Equal(t, ErrCircularDependency, err)
 	if err != nil {
-		fmt.Printf("Failed to resolve dependency graph: %s\n", err)
+		log.Errorf("Failed to resolve dependency graph: %s\n", err)
 	} else {
 		log.Debugf("The dependency graph resolved successfully")
 	}
+	displayDependencyGraph(resolved, log.Debug)
 }

@@ -21,11 +21,11 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/factory/depends"
 	"github.com/hidevopsio/hiboot/pkg/inject"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
-	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 var (
