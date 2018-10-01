@@ -28,9 +28,11 @@ import (
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"testing"
+	"github.com/magiconair/properties/assert"
 )
 
 func TestDepTree(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
 	//
 	// A working dependency graph
 	//
@@ -53,15 +55,14 @@ func TestDepTree(t *testing.T) {
 	displayDependencyGraph(workingGraph, log.Debug)
 
 	resolved, err := resolveGraph(workingGraph)
+	assert.Equal(t, nil, err)
 	if err != nil {
-		fmt.Printf("Failed to resolve dependency graph: %s\n", err)
+		log.Debugf("Failed to resolve dependency graph: %s\n", err)
 	} else {
-		fmt.Println("The dependency graph resolved successfully")
+		log.Debugf("The dependency graph resolved successfully")
 	}
 
-	for _, node := range resolved {
-		fmt.Println(node.name)
-	}
+	displayDependencyGraph(resolved, log.Debug)
 
 	//
 	// A broken dependency graph with circular dependency
@@ -71,14 +72,15 @@ func TestDepTree(t *testing.T) {
 	var brokenGraph Graph
 	brokenGraph = append(brokenGraph, nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH, nodeI, nodeJ, nodeK)
 
-	fmt.Printf(">>> A broken dependency graph with circular dependency\n")
+	log.Debugf(">>> A broken dependency graph with circular dependency\n")
 	displayDependencyGraph(brokenGraph, log.Debug)
 
 	resolved, err = resolveGraph(brokenGraph)
+	assert.Equal(t, ErrCircularDependency, err)
 	if err != nil {
-		fmt.Printf("Failed to resolve dependency graph: %s\n", err)
+		log.Debugf("Failed to resolve dependency graph: %s\n", err)
 	} else {
-		fmt.Println("The dependency graph resolved successfully")
+		log.Debugf("The dependency graph resolved successfully")
 	}
 }
 
