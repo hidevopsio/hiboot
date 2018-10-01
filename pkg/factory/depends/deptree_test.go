@@ -36,14 +36,14 @@ func TestDepTree(t *testing.T) {
 	//
 	nodeA := NewNode(0, "A")
 	nodeB := NewNode(1, "B")
-	nodeC := NewNode(2, "C", "A")
-	nodeD := NewNode(3, "D", "B")
-	nodeE := NewNode(4, "E", "C", "D")
-	nodeF := NewNode(5, "F", "A", "B")
-	nodeG := NewNode(6, "G", "E", "F")
-	nodeH := NewNode(7, "H", "G")
-	nodeI := NewNode(8, "I", "A")
-	nodeJ := NewNode(8, "J", "B")
+	nodeC := NewNode(2, "C", nodeA)
+	nodeD := NewNode(3, "D", nodeB)
+	nodeE := NewNode(4, "E", nodeC, nodeD)
+	nodeF := NewNode(5, "F", nodeA, nodeB)
+	nodeG := NewNode(6, "G", nodeE, nodeF)
+	nodeH := NewNode(7, "H", nodeG)
+	nodeI := NewNode(8, "I", nodeA)
+	nodeJ := NewNode(8, "J", nodeB)
 	nodeK := NewNode(10, "K")
 
 	var workingGraph Graph
@@ -60,13 +60,13 @@ func TestDepTree(t *testing.T) {
 	}
 
 	for _, node := range resolved {
-		fmt.Println(node.name)
+		fmt.Println(node.data.Name)
 	}
 
 	//
 	// A broken dependency graph with circular dependency
 	//
-	nodeA = NewNode(11, "A", "I")
+	nodeA = NewNode(11, "A", nodeI)
 
 	var brokenGraph Graph
 	brokenGraph = append(brokenGraph, nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH, nodeI, nodeJ, nodeK)
@@ -80,25 +80,4 @@ func TestDepTree(t *testing.T) {
 	} else {
 		fmt.Println("The dependency graph resolved successfully")
 	}
-}
-
-func TestDep(t *testing.T) {
-	var workingGraph Graph
-	workingGraph = append(workingGraph,
-		NewNode(0, "a", "b"),
-		NewNode(1, "b", "c"),
-		NewNode(2, "c", "d", "e"),
-		NewNode(3, "d"),
-		NewNode(4, "e"))
-
-	fmt.Printf(">>> A working dependency graph\n")
-	displayDependencyGraph(workingGraph, log.Debug)
-
-	resolved, err := resolveGraph(workingGraph)
-	if err != nil {
-		fmt.Printf("Failed to resolve dependency graph: %s\n", err)
-	} else {
-		fmt.Println("The dependency graph resolved successfully")
-	}
-	log.Debugf("resolved: %v", resolved)
 }

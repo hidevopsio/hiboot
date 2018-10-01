@@ -18,14 +18,12 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/starter/jwt/annotation"
 )
-
-type JwtController interface {
-}
 
 // JwtController is the base web controller that enabled JWT
 type Controller struct {
-	JwtController
+	annotation.JwtRestController
 	web.Controller
 }
 
