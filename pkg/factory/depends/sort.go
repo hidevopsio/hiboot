@@ -47,6 +47,7 @@ func (s depResolver) Resolve() (resolved Graph, err error) {
 	resolved, err = resolveGraph(workingGraph)
 	if err != nil {
 		displayDependencyGraph(workingGraph, log.Error)
+		displayDependencyGraph(resolved, log.Error)
 	}
 	return
 }
@@ -69,12 +70,13 @@ func (s depResolver) findDependencyIndex(depName string) int {
 func (s depResolver) findDependencies(item *factory.MetaData) (dep []*Node, ok bool) {
 	// first check if contains tag depends in the embedded field
 	var depName string
-	depName, ok = reflector.FindEmbeddedFieldTag(item.Object, "depends")
+	object := item.Object
+	depName, ok = reflector.FindEmbeddedFieldTag(object, "depends")
 	if !ok {
 		// else check if s is the constructor and it contains other dependencies in the input arguments
-		outTyp, isFunc := reflector.GetFuncOutType(item.Object)
+		outTyp, isFunc := reflector.GetFuncOutType(object)
 		if isFunc {
-			fn := reflect.ValueOf(item.Object)
+			fn := reflect.ValueOf(object)
 			numIn := fn.Type().NumIn()
 			for i := 0; i < numIn; i++ {
 				inTyp := fn.Type().In(i)
@@ -82,7 +84,7 @@ func (s depResolver) findDependencies(item *factory.MetaData) (dep []*Node, ok b
 				var name string
 				for _, field := range reflector.DeepFields(outTyp) {
 					indFieldTyp := reflector.IndirectType(field.Type)
-					log.Debugf("%v <> %v", indFieldTyp, indInTyp)
+					//log.Debugf("%v <> %v", indFieldTyp, indInTyp)
 					if indFieldTyp == indInTyp {
 						name = field.Name
 						break
@@ -117,6 +119,7 @@ func (s depResolver) findDependencies(item *factory.MetaData) (dep []*Node, ok b
 			}
 		}
 	}
+
 	return
 }
 
@@ -138,10 +141,9 @@ func Resolve(data []*factory.MetaData) (result []*factory.MetaData, err error) {
 
 	if err != nil {
 		log.Errorf("Failed to resolve dependencies: %s", err)
-		displayDependencyGraph(resolved, log.Error)
 	} else {
 		//log.Infof("The dependency graph resolved successfully")
-		displayDependencyGraph(resolved, log.Debug)
+		//displayDependencyGraph(resolved, log.Debug)
 		for _, item := range resolved {
 			if item.index >= 0 {
 				result = append(result, data[item.index])

@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/web/annotation"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
@@ -25,7 +26,6 @@ import (
 	"github.com/kataras/iris/context"
 	"os"
 	"regexp"
-	"github.com/hidevopsio/hiboot/pkg/app/web/annotation"
 )
 
 const (
@@ -43,8 +43,8 @@ type application struct {
 	jwtEnabled bool
 	//anonControllers []interface{}
 	//jwtControllers  []interface{}
-	controllers   []interface{}
-	dispatcher    dispatcher
+	controllers []interface{}
+	dispatcher  dispatcher
 	//controllerMap map[string][]interface{}
 }
 

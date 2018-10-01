@@ -17,4 +17,3 @@ package annotation
 
 type RestController interface {
 }
-
