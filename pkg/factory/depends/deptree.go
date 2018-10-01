@@ -32,6 +32,8 @@ import (
 
 	"github.com/deckarep/golang-set"
 	"reflect"
+	"github.com/hidevopsio/hiboot/pkg/factory"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 // Node represents a single node in the graph with it's dependencies
@@ -40,20 +42,27 @@ type Node struct {
 	index int
 
 	// Name of the node
-	name string
+	data *factory.MetaData
 
 	// Dependencies of the node
-	deps []string
+	deps []*Node
 }
 
 // ErrCircularDependency report that circular dependency found
 var ErrCircularDependency = errors.New("circular dependency found")
 
 // NewNode creates a new node
-func NewNode(index int, name string, deps ...string) *Node {
+func NewNode(index int, data interface{}, deps ...*Node) *Node {
+	var md *factory.MetaData
+	if reflect.TypeOf(data).Kind() == reflect.String {
+		md = &factory.MetaData{Name: data.(string)}
+	} else {
+		md = data.(*factory.MetaData)
+	}
+
 	n := &Node{
 		index: index,
-		name:  name,
+		data:  md,
 		deps:  deps,
 	}
 
@@ -72,14 +81,17 @@ func resolveGraph(graph Graph) (Graph, error) {
 
 	// Populate the maps
 	for _, node := range graph {
-		nodeNames[node.name] = node
+		nodeNames[node.data.Name] = node
 
 		dependencySet := mapset.NewSet()
 		for _, dep := range node.deps {
 			dependencySet.Add(dep)
+			log.Info(dep)
 		}
-		nodeDependencies[node.name] = dependencySet
+		nodeDependencies[node.data.Name] = dependencySet
 	}
+
+	log.Info(nodeDependencies)
 
 	// Iteratively find and remove nodes from the graph which have no dependencies.
 	// If at some point there are still nodes in the graph and we cannot find
@@ -94,7 +106,7 @@ func resolveGraph(graph Graph) (Graph, error) {
 			}
 		}
 
-		// If there aren't any ready nodes, then we have a cicular dependency
+		// If there aren't any ready nodes, then we have a circular dependency
 		if readySet.Cardinality() == 0 {
 			var g Graph
 			for name := range nodeDependencies {
@@ -126,10 +138,10 @@ func displayDependencyGraph(graph Graph, logger func(v ...interface{})) {
 	output := "\n\nDependency tree:\n"
 	for i, node := range graph {
 		if len(node.deps) == 0 {
-			output += fmt.Sprintf("    %d(%d): %s ->\n", i, node.index, node.name)
+			output += fmt.Sprintf("    %d(%d): %s ->\n", i, node.index, node.data.Name)
 		} else {
 			for _, dep := range node.deps {
-				output += fmt.Sprintf("    %d(%d): %s -> %s\n", i, node.index, node.name, dep)
+				output += fmt.Sprintf("    %d(%d): %s -> %s\n", i, node.index, node.data.Name, dep)
 			}
 		}
 	}

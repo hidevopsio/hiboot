@@ -31,16 +31,16 @@ func (s depResolver) Resolve() (resolved Graph, err error) {
 	var node *Node
 	for i, item := range s {
 		// find the index of its dependency
-		name := s.getFullName(item)
+		//name := s.getFullName(item)
 		dep, ok := s.findDependencies(item)
 		// TODO: temp work around
 		for _, extDep := range item.ExtDep {
 			workingGraph = append(workingGraph, NewNode(-1, extDep))
 		}
 		if ok {
-			node = NewNode(i, name, dep...)
+			node = NewNode(i, item, dep...)
 		} else {
-			node = NewNode(i, name)
+			node = NewNode(i, item)
 		}
 		workingGraph = append(workingGraph, node)
 	}
@@ -66,7 +66,7 @@ func (s depResolver) findDependencyIndex(depName string) int {
 	return -1
 }
 
-func (s depResolver) findDependencies(item *factory.MetaData) (dep []string, ok bool) {
+func (s depResolver) findDependencies(item *factory.MetaData) (dep []*Node, ok bool) {
 	// first check if contains tag depends in the embedded field
 	var depName string
 	depName, ok = reflector.FindEmbeddedFieldTag(item.Object, "depends")
@@ -102,17 +102,17 @@ func (s depResolver) findDependencies(item *factory.MetaData) (dep []string, ok 
 	}
 
 	if ok {
-		dep = strings.Split(depName, ",")
-		for i, dp := range dep {
+		depNames := strings.Split(depName, ",")
+		for _, dp := range depNames {
 			depIdx := s.findDependencyIndex(dp)
 			if depIdx >= 0 {
 				depInst := s[depIdx]
-				depFullName := s.getFullName(depInst)
-				dep[i] = depFullName
+				dep = append(dep, NewNode(depIdx, depInst))
 			} else {
 				// found external dependency
-				item.ExtDep = append(item.ExtDep, dp)
-				dep[i] = dp
+				extData := &factory.MetaData{Name: dp}
+				item.ExtDep = append(item.ExtDep, extData)
+				dep = append(dep, NewNode(depIdx, extData))
 				log.Warnf("dependency %v is not found", dp)
 			}
 		}

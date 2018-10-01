@@ -18,15 +18,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 	"os"
-	"reflect"
 	"regexp"
+	"github.com/hidevopsio/hiboot/pkg/app/web/annotation"
 )
 
 const (
@@ -46,7 +45,7 @@ type application struct {
 	//jwtControllers  []interface{}
 	controllers   []interface{}
 	dispatcher    dispatcher
-	controllerMap map[string][]interface{}
+	//controllerMap map[string][]interface{}
 }
 
 var (
@@ -89,28 +88,8 @@ func (a *application) Run() (err error) {
 	return
 }
 
-func (a *application) add(controllers ...interface{}) (err error) {
-	for _, controller := range controllers {
-		ctrl := controller
-		// TODO: should run it before register
-		if reflect.TypeOf(controller).Kind() == reflect.Func {
-			ctrl, err = inject.IntoFunc(controller)
-			if err != nil {
-				return
-			}
-		}
-		ifcField := reflector.GetEmbeddedInterfaceField(ctrl)
-		if ifcField.Anonymous {
-			ctrlTypeName := ifcField.Name
-			ctrls := a.controllerMap[ctrlTypeName]
-			a.controllerMap[ctrlTypeName] = append(ctrls, ctrl)
-		}
-	}
-	return
-}
-
 // Init init web application
-func (a *application) build(controllers ...interface{}) (err error) {
+func (a *application) build() (err error) {
 	a.PrintStartupMessages()
 
 	a.AppendProfiles(a)
@@ -124,7 +103,13 @@ func (a *application) build(controllers ...interface{}) (err error) {
 
 	f := a.ConfigurableFactory()
 	f.AppendComponent(applicationContext, a)
+	// TODO: is it necessary ?
 	f.SetInstance(applicationContext, a)
+
+	// fill controllers into component container
+	for _, ctrl := range a.controllers {
+		f.AppendComponent(ctrl)
+	}
 
 	// build auto configurations
 	a.BuildConfigurations()
@@ -140,14 +125,14 @@ func (a *application) build(controllers ...interface{}) (err error) {
 	})
 
 	// categorize controllers
-	a.controllerMap = make(map[string][]interface{})
-	err = a.add(a.controllers...)
-	if err != nil {
-		return
-	}
+	//a.controllerMap = make(map[string][]interface{})
+	//err = a.add()
+	//if err != nil {
+	//	return
+	//}
 
 	// first register anon controllers
-	a.RegisterController(new(AnonController))
+	a.RegisterController(new(annotation.RestController))
 
 	// call AfterInitialization with factory interface
 	a.AfterInitialization()
@@ -162,8 +147,8 @@ func (a *application) RegisterController(controller interface{}) error {
 	if err != nil {
 		return ErrInvalidController
 	}
-	controllers, ok := a.controllerMap[controllerInterfaceName]
-	if ok {
+	controllers := a.ConfigurableFactory().GetInstances(controllerInterfaceName)
+	if controllers != nil {
 		return a.dispatcher.register(a.webApp, controllers)
 	}
 	return ErrControllersNotFound
@@ -184,6 +169,7 @@ func (a *application) initialize(controllers ...interface{}) (err error) {
 	a.webApp = iris.New()
 
 	err = a.Initialize()
+
 	if err == nil {
 		if len(controllers) == 0 {
 			a.controllers = registeredControllers
@@ -197,8 +183,6 @@ func (a *application) initialize(controllers ...interface{}) (err error) {
 // TODO: use app.Register for all
 // Add add controller to controllers container
 func RestController(controllers ...interface{}) {
-	// add controller to component
-	app.Component(controllers...)
 	// add to registeredControllers as well
 	registeredControllers = append(registeredControllers, controllers...)
 }

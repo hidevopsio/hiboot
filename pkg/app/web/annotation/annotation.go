@@ -12,13 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package web
+// Package web/annotation provides annotations for web RestController
+package annotation
 
-import "github.com/hidevopsio/hiboot/pkg/app/web/annotation"
-
-// Controller is the web base controller
-type Controller struct {
-	annotation.RestController
-	ContextMapping string
-	Ctx            *Context
+type RestController interface {
 }
+
