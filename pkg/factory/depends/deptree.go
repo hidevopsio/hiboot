@@ -97,7 +97,9 @@ func resolveGraph(graph Graph) (Graph, error) {
 	// If at some point there are still nodes in the graph and we cannot find
 	// nodes without dependencies, that means we have a circular dependency
 	var resolved Graph
+	loop := 0
 	for len(nodeDependencies) != 0 {
+		loop++
 		// Get all nodes from the graph which have no dependencies
 		readySet := mapset.NewSet()
 		for name, deps := range nodeDependencies {
@@ -129,6 +131,7 @@ func resolveGraph(graph Graph) (Graph, error) {
 			nodeDependencies[name] = diff
 		}
 	}
+	log.Debugf("loop: %d", loop)
 
 	return resolved, nil
 }
@@ -141,7 +144,7 @@ func displayDependencyGraph(graph Graph, logger func(v ...interface{})) {
 			output += fmt.Sprintf("    %d(%d): %s ->\n", i, node.index, node.data.Name)
 		} else {
 			for _, dep := range node.deps {
-				output += fmt.Sprintf("    %d(%d): %s -> %s\n", i, node.index, node.data.Name, dep)
+				output += fmt.Sprintf("    %d(%d): %s -> %s\n", i, node.index, node.data.Name, dep.data.Name)
 			}
 		}
 	}
