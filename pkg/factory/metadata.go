@@ -5,7 +5,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
-	"strings"
 )
 
 // MetaData is the injectable object meta data
@@ -20,47 +19,7 @@ type MetaData struct {
 	ExtDep    []*MetaData
 }
 
-// ParseParams parse object name and type
-func ParseParams(postfix string, params ...interface{}) (metaData *MetaData) {
-
-	hasTwoParams := len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String
-
-	var name string
-	var object interface{}
-	if hasTwoParams {
-		object = params[1]
-		name = params[0].(string)
-	} else {
-		object = params[0]
-	}
-	pkgName, typeName := reflector.GetPkgAndName(object)
-	typ := reflect.TypeOf(object)
-	kind := typ.Kind()
-	kindName := kind.String()
-	if kind == reflect.Struct && typ.Name() == types.Method {
-		kindName = types.Method
-	}
-	if !hasTwoParams {
-		name = strings.Replace(typeName, postfix, "", -1)
-		name = str.ToLowerCamel(name)
-
-		if name == "" || name == strings.ToLower(postfix) {
-			name = pkgName
-		}
-	}
-
-	metaData = &MetaData{
-		Kind:      kindName,
-		PkgName:   pkgName,
-		TypeName:  typeName,
-		Name:      pkgName + "." + name,
-		ShortName: name,
-		Object:    object,
-	}
-
-	return
-}
-
+// NewMetaData create new meta data
 func NewMetaData(params ...interface{}) *MetaData {
 	var name string
 	var shortName string

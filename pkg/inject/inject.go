@@ -103,7 +103,7 @@ func IntoObjectValue(object reflect.Value, tags ...Tag) error {
 
 	obj := reflector.Indirect(object)
 	if obj.Kind() != reflect.Struct {
-		log.Errorf("[inject] object: %v, kind: %v", object, obj.Kind())
+		log.Warnf("[inject] ignore object: %v, kind: %v", object, obj.Kind())
 		return ErrInvalidObject
 	}
 
@@ -276,11 +276,12 @@ func IntoFunc(object interface{}) (retVal interface{}, err error) {
 
 // IntoFunc inject object into func and return instance
 func IntoMethod(object interface{}, m interface{}) (retVal interface{}, err error) {
-	if object != nil {
+	if object != nil && m != nil {
 		method := m.(reflect.Method)
 		numIn := method.Type.NumIn()
 		inputs := make([]reflect.Value, numIn)
 		// TODO: should load function inputs when resolving dependencies to improve performance
+		inputs[0] = reflect.ValueOf(object)
 		for i := 1; i < numIn; i++ {
 			fnInType := method.Type.In(i)
 			val, ok := parseMethodInput(fnInType)
@@ -299,7 +300,7 @@ func IntoMethod(object interface{}, m interface{}) (retVal interface{}, err erro
 		if len(results) != 0 {
 			retVal = results[0].Interface()
 			// finally, inject dependencies the retVal
-			err = IntoObjectValue(results[0])
+			//err = IntoObjectValue(results[0])
 			return
 		} else {
 			return

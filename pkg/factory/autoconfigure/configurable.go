@@ -239,7 +239,7 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error)
 	for mi := 0; mi < numOfMethod; mi++ {
 		method := configType.Method(mi)
 		// append inst to f.components
-		f.AppendComponent(method)
+		f.AppendComponent(configuration, method)
 
 		_, err = f.InstantiateMethod(configuration, method, method.Name)
 		if err != nil {
