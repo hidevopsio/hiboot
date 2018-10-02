@@ -17,7 +17,6 @@ package factory
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/system"
-	"reflect"
 )
 
 type Factory interface{}
@@ -35,13 +34,4 @@ type ConfigurableFactory interface {
 	InstantiateFactory
 	SystemConfiguration() *system.Configuration
 	Configuration(name string) interface{}
-}
-
-type MetaData struct {
-	Kind     reflect.Kind
-	Name     string
-	TypeName string
-	PkgName  string
-	Object   interface{}
-	ExtDep   []*MetaData
 }

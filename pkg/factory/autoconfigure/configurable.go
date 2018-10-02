@@ -23,6 +23,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/system/types"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
@@ -214,8 +215,6 @@ func (f *ConfigurableFactory) InstantiateMethod(configuration interface{}, metho
 	if retVal != nil && retVal[0].CanInterface() {
 		inst = retVal[0].Interface()
 		//log.Debugf("instantiated: %v", instance)
-		// append inst to f.components
-		f.AppendComponent(instanceName, inst)
 
 		// save instance
 		f.SetInstance(instanceName, inst)
@@ -239,7 +238,9 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error)
 	//log.Debug("methods: ", numOfMethod)
 	for mi := 0; mi < numOfMethod; mi++ {
 		method := configType.Method(mi)
-		// skip Init method
+		// append inst to f.components
+		f.AppendComponent(method)
+
 		_, err = f.InstantiateMethod(configuration, method, method.Name)
 		if err != nil {
 			return
@@ -256,6 +257,16 @@ func (f *ConfigurableFactory) appProfilesActive() string {
 	return f.systemConfig.App.Profiles.Active
 }
 
+func (f *ConfigurableFactory) parseName(item *factory.MetaData) string {
+	name := strings.Replace(item.TypeName, PostfixConfiguration, "", -1)
+	name = str.ToLowerCamel(name)
+
+	if name == "" || name == strings.ToLower(PostfixConfiguration) {
+		name = item.PkgName
+	}
+	return name
+}
+
 // build
 func (f *ConfigurableFactory) build(cfgContainer []*factory.MetaData) {
 	// sort dependencies
@@ -263,7 +274,8 @@ func (f *ConfigurableFactory) build(cfgContainer []*factory.MetaData) {
 	if err == nil {
 		isTestRunning := gotest.IsRunning()
 		for _, item := range resolvedCfgs {
-			name, configType := item.Name, item.Object
+			name := f.parseName(item)
+			configType := item.Object
 
 			// TODO: should check if profiles is enabled str.InSlice(name, sysconf.App.Profiles.Include)
 			if !isTestRunning && f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
@@ -272,7 +284,7 @@ func (f *ConfigurableFactory) build(cfgContainer []*factory.MetaData) {
 			log.Infof("Auto configure %v starter", name)
 
 			// inject into func
-			if reflect.TypeOf(configType).Kind() == reflect.Func {
+			if item.Kind == types.Func {
 				configType, err = inject.IntoFunc(configType)
 			}
 

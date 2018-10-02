@@ -17,7 +17,10 @@ package depends
 import (
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/system/types"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
 	"strings"
 )
@@ -51,13 +54,11 @@ func (s depResolver) Resolve() (resolved Graph, err error) {
 
 func (s depResolver) findDependencyIndex(depName string) int {
 	for i, item := range s {
-		fullName := s.getFullName(item)
-
 		if item.TypeName == depName {
 			return i
 		}
 
-		if fullName == depName || item.PkgName == depName {
+		if item.Name == depName || item.PkgName == depName {
 			return i
 		}
 	}
@@ -68,9 +69,8 @@ func (s depResolver) findDependencies(item *factory.MetaData) (dep []*Node, ok b
 	// first check if contains tag depends in the embedded field
 	var depName string
 	object := item.Object
-	depName, ok = reflector.FindEmbeddedFieldTag(object, "depends")
-	if !ok {
-		// else check if s is the constructor and it contains other dependencies in the input arguments
+	switch item.Kind {
+	case types.Func:
 		outTyp, isFunc := reflector.GetFuncOutType(object)
 		if isFunc {
 			fn := reflect.ValueOf(object)
@@ -83,7 +83,11 @@ func (s depResolver) findDependencies(item *factory.MetaData) (dep []*Node, ok b
 					indFieldTyp := reflector.IndirectType(field.Type)
 					//log.Debugf("%v <> %v", indFieldTyp, indInTyp)
 					if indFieldTyp == indInTyp {
-						name = field.Name
+						name = str.ToLowerCamel(field.Name)
+						depPkgName := io.DirName(field.Type.PkgPath())
+						if depPkgName != "" {
+							name = depPkgName + "." + name
+						}
 						break
 					}
 				}
@@ -98,8 +102,44 @@ func (s depResolver) findDependencies(item *factory.MetaData) (dep []*Node, ok b
 				ok = true
 			}
 		}
+	case types.Method:
+		// TODO: too many duplicated code, optimize it
+		outTyp, isFunc := reflector.GetFuncOutType(object)
+		if isFunc {
+			method := object.(reflect.Method)
+			numIn := method.Type.NumIn()
+			for i := 1; i < numIn; i++ {
+				inTyp := method.Type.In(i)
+				indInTyp := reflector.IndirectType(inTyp)
+				var name string
+				for _, field := range reflector.DeepFields(outTyp) {
+					indFieldTyp := reflector.IndirectType(field.Type)
+					//log.Debugf("%v <> %v", indFieldTyp, indInTyp)
+					if indFieldTyp == indInTyp {
+						name = str.ToLowerCamel(field.Name)
+						depPkgName := io.DirName(field.Type.PkgPath())
+						if depPkgName != "" {
+							name = depPkgName + "." + name
+						}
+						break
+					}
+				}
+				if name == "" {
+					name = reflector.GetFullNameByType(method.Type.In(i))
+				}
+				if depName == "" {
+					depName = name
+				} else {
+					depName = depName + "," + name
+				}
+				ok = true
+			}
+		}
+	default:
+		depName, ok = reflector.FindEmbeddedFieldTag(object, "depends")
 	}
 
+	// iterate dependencies
 	if ok {
 		depNames := strings.Split(depName, ",")
 		for _, dp := range depNames {

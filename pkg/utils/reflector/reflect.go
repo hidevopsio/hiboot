@@ -339,14 +339,27 @@ func GetPkgPath(object interface{}) string {
 
 // GetFuncOutType get the function output data type
 func GetFuncOutType(object interface{}) (typ reflect.Type, ok bool) {
-	fn := reflect.ValueOf(object)
-	if fn.Type().Kind() == reflect.Func {
-		numOut := fn.Type().NumOut()
+	obj := reflect.ValueOf(object)
+	t := obj.Type()
+	typName := t.Name()
+	typKind := t.Kind()
+	//log.Debugf("type: %v type name: %v, kind: %v", t, typName, typKind)
+	if typKind == reflect.Func {
+		numOut := obj.Type().NumOut()
 		if numOut > 0 {
-			typ = IndirectType(fn.Type().Out(0))
+			typ = IndirectType(obj.Type().Out(0))
+			ok = true
+		}
+	} else if typKind == reflect.Struct && typName == "Method" {
+		method := object.(reflect.Method)
+		methodTyp := method.Func.Type()
+		numOut := methodTyp.NumOut()
+		if numOut > 0 {
+			typ = IndirectType(methodTyp.Out(0))
 			ok = true
 		}
 	}
+
 	return
 }
 
@@ -387,6 +400,6 @@ func GetPkgAndName(object interface{}) (pkgName, name string) {
 func GetFullNameByType(objType reflect.Type) (name string) {
 	indTyp := IndirectType(objType)
 	depPkgName := io.DirName(indTyp.PkgPath())
-	name = depPkgName + "." + indTyp.Name()
+	name = depPkgName + "." + str.ToLowerCamel(indTyp.Name())
 	return
 }

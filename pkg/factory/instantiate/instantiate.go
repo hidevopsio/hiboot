@@ -22,6 +22,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/factory/depends"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/system/types"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
@@ -80,20 +81,25 @@ func (f *InstantiateFactory) BuildComponents() (err error) {
 	// then build components
 	var obj interface{}
 	var name string
-	for i, item := range resolved {
-		log.Debug(i)
+	for _, item := range resolved {
 		// inject dependencies into function
 		// components, controllers
-		if item.Kind == reflect.Func {
+		switch item.Kind {
+		case types.Func:
 			obj, err = inject.IntoFunc(item.Object)
 			name = item.Name
-		} else {
+		case types.Method:
+			obj, err = inject.IntoMethod(item.Context, item.Object)
+			name = item.Name
+		default:
 			name, obj = item.Name, item.Object
 		}
+		// inject into object
 
 		if obj == nil {
 			continue
 		}
+		err = inject.IntoObject(obj)
 		// use interface name if it's available as use does not specify its name
 		field := reflector.GetEmbeddedInterfaceField(obj)
 		if field.Anonymous {
