@@ -30,13 +30,12 @@ func appendParam(eliminator string, container []*factory.MetaData, params ...int
 
 	// append meta data
 	if metaData.Object != nil {
-		typ := reflect.TypeOf(metaData.Object)
-		kind := typ.Kind()
-		if kind == reflect.Func || kind == reflect.Ptr {
-			metaData.Kind = kind
-			retVal = append(retVal, metaData)
-			return
-		}
+		retVal = append(retVal, metaData)
+		//switch metaData.Kind {
+		//case types.Method, types.Func, types.Ptr:
+		//	retVal = append(retVal, metaData)
+		//	return
+		//}
 	}
 	err = ErrInvalidObjectType
 	return

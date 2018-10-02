@@ -113,8 +113,10 @@ func newFooBarConfiguration(foobar *FooBar) *FooBarConfiguration {
 	}
 }
 
-func (c *FooConfiguration) HelloWorld(foo *Foo) string {
-	return foo.Name + ": Hello world"
+type HelloWorld string
+
+func (c *FooConfiguration) HelloWorld(foo *Foo) HelloWorld {
+	return HelloWorld(foo.Name + ": Hello world")
 }
 
 func (c *FooConfiguration) Bar() *Bar {
@@ -263,15 +265,15 @@ func TestConfigurableFactory(t *testing.T) {
 	fakeCfg := new(fakeConfiguration)
 
 	f.Build([]*factory.MetaData{
-		factory.ParseParams(autoconfigure.PostfixConfiguration, fooConfig),
-		factory.ParseParams(autoconfigure.PostfixConfiguration, fakeCfg),
-		factory.ParseParams(autoconfigure.PostfixConfiguration, new(BarConfiguration)),
-		factory.ParseParams(autoconfigure.PostfixConfiguration, new(marsConfiguration)),
-		factory.ParseParams(autoconfigure.PostfixConfiguration, new(jupiterConfiguration)),
-		factory.ParseParams(autoconfigure.PostfixConfiguration, new(mercuryConfiguration)),
-		factory.ParseParams(autoconfigure.PostfixConfiguration, new(unknownConfiguration)),
-		factory.ParseParams(autoconfigure.PostfixConfiguration, new(unsupportedConfiguration)),
-		factory.ParseParams(autoconfigure.PostfixConfiguration, foobarConfiguration{}),
+		factory.NewMetaData("foo", fooConfig),
+		factory.NewMetaData(fakeCfg),
+		factory.NewMetaData(new(BarConfiguration)),
+		factory.NewMetaData(new(marsConfiguration)),
+		factory.NewMetaData(new(jupiterConfiguration)),
+		factory.NewMetaData(new(mercuryConfiguration)),
+		factory.NewMetaData(new(unknownConfiguration)),
+		factory.NewMetaData(new(unsupportedConfiguration)),
+		factory.NewMetaData(foobarConfiguration{}),
 	})
 
 	t.Run("should instantiate by name", func(t *testing.T) {
@@ -322,7 +324,7 @@ func TestConfigurableFactory(t *testing.T) {
 	t.Run("should get foo configuration", func(t *testing.T) {
 		helloWorld := f.GetInstance("helloWorld")
 		assert.NotEqual(t, nil, helloWorld)
-		assert.Equal(t, "foo: Hello world", helloWorld.(string))
+		assert.Equal(t, HelloWorld("foo: Hello world"), helloWorld)
 
 		assert.Equal(t, "hiboot foo", fooConfig.FakeProperties.Nickname)
 		assert.Equal(t, "bar", fooConfig.FakeProperties.Username)
