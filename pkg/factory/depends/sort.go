@@ -45,10 +45,7 @@ func (s depResolver) Resolve() (resolved Graph, err error) {
 		workingGraph = append(workingGraph, node)
 	}
 	resolved, err = resolveGraph(workingGraph)
-	if err != nil {
-		displayDependencyGraph(workingGraph, log.Error)
-		displayDependencyGraph(resolved, log.Error)
-	}
+	displayDependencyGraph("working graph", workingGraph, log.Debug)
 	return
 }
 
@@ -134,21 +131,25 @@ func (s depResolver) getFullName(md *factory.MetaData) (name string) {
 
 // Resolve resolve dependencies
 func Resolve(data []*factory.MetaData) (result []*factory.MetaData, err error) {
+	if len(data) != 0 {
 
-	dep := depResolver(data)
-	var resolved Graph
-	resolved, err = dep.Resolve()
+		dep := depResolver(data)
+		var resolved Graph
+		resolved, err = dep.Resolve()
 
-	if err != nil {
-		log.Errorf("Failed to resolve dependencies: %s", err)
-	} else {
-		//log.Infof("The dependency graph resolved successfully")
-		//displayDependencyGraph(resolved, log.Debug)
-		for _, item := range resolved {
-			if item.index >= 0 {
-				result = append(result, data[item.index])
+		if err != nil {
+			log.Errorf("Failed to resolve dependencies: %s", err)
+			displayDependencyGraph("broken graph", resolved, log.Error)
+		} else {
+			log.Infof("The dependency graph resolved successfully")
+			displayDependencyGraph("resolved graph", resolved, log.Debug)
+			for _, item := range resolved {
+				if item.index >= 0 {
+					result = append(result, data[item.index])
+				}
 			}
 		}
 	}
+
 	return
 }

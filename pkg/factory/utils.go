@@ -12,30 +12,31 @@ func ParseParams(eliminator string, params ...interface{}) (metaData *MetaData) 
 
 	hasTwoParams := len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String
 
-	var shortName string
+	var name string
 	var object interface{}
 	if hasTwoParams {
 		object = params[1]
-		shortName = params[0].(string)
+		name = params[0].(string)
 	} else {
 		object = params[0]
 	}
-	pkgName, name := reflector.GetPkgAndName(object)
+	pkgName, typeName := reflector.GetPkgAndName(object)
 	kind := reflect.TypeOf(object).Kind()
 	if !hasTwoParams {
-		shortName = strings.Replace(name, eliminator, "", -1)
-		shortName = str.ToLowerCamel(shortName)
+		name = strings.Replace(typeName, eliminator, "", -1)
+		name = str.ToLowerCamel(name)
 
-		if shortName == "" || shortName == strings.ToLower(eliminator) {
-			shortName = pkgName
+		if name == "" || name == strings.ToLower(eliminator) {
+			name = pkgName
 		}
 	}
 
 	metaData = &MetaData{
 		Kind:     kind,
 		PkgName:  pkgName,
-		TypeName: name,
-		Name:     shortName,
+		TypeName: typeName,
+		//Name:     pkgName + "." + name,
+		Name:     name,
 		Object:   object,
 	}
 

@@ -68,7 +68,8 @@ func (f *InstantiateFactory) IsValidObjectType(inst interface{}) bool {
 
 // Initialized check if factory is initialized
 func (f *InstantiateFactory) AppendComponent(c ...interface{}) {
-	f.components = append(f.components, factory.ParseParams("", c...))
+	metaData := factory.ParseParams("", c...)
+	f.components = append(f.components, metaData)
 }
 
 // BuildComponents build all registered components

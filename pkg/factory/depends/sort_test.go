@@ -118,8 +118,9 @@ func newBazService(bar *Bar, baz *Baz) *bazService {
 	return &bazService{bar: bar, baz: baz}
 }
 
-func newData(object interface{}) *factory.MetaData {
+func newMetaData(object interface{}) *factory.MetaData {
 
+	// TODO: do it once, for later use
 	pkgName, name := reflector.GetPkgAndName(object)
 
 	return &factory.MetaData{
@@ -146,79 +147,79 @@ func TestSort(t *testing.T) {
 		{
 			title: "should sort dependencies",
 			configurations: []*factory.MetaData{
-				newData(new(fooConfiguration)),
-				newData(new(bar.Configuration)),
-				newData(new(fake.Configuration)),
-				newData(new(parentConfiguration)),
-				newData(new(grantConfiguration)),
-				newData(new(childConfiguration)),
-				newData(foo.NewConfiguration),
-				newData(new(barConfiguration)),
+				newMetaData(new(fooConfiguration)),
+				newMetaData(new(bar.Configuration)),
+				newMetaData(new(fake.Configuration)),
+				newMetaData(new(parentConfiguration)),
+				newMetaData(new(grantConfiguration)),
+				newMetaData(new(childConfiguration)),
+				newMetaData(foo.NewConfiguration),
+				newMetaData(new(barConfiguration)),
 			},
 			err: nil,
 		},
 		{
 			title: "should sort dependencies",
 			configurations: []*factory.MetaData{
-				newData(new(fake.Configuration)),
-				newData(new(fooConfiguration)),
-				newData(new(bar.Configuration)),
-				newData(new(childConfiguration)),
-				newData(new(grantConfiguration)),
-				newData(new(parentConfiguration)),
-				newData(foo.NewConfiguration),
-				newData(new(barConfiguration)),
+				newMetaData(new(fake.Configuration)),
+				newMetaData(new(fooConfiguration)),
+				newMetaData(new(bar.Configuration)),
+				newMetaData(new(childConfiguration)),
+				newMetaData(new(grantConfiguration)),
+				newMetaData(new(parentConfiguration)),
+				newMetaData(foo.NewConfiguration),
+				newMetaData(new(barConfiguration)),
 			},
 			err: nil,
 		},
 		{
 			title: "should report some of the dependencies are not found",
 			configurations: []*factory.MetaData{
-				newData(new(fooConfiguration)),
-				newData(new(childConfiguration)),
-				newData(new(grantConfiguration)),
-				newData(new(parentConfiguration)),
-				newData(new(barConfiguration)),
+				newMetaData(new(fooConfiguration)),
+				newMetaData(new(childConfiguration)),
+				newMetaData(new(grantConfiguration)),
+				newMetaData(new(parentConfiguration)),
+				newMetaData(new(barConfiguration)),
 			},
 			err: nil, // TODO: temp solution depends.ErrCircularDependency,
 		},
 		{
 			title: "should sort with constructor's dependencies",
 			configurations: []*factory.MetaData{
-				newData(newBarService),
-				newData(new(Bar)),
-				newData(newFooService),
-				newData(new(Foo)),
-				newData(new(Baz)),
-				newData(newBazService),
+				newMetaData(newBarService),
+				newMetaData(new(Bar)),
+				newMetaData(newFooService),
+				newMetaData(new(Foo)),
+				newMetaData(new(Baz)),
+				newMetaData(newBazService),
 			},
 			err: nil,
 		},
 		{
 			title: "should fail to sort with circular dependencies",
 			configurations: []*factory.MetaData{
-				newData(new(circularChildConfiguration)),
-				newData(new(circularParentConfiguration)),
-				newData(new(circularGrantConfiguration)),
+				newMetaData(new(circularChildConfiguration)),
+				newMetaData(new(circularParentConfiguration)),
+				newMetaData(new(circularGrantConfiguration)),
 			},
 			err: depends.ErrCircularDependency,
 		},
 		{
 			title: "should fail to sort with circular dependencies",
 			configurations: []*factory.MetaData{
-				newData(new(Bar)),
-				newData(new(circularChildConfiguration)),
-				newData(new(circularParentConfiguration)),
-				newData(new(circularGrantConfiguration)),
+				newMetaData(new(Bar)),
+				newMetaData(new(circularChildConfiguration)),
+				newMetaData(new(circularParentConfiguration)),
+				newMetaData(new(circularGrantConfiguration)),
 			},
 			err: depends.ErrCircularDependency,
 		},
 		{
 			title: "should fail to sort with circular dependencies",
 			configurations: []*factory.MetaData{
-				newData(new(circularChildConfiguration2)),
-				newData(new(circularParentConfiguration2)),
-				newData(new(circularGrantConfiguration2)),
+				newMetaData(new(circularChildConfiguration2)),
+				newMetaData(new(circularParentConfiguration2)),
+				newMetaData(new(circularGrantConfiguration2)),
 			},
 			err: depends.ErrCircularDependency,
 		},
