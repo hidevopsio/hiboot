@@ -52,7 +52,7 @@ func TestDepTree(t *testing.T) {
 	workingGraph = append(workingGraph, nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH, nodeI, nodeJ, nodeK)
 
 	fmt.Printf(">>> A working dependency graph\n")
-	displayDependencyGraph(workingGraph, log.Debug)
+	displayDependencyGraph("workingGraph", workingGraph, log.Debug)
 
 	resolved, err := resolveGraph(workingGraph)
 	assert.Equal(t, nil, err)
@@ -61,7 +61,7 @@ func TestDepTree(t *testing.T) {
 	} else {
 		log.Debugf("The dependency graph resolved successfully")
 	}
-	displayDependencyGraph(resolved, log.Debug)
+	displayDependencyGraph("resolved", resolved, log.Debug)
 
 	//
 	// A broken dependency graph with circular dependency
@@ -72,7 +72,7 @@ func TestDepTree(t *testing.T) {
 	brokenGraph = append(brokenGraph, nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH, nodeI, nodeJ, nodeK)
 
 	fmt.Printf(">>> A broken dependency graph with circular dependency\n")
-	displayDependencyGraph(brokenGraph, log.Debug)
+	displayDependencyGraph("brokenGraph", brokenGraph, log.Debug)
 
 	resolved, err = resolveGraph(brokenGraph)
 	assert.Equal(t, ErrCircularDependency, err)
@@ -81,5 +81,5 @@ func TestDepTree(t *testing.T) {
 	} else {
 		log.Debugf("The dependency graph resolved successfully")
 	}
-	displayDependencyGraph(resolved, log.Debug)
+	displayDependencyGraph("resolved", resolved, log.Debug)
 }

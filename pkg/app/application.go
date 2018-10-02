@@ -27,7 +27,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/kataras/iris/context"
-	"reflect"
 	"strings"
 	"sync"
 )
@@ -79,54 +78,7 @@ _  __  / _  / _  /_/ / /_/ / /_/ / /_     Hiboot Application Framework
 `
 )
 
-func appendParam(eliminator string, container []*factory.MetaData, params ...interface{}) (retVal []*factory.MetaData, err error) {
-	retVal = container
-	metaData := factory.ParseParams(eliminator, params...)
 
-	if metaData.Object != nil {
-		kind := reflect.TypeOf(metaData.Object).Kind()
-		if kind == reflect.Func || kind == reflect.Ptr {
-			metaData.Kind = kind
-			retVal = append(retVal, metaData)
-			return
-		}
-	}
-	err = ErrInvalidObjectType
-	return
-}
-
-func appendParams(eliminator string, container []*factory.MetaData, params ...interface{}) (retVal []*factory.MetaData, err error) {
-	retVal = container
-	if len(params) == 0 || params[0] == nil {
-		err = ErrInvalidObjectType
-		return
-	}
-
-	if len(params) > 1 && reflect.TypeOf(params[0]).Kind() != reflect.String {
-		for _, param := range params {
-			retVal, err = appendParam(eliminator, retVal, param)
-		}
-	} else {
-		retVal, err = appendParam(eliminator, retVal, params...)
-	}
-	return
-}
-
-// AutoConfiguration register auto configuration struct
-func AutoConfiguration(params ...interface{}) (err error) {
-	configContainer, err = appendParams(autoconfigure.PostfixConfiguration, configContainer, params...)
-	return
-}
-
-// Component register a struct instance, so that it will be injectable.
-// starter should register component type
-func Component(params ...interface{}) (err error) {
-	componentContainer, err = appendParams("", componentContainer, params...)
-	return
-}
-
-// Register register all component into container
-var Register = Component
 
 // PrintStartupMessages prints startup messages
 func (a *BaseApplication) PrintStartupMessages() {

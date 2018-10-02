@@ -136,8 +136,8 @@ func resolveGraph(graph Graph) (Graph, error) {
 }
 
 // Displays the dependency graph
-func displayDependencyGraph(graph Graph, logger func(v ...interface{})) {
-	output := "\n\nDependency tree:\n"
+func displayDependencyGraph(name string, graph Graph, logger func(v ...interface{})) {
+	output := name + ":\n\nDependency tree:\n"
 	for i, node := range graph {
 		if len(node.deps) == 0 {
 			output += fmt.Sprintf("\t%4d (%4d): %s ->\n", i, node.index, node.name)
