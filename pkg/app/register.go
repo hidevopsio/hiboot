@@ -26,16 +26,11 @@ func appendParam(eliminator string, container []*factory.MetaData, params ...int
 	retVal = container
 
 	// parse meta data
-	metaData := factory.ParseParams(eliminator, params...)
+	metaData := factory.NewMetaData(params...)
 
 	// append meta data
 	if metaData.Object != nil {
 		retVal = append(retVal, metaData)
-		//switch metaData.Kind {
-		//case types.Method, types.Func, types.Ptr:
-		//	retVal = append(retVal, metaData)
-		//	return
-		//}
 	}
 	err = ErrInvalidObjectType
 	return

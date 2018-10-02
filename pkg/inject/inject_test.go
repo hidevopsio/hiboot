@@ -282,8 +282,8 @@ func TestInject(t *testing.T) {
 
 	fakeConfig := new(fakeConfiguration)
 	configs := []*factory.MetaData{
-		factory.ParseParams(autoconfigure.PostfixConfiguration, fakeConfig),
-		factory.ParseParams(autoconfigure.PostfixConfiguration, new(fooConfiguration)),
+		factory.NewMetaData(fakeConfig),
+		factory.NewMetaData(new(fooConfiguration)),
 	}
 	configurableFactory.Build(configs)
 
