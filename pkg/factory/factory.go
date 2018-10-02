@@ -25,7 +25,8 @@ type Factory interface{}
 type InstantiateFactory interface {
 	Initialized() bool
 	SetInstance(name string, instance interface{}) (err error)
-	GetInstance(name string) (inst interface{})
+	GetInstance(name string) (retVal interface{})
+	GetInstances(name string) (retVal []interface{})
 	Items() map[string]interface{}
 	AppendComponent(c ...interface{})
 }
@@ -42,5 +43,5 @@ type MetaData struct {
 	TypeName string
 	PkgName  string
 	Object   interface{}
-	ExtDep   []string
+	ExtDep   []*MetaData
 }

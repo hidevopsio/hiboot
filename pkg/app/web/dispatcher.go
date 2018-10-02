@@ -17,7 +17,6 @@ package web
 import (
 	"fmt"
 	"github.com/fatih/camelcase"
-	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/kataras/iris"
@@ -57,10 +56,10 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 		//log.Debug("controller: ", controller)
 
 		// inject component
-		err := inject.IntoObjectValue(field)
-		if err != nil {
-			return err
-		}
+		//err := inject.IntoObjectValue(field)
+		//if err != nil {
+		//	return err
+		//}
 
 		fieldValue := field.Elem()
 

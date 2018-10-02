@@ -12,13 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package web
+// Package jwt/annotation provides annotations for jwt controller
+package annotation
 
-import "github.com/hidevopsio/hiboot/pkg/app/web/annotation"
-
-// Controller is the web base controller
-type Controller struct {
-	annotation.RestController
-	ContextMapping string
-	Ctx            *Context
+type JwtRestController interface {
 }

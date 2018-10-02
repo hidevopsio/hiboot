@@ -264,10 +264,14 @@ func IntoFunc(object interface{}) (retVal interface{}, err error) {
 		}
 		results := fn.Call(inputs)
 		if len(results) != 0 {
-			return results[0].Interface(), nil
+			retVal = results[0].Interface()
+			// finally, inject dependencies the retVal
+			err = IntoObjectValue(results[0])
+			return
 		} else {
-			return nil, nil
+			return
 		}
 	}
-	return nil, ErrInvalidFunc
+	err = ErrInvalidFunc
+	return
 }
