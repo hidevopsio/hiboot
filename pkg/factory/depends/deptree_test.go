@@ -27,8 +27,8 @@ package depends
 import (
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"testing"
 	"github.com/magiconair/properties/assert"
+	"testing"
 )
 
 func TestDepTree(t *testing.T) {
@@ -38,69 +38,48 @@ func TestDepTree(t *testing.T) {
 	//
 	nodeA := NewNode(0, "A")
 	nodeB := NewNode(1, "B")
-	nodeC := NewNode(2, "C", "A")
-	nodeD := NewNode(3, "D", "B")
-	nodeE := NewNode(4, "E", "C", "D")
-	nodeF := NewNode(5, "F", "A", "B")
-	nodeG := NewNode(6, "G", "E", "F")
-	nodeH := NewNode(7, "H", "G")
-	nodeI := NewNode(8, "I", "A")
-	nodeJ := NewNode(8, "J", "B")
+	nodeC := NewNode(2, "C", nodeA)
+	nodeD := NewNode(3, "D", nodeB)
+	nodeE := NewNode(4, "E", nodeC, nodeD)
+	nodeF := NewNode(5, "F", nodeA, nodeB)
+	nodeG := NewNode(6, "G", nodeE, nodeF)
+	nodeH := NewNode(7, "H", nodeG)
+	nodeI := NewNode(8, "I", nodeA)
+	nodeJ := NewNode(8, "J", nodeB)
 	nodeK := NewNode(10, "K")
 
 	var workingGraph Graph
 	workingGraph = append(workingGraph, nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH, nodeI, nodeJ, nodeK)
 
 	fmt.Printf(">>> A working dependency graph\n")
-	displayDependencyGraph(workingGraph, log.Debug)
+	displayDependencyGraph("workingGraph", workingGraph, log.Debug)
 
 	resolved, err := resolveGraph(workingGraph)
 	assert.Equal(t, nil, err)
 	if err != nil {
-		log.Debugf("Failed to resolve dependency graph: %s\n", err)
+		log.Errorf("Failed to resolve dependency graph: %s\n", err)
 	} else {
 		log.Debugf("The dependency graph resolved successfully")
 	}
-
-	displayDependencyGraph(resolved, log.Debug)
+	displayDependencyGraph("resolved", resolved, log.Debug)
 
 	//
 	// A broken dependency graph with circular dependency
 	//
-	nodeA = NewNode(11, "A", "I")
+	nodeA = NewNode(11, "A", nodeI)
 
 	var brokenGraph Graph
 	brokenGraph = append(brokenGraph, nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH, nodeI, nodeJ, nodeK)
 
-	log.Debugf(">>> A broken dependency graph with circular dependency\n")
-	displayDependencyGraph(brokenGraph, log.Debug)
+	fmt.Printf(">>> A broken dependency graph with circular dependency\n")
+	displayDependencyGraph("brokenGraph", brokenGraph, log.Debug)
 
 	resolved, err = resolveGraph(brokenGraph)
 	assert.Equal(t, ErrCircularDependency, err)
 	if err != nil {
-		log.Debugf("Failed to resolve dependency graph: %s\n", err)
+		log.Errorf("Failed to resolve dependency graph: %s\n", err)
 	} else {
 		log.Debugf("The dependency graph resolved successfully")
 	}
-}
-
-func TestDep(t *testing.T) {
-	var workingGraph Graph
-	workingGraph = append(workingGraph,
-		NewNode(0, "a", "b"),
-		NewNode(1, "b", "c"),
-		NewNode(2, "c", "d", "e"),
-		NewNode(3, "d"),
-		NewNode(4, "e"))
-
-	fmt.Printf(">>> A working dependency graph\n")
-	displayDependencyGraph(workingGraph, log.Debug)
-
-	resolved, err := resolveGraph(workingGraph)
-	if err != nil {
-		fmt.Printf("Failed to resolve dependency graph: %s\n", err)
-	} else {
-		fmt.Println("The dependency graph resolved successfully")
-	}
-	log.Debugf("resolved: %v", resolved)
+	displayDependencyGraph("resolved", resolved, log.Debug)
 }

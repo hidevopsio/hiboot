@@ -109,4 +109,11 @@ func TestInstantiateFactory(t *testing.T) {
 	t.Run("should check invalid object", func(t *testing.T) {
 		assert.Equal(t, false, appFactory.IsValidObjectType(1))
 	})
+
+	t.Run("should append component", func(t *testing.T) {
+		appFactory.AppendComponent(&struct {
+			Name string
+		}{Name: "foo"})
+		assert.Equal(t, false, appFactory.IsValidObjectType(1))
+	})
 }

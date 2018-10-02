@@ -21,6 +21,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/factory/depends"
 	"github.com/hidevopsio/hiboot/pkg/inject"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
@@ -39,12 +40,14 @@ var (
 type InstantiateFactory struct {
 	instanceMap cmap.ConcurrentMap
 	components  []*factory.MetaData
+	categorized map[string][]interface{}
 }
 
 // Initialize init the factory
 func (f *InstantiateFactory) Initialize(instanceMap cmap.ConcurrentMap, components []*factory.MetaData) {
 	f.instanceMap = instanceMap
 	f.components = components
+	f.categorized = make(map[string][]interface{})
 }
 
 // Initialized check if factory is initialized
@@ -65,7 +68,8 @@ func (f *InstantiateFactory) IsValidObjectType(inst interface{}) bool {
 
 // Initialized check if factory is initialized
 func (f *InstantiateFactory) AppendComponent(c ...interface{}) {
-	f.components = append(f.components, factory.ParseParams("", c...))
+	metaData := factory.ParseParams("", c...)
+	f.components = append(f.components, metaData)
 }
 
 // BuildComponents build all registered components
@@ -76,18 +80,19 @@ func (f *InstantiateFactory) BuildComponents() (err error) {
 	// then build components
 	var obj interface{}
 	var name string
-	for _, item := range resolved {
+	for i, item := range resolved {
+		log.Debug(i)
 		// inject dependencies into function
 		// components, controllers
 		if item.Kind == reflect.Func {
 			obj, err = inject.IntoFunc(item.Object)
-			name = item.TypeName
+			name = item.Name
 		} else {
-			name, obj = item.TypeName, item.Object
+			name, obj = item.Name, item.Object
 		}
 
 		if obj == nil {
-			return ErrInvalidObjectType
+			continue
 		}
 		// use interface name if it's available as use does not specify its name
 		field := reflector.GetEmbeddedInterfaceField(obj)
@@ -101,7 +106,7 @@ func (f *InstantiateFactory) BuildComponents() (err error) {
 		if f.IsValidObjectType(obj) {
 			err = f.SetInstance(name, obj)
 			if err != nil {
-				return
+				log.Debug(err)
 			}
 		}
 	}
@@ -122,20 +127,41 @@ func (f *InstantiateFactory) SetInstance(name string, instance interface{}) (err
 	}
 
 	f.instanceMap.Set(name, instance)
+
+	ifcField := reflector.GetEmbeddedInterfaceField(instance)
+	if ifcField.Anonymous {
+		typeName := ifcField.Name
+		categorised, ok := f.categorized[typeName]
+		if !ok {
+			categorised = make([]interface{}, 0)
+		}
+		f.categorized[typeName] = append(categorised, instance)
+	}
 	return
 }
 
 // GetInstance get instance by name
-func (f *InstantiateFactory) GetInstance(name string) (inst interface{}) {
+func (f *InstantiateFactory) GetInstance(name string) (retVal interface{}) {
 	if !f.Initialized() {
 		return nil
 	}
 	//items := f.Items()
 	//log.Debug(items)
 	var ok bool
-	if inst, ok = f.instanceMap.Get(name); !ok {
+	if retVal, ok = f.instanceMap.Get(name); !ok {
 		return nil
 	}
+	return
+}
+
+// GetInstance get instance by name
+func (f *InstantiateFactory) GetInstances(name string) (retVal []interface{}) {
+	if !f.Initialized() {
+		return nil
+	}
+	//items := f.Items()
+	//log.Debug(items)
+	retVal = f.categorized[name]
 	return
 }
 
