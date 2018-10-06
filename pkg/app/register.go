@@ -31,8 +31,9 @@ func appendParam(eliminator string, container []*factory.MetaData, params ...int
 	// append meta data
 	if metaData.Object != nil {
 		retVal = append(retVal, metaData)
+		//return
 	}
-	err = ErrInvalidObjectType
+	//err = ErrInvalidObjectType
 	return
 }
 

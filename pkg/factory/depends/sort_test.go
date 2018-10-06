@@ -18,6 +18,9 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/factory/depends"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends/bar"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends/fake"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends/foo"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/magiconair/properties/assert"
 	"reflect"
@@ -154,89 +157,89 @@ func TestSort(t *testing.T) {
 		configurations []*factory.MetaData
 		err            error
 	}{
-		//{
-		//	title: "should sort dependencies",
-		//	configurations: []*factory.MetaData{
-		//		factory.NewMetaData(new(fooConfiguration)),
-		//		factory.NewMetaData(new(bar.Configuration)),
-		//		factory.NewMetaData(new(fake.Configuration)),
-		//		factory.NewMetaData(new(parentConfiguration)),
-		//		factory.NewMetaData(new(grantConfiguration)),
-		//		factory.NewMetaData(new(childConfiguration)),
-		//		factory.NewMetaData(foo.NewConfiguration),
-		//		factory.NewMetaData(new(barConfiguration)),
-		//	},
-		//	err: nil,
-		//},
-		//{
-		//	title: "should sort dependencies",
-		//	configurations: []*factory.MetaData{
-		//		factory.NewMetaData(new(fake.Configuration)),
-		//		factory.NewMetaData(new(fooConfiguration)),
-		//		factory.NewMetaData(new(bar.Configuration)),
-		//		factory.NewMetaData(new(childConfiguration)),
-		//		factory.NewMetaData(new(grantConfiguration)),
-		//		factory.NewMetaData(new(parentConfiguration)),
-		//		factory.NewMetaData(foo.NewConfiguration),
-		//		factory.NewMetaData(new(barConfiguration)),
-		//	},
-		//	err: nil,
-		//},
-		//{
-		//	title: "should report some of the dependencies are not found",
-		//	configurations: []*factory.MetaData{
-		//		factory.NewMetaData(new(fooConfiguration)),
-		//		factory.NewMetaData(new(childConfiguration)),
-		//		factory.NewMetaData(new(grantConfiguration)),
-		//		factory.NewMetaData(new(parentConfiguration)),
-		//		factory.NewMetaData(new(barConfiguration)),
-		//	},
-		//	err: nil, // TODO: temp solution depends.ErrCircularDependency,
-		//},
 		{
-			title:          "should sort with constructor's dependencies",
+			title:          "should sort with method's dependencies",
 			configurations: methodTestData,
 		},
-		//{
-		//	title: "should sort with constructor's dependencies",
-		//	configurations: []*factory.MetaData{
-		//		factory.NewMetaData(newBarService),
-		//		factory.NewMetaData(new(Bar)),
-		//		factory.NewMetaData(newFooService),
-		//		factory.NewMetaData(new(Foo)),
-		//		factory.NewMetaData(new(Baz)),
-		//		factory.NewMetaData(newBazService),
-		//	},
-		//	err: nil,
-		//},
-		//{
-		//	title: "should fail to sort with circular dependencies",
-		//	configurations: []*factory.MetaData{
-		//		factory.NewMetaData(new(circularChildConfiguration)),
-		//		factory.NewMetaData(new(circularParentConfiguration)),
-		//		factory.NewMetaData(new(circularGrantConfiguration)),
-		//	},
-		//	err: depends.ErrCircularDependency,
-		//},
-		//{
-		//	title: "should fail to sort with circular dependencies",
-		//	configurations: []*factory.MetaData{
-		//		factory.NewMetaData(new(Bar)),
-		//		factory.NewMetaData(new(circularChildConfiguration)),
-		//		factory.NewMetaData(new(circularParentConfiguration)),
-		//		factory.NewMetaData(new(circularGrantConfiguration)),
-		//	},
-		//	err: depends.ErrCircularDependency,
-		//},
-		//{
-		//	title: "should fail to sort with circular dependencies",
-		//	configurations: []*factory.MetaData{
-		//		factory.NewMetaData(new(circularChildConfiguration2)),
-		//		factory.NewMetaData(new(circularParentConfiguration2)),
-		//		factory.NewMetaData(new(circularGrantConfiguration2)),
-		//	},
-		//	err: depends.ErrCircularDependency,
-		//},
+		{
+			title: "should sort dependencies",
+			configurations: []*factory.MetaData{
+				factory.NewMetaData(new(fooConfiguration)),
+				factory.NewMetaData(new(bar.Configuration)),
+				factory.NewMetaData(new(fake.Configuration)),
+				factory.NewMetaData(new(parentConfiguration)),
+				factory.NewMetaData(new(grantConfiguration)),
+				factory.NewMetaData(new(childConfiguration)),
+				factory.NewMetaData(foo.NewConfiguration),
+				factory.NewMetaData(new(barConfiguration)),
+			},
+			err: nil,
+		},
+		{
+			title: "should sort dependencies",
+			configurations: []*factory.MetaData{
+				factory.NewMetaData(new(fake.Configuration)),
+				factory.NewMetaData(new(fooConfiguration)),
+				factory.NewMetaData(new(bar.Configuration)),
+				factory.NewMetaData(new(childConfiguration)),
+				factory.NewMetaData(new(grantConfiguration)),
+				factory.NewMetaData(new(parentConfiguration)),
+				factory.NewMetaData(foo.NewConfiguration),
+				factory.NewMetaData(new(barConfiguration)),
+			},
+			err: nil,
+		},
+		{
+			title: "should report some of the dependencies are not found",
+			configurations: []*factory.MetaData{
+				factory.NewMetaData(new(fooConfiguration)),
+				factory.NewMetaData(new(childConfiguration)),
+				factory.NewMetaData(new(grantConfiguration)),
+				factory.NewMetaData(new(parentConfiguration)),
+				factory.NewMetaData(new(barConfiguration)),
+			},
+			err: nil, // TODO: temp solution depends.ErrCircularDependency,
+		},
+		{
+			title: "should sort with constructor's dependencies",
+			configurations: []*factory.MetaData{
+				factory.NewMetaData(newBarService),
+				factory.NewMetaData(new(Bar)),
+				factory.NewMetaData(newFooService),
+				factory.NewMetaData(new(Foo)),
+				factory.NewMetaData(new(Baz)),
+				factory.NewMetaData(newBazService),
+			},
+			err: nil,
+		},
+		{
+			title: "should fail to sort with circular dependencies",
+			configurations: []*factory.MetaData{
+				factory.NewMetaData(new(circularChildConfiguration)),
+				factory.NewMetaData(new(circularParentConfiguration)),
+				factory.NewMetaData(new(circularGrantConfiguration)),
+			},
+			err: depends.ErrCircularDependency,
+		},
+		{
+			title: "should fail to sort with circular dependencies",
+			configurations: []*factory.MetaData{
+				factory.NewMetaData(new(Bar)),
+				factory.NewMetaData(new(circularChildConfiguration)),
+				factory.NewMetaData(new(circularParentConfiguration)),
+				factory.NewMetaData(new(circularGrantConfiguration)),
+			},
+			err: depends.ErrCircularDependency,
+		},
+		{
+			title: "should fail to sort with circular dependencies",
+			configurations: []*factory.MetaData{
+				factory.NewMetaData(new(circularChildConfiguration2)),
+				factory.NewMetaData(new(circularParentConfiguration2)),
+				factory.NewMetaData(new(circularGrantConfiguration2)),
+			},
+			err: depends.ErrCircularDependency,
+		},
 	}
 
 	for _, data := range testData {

@@ -63,7 +63,9 @@ func SetFactory(f factory.ConfigurableFactory) {
 
 // AddTag add new tag
 func AddTag(tag Tag) {
-	tagsContainer = append(tagsContainer, tag)
+	if tag != nil {
+		tagsContainer = append(tagsContainer, tag)
+	}
 }
 
 func getInstanceByName(name string, instType reflect.Type) (inst interface{}) {

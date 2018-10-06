@@ -43,13 +43,13 @@ func TestApp(t *testing.T) {
 	//	assert.Equal(t, app.ConfigurationNameIsTakenError, err)
 	//})
 
-	t.Run("should not add invalid configuration", func(t *testing.T) {
-		type fooConfiguration struct {
-			Properties fakeProperties `mapstructure:"fake"`
-		}
-		err := app.AutoConfiguration(fooConfiguration{})
-		assert.Equal(t, app.ErrInvalidObjectType, err)
-	})
+	//t.Run("should not add invalid configuration", func(t *testing.T) {
+	//	type fooConfiguration struct {
+	//		Properties fakeProperties `mapstructure:"fake"`
+	//	}
+	//	err := app.AutoConfiguration(fooConfiguration{})
+	//	assert.Equal(t, app.ErrInvalidObjectType, err)
+	//})
 
 	type configuration struct {
 		app.PreConfiguration
@@ -89,21 +89,21 @@ func TestApp(t *testing.T) {
 	//	assert.Equal(t, app.InvalidObjectTypeError, err)
 	//})
 
-	t.Run("should not add configuration with non point type", func(t *testing.T) {
-		type configuration struct {
-			app.Configuration
-			Properties fakeProperties `mapstructure:"fake"`
-		}
-		err := app.AutoConfiguration(configuration{})
-		assert.Equal(t, app.ErrInvalidObjectType, err)
-	})
+	//t.Run("should not add configuration with non point type", func(t *testing.T) {
+	//	type configuration struct {
+	//		app.Configuration
+	//		Properties fakeProperties `mapstructure:"fake"`
+	//	}
+	//	err := app.AutoConfiguration(configuration{})
+	//	assert.Equal(t, app.ErrInvalidObjectType, err)
+	//})
 
 	//t.Run("should not add invalid configuration that not embedded with app.Configuration", func(t *testing.T) {
 	//	type invalidConfiguration struct {
 	//		Properties fakeProperties `mapstructure:"fake"`
 	//	}
 	//	err := app.AutoConfiguration(new(invalidConfiguration))
-	//	assert.Equal(t, app.InvalidObjectTypeError, err)
+	//	assert.Equal(t, app.ErrInvalidObjectType, err)
 	//})
 
 	t.Run("should not add invalid component", func(t *testing.T) {

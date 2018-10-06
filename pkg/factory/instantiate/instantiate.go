@@ -87,10 +87,12 @@ func (f *InstantiateFactory) BuildComponents() (err error) {
 		switch item.Kind {
 		case types.Func:
 			obj, err = inject.IntoFunc(item.Object)
-			name = item.Name
+			name = item.ShortName
 		case types.Method:
-			obj, err = inject.IntoMethod(item.Context, item.Object)
-			name = item.Name
+			//obj, err = inject.IntoMethod(item.Context, item.Object)
+			//name = item.Name
+			// TODO: need to shift from _, err = f.InstantiateMethod(configuration, method, method.Name)
+			continue
 		default:
 			name, obj = item.Name, item.Object
 		}
