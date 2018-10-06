@@ -46,11 +46,11 @@ crypto rsa -h
 crypto rsa -e -s "text to encrypt"
 crypto rsa -d -s "text to decrypt"
 `
-	pflags := c.PersistentFlags()
-	pflags.StringVarP(&c.Source, "source", "s", "", "run with option --source=source text to encrypt or encrypt")
-	pflags.StringVarP(&c.Key, "key", "k", "", "run with option --key or -k for rsa key")
-	pflags.BoolVarP(&c.Encrypt, "encrypt", "e", false, "run with option --encrypt or -e for text encryption")
-	pflags.BoolVarP(&c.Decrypt, "decrypt", "d", false, "run with option --decrypt or -d for text encryption")
+	p := c.PersistentFlags()
+	p.StringVarP(&c.Source, "source", "s", "", "run with option --source=source text to encrypt or encrypt")
+	p.StringVarP(&c.Key, "key", "k", "", "run with option --key or -k for rsa key")
+	p.BoolVarP(&c.Encrypt, "encrypt", "e", false, "run with option --encrypt or -e for text encryption")
+	p.BoolVarP(&c.Decrypt, "decrypt", "d", false, "run with option --decrypt or -d for text encryption")
 	return c
 }
 
