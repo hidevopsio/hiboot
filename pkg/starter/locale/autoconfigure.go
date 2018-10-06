@@ -16,7 +16,6 @@ package locale
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/i18n"
@@ -41,7 +40,7 @@ func init() {
 	app.AutoConfiguration(newConfiguration)
 }
 
-func (c *configuration) LocaleHandler() context.Handler {
+func (c *configuration) LocaleHandler() (handler context.Handler) {
 	// TODO: localePath should be configurable in application.yml
 	// locale:
 	//   en-US: ./config/i18n/en-US.ini
@@ -57,36 +56,33 @@ func (c *configuration) LocaleHandler() context.Handler {
 	// parse language files
 	languages := make(map[string]string)
 	err := filepath.Walk(localePath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			log.Fatal(err)
-		}
-		//*files = append(*files, path)
-		lng := strings.Replace(path, localePath, "", 1)
-		lng = io.BaseDir(lng)
-		lng = io.Basename(lng)
+		if err == nil {
+			//*files = append(*files, path)
+			lng := strings.Replace(path, localePath, "", 1)
+			lng = io.BaseDir(lng)
+			lng = io.Basename(lng)
 
-		if lng != "" && path != localePath+lng {
-			//languages[lng] = path
-			if languages[lng] == "" {
-				languages[lng] = path
-			} else {
-				languages[lng] = languages[lng] + ", " + path
+			if lng != "" && path != localePath+lng {
+				//languages[lng] = path
+				if languages[lng] == "" {
+					languages[lng] = path
+				} else {
+					languages[lng] = languages[lng] + ", " + path
+				}
+				//log.Debugf("%v, %v", lng, languages[lng])
 			}
-			//log.Debugf("%v, %v", lng, languages[lng])
 		}
-		return nil
+		return err
 	})
-	if err != nil {
-		return nil
+	if err == nil {
+		handler = i18n.New(i18n.Config{
+			Default:      c.Properties.Default,
+			URLParameter: c.Properties.URLParameter,
+			Languages:    languages,
+		})
+
+		c.applicationContext.Use(handler)
 	}
 
-	globalLocale := i18n.New(i18n.Config{
-		Default:      c.Properties.Default,
-		URLParameter: c.Properties.URLParameter,
-		Languages:    languages,
-	})
-
-	c.applicationContext.Use(globalLocale)
-
-	return globalLocale
+	return handler
 }

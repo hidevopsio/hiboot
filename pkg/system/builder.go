@@ -19,7 +19,6 @@ package system
 import (
 	"bytes"
 	"fmt"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/spf13/viper"
@@ -83,12 +82,11 @@ func (b *Builder) Build(profiles ...string) (interface{}, error) {
 
 		_, err = b.Read(name)
 		if err != nil {
-			log.Errorf("failed to read config file: %v", configFile)
 			break
 		}
 	}
 
-	return conf, nil
+	return conf, err
 }
 
 // build config file
@@ -99,11 +97,7 @@ func (b *Builder) BuildWithProfile() (interface{}, error) {
 		return reflector.NewReflectType(b.ConfigType), nil
 	}
 
-	conf, err := b.Read(name)
-	if err != nil {
-		return nil, err
-	}
-	return conf, nil
+	return b.Read(name)
 }
 
 // Read single file
@@ -124,9 +118,6 @@ func (b *Builder) Read(name string) (interface{}, error) {
 	}
 
 	err = v.Unmarshal(cp)
-	if err != nil {
-		return nil, fmt.Errorf("error on viper config unmarshal : %s", err)
-	}
 	return cp, err
 }
 
@@ -136,14 +127,12 @@ func (b *Builder) Save(p interface{}) error {
 	v := b.New(b.Name)
 
 	y, err := yaml.Marshal(p)
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return err
-	}
-	err = v.ReadConfig(bytes.NewBuffer(y))
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return err
+	if err == nil {
+		err = v.ReadConfig(bytes.NewBuffer(y))
+		if err != nil {
+			fmt.Printf("err: %v\n", err)
+			return err
+		}
 	}
 
 	return v.WriteConfig()
