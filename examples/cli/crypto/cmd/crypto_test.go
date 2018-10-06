@@ -26,7 +26,7 @@ func init() {
 }
 
 func TestCryptoCommands(t *testing.T) {
-	cryptoCmd := new(rootCommand)
+	cryptoCmd := new(cryptoCommand)
 	testApp := cli.NewTestApplication(t, cryptoCmd)
 
 	t.Run("should run crypto rsa -e", func(t *testing.T) {

@@ -27,9 +27,9 @@ func init() {
 	AddTag(new(injectTag))
 }
 
-func (t *injectTag) IsSingleton() bool {
-	return true
-}
+//func (t *injectTag) IsSingleton() bool {
+//	return true
+//}
 
 func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{}) {
 	properties := t.ParseProperties(tag)
@@ -42,6 +42,7 @@ func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, tag 
 		if ft.Kind() == reflect.Ptr {
 			ft = ft.Elem()
 		}
+		// TODO: get instance from factory first
 		o := reflect.New(ft)
 		retVal = o.Interface()
 		// inject field value

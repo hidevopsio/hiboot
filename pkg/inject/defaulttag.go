@@ -23,9 +23,9 @@ type defaultTag struct {
 	BaseTag
 }
 
-func (t *defaultTag) IsSingleton() bool {
-	return false
-}
+//func (t *defaultTag) IsSingleton() bool {
+//	return false
+//}
 
 func (t *defaultTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{}) {
 	if tag != "" {
