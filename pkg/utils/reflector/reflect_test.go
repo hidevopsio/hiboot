@@ -552,7 +552,7 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 
 	t.Run("should get the object name by object pointer", func(t *testing.T) {
 		name := GetFullNameByType(reflect.TypeOf(&Foo{}))
-		assert.Equal(t, "reflector.Foo", name)
+		assert.Equal(t, "reflector.foo", name)
 	})
 
 	t.Run("should parse instance name via object", func(t *testing.T) {

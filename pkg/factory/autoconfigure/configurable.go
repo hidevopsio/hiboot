@@ -240,7 +240,7 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error)
 		method := configType.Method(mi)
 		// append inst to f.components
 		f.AppendComponent(configuration, method)
-
+		// TODO: InstantiateMethod should be removed, all dependencies should be injected in component builder ...
 		_, err = f.InstantiateMethod(configuration, method, method.Name)
 		if err != nil {
 			return
