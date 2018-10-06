@@ -566,4 +566,14 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 		assert.Equal(t, "reflector", pkgName)
 		assert.Equal(t, "fooBarService", name)
 	})
+
+	t.Run("should method out type", func(t *testing.T) {
+		foo := new(Foo)
+		expectedTyp := reflect.TypeOf(foo)
+		method, ok := expectedTyp.MethodByName("SetNickname")
+		typ, ok := GetFuncOutType(method)
+		assert.Equal(t, true, ok)
+		assert.Equal(t, "Foo", typ.Name())
+
+	})
 }
