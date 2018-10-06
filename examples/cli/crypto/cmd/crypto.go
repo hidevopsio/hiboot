@@ -22,7 +22,7 @@ import (
 )
 
 // define the command
-type rootCommand struct {
+type cryptoCommand struct {
 	// embedding cli.BaseCommand in each command
 	cli.BaseCommand
 	// inject (bind) flag to field 'Source', 'Encrypt', and 'Decrypt', so that it can be used on Run method, please note that the data type must be pointer
@@ -33,11 +33,11 @@ type rootCommand struct {
 }
 
 func init() {
-	app.Component(newRootCommand)
+	app.Component("rootCommand", newCryptoCommand)
 }
 
-func newRootCommand() *rootCommand {
-	c := new(rootCommand)
+func newCryptoCommand() *cryptoCommand {
+	c := new(cryptoCommand)
 	c.Use = "crypto"
 	c.Short = "crypto command"
 	c.Long = "run crypto command to encrypt/decrypt "
@@ -55,7 +55,7 @@ crypto rsa -d -s "text to decrypt"
 }
 
 // Run OnRsa for crypto command rsa
-func (c *rootCommand) OnRsa(args []string) bool {
+func (c *cryptoCommand) OnRsa(args []string) bool {
 	if c.Decrypt {
 		res, err := rsa.DecryptBase64([]byte(c.Source), []byte(c.Key))
 		if err == nil {
