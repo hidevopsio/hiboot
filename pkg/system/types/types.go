@@ -1,6 +1,7 @@
 package types
 
 const (
+	// Bool and all others define the data type name
 	Bool          = "bool"
 	Int           = "int"
 	Int8          = "int8"

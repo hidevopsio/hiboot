@@ -15,6 +15,9 @@
 package app
 
 const (
-	PropertyBannerDisabled     = "property.banner.disabled"
+	// PropertyBannerDisabled is the property that allow use to enable / disable banner display on terminal
+	PropertyBannerDisabled = "property.banner.disabled"
+
+	// PropertyAppProfilesInclude is the property that allow user include profiles at runtime
 	PropertyAppProfilesInclude = "property.app.profiles.include"
 )

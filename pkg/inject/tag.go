@@ -40,6 +40,7 @@ func (t *BaseTag) IsSingleton() bool {
 	return false
 }
 
+// Init init the tag
 func (t *BaseTag) Init(configurableFactory factory.ConfigurableFactory) {
 	t.ConfigurableFactory = configurableFactory
 	t.systemConfig = configurableFactory.SystemConfiguration()

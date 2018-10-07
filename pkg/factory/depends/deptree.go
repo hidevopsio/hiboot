@@ -72,6 +72,7 @@ func NewNode(index int, data interface{}, deps ...*Node) *Node {
 	return n
 }
 
+// Graph is the collection of node
 type Graph []*Node
 
 // Resolves the dependency graph

@@ -178,8 +178,7 @@ func (a *application) initialize(controllers ...interface{}) (err error) {
 	return
 }
 
-// TODO: use app.Register for all
-// Add add controller to controllers container
+// RestController register rest controller to controllers container
 func RestController(controllers ...interface{}) {
 	// add to registeredControllers as well
 	registeredControllers = append(registeredControllers, controllers...)
