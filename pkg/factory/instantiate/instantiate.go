@@ -89,32 +89,26 @@ func (f *InstantiateFactory) BuildComponents() (err error) {
 			obj, err = inject.IntoFunc(item.Object)
 			name = item.ShortName
 		case types.Method:
-			//obj, err = inject.IntoMethod(item.Context, item.Object)
-			//name = item.Name
+			obj, err = inject.IntoMethod(item.Context, item.Object)
+			name = item.ShortName
+			log.Debugf("inject into method: %v - %v", item.Name, item.ShortName)
 			// TODO: need to shift from _, err = f.InstantiateMethod(configuration, method, method.Name)
-			continue
+			//continue
 		default:
 			name, obj = item.Name, item.Object
 		}
 		// inject into object
 
-		if obj == nil {
-			continue
-		}
-		err = inject.IntoObject(obj)
-		// use interface name if it's available as use does not specify its name
-		field := reflector.GetEmbeddedInterfaceField(obj)
-		if field.Anonymous {
-			err = f.SetInstance(field.Name, obj)
-			//log.Debugf("component %v has embedded field: %v", inst, name)
-		}
-		if name == "" {
-			continue
-		}
-		if f.IsValidObjectType(obj) {
-			err = f.SetInstance(name, obj)
-			if err != nil {
-				log.Debug(err)
+		if obj != nil {
+			err = inject.IntoObject(obj)
+			// use interface name if it's available as use does not specify its name
+			field := reflector.GetEmbeddedInterfaceField(obj)
+			if field.Anonymous {
+				err = f.SetInstance(field.Name, obj)
+				//log.Debugf("component %v has embedded field: %v", inst, name)
+			}
+			if name != "" {
+				err = f.SetInstance(name, obj)
 			}
 		}
 	}
@@ -162,14 +156,13 @@ func (f *InstantiateFactory) GetInstance(name string) (retVal interface{}) {
 	return
 }
 
-// GetInstance get instance by name
+// GetInstances get instance by name
 func (f *InstantiateFactory) GetInstances(name string) (retVal []interface{}) {
-	if !f.Initialized() {
-		return nil
-	}
 	//items := f.Items()
 	//log.Debug(items)
-	retVal = f.categorized[name]
+	if f.Initialized() {
+		retVal = f.categorized[name]
+	}
 	return
 }
 

@@ -71,69 +71,65 @@ func (s depResolver) findDependencies(item *factory.MetaData) (dep []*Node, ok b
 	object := item.Object
 	switch item.Kind {
 	case types.Func:
-		outTyp, isFunc := reflector.GetFuncOutType(object)
-		if isFunc {
-			fn := reflect.ValueOf(object)
-			numIn := fn.Type().NumIn()
-			for i := 0; i < numIn; i++ {
-				inTyp := fn.Type().In(i)
-				indInTyp := reflector.IndirectType(inTyp)
-				var name string
-				for _, field := range reflector.DeepFields(outTyp) {
-					indFieldTyp := reflector.IndirectType(field.Type)
-					//log.Debugf("%v <> %v", indFieldTyp, indInTyp)
-					if indFieldTyp == indInTyp {
-						name = str.ToLowerCamel(field.Name)
-						depPkgName := io.DirName(field.Type.PkgPath())
-						if depPkgName != "" {
-							name = depPkgName + "." + name
-						}
-						break
+		fn := reflect.ValueOf(object)
+		numIn := fn.Type().NumIn()
+		for i := 0; i < numIn; i++ {
+			inTyp := fn.Type().In(i)
+			indInTyp := reflector.IndirectType(inTyp)
+			var name string
+			for _, field := range reflector.DeepFields(item.Type) {
+				indFieldTyp := reflector.IndirectType(field.Type)
+				//log.Debugf("%v <> %v", indFieldTyp, indInTyp)
+				if indFieldTyp == indInTyp {
+					name = str.ToLowerCamel(field.Name)
+					depPkgName := io.DirName(field.Type.PkgPath())
+					if depPkgName != "" {
+						name = depPkgName + "." + name
 					}
+					break
 				}
-				if name == "" {
-					name = reflector.GetFullNameByType(fn.Type().In(i))
-				}
-				if depName == "" {
-					depName = name
-				} else {
-					depName = depName + "," + name
-				}
-				ok = true
 			}
+			if name == "" {
+				name = reflector.GetFullNameByType(fn.Type().In(i))
+			}
+			if depName == "" {
+				depName = name
+			} else {
+				depName = depName + "," + name
+			}
+			ok = true
 		}
 	case types.Method:
 		// TODO: too many duplicated code, optimize it
-		outTyp, isFunc := reflector.GetFuncOutType(object)
-		if isFunc {
-			method := object.(reflect.Method)
-			numIn := method.Type.NumIn()
-			for i := 1; i < numIn; i++ {
-				inTyp := method.Type.In(i)
-				indInTyp := reflector.IndirectType(inTyp)
-				var name string
-				for _, field := range reflector.DeepFields(outTyp) {
+		method := object.(reflect.Method)
+		numIn := method.Type.NumIn()
+		for i := 1; i < numIn; i++ {
+			inTyp := method.Type.In(i)
+			indInTyp := reflector.IndirectType(inTyp)
+			var name string
+			if item.Type != nil {
+				for _, field := range reflector.DeepFields(item.Type) {
 					indFieldTyp := reflector.IndirectType(field.Type)
 					//log.Debugf("%v <> %v", indFieldTyp, indInTyp)
 					if indFieldTyp == indInTyp {
 						name = str.ToLowerCamel(field.Name)
-						depPkgName := io.DirName(field.Type.PkgPath())
+						depPkgName := io.DirName(indFieldTyp.PkgPath())
 						if depPkgName != "" {
 							name = depPkgName + "." + name
 						}
 						break
 					}
 				}
-				if name == "" {
-					name = reflector.GetFullNameByType(method.Type.In(i))
-				}
-				if depName == "" {
-					depName = name
-				} else {
-					depName = depName + "," + name
-				}
-				ok = true
 			}
+			if name == "" {
+				name = reflector.GetFullNameByType(method.Type.In(i))
+			}
+			if depName == "" {
+				depName = name
+			} else {
+				depName = depName + "," + name
+			}
+			ok = true
 		}
 	default:
 		depName, ok = reflector.FindEmbeddedFieldTag(object, "depends")

@@ -114,17 +114,14 @@ func newFooBarConfiguration(foobar *FooBar) *FooBarConfiguration {
 }
 
 type HelloWorld string
+type Hello string
 
-func (c *FooConfiguration) HelloWorld(foo *Foo) HelloWorld {
-	return HelloWorld(foo.Name + ": Hello world")
+func (c *FooConfiguration) HelloWorld(foo Hello) HelloWorld {
+	return HelloWorld(foo + " world")
 }
 
-func (c *FooConfiguration) Bar() *Bar {
-	return &Bar{Name: "foo"}
-}
-
-func (c *FooConfiguration) Foo(bar *Bar) *Foo {
-	return &Foo{Name: "foo"}
+func (c *FooConfiguration) Hello() Hello {
+	return Hello("Hello")
 }
 
 type Foo struct {
@@ -276,6 +273,8 @@ func TestConfigurableFactory(t *testing.T) {
 		factory.NewMetaData(foobarConfiguration{}),
 	})
 
+	f.BuildComponents()
+
 	t.Run("should instantiate by name", func(t *testing.T) {
 		bc := new(barConfiguration)
 		_, err := f.InstantiateByName(bc, "Bar")
@@ -324,7 +323,7 @@ func TestConfigurableFactory(t *testing.T) {
 	t.Run("should get foo configuration", func(t *testing.T) {
 		helloWorld := f.GetInstance("helloWorld")
 		assert.NotEqual(t, nil, helloWorld)
-		assert.Equal(t, HelloWorld("foo: Hello world"), helloWorld)
+		assert.Equal(t, HelloWorld("Hello world"), helloWorld)
 
 		assert.Equal(t, "hiboot foo", fooConfig.FakeProperties.Nickname)
 		assert.Equal(t, "bar", fooConfig.FakeProperties.Username)

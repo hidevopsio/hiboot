@@ -27,8 +27,8 @@ type Foo struct {
 	nickname string
 }
 
-func (f *Foo) Init(name string) {
-	f.Name = name
+func newFoo(name string) *Foo {
+	return &Foo{Name: name}
 }
 
 func (f *Foo) Bar() {
@@ -70,32 +70,32 @@ func TestLookupField(t *testing.T) {
 	})
 }
 
-func TestConstructor(t *testing.T) {
-	objVal := reflect.ValueOf(&Foo{})
-
-	objType := objVal.Type()
-	log.Debug("type: ", objType)
-	objName := objType.Elem().Name()
-	log.Debug("name: ", objName)
-
-	object := objVal.Interface()
-	log.Debug("object: ", object)
-
-	// call Init
-	method, ok := objType.MethodByName("Init")
-	if ok {
-		methodType := method.Type
-		numIn := methodType.NumIn()
-		inputs := make([]reflect.Value, numIn)
-		for i := 0; i < numIn; i++ {
-			t := methodType.In(i)
-
-			log.Debugf("%v: %v %v", i, t.Name(), t)
-		}
-		inputs[0] = reflect.ValueOf(object)
-		//method.Func.Call(inputs)
-	}
-}
+//func TestConstructor(t *testing.T) {
+//	objVal := reflect.ValueOf(&Foo{})
+//
+//	objType := objVal.Type()
+//	log.Debug("type: ", objType)
+//	objName := objType.Elem().Name()
+//	log.Debug("name: ", objName)
+//
+//	object := objVal.Interface()
+//	log.Debug("object: ", object)
+//
+//	// call Init
+//	method, ok := objType.MethodByName("Init")
+//	if ok {
+//		methodType := method.Type
+//		numIn := methodType.NumIn()
+//		inputs := make([]reflect.Value, numIn)
+//		for i := 0; i < numIn; i++ {
+//			t := methodType.In(i)
+//
+//			log.Debugf("%v: %v %v", i, t.Name(), t)
+//		}
+//		inputs[0] = reflect.ValueOf(object)
+//		//method.Func.Call(inputs)
+//	}
+//}
 
 func TestNewReflectType(t *testing.T) {
 	foo := NewReflectType(Foo{})

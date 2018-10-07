@@ -20,7 +20,7 @@ import (
 )
 
 // FirstCommand is the root command
-type rootCommand struct {
+type RootCommand struct {
 	// embedded cli.BaseCommand
 	cli.BaseCommand
 
@@ -30,20 +30,20 @@ type rootCommand struct {
 }
 
 // NewRootCommand the root command
-func NewRootCommand(second *secondCommand) *rootCommand {
-	c := new(rootCommand)
+func NewRootCommand(second *secondCommand) *RootCommand {
+	c := new(RootCommand)
 	c.Use = "first"
 	c.Short = "first command"
 	c.Long = "Run first command"
 	c.ValidArgs = []string{"baz"}
-	pflags := c.PersistentFlags()
-	pflags.StringVarP(&c.Profile, "profile", "p", "dev", "e.g. --profile=test")
-	pflags.IntVarP(&c.Timeout, "timeout", "t", 1, "e.g. --timeout=1")
+	pf := c.PersistentFlags()
+	pf.StringVarP(&c.Profile, "profile", "p", "dev", "e.g. --profile=test")
+	pf.IntVarP(&c.Timeout, "timeout", "t", 1, "e.g. --timeout=1")
 	c.Add(second)
 	return c
 }
 
-func (c *rootCommand) Run(args []string) error {
+func (c *RootCommand) Run(args []string) error {
 	log.Infof("handle first command: profile=%v, timeout=%v", c.Profile, c.Timeout)
 	return nil
 }
