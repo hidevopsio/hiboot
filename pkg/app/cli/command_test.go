@@ -9,10 +9,18 @@ import (
 func TestCommand(t *testing.T) {
 
 	t.Run("should add child command and found the child", func(t *testing.T) {
-		fooCmd := new(fooCommand)
-		barCmd := new(barCommand)
+		barCmd := newBarCommand()
+		bazCmd := newBazCommand()
+		fooCmd := newFooCommand(barCmd, bazCmd)
 		fooCmd.SetName("foo")
-		fooCmd.Add(barCmd)
+		assert.Equal(t, "foo", fooCmd.FullName())
+
+		fooCmd.SetFullName("foo command")
+
+		assert.Equal(t, "foo command", fooCmd.FullName())
+
+		assert.Equal(t, true, fooCmd.HasChild())
+		assert.Equal(t, barCmd, fooCmd.Children()[0])
 
 		assert.Equal(t, fooCmd.GetName(), barCmd.Parent().GetName())
 

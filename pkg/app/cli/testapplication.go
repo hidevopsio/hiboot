@@ -15,7 +15,7 @@ type testApplication struct {
 	application
 }
 
-func NewTestApplication(t *testing.T, cmd ...Command) TestApplication {
+func NewTestApplication(t *testing.T, cmd ...interface{}) TestApplication {
 	a := new(testApplication)
 	err := a.initialize(cmd...)
 	assert.Equal(t, nil, err)

@@ -20,7 +20,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 )
@@ -56,15 +55,18 @@ func init() {
 }
 
 // NewApplication create new cli application
-func NewApplication(cmd ...Command) Application {
+func NewApplication(cmd ...interface{}) Application {
 	a := new(application)
-	if a.initialize(cmd...) != nil {
-		log.Fatal("cli application is not initialized")
+	if err := a.initialize(cmd...); err != nil {
+		log.Fatal("failed to init cli application, err: %v", err)
 	}
 	return a
 }
 
-func (a *application) initialize(cmd ...Command) (err error) {
+func (a *application) initialize(cmd ...interface{}) (err error) {
+	if len(cmd) > 0 {
+		app.Register("rootCommand", cmd[0])
+	}
 	err = a.Initialize()
 	return
 }
@@ -76,10 +78,8 @@ func (a *application) build() error {
 	a.AppendProfiles(a)
 
 	basename := filepath.Base(os.Args[0])
-	if runtime.GOOS == "windows" {
-		basename = strings.ToLower(basename)
-		basename = strings.TrimSuffix(basename, ".exe")
-	}
+	basename = strings.ToLower(basename)
+	basename = strings.TrimSuffix(basename, ".exe")
 
 	f := a.ConfigurableFactory()
 	f.SetInstance("applicationContext", a)
@@ -127,9 +127,7 @@ func (a *application) Run() (err error) {
 	a.build()
 	//log.Debug(commandContainer)
 	if a.root != nil {
-		if err = a.root.Exec(); err != nil {
-			return
-		}
+		err = a.root.Exec()
 	}
 	return
 }

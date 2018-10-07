@@ -50,14 +50,10 @@ func (c *rootCommand) Run(args []string) error {
 	return nil
 }
 
-func init() {
-	app.Component(newRootCommand)
-}
-
 // main function
 func main() {
 	// create new cli application and run it
-	cli.NewApplication().
+	cli.NewApplication(newRootCommand).
 		SetProperty(app.PropertyBannerDisabled, true).
 		Run()
 }

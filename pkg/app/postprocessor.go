@@ -24,6 +24,10 @@ type PostProcessor interface {
 type postProcessor struct {
 }
 
+func newPostProcessor() *postProcessor {
+	return new(postProcessor)
+}
+
 var (
 	postProcessors []PostProcessor
 )

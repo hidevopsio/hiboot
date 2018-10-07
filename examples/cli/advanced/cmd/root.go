@@ -18,8 +18,6 @@ import (
 	_ "github.com/hidevopsio/hiboot/examples/cli/advanced/config"
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/hidevopsio/hiboot/pkg/log"
-
-	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
 // FirstCommand is the root command
@@ -32,11 +30,7 @@ type rootCommand struct {
 	Timeout int    `flag:"shorthand=t,value=1,usage=e.g. --timeout=2"`
 }
 
-func init() {
-	app.Component(newRootCommand)
-}
-
-func newRootCommand(second *secondCommand) *rootCommand {
+func NewRootCommand(second *secondCommand) *rootCommand {
 	c := new(rootCommand)
 	c.Use = "first"
 	c.Short = "first command"

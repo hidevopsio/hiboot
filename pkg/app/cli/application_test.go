@@ -20,6 +20,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func init() {
@@ -118,8 +119,12 @@ func (c *bazCommand) Run(args []string) (err error) {
 
 // demo foo bar
 func TestCliApplication(t *testing.T) {
-	app.Component(newRootCommand, newFooCommand, newBarCommand, newBazCommand)
-	testApp := cli.NewTestApplication(t)
+	app.Component(newFooCommand, newBarCommand, newBazCommand)
+	testApp := cli.NewTestApplication(t, newRootCommand)
+	testApp.SetProperty("foo", "bar")
+
+	root := testApp.Root()
+	assert.NotEqual(t, nil, root)
 
 	t.Run("should run root command", func(t *testing.T) {
 		_, err := testApp.RunTest("-p", "test", "-i", "2")
@@ -184,6 +189,8 @@ func TestCliApplication(t *testing.T) {
 
 func TestNewApplication(t *testing.T) {
 	go cli.NewApplication().Run()
+	time.Sleep(2 * time.Second)
+
 }
 
 type A struct {

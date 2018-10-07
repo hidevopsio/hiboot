@@ -22,7 +22,7 @@ import (
 )
 
 func GetTestApplication(t *testing.T) web.TestApplication {
-	return web.NewTestApplication(t, new(fooController))
+	return web.NewTestApplication(t, newFooController)
 }
 
 func TestFooGet(t *testing.T) {
