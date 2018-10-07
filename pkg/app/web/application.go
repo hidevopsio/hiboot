@@ -80,11 +80,10 @@ func (a *application) Run() (err error) {
 	}
 
 	err = a.build()
-	if err != nil {
-		return
+	if err == nil {
+		err = a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(defaultConfiguration()))
 	}
 
-	err = a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(defaultConfiguration()))
 	return
 }
 
@@ -144,12 +143,11 @@ func (a *application) RegisterController(controller interface{}) error {
 	// get from controller map
 	// parse controller type
 	controllerInterfaceName, err := reflector.GetName(controller)
-	if err != nil {
-		return ErrInvalidController
-	}
-	controllers := a.ConfigurableFactory().GetInstances(controllerInterfaceName)
-	if controllers != nil {
-		return a.dispatcher.register(a.webApp, controllers)
+	if err == nil {
+		controllers := a.ConfigurableFactory().GetInstances(controllerInterfaceName)
+		if controllers != nil {
+			return a.dispatcher.register(a.webApp, controllers)
+		}
 	}
 	return ErrControllersNotFound
 }

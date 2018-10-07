@@ -21,7 +21,7 @@ import (
 )
 
 func TestRootCommands(t *testing.T) {
-	testApp := cli.NewTestApplication(t)
+	testApp := cli.NewTestApplication(t, NewRootCommand)
 
 	t.Run("should run first command", func(t *testing.T) {
 		_, err := testApp.RunTest("-t", "10")

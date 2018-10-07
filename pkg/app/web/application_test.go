@@ -261,6 +261,10 @@ func (c *HelloController) Get() string {
 	return "hello"
 }
 
+func (c *HelloController) GetHtml() {
+	c.Ctx.HTML("<h1>Hello World</h1>")
+}
+
 // Get /all
 func (c *HelloController) GetAll() {
 
@@ -294,6 +298,12 @@ func TestWebApplication(t *testing.T) {
 	t.Run("should response 200 when GET /", func(t *testing.T) {
 		wta.
 			Get("/").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should response 200 when GET /", func(t *testing.T) {
+		wta.
+			Get("/html").
 			Expect().Status(http.StatusOK)
 	})
 
@@ -504,4 +514,11 @@ func TestNewApplication(t *testing.T) {
 	})
 
 	go wta.SetProperty(app.PropertyBannerDisabled, true).Run()
+}
+
+func TestAnonymousController(t *testing.T) {
+	t.Run("should failed to register anonymous controller", func(t *testing.T) {
+		testApp := web.NewTestApplication(t, (*Bar)(nil))
+		assert.NotEqual(t, nil, testApp)
+	})
 }
