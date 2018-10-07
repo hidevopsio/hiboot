@@ -43,6 +43,7 @@ func NewRootCommand(second *secondCommand) *RootCommand {
 	return c
 }
 
+// Run root command handler
 func (c *RootCommand) Run(args []string) error {
 	log.Infof("handle first command: profile=%v, timeout=%v", c.Profile, c.Timeout)
 	return nil

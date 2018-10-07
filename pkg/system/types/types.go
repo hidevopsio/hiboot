@@ -23,7 +23,7 @@ const (
 	Uint32 = "uint32"
 	// Uint64 define the data type name uint64
 	Uint64 = "uint64"
-	// Uintprt define the data type name uintptr
+	// Uintptr define the data type name uintptr
 	Uintptr = "uintptr"
 	// Float32 define the data type name float32
 	Float32 = "float32"
@@ -53,6 +53,6 @@ const (
 	Struct = "struct"
 	// Method define the data type name Method
 	Method = "Method"
-	// define the data type name
+	// UnsafePointer define the data type name unsafePointer
 	UnsafePointer = "unsafePointer"
 )
