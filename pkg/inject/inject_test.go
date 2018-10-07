@@ -29,7 +29,7 @@ import (
 	"testing"
 )
 
-type user struct {
+type User struct {
 	Name string
 	App  string
 }
@@ -87,10 +87,17 @@ func (c *fakeConfiguration) FakeRepository() FakeRepository {
 	return repo
 }
 
-// FooUser an instance fooUser is injectable with tag `inject:"fooUser"`
+// FooUser an instance fooUser is injectable with tag `inject:""` or constructor
 func (c *fakeConfiguration) FooUser() *FooUser {
 	u := new(FooUser)
 	u.Name = "foo"
+	return u
+}
+
+// BarUser an instance fooUser is injectable with tag `inject:""` or constructor
+func (c *fakeConfiguration) User() *User {
+	u := new(User)
+	u.Name = "bar"
 	return u
 }
 
@@ -104,7 +111,7 @@ type fooService struct {
 }
 
 type hibootService struct {
-	HibootUser *user `inject:"name=${app.name}"`
+	HibootUser *User `inject:"name=${app.name}"`
 }
 
 type barService struct {
@@ -117,8 +124,8 @@ type UserService interface {
 
 type userService struct {
 	FooUser        *FooUser       `inject:"name=foo"`
-	User           *user          `inject:""`
-	FakeUser       *user          `inject:"name=${fake.name},app=${app.name}"`
+	User           *User          `inject:""`
+	FakeUser       *User          `inject:"name=${fake.name},app=${app.name}"`
 	FakeRepository FakeRepository `inject:""`
 	DefaultUrl     string         `value:"${fake.defaultUrl:http://localhost:8080}"`
 	Url            string         `value:"${fake.url}"`
@@ -162,7 +169,7 @@ type recursiveInject struct {
 
 type MethodInjectionService struct {
 	fooUser    *FooUser
-	barUser    *user
+	barUser    *User
 	repository FakeRepository
 }
 
@@ -223,23 +230,24 @@ var (
 	fakeUrl    = "http://fake.com/api/foo"
 	defaultUrl = "http://localhost:8080"
 
-	configurableFactory *autoconfigure.ConfigurableFactory
+	cf *autoconfigure.ConfigurableFactory
 )
 
 func init() {
 	log.SetLevel(log.DebugLevel)
 }
 
-// Init automatically inject FooUser and FakeRepository that instantiated in fakeConfiguration
-func (s *MethodInjectionService) Init(fooUser *FooUser, barUser *user, repository FakeRepository) {
-	s.fooUser = fooUser
-	s.barUser = barUser
-	s.repository = repository
+func newMethodInjectionService(fooUser *FooUser, barUser *User, repository FakeRepository) *MethodInjectionService {
+	return &MethodInjectionService{
+		fooUser:    fooUser,
+		barUser:    barUser,
+		repository: repository,
+	}
 }
 
 func TestNotInject(t *testing.T) {
 	baz := new(userService)
-	assert.Equal(t, (*user)(nil), baz.User)
+	assert.Equal(t, (*User)(nil), baz.User)
 }
 
 func TestInject(t *testing.T) {
@@ -272,20 +280,21 @@ func TestInject(t *testing.T) {
 
 	instances := cmap.New()
 	configurations := cmap.New()
-	configurableFactory = new(autoconfigure.ConfigurableFactory)
-	configurableFactory.InstantiateFactory = new(instantiate.InstantiateFactory)
-	configurableFactory.InstantiateFactory.Initialize(instances, []*factory.MetaData{})
-	configurableFactory.Initialize(configurations)
-	configurableFactory.BuildSystemConfig()
+	cf = new(autoconfigure.ConfigurableFactory)
+	cf.InstantiateFactory = new(instantiate.InstantiateFactory)
+	cf.InstantiateFactory.Initialize(instances, []*factory.MetaData{})
+	cf.Initialize(configurations)
+	cf.BuildSystemConfig()
 
-	inject.SetFactory(configurableFactory)
+	inject.SetFactory(cf)
 
 	fakeConfig := new(fakeConfiguration)
 	configs := []*factory.MetaData{
 		factory.NewMetaData(fakeConfig),
 		factory.NewMetaData(new(fooConfiguration)),
 	}
-	configurableFactory.Build(configs)
+	cf.Build(configs)
+	cf.BuildComponents()
 
 	t.Run("should inject default string", func(t *testing.T) {
 		assert.Equal(t, "this is default value", fakeConfig.Properties.DefStrVal)
@@ -303,25 +312,32 @@ func TestInject(t *testing.T) {
 		assert.Equal(t, float32(0.1), fakeConfig.Properties.DefFloatVal32)
 	})
 
-	t.Run("shuld get config", func(t *testing.T) {
-		fr := configurableFactory.GetInstance("fakeRepository")
+	t.Run("should get config", func(t *testing.T) {
+		fr := cf.GetInstance("fakeRepository")
 		assert.NotEqual(t, nil, fr)
 	})
 
 	t.Run("should inject through method", func(t *testing.T) {
-		s := new(MethodInjectionService)
-		err := inject.IntoObject(s)
+		fu := cf.GetInstance("fooUser")
+		bu := cf.GetInstance("user")
+		fp := cf.GetInstance("fakeRepository")
+		u := new(User)
+
+		cf.SetInstance("barUser", u)
+
+		svc, err := inject.IntoFunc(newMethodInjectionService)
 		assert.Equal(t, nil, err)
-		assert.NotEqual(t, (*FooUser)(nil), s.fooUser)
-		assert.NotEqual(t, (*user)(nil), s.barUser)
-		assert.NotEqual(t, (FakeRepository)(nil), s.repository)
+		s := svc.(*MethodInjectionService)
+		assert.Equal(t, fu, s.fooUser)
+		assert.Equal(t, bu, s.barUser)
+		assert.Equal(t, fp, s.repository)
 	})
 
 	t.Run("should inject repository", func(t *testing.T) {
 		us := new(userService)
 		err := inject.IntoObject(us)
 		assert.Equal(t, nil, err)
-		assert.NotEqual(t, (*user)(nil), us.User)
+		assert.NotEqual(t, (*User)(nil), us.User)
 		assert.Equal(t, fooName, us.FooUser.Name)
 		assert.Equal(t, fakeName, us.FakeUser.Name)
 		assert.Equal(t, appName, us.FakeUser.App)
@@ -360,7 +376,7 @@ func TestInject(t *testing.T) {
 		ps := &recursiveInject{UserService: new(userService)}
 		err := inject.IntoObject(ps)
 		assert.Equal(t, nil, err)
-		assert.NotEqual(t, (*user)(nil), ps.UserService.User)
+		assert.NotEqual(t, (*User)(nil), ps.UserService.User)
 		assert.NotEqual(t, (*fakeRepository)(nil), ps.UserService.FakeRepository)
 	})
 

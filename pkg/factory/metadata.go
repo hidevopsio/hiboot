@@ -16,6 +16,7 @@ type MetaData struct {
 	PkgName   string
 	Context   interface{}
 	Object    interface{}
+	Type      reflect.Type
 	ExtDep    []*MetaData
 }
 
@@ -54,6 +55,13 @@ func NewMetaData(params ...interface{}) *MetaData {
 			name = pkgName + "." + name
 		}
 	}
+
+	if kindName == types.Method || kindName == types.Func {
+		t, ok := reflector.GetFuncOutType(object)
+		if ok {
+			typ = t
+		}
+	}
 	return &MetaData{
 		Kind:      kindName,
 		PkgName:   pkgName,
@@ -62,5 +70,6 @@ func NewMetaData(params ...interface{}) *MetaData {
 		ShortName: shortName,
 		Context:   context,
 		Object:    object,
+		Type:      typ,
 	}
 }

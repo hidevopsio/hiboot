@@ -17,11 +17,11 @@ package foo
 import "github.com/hidevopsio/hiboot/pkg/app"
 
 // Configuration foo.Configuration for test only
-type configuration struct {
+type Configuration struct {
 	app.Configuration
 }
 
 // NewConfiguration is the constructor for foo.configuration
-func NewConfiguration() *configuration {
-	return new(configuration)
+func NewConfiguration() *Configuration {
+	return new(Configuration)
 }

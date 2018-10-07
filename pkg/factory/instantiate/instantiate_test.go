@@ -19,6 +19,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 )
 
@@ -32,21 +33,30 @@ type fooBarService struct {
 }
 
 type BarService interface {
-	Bar() string
+	Baz() string
 }
 
 type BarServiceImpl struct {
 	BarService
 }
 
-func (s *BarServiceImpl) Bar() string {
-	return "bar"
+func (s *BarServiceImpl) Baz() string {
+	return "baz"
 }
 
 func newFooBarService(fooBar *FooBar) *fooBarService {
 	return &fooBarService{
 		fooBar: fooBar,
 	}
+}
+
+type helloService struct {
+}
+
+type HelloWorld string
+
+func (s *helloService) HelloWorld() HelloWorld {
+	return HelloWorld("Hello world")
 }
 
 func TestInstantiateFactory(t *testing.T) {
@@ -66,18 +76,35 @@ func TestInstantiateFactory(t *testing.T) {
 		assert.Equal(t, 0, len(item))
 	})
 
+	hello := new(helloService)
+	helloTyp := reflect.TypeOf(hello)
+	numOfMethod := helloTyp.NumMethod()
+	//log.Debug("methods: ", numOfMethod)
+	testComponents := make([]*factory.MetaData, 0)
+	for mi := 0; mi < numOfMethod; mi++ {
+		method := helloTyp.Method(mi)
+		// append inst to f.components
+		testComponents = append(testComponents, factory.NewMetaData(hello, method))
+	}
+
+	testComponents = append(testComponents, factory.NewMetaData(f),
+		factory.NewMetaData(&FooBar{Name: testName}),
+		factory.NewMetaData(&BarServiceImpl{}),
+		factory.NewMetaData(newFooBarService))
+
 	ic := cmap.New()
 	t.Run("should initialize factory", func(t *testing.T) {
-		appFactory.Initialize(ic, []*factory.MetaData{
-			factory.NewMetaData(f),
-			factory.NewMetaData(&FooBar{Name: testName}),
-			factory.NewMetaData(&BarServiceImpl{}),
-		})
+		appFactory.Initialize(ic, testComponents)
 		assert.Equal(t, true, appFactory.Initialized())
 	})
 
 	t.Run("should build components", func(t *testing.T) {
 		appFactory.BuildComponents()
+	})
+
+	t.Run("should get built instance", func(t *testing.T) {
+		inst := appFactory.GetInstance("helloWorld")
+		assert.Equal(t, HelloWorld("Hello world"), inst)
 	})
 
 	t.Run("should set and get instance from factory", func(t *testing.T) {
@@ -89,6 +116,11 @@ func TestInstantiateFactory(t *testing.T) {
 	t.Run("should failed to get instance that does not exist", func(t *testing.T) {
 		inst := appFactory.GetInstance("not-exist-instance")
 		assert.Equal(t, nil, inst)
+	})
+
+	t.Run("should failed to get instances that does not exist", func(t *testing.T) {
+		inst := appFactory.GetInstances("not-exist-instances")
+		assert.Equal(t, 0, len(inst))
 	})
 
 	t.Run("should failed to set instance that it already exists in test mode", func(t *testing.T) {

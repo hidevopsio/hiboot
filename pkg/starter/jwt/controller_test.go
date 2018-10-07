@@ -17,6 +17,7 @@ package jwt_test
 import (
 	"fmt"
 	jwtgo "github.com/dgrijalva/jwt-go"
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/model"
@@ -46,8 +47,10 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 }
 
-func (c *fooController) Init(jwtToken jwt.Token) {
-	c.jwtToken = jwtToken
+func newFooController(jwtToken jwt.Token) *fooController {
+	return &fooController{
+		jwtToken: jwtToken,
+	}
 }
 
 func (c *fooController) Get() string {
@@ -76,6 +79,10 @@ type barController struct {
 	jwt.Controller
 }
 
+func newBarController() *barController {
+	return &barController{}
+}
+
 func (c *barController) Before() {
 	log.Debug("barController.Before")
 
@@ -94,8 +101,16 @@ func (c *barController) Get() string {
 }
 
 func TestJwtController(t *testing.T) {
-	fooCtrl := new(fooController)
-	barCtrl := new(barController)
+	testApp := web.NewTestApplication(t, newFooController, newBarController)
+	ctx := testApp.(app.ApplicationContext)
+
+	fc := ctx.GetInstance("fooController")
+	assert.NotEqual(t, nil, fc)
+	fooCtrl := fc.(*fooController)
+
+	bc := ctx.GetInstance("barController")
+	assert.NotEqual(t, nil, bc)
+	barCtrl := bc.(*barController)
 
 	t.Run("should failed to get jwt properties when app is not run", func(t *testing.T) {
 		_, ok := barCtrl.JwtProperties()
@@ -105,24 +120,22 @@ func TestJwtController(t *testing.T) {
 		assert.Equal(t, false, ok)
 	})
 
-	app := web.NewTestApplication(t, fooCtrl, barCtrl)
-
 	t.Run("should login with POST /foo/login", func(t *testing.T) {
-		app.
+		testApp.
 			Post("/foo/login").
 			WithJSON(&userRequest{Username: "johndoe", Password: "iHop91#15"}).
 			Expect().Status(http.StatusOK)
 	})
 
 	t.Run("should return http.StatusUnauthorized after GET /bar", func(t *testing.T) {
-		app.Get("/bar").
+		testApp.Get("/bar").
 			Expect().Status(http.StatusUnauthorized)
 	})
 
 	t.Run("should return http.StatusOK on /bar with jwt token", func(t *testing.T) {
 		token := fmt.Sprintf("Bearer %v", fooCtrl.tokenStr)
 
-		app.Get("/bar").
+		testApp.Get("/bar").
 			WithHeader("Authorization", token).
 			Expect().Status(http.StatusOK)
 
@@ -137,7 +150,7 @@ func TestJwtController(t *testing.T) {
 
 		time.Sleep(2 * time.Second)
 
-		app.Get("/bar").
+		testApp.Get("/bar").
 			WithHeader("Authorization", token).
 			Expect().Status(http.StatusUnauthorized)
 	})
