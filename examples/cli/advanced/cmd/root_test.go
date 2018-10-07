@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	_ "github.com/hidevopsio/hiboot/examples/cli/advanced/config"
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/stretchr/testify/assert"
 	"testing"

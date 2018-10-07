@@ -15,6 +15,7 @@ type testApplication struct {
 	application
 }
 
+// NewTestApplication is the test application constructor
 func NewTestApplication(t *testing.T, cmd ...interface{}) TestApplication {
 	a := new(testApplication)
 	err := a.initialize(cmd...)

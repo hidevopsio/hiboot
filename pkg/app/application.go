@@ -182,7 +182,7 @@ func (a *BaseApplication) GetInstance(name string) (instance interface{}) {
 	return
 }
 
-// Run run the application
+// AppendProfiles Run run the application
 func (a *BaseApplication) AppendProfiles(app Application) error {
 	profiles, ok := app.GetProperty(PropertyAppProfilesInclude)
 	if ok {

@@ -1,7 +1,8 @@
 package bar
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestDummy(t *testing.T) {
-
 }

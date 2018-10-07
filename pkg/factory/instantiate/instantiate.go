@@ -67,7 +67,7 @@ func (f *InstantiateFactory) IsValidObjectType(inst interface{}) bool {
 	return false
 }
 
-// Initialized check if factory is initialized
+// AppendComponent append component
 func (f *InstantiateFactory) AppendComponent(c ...interface{}) {
 	metaData := factory.NewMetaData(c...)
 	f.components = append(f.components, metaData)

@@ -21,6 +21,7 @@ type configuration struct {
 	app.Configuration
 }
 
+// NewConfiguration is the constructor for foo.configuration
 func NewConfiguration() *configuration {
 	return new(configuration)
 }

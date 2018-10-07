@@ -37,6 +37,7 @@ import (
 )
 
 const (
+	// System configuration name
 	System               = "system"
 	application          = "application"
 	config               = "config"
