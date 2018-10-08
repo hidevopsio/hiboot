@@ -1,12 +1,36 @@
-package factory
+package factory_test
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/system/types"
 	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 )
 
 type fooBarService struct {
+	HelloWorld HelloWorld `inject:""`
+}
+
+type Hello string
+type HelloWorld string
+type HelloHiboot string
+
+type helloConfiguration struct {
+	app.Configuration
+}
+
+func (c *helloConfiguration) Hello() Hello {
+	return Hello("Hello World")
+}
+
+func (c *helloConfiguration) HelloWorld(h Hello) HelloWorld {
+	return HelloWorld(h + "World")
+}
+
+func (c *helloConfiguration) HelloHiboot(h Hello) HelloHiboot {
+	return HelloHiboot(h + "Hello Hiboot")
 }
 
 func newFooBarService() *fooBarService {
@@ -14,22 +38,40 @@ func newFooBarService() *fooBarService {
 }
 
 func TestUtils(t *testing.T) {
+	helloConfig := new(helloConfiguration)
+	helloTyp := reflect.TypeOf(helloConfig)
+	numOfMethod := helloTyp.NumMethod()
+	//log.Debug("methods: ", numOfMethod)
+	methodTestData := make([]*factory.MetaData, 0)
+	for mi := 0; mi < numOfMethod; mi++ {
+		method := helloTyp.Method(mi)
+		// append inst to f.components
+		methodTestData = append(methodTestData, factory.NewMetaData(helloConfig, method))
+	}
+
 	t.Run("should parse instance name via object", func(t *testing.T) {
-		md := NewMetaData("", new(fooBarService))
+		md := factory.NewMetaData("", new(fooBarService))
 		assert.Equal(t, "fooBarService", md.TypeName)
-		assert.Equal(t, "factory", md.PkgName)
+		assert.Equal(t, "factory_test", md.PkgName)
+		assert.NotEqual(t, nil, md.Object)
+	})
+
+	t.Run("should parse instance name via object", func(t *testing.T) {
+		md := factory.NewMetaData("", new(fooBarService))
+		assert.Equal(t, "fooBarService", md.TypeName)
+		assert.Equal(t, "factory_test", md.PkgName)
 		assert.NotEqual(t, nil, md.Object)
 	})
 
 	t.Run("should parse instance name via object with eliminator", func(t *testing.T) {
-		md := NewMetaData(new(fooBarService))
+		md := factory.NewMetaData(new(fooBarService))
 		assert.Equal(t, "fooBarService", md.TypeName)
-		assert.Equal(t, "factory.fooBarService", md.Name)
+		assert.Equal(t, "factory_test.fooBarService", md.Name)
 		assert.NotEqual(t, nil, md.Object)
 	})
 
 	t.Run("should parse object instance name via constructor", func(t *testing.T) {
-		md := NewMetaData("", newFooBarService)
+		md := factory.NewMetaData("", newFooBarService)
 		assert.Equal(t, "fooBarService", md.TypeName)
 		assert.Equal(t, types.Func, md.Kind)
 	})
@@ -37,17 +79,17 @@ func TestUtils(t *testing.T) {
 	t.Run("should parse object pkg name", func(t *testing.T) {
 		type service struct{}
 		svc := new(service)
-		md := NewMetaData(svc)
-		assert.Equal(t, "factory.service", md.Name)
+		md := factory.NewMetaData(svc)
+		assert.Equal(t, "factory_test.service", md.Name)
 		assert.Equal(t, svc, md.Object)
 	})
 
 	t.Run("should parse object instance name", func(t *testing.T) {
 		type service struct{}
 		svc := new(service)
-		md := NewMetaData("foo", svc)
+		md := factory.NewMetaData("foo", svc)
 		assert.Equal(t, "service", md.TypeName)
-		assert.Equal(t, "factory.foo", md.Name)
+		assert.Equal(t, "factory_test.foo", md.Name)
 		assert.Equal(t, svc, md.Object)
 	})
 }

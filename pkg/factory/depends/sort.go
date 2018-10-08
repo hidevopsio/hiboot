@@ -18,11 +18,8 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system/types"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
-	"strings"
 )
 
 // ByDependency sort by the configuration dependency which specified by tag depends
@@ -75,79 +72,9 @@ func (s depResolver) findDependencyIndex(depName string) int {
 }
 
 func (s depResolver) findDependencies(item *factory.MetaData) (dep []*Node, ok bool) {
-	// first check if contains tag depends in the embedded field
-	var depName string
-	object := item.Object
-	switch item.Kind {
-	case types.Func:
-		fn := reflect.ValueOf(object)
-		numIn := fn.Type().NumIn()
-		for i := 0; i < numIn; i++ {
-			inTyp := fn.Type().In(i)
-			indInTyp := reflector.IndirectType(inTyp)
-			var name string
-			for _, field := range reflector.DeepFields(item.Type) {
-				indFieldTyp := reflector.IndirectType(field.Type)
-				//log.Debugf("%v <> %v", indFieldTyp, indInTyp)
-				if indFieldTyp == indInTyp {
-					name = str.ToLowerCamel(field.Name)
-					depPkgName := io.DirName(field.Type.PkgPath())
-					if depPkgName != "" {
-						name = depPkgName + "." + name
-					}
-					break
-				}
-			}
-			if name == "" {
-				name = reflector.GetFullNameByType(fn.Type().In(i))
-			}
-			if depName == "" {
-				depName = name
-			} else {
-				depName = depName + "," + name
-			}
-			ok = true
-		}
-	case types.Method:
-		// TODO: too many duplicated code, optimize it
-		method := object.(reflect.Method)
-		numIn := method.Type.NumIn()
-		for i := 1; i < numIn; i++ {
-			inTyp := method.Type.In(i)
-			indInTyp := reflector.IndirectType(inTyp)
-			var name string
-			if item.Type != nil {
-				for _, field := range reflector.DeepFields(item.Type) {
-					indFieldTyp := reflector.IndirectType(field.Type)
-					//log.Debugf("%v <> %v", indFieldTyp, indInTyp)
-					if indFieldTyp == indInTyp {
-						name = str.ToLowerCamel(field.Name)
-						depPkgName := io.DirName(indFieldTyp.PkgPath())
-						if depPkgName != "" {
-							name = depPkgName + "." + name
-						}
-						break
-					}
-				}
-			}
-			if name == "" {
-				name = reflector.GetFullNameByType(method.Type.In(i))
-			}
-			if depName == "" {
-				depName = name
-			} else {
-				depName = depName + "," + name
-			}
-			ok = true
-		}
-	default:
-		depName, ok = reflector.FindEmbeddedFieldTag(object, "depends")
-	}
-
 	// iterate dependencies
-	if ok {
-		depNames := strings.Split(depName, ",")
-		for _, dp := range depNames {
+	if len(item.Depends) > 0 {
+		for _, dp := range item.Depends {
 			depIdx := s.findDependencyIndex(dp)
 			if depIdx >= 0 {
 				depInst := s[depIdx]
@@ -160,6 +87,7 @@ func (s depResolver) findDependencies(item *factory.MetaData) (dep []*Node, ok b
 				log.Warnf("dependency %v is not found", dp)
 			}
 		}
+		ok = true
 	}
 
 	return
