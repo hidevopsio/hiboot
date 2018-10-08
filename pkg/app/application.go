@@ -120,8 +120,6 @@ func (a *BaseApplication) Initialize() error {
 	inject.SetFactory(configurableFactory)
 	a.configurableFactory = configurableFactory
 
-	a.BeforeInitialization()
-
 	err := configurableFactory.Initialize(a.configurations)
 	if err == nil {
 		a.systemConfig, err = configurableFactory.BuildSystemConfig()
@@ -147,15 +145,10 @@ func (a *BaseApplication) ConfigurableFactory() *autoconfigure.ConfigurableFacto
 	return a.configurableFactory
 }
 
-// BeforeInitialization pre initialization
-func (a *BaseApplication) BeforeInitialization() {
-	// pass user's instances
-	a.postProcessor.BeforeInitialization(a.configurableFactory)
-}
-
 // AfterInitialization post initialization
 func (a *BaseApplication) AfterInitialization(configs ...cmap.ConcurrentMap) {
 	// pass user's instances
+	a.postProcessor.Init()
 	a.postProcessor.AfterInitialization(a.configurableFactory)
 }
 

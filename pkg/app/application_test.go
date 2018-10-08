@@ -129,8 +129,6 @@ func TestApp(t *testing.T) {
 func TestBaseApplication(t *testing.T) {
 	ba := new(app.BaseApplication)
 
-	ba.BeforeInitialization()
-
 	err := ba.Initialize()
 	assert.Equal(t, nil, err)
 

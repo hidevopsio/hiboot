@@ -26,7 +26,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
-	"reflect"
 	"testing"
 )
 
@@ -274,29 +273,6 @@ func TestConfigurableFactory(t *testing.T) {
 	})
 
 	f.BuildComponents()
-
-	t.Run("should instantiate by name", func(t *testing.T) {
-		bc := new(barConfiguration)
-		_, err := f.InstantiateByName(bc, "Bar")
-		assert.Equal(t, autoconfigure.ErrInvalidMethod, err)
-	})
-
-	t.Run("should instantiate by name", func(t *testing.T) {
-		bc := new(barConfiguration)
-		bb, err := f.InstantiateByName(bc, "BarBar")
-		assert.Equal(t, nil, err)
-		assert.NotEqual(t, nil, bb)
-	})
-
-	t.Run("should instantiate by name", func(t *testing.T) {
-		fc := new(EarthConfiguration)
-		objVal := reflect.ValueOf(fc)
-		method, ok := objVal.Type().MethodByName("Land")
-		assert.Equal(t, true, ok)
-		fb, err := f.InstantiateMethod(fc, method, "Land")
-		assert.Equal(t, nil, err)
-		assert.NotEqual(t, nil, fb)
-	})
 
 	t.Run("should get SystemConfiguration", func(t *testing.T) {
 		sysCfg := f.SystemConfiguration()

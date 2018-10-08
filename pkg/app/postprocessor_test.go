@@ -33,7 +33,6 @@ func TestRegisterPostProcessor(t *testing.T) {
 	RegisterPostProcessor(new(fakePostProcessor))
 	pp := newPostProcessor()
 
-	pp.BeforeInitialization(nil)
 	pp.AfterInitialization(nil)
 
 }

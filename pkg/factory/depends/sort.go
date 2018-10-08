@@ -35,7 +35,7 @@ func (s depResolver) Resolve() (resolved Graph, err error) {
 	for i, item := range s {
 		// find the index of its dependency
 		dep, ok := s.findDependencies(item)
-		//// TODO: temp work around
+		// for debug only
 		//for _, extDep := range item.ExtDep {
 		//	workingGraph = append(workingGraph, NewNode(-1, extDep))
 		//}
@@ -47,7 +47,7 @@ func (s depResolver) Resolve() (resolved Graph, err error) {
 		workingGraph = append(workingGraph, node)
 	}
 	resolved, err = resolveGraph(workingGraph)
-	displayDependencyGraph("working graph", workingGraph, log.Debug)
+	//displayDependencyGraph("working graph", workingGraph, log.Debug)
 	return
 }
 
@@ -175,10 +175,10 @@ func Resolve(data []*factory.MetaData) (result []*factory.MetaData, err error) {
 
 		if err != nil {
 			log.Errorf("Failed to resolve dependencies: %s", err)
-			displayDependencyGraph("broken graph", resolved, log.Error)
+			displayDependencyGraph("circular dependency graph", resolved, log.Error)
 		} else {
 			log.Infof("The dependency graph resolved successfully")
-			displayDependencyGraph("resolved graph", resolved, log.Debug)
+			displayDependencyGraph("resolved dependency graph", resolved, log.Debug)
 			for _, item := range resolved {
 				if item.index >= 0 {
 					result = append(result, data[item.index])

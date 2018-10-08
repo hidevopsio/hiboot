@@ -124,17 +124,16 @@ func (f *ConfigurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 	f.SetInstance("systemConfiguration", systemConfig)
 	inject.DefaultValue(systemConfig)
 	_, err = f.builder.Build()
-	if err != nil {
-		return
+	if err == nil {
+		// TODO: should separate instance to system and app
+		inject.IntoObject(systemConfig)
+		replacer.Replace(systemConfig, systemConfig)
+
+		f.configurations.Set(System, systemConfig)
+
+		f.systemConfig = systemConfig
 	}
-	// TODO: should separate instance to system and app
-	inject.IntoObject(systemConfig)
-	replacer.Replace(systemConfig, systemConfig)
-
-	f.configurations.Set(System, systemConfig)
-
-	f.systemConfig = systemConfig
-	return systemConfig, err
+	return
 }
 
 // Build build all auto configurations
@@ -156,7 +155,7 @@ func (f *ConfigurableFactory) Build(configs []*factory.MetaData) {
 			}
 		} else {
 			err := ErrInvalidObjectType
-			log.Error(err)
+			log.Errorf("item: %v err: %v", item, err)
 			continue
 		}
 	}
@@ -164,66 +163,6 @@ func (f *ConfigurableFactory) Build(configs []*factory.MetaData) {
 	f.build(f.preConfigureContainer)
 	f.build(f.configureContainer)
 	f.build(f.postConfigureContainer)
-
-}
-
-// InstantiateByName instantiate by method name
-func (f *ConfigurableFactory) InstantiateByName(configuration interface{}, name string) (inst interface{}, err error) {
-	objVal := reflect.ValueOf(configuration)
-	method, ok := objVal.Type().MethodByName(name)
-	if ok {
-		return f.InstantiateMethod(configuration, method, name)
-	}
-	return nil, ErrInvalidMethod
-}
-
-// InstantiateMethod instantiate by iterated methods
-func (f *ConfigurableFactory) InstantiateMethod(configuration interface{}, method reflect.Method, methodName string) (inst interface{}, err error) {
-	//log.Debugf("method: %v", methodName)
-	instanceName := str.LowerFirst(methodName)
-	if inst = f.GetInstance(instanceName); inst != nil {
-		//log.Debugf("instance %v exists", instanceName)
-		return
-	}
-	numIn := method.Type.NumIn()
-	// only 1 arg is supported so far
-	argv := make([]reflect.Value, numIn)
-	argv[0] = reflect.ValueOf(configuration)
-	for a := 1; a < numIn; a++ {
-		// TODO: eliminate duplications
-		mth := method.Type.In(a)
-		iTyp := reflector.IndirectType(mth)
-		mthName := str.ToLowerCamel(iTyp.Name())
-		depInst := f.GetInstance(mthName)
-		if depInst == nil {
-			pkgName := io.DirName(iTyp.PkgPath())
-			alternativeName := str.ToLowerCamel(pkgName) + iTyp.Name()
-			depInst = f.GetInstance(alternativeName)
-			if depInst == nil {
-				// TODO: check it it's dependency circle
-				// TODO: check if it depends on the instance of another configuration
-				depInst, err = f.InstantiateByName(configuration, strings.Title(mthName))
-				if err != nil {
-					depInst, err = f.InstantiateByName(configuration, strings.Title(alternativeName))
-				}
-			}
-		}
-		if depInst == nil {
-			log.Errorf("[factory] failed to inject dependency as it can not be found")
-		}
-		argv[a] = reflect.ValueOf(depInst)
-	}
-	// inject instance into method
-	retVal := method.Func.Call(argv)
-	// save instance
-	if retVal != nil && retVal[0].CanInterface() {
-		inst = retVal[0].Interface()
-		//log.Debugf("instantiated: %v", instance)
-
-		// save instance
-		f.SetInstance(instanceName, inst)
-	}
-	return
 }
 
 // Instantiate run instantiation by method
@@ -231,7 +170,6 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error)
 	cv := reflect.ValueOf(configuration)
 
 	// inject configuration before instantiation
-
 	configType := cv.Type()
 	//log.Debug("type: ", configType)
 	//name := configType.Elem().Name()
@@ -296,7 +234,7 @@ func (f *ConfigurableFactory) build(cfgContainer []*factory.MetaData) {
 		// No properties needs to build, use default config
 		if cf == nil {
 			confTyp := reflect.TypeOf(config)
-			if confTyp.Kind() == reflect.Ptr {
+			if confTyp != nil && confTyp.Kind() == reflect.Ptr {
 				cf = config
 			} else {
 				log.Errorf("Unsupported type: %v", confTyp)

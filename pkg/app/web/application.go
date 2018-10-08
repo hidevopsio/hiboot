@@ -123,13 +123,6 @@ func (a *application) build() (err error) {
 		}
 	})
 
-	// categorize controllers
-	//a.controllerMap = make(map[string][]interface{})
-	//err = a.add()
-	//if err != nil {
-	//	return
-	//}
-
 	// first register anon controllers
 	a.RegisterController(new(annotation.RestController))
 
