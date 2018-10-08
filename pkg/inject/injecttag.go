@@ -48,6 +48,7 @@ func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, tag 
 		if retVal == nil {
 			retVal = t.ConfigurableFactory.GetInstance(ft.Name())
 		}
+		// else create new instance at runtime
 		if retVal == nil && field.Type.Kind() != reflect.Interface {
 			o := reflect.New(ft)
 			retVal = o.Interface()

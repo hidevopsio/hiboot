@@ -195,7 +195,18 @@ func (s *buzService) GetNickname() string {
 	return s.nickname
 }
 
+type bxzServiceImpl struct {
+	BxzService
+	Name     string
+	nickname string
+}
+
+func (s *bxzServiceImpl) GetNickname() string {
+	return s.nickname
+}
+
 type dependencyInjectionTestService struct {
+	BxzSvc     BxzService `inject:""`
 	BazService BxzService `inject:""`
 	BuzService BxzService `inject:""`
 	BozService BxzService `inject:"buzService"`
@@ -507,16 +518,19 @@ func TestInject(t *testing.T) {
 	t.Run("should inject into object by inject tag", func(t *testing.T) {
 		cf.SetInstance("bazService", new(bazService))
 		cf.SetInstance("buzService", new(buzService))
+		cf.SetInstance("bxzService", new(bxzServiceImpl))
 
 		svc := new(dependencyInjectionTestService)
 		err := inject.IntoObject(svc)
 
 		bazSvc := cf.GetInstance("bazService")
 		buzSvc := cf.GetInstance("buzService")
+		bxzSvc := cf.GetInstance("bxzService")
 
 		assert.Equal(t, nil, err)
 		assert.Equal(t, bazSvc, svc.BazService)
 		assert.Equal(t, buzSvc, svc.BozService)
 		assert.Equal(t, buzSvc, svc.BuzService)
+		assert.Equal(t, bxzSvc, svc.BxzSvc)
 	})
 }
