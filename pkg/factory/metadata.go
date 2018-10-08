@@ -43,9 +43,7 @@ func NewMetaData(params ...interface{}) *MetaData {
 	typ := reflect.TypeOf(object)
 	kind := typ.Kind()
 	kindName := kind.String()
-	if kind == reflect.Struct && typ.Name() == types.Method {
-		kindName = types.Method
-	}
+
 	if pkgName != "" {
 		if name == "" {
 			shortName = str.ToLowerCamel(typeName)
@@ -55,13 +53,16 @@ func NewMetaData(params ...interface{}) *MetaData {
 			name = pkgName + "." + name
 		}
 	}
-
+	if kind == reflect.Struct && typ.Name() == types.Method {
+		kindName = types.Method
+	}
 	if kindName == types.Method || kindName == types.Func {
 		t, ok := reflector.GetFuncOutType(object)
 		if ok {
 			typ = t
 		}
 	}
+
 	return &MetaData{
 		Kind:      kindName,
 		PkgName:   pkgName,

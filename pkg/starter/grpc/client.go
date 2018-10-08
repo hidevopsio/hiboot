@@ -1,59 +1,29 @@
 package grpc
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/factory"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"google.golang.org/grpc"
+	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
 )
 
-// ClientConnector interface is response for creating grpc client connection
-type ClientConnector interface {
-	Connect(name string, cb interface{}, prop *ClientProperties) (err error)
+// ClientFactory build grpc clients
+type ClientFactory interface {
 }
 
-type clientConnector struct {
-	instantiateFactory factory.InstantiateFactory
+type clientFactory struct {
 }
 
-func newClientConnector(instantiateFactory factory.InstantiateFactory) ClientConnector {
-	return &clientConnector{
-		instantiateFactory: instantiateFactory,
-	}
+func newClientFactory(properties properties, cc ClientConnector) ClientFactory {
+	cf := &clientFactory{}
+	cf.buildClients(properties, cc)
+
+	return cf
 }
 
-// Connect connect to grpc server from client
-func (c *clientConnector) Connect(name string, cb interface{}, prop *ClientProperties) (err error) {
-	host := prop.Host
-	if host == "" {
-		host = name
-	}
-	address := host + ":" + prop.Port
-	conn := c.instantiateFactory.GetInstance(name)
-	if conn == nil {
-		// connect to grpc server
-		conn, err = grpc.Dial(address, grpc.WithInsecure())
-		c.instantiateFactory.SetInstance(name, conn)
-		if err != nil {
-			log.Errorf("failed to connect to grpc server %v", address)
-			return
-		}
-		log.Infof("gRPC client connected to: %v", address)
-	}
-	if cb != nil {
-		// get return type for register instance name
-		gRpcCli, err := reflector.CallFunc(cb, conn)
-		if err == nil {
-			clientInstanceName, err := reflector.GetName(gRpcCli)
-			if err == nil {
-				// register grpc client
-				c.instantiateFactory.SetInstance(clientInstanceName, gRpcCli)
-				// register clientConn
-				c.instantiateFactory.SetInstance(clientInstanceName+"Conn", conn)
-
-				log.Infof("Registered gRPC client %v", clientInstanceName)
-			}
+func (f *clientFactory) buildClients(properties properties, cc ClientConnector) {
+	clientProps := properties.Client
+	for _, cli := range grpcClients {
+		prop := new(ClientProperties)
+		if err := mapstruct.Decode(prop, clientProps[cli.name]); err == nil {
+			cc.Connect(cli.name, cli.cb, prop)
 		}
 	}
-	return nil
 }

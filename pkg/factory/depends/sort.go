@@ -34,12 +34,11 @@ func (s depResolver) Resolve() (resolved Graph, err error) {
 	var node *Node
 	for i, item := range s {
 		// find the index of its dependency
-		//name := s.getFullName(item)
 		dep, ok := s.findDependencies(item)
-		// TODO: temp work around
-		for _, extDep := range item.ExtDep {
-			workingGraph = append(workingGraph, NewNode(-1, extDep))
-		}
+		//// TODO: temp work around
+		//for _, extDep := range item.ExtDep {
+		//	workingGraph = append(workingGraph, NewNode(-1, extDep))
+		//}
 		if ok {
 			node = NewNode(i, item, dep...)
 		} else {
@@ -58,8 +57,18 @@ func (s depResolver) findDependencyIndex(depName string) int {
 			return i
 		}
 
-		if item.Name == depName || item.PkgName == depName {
+		// find item name or package name
+		if item.ShortName == depName || item.Name == depName || item.PkgName == depName {
 			return i
+		}
+
+		// else find method name
+		if item.Kind == types.Method {
+			method := item.Object.(reflect.Method)
+			methodName := str.ToLowerCamel(method.Name)
+			if depName == methodName || depName == item.PkgName+"."+methodName {
+				return i
+			}
 		}
 	}
 	return -1
@@ -153,15 +162,6 @@ func (s depResolver) findDependencies(item *factory.MetaData) (dep []*Node, ok b
 		}
 	}
 
-	return
-}
-
-func (s depResolver) getFullName(md *factory.MetaData) (name string) {
-	// check if it's func
-	if md.PkgName == "" || md.TypeName == "" {
-		md.PkgName, md.TypeName = reflector.GetPkgAndName(md.Object)
-	}
-	name = md.PkgName + "." + md.TypeName
 	return
 }
 

@@ -16,15 +16,17 @@ package grpc_test
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 	"testing"
+	"time"
 )
 
 func init() {
-
+	log.SetLevel(log.DebugLevel)
 }
 
 // gRpc server
@@ -59,6 +61,8 @@ func TestGrpcServerAndClient(t *testing.T) {
 
 	app := web.NewTestApplication(t)
 	assert.NotEqual(t, nil, app)
+
+	time.Sleep(1000 * time.Millisecond)
 
 	//name := "Steve"
 	//response, err := greeterClientSvc.SayHello(name)
