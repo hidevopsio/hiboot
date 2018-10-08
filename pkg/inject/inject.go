@@ -174,36 +174,6 @@ func IntoObjectValue(object reflect.Value, tags ...Tag) error {
 			err = IntoObjectValue(fieldObj, tags...)
 		}
 	}
-
-	//method injection
-	//Init, Setter
-	method, ok := object.Type().MethodByName(initMethodName)
-	if ok {
-		log.Warnf("inject through Init method of object : %v ", object.Type())
-		numIn := method.Type.NumIn()
-		inputs := make([]reflect.Value, numIn)
-		inputs[0] = obj.Addr()
-		var val reflect.Value
-		for i := 1; i < numIn; i++ {
-			val, ok = parseMethodInput(method.Type.In(i))
-			if ok {
-				inputs[i] = val
-				//log.Debugf("inType: %v, name: %v, instance: %v", inType, inTypeName, inst)
-				//log.Debugf("kind: %v == %v, %v, %v ", obj.Kind(), reflect.Struct, paramValue.IsValid(), paramValue.CanSet())
-				paramObject := reflect.Indirect(val)
-				if val.IsValid() && paramObject.IsValid() && paramObject.Type() != obj.Type() && paramObject.Kind() == reflect.Struct {
-					err = IntoObjectValue(val, tags...)
-				}
-			} else {
-				break
-			}
-		}
-		// finally call Init method to inject
-		if ok {
-			method.Func.Call(inputs)
-		}
-	}
-
 	return err
 }
 
