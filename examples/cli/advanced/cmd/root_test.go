@@ -56,6 +56,7 @@ func TestRootCommands(t *testing.T) {
 
 	t.Run("should report unknown command", func(t *testing.T) {
 		_, err := testApp.RunTest("not-exist-command")
+		assert.NotEqual(t, nil, err)
 		assert.Contains(t, err.Error(), "unknown command")
 	})
 }

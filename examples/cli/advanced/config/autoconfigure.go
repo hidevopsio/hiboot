@@ -10,7 +10,11 @@ type configuration struct {
 }
 
 func init() {
-	app.AutoConfiguration(new(configuration))
+	app.AutoConfiguration(newConfiguration)
+}
+
+func newConfiguration() *configuration {
+	return new(configuration)
 }
 
 func (c *configuration) Foo() *model.Foo {

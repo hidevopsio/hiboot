@@ -71,11 +71,11 @@ func TestApp(t *testing.T) {
 	})
 
 	t.Run("should add configuration with pkg name", func(t *testing.T) {
-		type configuration struct {
+		type bazConfiguration struct {
 			app.PostConfiguration
 			Properties fakeProperties `mapstructure:"fake"`
 		}
-		err := app.AutoConfiguration(new(configuration))
+		err := app.AutoConfiguration(new(bazConfiguration))
 		assert.Equal(t, nil, err)
 	})
 

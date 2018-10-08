@@ -244,11 +244,6 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error)
 		method := configType.Method(mi)
 		// append inst to f.components
 		f.AppendComponent(configuration, method)
-		// TODO: InstantiateMethod should be removed, all dependencies should be injected in component builder ...
-		//_, err = f.InstantiateMethod(configuration, method, method.Name)
-		//if err != nil {
-		//	return
-		//}
 	}
 	return
 }
@@ -273,13 +268,11 @@ func (f *ConfigurableFactory) parseName(item *factory.MetaData) string {
 
 // build
 func (f *ConfigurableFactory) build(cfgContainer []*factory.MetaData) {
-	// sort dependencies
-	//resolvedCfgs, err := depends.Resolve(cfgContainer)
-	//if err == nil {
+
 	isTestRunning := gotest.IsRunning()
 	for _, item := range cfgContainer {
 		name := f.parseName(item)
-		configType := item.Object
+		config := item.Object
 
 		// TODO: should check if profiles is enabled str.InSlice(name, sysconf.App.Profiles.Include)
 		if !isTestRunning && f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
@@ -289,39 +282,43 @@ func (f *ConfigurableFactory) build(cfgContainer []*factory.MetaData) {
 
 		// inject into func
 		if item.Kind == types.Func {
-			configType, _ = inject.IntoFunc(configType)
+			config, _ = inject.IntoFunc(config)
 		}
 
 		// inject properties
-		f.builder.ConfigType = configType
+		f.builder.ConfigType = config
 
 		// inject default value
-		inject.DefaultValue(configType)
+		inject.DefaultValue(config)
 
-		cf, err := f.builder.Build(name, f.appProfilesActive())
-
-		// TODO: check if cf.DependsOn
+		// build properties, inject settings
+		cf, _ := f.builder.Build(name, f.appProfilesActive())
+		// No properties needs to build, use default config
 		if cf == nil {
-			log.Debugf("failed to build %v configuration with error %v", name, err)
-		} else {
-			// replace references and environment variables
-			if f.systemConfig != nil {
-				replacer.Replace(cf, f.systemConfig)
-			}
-			inject.IntoObject(cf)
-			replacer.Replace(cf, cf)
-
-			// instantiation
-			if err == nil {
-				// create instances
-				f.Instantiate(cf)
-				// save configuration
-				if _, ok := f.configurations.Get(name); ok {
-					log.Fatalf("[factory] configuration name %v is already taken", name)
-				}
-				f.configurations.Set(name, cf)
+			confTyp := reflect.TypeOf(config)
+			if confTyp.Kind() == reflect.Ptr {
+				cf = config
+			} else {
+				log.Errorf("Unsupported type: %v", confTyp)
+				continue
 			}
 		}
+
+		// replace references and environment variables
+		if f.systemConfig != nil {
+			replacer.Replace(cf, f.systemConfig)
+		}
+		inject.IntoObject(cf)
+		replacer.Replace(cf, cf)
+
+		// instantiation
+		f.Instantiate(cf)
+		// save configuration
+		if _, ok := f.configurations.Get(name); ok {
+			log.Fatalf("[factory] configuration name %v is already taken", name)
+		}
+		f.configurations.Set(name, cf)
+
 	}
 	//}
 }

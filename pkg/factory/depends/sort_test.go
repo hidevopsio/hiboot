@@ -64,7 +64,7 @@ type parentConfiguration struct {
 }
 
 type grantConfiguration struct {
-	app.Configuration `depends:"fake.Configuration"`
+	app.Configuration `depends:"fake.configuration"`
 }
 
 type circularChildConfiguration struct {
@@ -164,14 +164,13 @@ func TestSort(t *testing.T) {
 		{
 			title: "should sort dependencies",
 			configurations: []*factory.MetaData{
-				factory.NewMetaData(new(fooConfiguration)),
 				factory.NewMetaData(new(bar.Configuration)),
+				factory.NewMetaData(new(foo.Configuration)),
 				factory.NewMetaData(new(fake.Configuration)),
 				factory.NewMetaData(new(parentConfiguration)),
 				factory.NewMetaData(new(grantConfiguration)),
 				factory.NewMetaData(new(childConfiguration)),
 				factory.NewMetaData(foo.NewConfiguration),
-				factory.NewMetaData(new(barConfiguration)),
 			},
 			err: nil,
 		},
@@ -198,7 +197,7 @@ func TestSort(t *testing.T) {
 				factory.NewMetaData(new(parentConfiguration)),
 				factory.NewMetaData(new(barConfiguration)),
 			},
-			err: nil, // TODO: temp solution depends.ErrCircularDependency,
+			err: depends.ErrCircularDependency,
 		},
 		{
 			title: "should sort with constructor's dependencies",
