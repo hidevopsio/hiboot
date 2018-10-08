@@ -147,6 +147,9 @@ func (f *InstantiateFactory) GetInstance(name string) (retVal interface{}) {
 	if !f.Initialized() {
 		return nil
 	}
+
+	// force to use camel case name
+	name = str.ToLowerCamel(name)
 	//items := f.Items()
 	//log.Debug(items)
 	var ok bool

@@ -173,27 +173,33 @@ type MethodInjectionService struct {
 	repository FakeRepository
 }
 
-type BazService interface {
+type BxzService interface {
 	GetNickname() string
 }
 
-type BazImpl struct {
-	BazService
-	Name     string `inject:""`
+type bazService struct {
+	Name     string
 	nickname string
 }
 
-func (s *BazImpl) GetNickname() string {
+func (s *bazService) GetNickname() string {
 	return s.nickname
 }
 
-type testService struct {
-	baz  BazService
-	name string
+type buzService struct {
+	Name     string
+	nickname string
 }
 
-func (s *testService) Init(baz BazService) {
-	s.baz = baz
+func (s *buzService) GetNickname() string {
+	return s.nickname
+}
+
+type dependencyInjectionTestService struct {
+	BazService BxzService `inject:""`
+	BuzService BxzService `inject:""`
+	BozService BxzService `inject:"buzService"`
+	name       string
 }
 
 type buzz struct {
@@ -202,21 +208,21 @@ type buzz struct {
 
 type buzzService struct {
 	bz *buzz
+	bs *buzzService
 }
 
-func (s *buzzService) Init(bs *buzzService, bz *buzz) {
-	s.bz = bz
+func newBuzzService(bs *buzzService, bz *buzz) *buzzService {
+	return &buzzService{
+		bz: bz,
+		bs: bs,
+	}
 }
 
 type CatInterface interface {
 }
 
 type animalService struct {
-	cat CatInterface
-}
-
-func (a *animalService) Init(cat CatInterface) {
-	a.cat = cat
+	Cat CatInterface `inject:""`
 }
 
 type testTag struct {
@@ -408,21 +414,22 @@ func TestInject(t *testing.T) {
 	})
 
 	t.Run("should ignore to inject with invalid struct type BazService", func(t *testing.T) {
-		ts := new(testService)
+		ts := new(dependencyInjectionTestService)
 		err := inject.IntoObject(ts)
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should failed to inject if the type of param and receiver are the same", func(t *testing.T) {
-		err := inject.IntoObject(new(buzzService))
+		buzz, err := inject.IntoFunc(newBuzzService)
 		assert.Equal(t, nil, err)
+		assert.NotEqual(t, nil, buzz)
 	})
 
 	t.Run("should skip inject if the type of param is an unimplemented interface", func(t *testing.T) {
 		catSvc := new(animalService)
 		err := inject.IntoObject(catSvc)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, nil, catSvc.cat)
+		assert.Equal(t, nil, catSvc.Cat)
 	})
 
 	t.Run("should inject value and it must not be singleton", func(t *testing.T) {
@@ -495,5 +502,21 @@ func TestInject(t *testing.T) {
 		obj, err := inject.IntoFunc(nil)
 		assert.NotEqual(t, nil, err)
 		assert.Equal(t, nil, obj)
+	})
+
+	t.Run("should inject into object by inject tag", func(t *testing.T) {
+		cf.SetInstance("bazService", new(bazService))
+		cf.SetInstance("buzService", new(buzService))
+
+		svc := new(dependencyInjectionTestService)
+		err := inject.IntoObject(svc)
+
+		bazSvc := cf.GetInstance("bazService")
+		buzSvc := cf.GetInstance("buzService")
+
+		assert.Equal(t, nil, err)
+		assert.Equal(t, bazSvc, svc.BazService)
+		assert.Equal(t, buzSvc, svc.BozService)
+		assert.Equal(t, buzSvc, svc.BuzService)
 	})
 }
