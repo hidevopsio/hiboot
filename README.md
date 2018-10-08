@@ -144,38 +144,45 @@ e.g. flag tag dependency injection
 
 ```go
 
-// declare main package
-package main
-
 // import cli starter and fmt
-import "github.com/hidevopsio/hiboot/pkg/app/cli"
-import "fmt"
+import (
+	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
+)
 
 // define the command
-type HelloCommand struct {
+type rootCommand struct {
 	// embedding cli.BaseCommand in each command
 	cli.BaseCommand
-	// inject (bind) flag to field 'To', so that it can be used on Run method, please note that the data type must be pointer
-	To *string `flag:"name=to,shorthand=t,value=world,usage=e.g. --to=world or -t world"`
+	To string
 }
 
-// Init constructor
-func (c *HelloCommand) Init() {
+func newRootCommand() *rootCommand {
+	c := new(rootCommand)
 	c.Use = "hello"
 	c.Short = "hello command"
 	c.Long = "run hello command for getting started"
+	c.Example = `
+hello -h : help
+hello -t John : say hello to John
+`
+	c.PersistentFlags().StringVarP(&c.To, "to", "t", "world", "e.g. --to=world or -t world")
+	return c
 }
 
 // Run run the command
-func (c *HelloCommand) Run(args []string) error {
-	fmt.Printf("Hello, %v\n", *c.To)
+func (c *rootCommand) Run(args []string) error {
+	fmt.Printf("Hello, %v\n", c.To)
 	return nil
 }
 
 // main function
 func main() {
 	// create new cli application and run it
-	cli.NewApplication(new(HelloCommand)).Run()
+	cli.NewApplication(newRootCommand).
+		SetProperty(app.PropertyBannerDisabled, true).
+		Run()
 }
 
 ```
@@ -239,51 +246,59 @@ Ideally Go struct should be as independent as possible from other Go struct. Thi
 The following example shows a struct which has no hard dependencies.
 
 ```go
-
 package main
 
-// import cli starter and fmt
 import (
-	"fmt"
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/app/cli"
+    "github.com/hidevopsio/hiboot/pkg/app/web"
+    "github.com/hidevopsio/hiboot/pkg/model"
+    "github.com/hidevopsio/hiboot/pkg/starter/jwt"
+    "time"
 )
 
-// define the command
-type rootCommand struct {
-	// embedding cli.BaseCommand in each command
-	cli.BaseCommand
-	// inject (bind) flag to field 'To', so that it can be used on Run method, please note that the data type must be pointer
-	To string `flag:"name=to,shorthand=t,value=world,usage=e.g. --to=world or -t world"`
+// This example shows that jwtToken is injected through method Init,
+// once you imported "github.com/hidevopsio/hiboot/pkg/starter/jwt",
+// jwtToken jwt.Token will be injectable.
+func main() {}
+
+// PATH: /login
+type loginController struct {
+    web.Controller
+
+    jwtToken jwt.Token
 }
 
-func newRootCommand() *rootCommand {
-	c := new(rootCommand)
-	c.Use = "hello"
-	c.Short = "hello command"
-	c.Long = "run hello command for getting started"
-	c.Example = `
-hello -h : help
-hello -t John : say hello to John
-`
-	c.PersistentFlags().StringVarP(&c.To, "to", "t", "world", "e.g. --to=world or -t world")
-	return c
+type userRequest struct {
+    // embedded field model.RequestBody mark that userRequest is request body
+    model.RequestBody
+    Username string `json:"username" validate:"required"`
+    Password string `json:"password" validate:"required"`
 }
 
-// Run run the command
-func (c *rootCommand) Run(args []string) error {
-	fmt.Printf("Hello, %v\n", c.To)
-	return nil
+func init() {
+    // Register Rest Controller through constructor newLoginController
+    web.RestController(newLoginController)
 }
 
-// main function
-func main() {
-	// create new cli application and run it
-	cli.NewApplication(newRootCommand).
-		SetProperty(app.PropertyBannerDisabled, true).
-		Run()
+// Init inject jwtToken through the argument jwtToken jwt.Token on constructor
+func newLoginController(jwtToken jwt.Token) *loginController {
+    return &loginController{
+        jwtToken: jwtToken,
+    }
 }
 
+// Post /
+// The first word of method is the http method POST, the rest is the context mapping
+func (c *loginController) Post(request *userRequest) (response model.Response, err error) {
+    jwtToken, _ := c.jwtToken.Generate(jwt.Map{
+        "username": request.Username,
+        "password": request.Password,
+    }, 30, time.Minute)
+
+    response = new(model.BaseResponse)
+    response.SetData(jwtToken)
+
+    return
+}
 ```
 
 ## Development Guide
