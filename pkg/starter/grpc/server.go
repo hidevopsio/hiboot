@@ -62,9 +62,8 @@ func (f *serverFactory) buildServers(properties properties, grpcServer *grpc.Ser
 		reflection.Register(grpcServer)
 		chn <- true
 		if err := grpcServer.Serve(lis); err != nil {
-			log.Print("failed to serve: %v", err)
+			log.Errorf("failed to serve: %v", err)
 		}
-		log.Print("gRPC server exit\n")
 	}()
 	<-chn
 
