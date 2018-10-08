@@ -1,6 +1,8 @@
 package controller
 
-import "github.com/hidevopsio/hiboot/pkg/app/web"
+import (
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+)
 
 // Health is the health check struct
 type Health struct {
@@ -12,7 +14,11 @@ type healthController struct {
 }
 
 func init() {
-	web.RestController(new(healthController))
+	web.RestController(newHealthController)
+}
+
+func newHealthController() *healthController {
+	return &healthController{}
 }
 
 // GET /health

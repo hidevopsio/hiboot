@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/system"
-	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
@@ -65,7 +63,9 @@ func SetFactory(f factory.ConfigurableFactory) {
 
 // AddTag add new tag
 func AddTag(tag Tag) {
-	tagsContainer = append(tagsContainer, tag)
+	if tag != nil {
+		tagsContainer = append(tagsContainer, tag)
+	}
 }
 
 func getInstanceByName(name string, instType reflect.Type) (inst interface{}) {
@@ -105,7 +105,7 @@ func IntoObjectValue(object reflect.Value, tags ...Tag) error {
 
 	obj := reflector.Indirect(object)
 	if obj.Kind() != reflect.Struct {
-		log.Errorf("[inject] object: %v, kind: %v", object, obj.Kind())
+		log.Warnf("[inject] ignore object: %v, kind: %v", object, obj.Kind())
 		return ErrInvalidObject
 	}
 
@@ -115,17 +115,6 @@ func IntoObjectValue(object reflect.Value, tags ...Tag) error {
 	} else {
 		targetTags = tagsContainer
 	}
-	sc := appFactory.GetInstance("systemConfiguration")
-	if sc == nil {
-		return ErrSystemConfiguration
-	}
-	systemConfig := sc.(*system.Configuration)
-
-	cs := appFactory.GetInstance("configurations")
-	if cs == nil {
-		return ErrSystemConfiguration
-	}
-	configurations := cs.(cmap.ConcurrentMap)
 
 	// field injection
 	for _, f := range reflector.DeepFields(object.Type()) {
@@ -154,15 +143,15 @@ func IntoObjectValue(object reflect.Value, tags ...Tag) error {
 				}
 				tag, ok := f.Tag.Lookup(tagName)
 				if ok {
-					tagImpl.Init(systemConfig, configurations)
+					tagImpl.Init(appFactory)
 					injectedObject = tagImpl.Decode(object, f, tag)
 					if injectedObject != nil {
-						if tagImpl.IsSingleton() {
-							err := saveInstance(f.Name, injectedObject)
-							if err != nil {
-								log.Warnf("instance %v is already exist", f.Name)
-							}
-						}
+						//if tagImpl.IsSingleton() {
+						//	err := saveInstance(f.Name, injectedObject)
+						//	if err != nil {
+						//		log.Warnf("instance %v is already exist", f.Name)
+						//	}
+						//}
 						// ONLY one tag should be used for dependency injection
 						break
 					}
@@ -185,35 +174,6 @@ func IntoObjectValue(object reflect.Value, tags ...Tag) error {
 			err = IntoObjectValue(fieldObj, tags...)
 		}
 	}
-
-	// method injection
-	// Init, Setter
-	method, ok := object.Type().MethodByName(initMethodName)
-	if ok {
-		numIn := method.Type.NumIn()
-		inputs := make([]reflect.Value, numIn)
-		inputs[0] = obj.Addr()
-		var val reflect.Value
-		for i := 1; i < numIn; i++ {
-			val, ok = parseMethodInput(method.Type.In(i))
-			if ok {
-				inputs[i] = val
-				//log.Debugf("inType: %v, name: %v, instance: %v", inType, inTypeName, inst)
-				//log.Debugf("kind: %v == %v, %v, %v ", obj.Kind(), reflect.Struct, paramValue.IsValid(), paramValue.CanSet())
-				paramObject := reflect.Indirect(val)
-				if val.IsValid() && paramObject.IsValid() && paramObject.Type() != obj.Type() && paramObject.Kind() == reflect.Struct {
-					err = IntoObjectValue(val, tags...)
-				}
-			} else {
-				break
-			}
-		}
-		// finally call Init method to inject
-		if ok {
-			method.Func.Call(inputs)
-		}
-	}
-
 	return err
 }
 
@@ -229,13 +189,16 @@ func parseMethodInput(inType reflect.Type) (paramValue reflect.Value, ok bool) {
 	}
 	ok = true
 	if inst == nil {
-		//log.Debug(inType.Kind())
+		log.Debug(inType.Kind())
 		switch inType.Kind() {
 		// interface and slice creation is not supported
 		case reflect.Interface, reflect.Slice:
 			ok = false
 			break
 		default:
+			// should find instance in the component container first
+
+			// if it is not found, then create new instance
 			paramValue = reflect.New(inType)
 			inst = paramValue.Interface()
 			err := saveInstance(inTypeName, inst)
@@ -257,6 +220,7 @@ func IntoFunc(object interface{}) (retVal interface{}, err error) {
 	if fn.Kind() == reflect.Func {
 		numIn := fn.Type().NumIn()
 		inputs := make([]reflect.Value, numIn)
+		// TODO: should load function inputs when resolving dependencies to improve performance
 		for i := 0; i < numIn; i++ {
 			fnInType := fn.Type().In(i)
 			val, ok := parseMethodInput(fnInType)
@@ -273,10 +237,45 @@ func IntoFunc(object interface{}) (retVal interface{}, err error) {
 		}
 		results := fn.Call(inputs)
 		if len(results) != 0 {
-			return results[0].Interface(), nil
+			retVal = results[0].Interface()
+			return
 		} else {
-			return nil, nil
+			return
 		}
 	}
-	return nil, ErrInvalidFunc
+	err = ErrInvalidFunc
+	return
+}
+
+//IntoMethod inject object into func and return instance
+func IntoMethod(object interface{}, m interface{}) (retVal interface{}, err error) {
+	if object != nil && m != nil {
+		method := m.(reflect.Method)
+		numIn := method.Type.NumIn()
+		inputs := make([]reflect.Value, numIn)
+		inputs[0] = reflect.ValueOf(object)
+		for i := 1; i < numIn; i++ {
+			fnInType := method.Type.In(i)
+			val, ok := parseMethodInput(fnInType)
+			if ok {
+				inputs[i] = val
+			} else {
+				return nil, fmt.Errorf("%v is not injected", fnInType.Name())
+			}
+
+			paramObject := reflect.Indirect(val)
+			if val.IsValid() && paramObject.IsValid() && paramObject.Kind() == reflect.Struct {
+				err = IntoObjectValue(val)
+			}
+		}
+		results := method.Func.Call(inputs)
+		if len(results) != 0 {
+			retVal = results[0].Interface()
+			return
+		} else {
+			return
+		}
+	}
+	err = ErrInvalidFunc
+	return
 }

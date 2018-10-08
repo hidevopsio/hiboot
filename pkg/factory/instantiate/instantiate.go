@@ -18,13 +18,15 @@ package instantiate
 import (
 	"errors"
 	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/factory"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/system/types"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
-	"strings"
 )
 
 var (
@@ -38,11 +40,15 @@ var (
 // InstantiateFactory is the factory that responsible for object instantiation
 type InstantiateFactory struct {
 	instanceMap cmap.ConcurrentMap
+	components  []*factory.MetaData
+	categorized map[string][]interface{}
 }
 
 // Initialize init the factory
-func (f *InstantiateFactory) Initialize(instanceMap cmap.ConcurrentMap) {
+func (f *InstantiateFactory) Initialize(instanceMap cmap.ConcurrentMap, components []*factory.MetaData) {
 	f.instanceMap = instanceMap
+	f.components = components
+	f.categorized = make(map[string][]interface{})
 }
 
 // Initialized check if factory is initialized
@@ -61,68 +67,48 @@ func (f *InstantiateFactory) IsValidObjectType(inst interface{}) bool {
 	return false
 }
 
-// ParseInstance parse object name and type
-func (f *InstantiateFactory) ParseInstance(eliminator string, params ...interface{}) (name string, inst interface{}) {
-
-	hasTwoParams := len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String
-
-	if hasTwoParams {
-		inst = params[1]
-		name = params[0].(string)
-	} else {
-		inst = params[0]
-	}
-
-	if !hasTwoParams {
-		if reflect.TypeOf(inst).Kind() == reflect.Func {
-			// call func
-			var err error
-			fn := inst
-			inst, err = inject.IntoFunc(fn)
-			if err != nil {
-				return "", nil
-			}
-			// name should get from fn out
-			fnVal := reflect.ValueOf(fn)
-			if fnVal.Type().NumOut() == 1 {
-				retTyp := fnVal.Type().Out(0)
-				log.Debugf("[factory] constructor return type: %v, kind: %v", retTyp.Name(), retTyp.Kind())
-				if retTyp.Kind() == reflect.Interface {
-					name = retTyp.Name()
-					return name, inst
-				}
-			}
-		}
-		name = reflector.ParseObjectName(inst, eliminator)
-		if name == "" || strings.ToLower(name) == strings.ToLower(eliminator) {
-			name = reflector.ParseObjectPkgName(inst)
-		}
-	}
-
-	return
+// AppendComponent append component
+func (f *InstantiateFactory) AppendComponent(c ...interface{}) {
+	metaData := factory.NewMetaData(c...)
+	f.components = append(f.components, metaData)
 }
 
 // BuildComponents build all registered components
-func (f *InstantiateFactory) BuildComponents(components [][]interface{}) (err error) {
-	for _, item := range components {
-		name, inst := f.ParseInstance("", item...)
-		if inst == nil {
-			return ErrInvalidObjectType
+func (f *InstantiateFactory) BuildComponents() (err error) {
+	//TODO: should sort components according to dependency tree first
+	var resolved []*factory.MetaData
+	resolved, err = depends.Resolve(f.components)
+	// then build components
+	var obj interface{}
+	var name string
+	for _, item := range resolved {
+		// inject dependencies into function
+		// components, controllers
+		switch item.Kind {
+		case types.Func:
+			obj, err = inject.IntoFunc(item.Object)
+			name = item.ShortName
+		case types.Method:
+			obj, err = inject.IntoMethod(item.Context, item.Object)
+			name = item.ShortName
+			log.Debugf("inject into method: %v - %v", item.Name, item.ShortName)
+			// TODO: need to shift from _, err = f.InstantiateMethod(configuration, method, method.Name)
+			//continue
+		default:
+			name, obj = item.Name, item.Object
 		}
-		// use interface name if it's available as use does not specify its name
-		field := reflector.GetEmbeddedInterfaceField(inst)
-		if field.Anonymous {
-			name = str.ToLowerCamel(field.Name)
-			//log.Debugf("component %v has embedded field: %v", inst, name)
-		}
-		if name == "" {
-			continue
-		}
+		// inject into object
 
-		if f.IsValidObjectType(inst) {
-			err = f.SetInstance(name, inst)
-			if err != nil {
-				return
+		if obj != nil {
+			err = inject.IntoObject(obj)
+			// use interface name if it's available as use does not specify its name
+			field := reflector.GetEmbeddedInterfaceField(obj)
+			if field.Anonymous {
+				err = f.SetInstance(field.Name, obj)
+				//log.Debugf("component %v has embedded field: %v", inst, name)
+			}
+			if name != "" {
+				err = f.SetInstance(name, obj)
 			}
 		}
 	}
@@ -135,6 +121,7 @@ func (f *InstantiateFactory) SetInstance(name string, instance interface{}) (err
 		return ErrNotInitialized
 	}
 
+	// force to use camel case name
 	name = str.ToLowerCamel(name)
 
 	if _, ok := f.instanceMap.Get(name); ok {
@@ -142,19 +129,42 @@ func (f *InstantiateFactory) SetInstance(name string, instance interface{}) (err
 	}
 
 	f.instanceMap.Set(name, instance)
+
+	ifcField := reflector.GetEmbeddedInterfaceField(instance)
+	if ifcField.Anonymous {
+		typeName := ifcField.Name
+		categorised, ok := f.categorized[typeName]
+		if !ok {
+			categorised = make([]interface{}, 0)
+		}
+		f.categorized[typeName] = append(categorised, instance)
+	}
 	return
 }
 
 // GetInstance get instance by name
-func (f *InstantiateFactory) GetInstance(name string) (inst interface{}) {
+func (f *InstantiateFactory) GetInstance(name string) (retVal interface{}) {
 	if !f.Initialized() {
 		return nil
 	}
+
+	// force to use camel case name
+	name = str.ToLowerCamel(name)
 	//items := f.Items()
 	//log.Debug(items)
 	var ok bool
-	if inst, ok = f.instanceMap.Get(name); !ok {
+	if retVal, ok = f.instanceMap.Get(name); !ok {
 		return nil
+	}
+	return
+}
+
+// GetInstances get instance by name
+func (f *InstantiateFactory) GetInstances(name string) (retVal []interface{}) {
+	//items := f.Items()
+	//log.Debug(items)
+	if f.Initialized() {
+		retVal = f.categorized[name]
 	}
 	return
 }

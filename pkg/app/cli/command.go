@@ -1,3 +1,17 @@
+// Copyright 2018 John Deng (hi.devops.io@gmail.com).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package cli
 
 import (
@@ -39,13 +53,13 @@ var ErrCommandNotFound = errors.New("command not found")
 type BaseCommand struct {
 	cobra.Command
 	name     string
-	fullname string
+	fullName string
 	parent   Command
 	children []Command
 }
 
 // dispatch method with OnAction prefix
-func dispatch(c Command, args []string) (next bool) {
+func Dispatch(c Command, args []string) (next bool) {
 	if len(args) > 0 && args[0] != "" {
 		methodName := actionPrefix + strings.Title(args[0])
 		result, err := reflector.CallMethodByName(c, methodName, args[1:])
@@ -59,7 +73,7 @@ func dispatch(c Command, args []string) (next bool) {
 func Register(c Command) {
 	c.EmbeddedCommand().RunE = func(cmd *cobra.Command, args []string) error {
 
-		if !dispatch(c, args) {
+		if !Dispatch(c, args) {
 			return c.Run(args)
 		}
 		return nil
@@ -114,14 +128,14 @@ func (c *BaseCommand) SetName(name string) Command {
 }
 
 func (c *BaseCommand) FullName() string {
-	if c.fullname == "" {
-		c.fullname = c.name
+	if c.fullName == "" {
+		c.fullName = c.name
 	}
-	return c.fullname
+	return c.fullName
 }
 
 func (c *BaseCommand) SetFullName(name string) Command {
-	c.fullname = name
+	c.fullName = name
 	return c
 }
 

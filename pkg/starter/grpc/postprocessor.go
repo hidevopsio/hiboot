@@ -10,11 +10,11 @@ type postProcessor struct {
 
 func init() {
 	// register postProcessor
-	app.RegisterPostProcessor(new(postProcessor))
+	app.RegisterPostProcessor(newPostProcessor)
 }
 
-func (p *postProcessor) BeforeInitialization(factory interface{}) {
-	//log.Debug("[grpc] BeforeInitialization")
+func newPostProcessor() *postProcessor {
+	return &postProcessor{}
 }
 
 func (p *postProcessor) AfterInitialization(factory interface{}) {

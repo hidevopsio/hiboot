@@ -18,5 +18,6 @@ import "github.com/hidevopsio/hiboot/pkg/app"
 
 // Configuration fake.Configuration for test only
 type Configuration struct {
-	app.Configuration `depends:"foo"`
+	// depends foo.configuration should be lower camel name of foo.Configuration
+	app.Configuration `depends:"foo.configuration,bar.configuration"`
 }

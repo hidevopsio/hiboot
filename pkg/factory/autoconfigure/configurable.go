@@ -17,11 +17,12 @@ package autoconfigure
 
 import (
 	"errors"
-	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure/depends"
+	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/system/types"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
@@ -31,16 +32,21 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"sort"
 	"strings"
 )
 
 const (
-	System            = "system"
-	application       = "application"
-	config            = "config"
-	yaml              = "yaml"
-	appProfilesActive = "APP_PROFILES_ACTIVE"
+	// System configuration name
+	System      = "system"
+	application = "application"
+	config      = "config"
+	yaml        = "yaml"
+
+	// EnvAppProfilesActive is the environment variable name APP_PROFILES_ACTIVE
+	EnvAppProfilesActive = "APP_PROFILES_ACTIVE"
+
+	// PostfixConfiguration is the Configuration postfix
+	PostfixConfiguration = "Configuration"
 )
 
 var (
@@ -69,9 +75,9 @@ type ConfigurableFactory struct {
 	systemConfig   *system.Configuration
 	builder        *system.Builder
 
-	preConfigureContainer  []interface{}
-	configureContainer     []interface{}
-	postConfigureContainer []interface{}
+	preConfigureContainer  []*factory.MetaData
+	configureContainer     []*factory.MetaData
+	postConfigureContainer []*factory.MetaData
 }
 
 // Initialize initialize ConfigurableFactory
@@ -106,7 +112,7 @@ func (f *ConfigurableFactory) Configuration(name string) interface{} {
 func (f *ConfigurableFactory) BuildSystemConfig() (systemConfig *system.Configuration, err error) {
 	workDir := io.GetWorkDir()
 	systemConfig = new(system.Configuration)
-	profile := os.Getenv(appProfilesActive)
+	profile := os.Getenv(EnvAppProfilesActive)
 	f.builder = &system.Builder{
 		Path:       filepath.Join(workDir, config),
 		Name:       application,
@@ -118,44 +124,38 @@ func (f *ConfigurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 	f.SetInstance("systemConfiguration", systemConfig)
 	inject.DefaultValue(systemConfig)
 	_, err = f.builder.Build()
-	if err != nil {
-		return
+	if err == nil {
+		// TODO: should separate instance to system and app
+		inject.IntoObject(systemConfig)
+		replacer.Replace(systemConfig, systemConfig)
+
+		f.configurations.Set(System, systemConfig)
+
+		f.systemConfig = systemConfig
 	}
-	// TODO: should separate instance to system and app
-	inject.IntoObject(systemConfig)
-	replacer.Replace(systemConfig, systemConfig)
-
-	f.configurations.Set(System, systemConfig)
-
-	f.systemConfig = systemConfig
-	return systemConfig, err
+	return
 }
 
 // Build build all auto configurations
-func (f *ConfigurableFactory) Build(configs [][]interface{}) {
+func (f *ConfigurableFactory) Build(configs []*factory.MetaData) {
 	// categorize configurations first, then inject object if necessary
 	for _, item := range configs {
-		name, inst := f.ParseInstance("Configuration", item...)
-		if name == "" || name == "configuration" {
-			continue
-		}
-
-		ifcField := reflector.GetEmbeddedInterfaceField(inst)
+		ifcField := reflector.GetEmbeddedInterfaceField(item.Object)
 
 		if ifcField.Anonymous {
 			switch ifcField.Name {
 			case "Configuration":
-				f.configureContainer = append(f.configureContainer, inst)
+				f.configureContainer = append(f.configureContainer, item)
 			case "PreConfiguration":
-				f.preConfigureContainer = append(f.preConfigureContainer, inst)
+				f.preConfigureContainer = append(f.preConfigureContainer, item)
 			case "PostConfiguration":
-				f.postConfigureContainer = append(f.postConfigureContainer, inst)
+				f.postConfigureContainer = append(f.postConfigureContainer, item)
 			default:
 				continue
 			}
 		} else {
 			err := ErrInvalidObjectType
-			log.Error(err)
+			log.Errorf("item: %v err: %v", item, err)
 			continue
 		}
 	}
@@ -163,64 +163,6 @@ func (f *ConfigurableFactory) Build(configs [][]interface{}) {
 	f.build(f.preConfigureContainer)
 	f.build(f.configureContainer)
 	f.build(f.postConfigureContainer)
-
-}
-
-// InstantiateByName instantiate by method name
-func (f *ConfigurableFactory) InstantiateByName(configuration interface{}, name string) (inst interface{}, err error) {
-	objVal := reflect.ValueOf(configuration)
-	method, ok := objVal.Type().MethodByName(name)
-	if ok {
-		return f.InstantiateMethod(configuration, method, name)
-	}
-	return nil, ErrInvalidMethod
-}
-
-// InstantiateMethod instantiate by iterated methods
-func (f *ConfigurableFactory) InstantiateMethod(configuration interface{}, method reflect.Method, methodName string) (inst interface{}, err error) {
-	//log.Debugf("method: %v", methodName)
-	instanceName := str.LowerFirst(methodName)
-	if inst = f.GetInstance(instanceName); inst != nil {
-		//log.Debugf("instance %v exists", instanceName)
-		return
-	}
-	numIn := method.Type.NumIn()
-	// only 1 arg is supported so far
-	argv := make([]reflect.Value, numIn)
-	argv[0] = reflect.ValueOf(configuration)
-	for a := 1; a < numIn; a++ {
-		// TODO: eliminate duplications
-		mth := method.Type.In(a)
-		iTyp := reflector.IndirectType(mth)
-		mthName := str.ToLowerCamel(iTyp.Name())
-		depInst := f.GetInstance(mthName)
-		if depInst == nil {
-			pkgName := io.DirName(iTyp.PkgPath())
-			alternativeName := str.ToLowerCamel(pkgName) + iTyp.Name()
-			depInst = f.GetInstance(alternativeName)
-			if depInst == nil {
-				// TODO: check it it's dependency circle
-				// TODO: check if it depends on the instance of another configuration
-				depInst, err = f.InstantiateByName(configuration, strings.Title(mthName))
-				if err != nil {
-					depInst, err = f.InstantiateByName(configuration, strings.Title(alternativeName))
-				}
-			}
-		}
-		if depInst == nil {
-			log.Errorf("[factory] failed to inject dependency as it can not be found")
-		}
-		argv[a] = reflect.ValueOf(depInst)
-	}
-	// inject instance into method
-	retVal := method.Func.Call(argv)
-	// save instance
-	if retVal != nil && retVal[0].CanInterface() {
-		inst = retVal[0].Interface()
-		//log.Debugf("instantiated: %v", instance)
-		f.SetInstance(instanceName, inst)
-	}
-	return
 }
 
 // Instantiate run instantiation by method
@@ -228,7 +170,6 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error)
 	cv := reflect.ValueOf(configuration)
 
 	// inject configuration before instantiation
-
 	configType := cv.Type()
 	//log.Debug("type: ", configType)
 	//name := configType.Elem().Name()
@@ -239,13 +180,8 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error)
 	//log.Debug("methods: ", numOfMethod)
 	for mi := 0; mi < numOfMethod; mi++ {
 		method := configType.Method(mi)
-		// skip Init method
-		if method.Name != "Init" {
-			_, err = f.InstantiateMethod(configuration, method, method.Name)
-			if err != nil {
-				return
-			}
-		}
+		// append inst to f.components
+		f.AppendComponent(configuration, method)
 	}
 	return
 }
@@ -253,19 +189,28 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error)
 // appProfilesActive getter
 func (f *ConfigurableFactory) appProfilesActive() string {
 	if f.systemConfig == nil {
-		return os.Getenv(appProfilesActive)
+		return os.Getenv(EnvAppProfilesActive)
 	}
 	return f.systemConfig.App.Profiles.Active
 }
 
+func (f *ConfigurableFactory) parseName(item *factory.MetaData) string {
+	name := strings.Replace(item.TypeName, PostfixConfiguration, "", -1)
+	name = str.ToLowerCamel(name)
+
+	if name == "" || name == strings.ToLower(PostfixConfiguration) {
+		name = item.PkgName
+	}
+	return name
+}
+
 // build
-func (f *ConfigurableFactory) build(cfgContainer []interface{}) {
-	// sort dependencies
-	sort.Sort(depends.ByDependency(cfgContainer))
+func (f *ConfigurableFactory) build(cfgContainer []*factory.MetaData) {
 
 	isTestRunning := gotest.IsRunning()
 	for _, item := range cfgContainer {
-		name, configType := f.ParseInstance("Configuration", item)
+		name := f.parseName(item)
+		config := item.Object
 
 		// TODO: should check if profiles is enabled str.InSlice(name, sysconf.App.Profiles.Include)
 		if !isTestRunning && f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
@@ -273,35 +218,45 @@ func (f *ConfigurableFactory) build(cfgContainer []interface{}) {
 		}
 		log.Infof("Auto configure %v starter", name)
 
+		// inject into func
+		if item.Kind == types.Func {
+			config, _ = inject.IntoFunc(config)
+		}
+
 		// inject properties
-		f.builder.ConfigType = configType
+		f.builder.ConfigType = config
 
 		// inject default value
-		inject.DefaultValue(configType)
+		inject.DefaultValue(config)
 
-		cf, err := f.builder.Build(name, f.appProfilesActive())
-
-		// TODO: check if cf.DependsOn
+		// build properties, inject settings
+		cf, _ := f.builder.Build(name, f.appProfilesActive())
+		// No properties needs to build, use default config
 		if cf == nil {
-			log.Warnf("failed to build %v configuration with error %v", name, err)
-		} else {
-			// replace references and environment variables
-			if f.systemConfig != nil {
-				replacer.Replace(cf, f.systemConfig)
-			}
-			inject.IntoObject(cf)
-			replacer.Replace(cf, cf)
-
-			// instantiation
-			if err == nil {
-				// create instances
-				f.Instantiate(cf)
-				// save configuration
-				if _, ok := f.configurations.Get(name); ok {
-					log.Fatalf("[factory] configuration name %v is already taken", name)
-				}
-				f.configurations.Set(name, cf)
+			confTyp := reflect.TypeOf(config)
+			if confTyp != nil && confTyp.Kind() == reflect.Ptr {
+				cf = config
+			} else {
+				log.Errorf("Unsupported type: %v", confTyp)
+				continue
 			}
 		}
+
+		// replace references and environment variables
+		if f.systemConfig != nil {
+			replacer.Replace(cf, f.systemConfig)
+		}
+		inject.IntoObject(cf)
+		replacer.Replace(cf, cf)
+
+		// instantiation
+		f.Instantiate(cf)
+		// save configuration
+		if _, ok := f.configurations.Get(name); ok {
+			log.Fatalf("[factory] configuration name %v is already taken", name)
+		}
+		f.configurations.Set(name, cf)
+
 	}
+	//}
 }

@@ -12,30 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package foo
 
-import (
-	"github.com/hidevopsio/hiboot/pkg/app/cli"
-	"github.com/stretchr/testify/assert"
-	"testing"
-)
+import "github.com/hidevopsio/hiboot/pkg/app"
 
-func TestBarCommands(t *testing.T) {
+// Configuration foo.Configuration for test only
+type Configuration struct {
+	app.Configuration
+}
 
-	testApp := cli.NewTestApplication(t, new(barCommand))
-
-	t.Run("should run bar command", func(t *testing.T) {
-		_, err := testApp.RunTest()
-		assert.Equal(t, nil, err)
-	})
-
-	t.Run("should run baz command", func(t *testing.T) {
-		_, err := testApp.RunTest("baz")
-		assert.Equal(t, nil, err)
-	})
-
-	t.Run("should run buz command", func(t *testing.T) {
-		_, err := testApp.RunTest("buz")
-		assert.Equal(t, nil, err)
-	})
+// NewConfiguration is the constructor for foo.configuration
+func NewConfiguration() *Configuration {
+	return new(Configuration)
 }

@@ -20,26 +20,31 @@ import (
 )
 
 // FirstCommand is the root command
-type FirstCommand struct {
+type RootCommand struct {
 	// embedded cli.BaseCommand
 	cli.BaseCommand
 
-	// inject (add) secondCommand into FirstCommand
-	Second *secondCommand `cmd:""`
-
-	// inject flag
-	Profile *string `flag:"shorthand=p,value=dev,usage=e.g. --profile=test"`
-	Timeout *int    `flag:"shorthand=t,value=1,usage=e.g. --timeout=2"`
+	//TODO: inject flag
+	Profile string `flag:"shorthand=p,value=dev,usage=e.g. --profile=test"`
+	Timeout int    `flag:"shorthand=t,value=1,usage=e.g. --timeout=2"`
 }
 
-func (c *FirstCommand) Init() {
+// NewRootCommand the root command
+func NewRootCommand(second *secondCommand) *RootCommand {
+	c := new(RootCommand)
 	c.Use = "first"
 	c.Short = "first command"
 	c.Long = "Run first command"
 	c.ValidArgs = []string{"baz"}
+	pf := c.PersistentFlags()
+	pf.StringVarP(&c.Profile, "profile", "p", "dev", "e.g. --profile=test")
+	pf.IntVarP(&c.Timeout, "timeout", "t", 1, "e.g. --timeout=1")
+	c.Add(second)
+	return c
 }
 
-func (c *FirstCommand) Run(args []string) error {
-	log.Infof("handle first command: profile=%v, timeout=%v", *c.Profile, *c.Timeout)
+// Run root command handler
+func (c *RootCommand) Run(args []string) error {
+	log.Infof("handle first command: profile=%v, timeout=%v", c.Profile, c.Timeout)
 	return nil
 }

@@ -16,6 +16,7 @@ package autoconfigure_test
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
@@ -25,7 +26,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
-	"reflect"
 	"testing"
 )
 
@@ -112,16 +112,15 @@ func newFooBarConfiguration(foobar *FooBar) *FooBarConfiguration {
 	}
 }
 
-func (c *FooConfiguration) HelloWorld(foo *Foo) string {
-	return foo.Name + ": Hello world"
+type HelloWorld string
+type Hello string
+
+func (c *FooConfiguration) HelloWorld(foo Hello) HelloWorld {
+	return HelloWorld(foo + " world")
 }
 
-func (c *FooConfiguration) Bar() *Bar {
-	return &Bar{Name: "foo"}
-}
-
-func (c *FooConfiguration) Foo(bar *Bar) *Foo {
-	return &Foo{Name: "foo"}
+func (c *FooConfiguration) Hello() Hello {
+	return Hello("Hello")
 }
 
 type Foo struct {
@@ -237,24 +236,10 @@ func TestConfigurableFactory(t *testing.T) {
 		assert.Equal(t, autoconfigure.ErrFactoryIsNotInitialized, err)
 	})
 
-	f.InstantiateFactory.Initialize(cmap.New())
+	f.InstantiateFactory.Initialize(cmap.New(), []*factory.MetaData{})
 	f.Initialize(configContainers)
 
 	inject.SetFactory(f)
-
-	t.Run("should parse instance name via object", func(t *testing.T) {
-		name, inst := f.ParseInstance("Configuration", new(FooBarConfiguration))
-		assert.Equal(t, "fooBar", name)
-		assert.NotEqual(t, nil, inst)
-	})
-
-	t.Run("should parse object instance name via constructor", func(t *testing.T) {
-		testName := "foobar"
-		f.SetInstance("fooBar", &FooBar{Name: testName})
-		name, inst := f.ParseInstance("Configuration", newFooBarConfiguration)
-		assert.Equal(t, "fooBar", name)
-		assert.Equal(t, testName, inst.(*FooBarConfiguration).foobar.Name)
-	})
 
 	t.Run("should build app config", func(t *testing.T) {
 		io.ChangeWorkDir(os.TempDir())
@@ -274,40 +259,20 @@ func TestConfigurableFactory(t *testing.T) {
 
 	fooConfig := new(FooConfiguration)
 	fakeCfg := new(fakeConfiguration)
-	f.Build([][]interface{}{
-		{fooConfig},
-		{fakeCfg},
-		{new(BarConfiguration)},
-		{new(marsConfiguration)},
-		{new(jupiterConfiguration)},
-		{new(mercuryConfiguration)},
-		{new(unknownConfiguration)},
-		{new(unsupportedConfiguration)},
-		{foobarConfiguration{}},
+
+	f.Build([]*factory.MetaData{
+		factory.NewMetaData("foo", fooConfig),
+		factory.NewMetaData(fakeCfg),
+		factory.NewMetaData(new(BarConfiguration)),
+		factory.NewMetaData(new(marsConfiguration)),
+		factory.NewMetaData(new(jupiterConfiguration)),
+		factory.NewMetaData(new(mercuryConfiguration)),
+		factory.NewMetaData(new(unknownConfiguration)),
+		factory.NewMetaData(new(unsupportedConfiguration)),
+		factory.NewMetaData(foobarConfiguration{}),
 	})
 
-	t.Run("should instantiate by name", func(t *testing.T) {
-		bc := new(barConfiguration)
-		_, err := f.InstantiateByName(bc, "Bar")
-		assert.Equal(t, autoconfigure.ErrInvalidMethod, err)
-	})
-
-	t.Run("should instantiate by name", func(t *testing.T) {
-		bc := new(barConfiguration)
-		bb, err := f.InstantiateByName(bc, "BarBar")
-		assert.Equal(t, nil, err)
-		assert.NotEqual(t, nil, bb)
-	})
-
-	t.Run("should instantiate by name", func(t *testing.T) {
-		fc := new(EarthConfiguration)
-		objVal := reflect.ValueOf(fc)
-		method, ok := objVal.Type().MethodByName("Land")
-		assert.Equal(t, true, ok)
-		fb, err := f.InstantiateMethod(fc, method, "Land")
-		assert.Equal(t, nil, err)
-		assert.NotEqual(t, nil, fb)
-	})
+	f.BuildComponents()
 
 	t.Run("should get SystemConfiguration", func(t *testing.T) {
 		sysCfg := f.SystemConfiguration()
@@ -334,7 +299,7 @@ func TestConfigurableFactory(t *testing.T) {
 	t.Run("should get foo configuration", func(t *testing.T) {
 		helloWorld := f.GetInstance("helloWorld")
 		assert.NotEqual(t, nil, helloWorld)
-		assert.Equal(t, "foo: Hello world", helloWorld.(string))
+		assert.Equal(t, HelloWorld("Hello world"), helloWorld)
 
 		assert.Equal(t, "hiboot foo", fooConfig.FakeProperties.Nickname)
 		assert.Equal(t, "bar", fooConfig.FakeProperties.Username)

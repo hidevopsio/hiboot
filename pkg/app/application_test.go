@@ -43,13 +43,13 @@ func TestApp(t *testing.T) {
 	//	assert.Equal(t, app.ConfigurationNameIsTakenError, err)
 	//})
 
-	t.Run("should not add invalid configuration", func(t *testing.T) {
-		type fooConfiguration struct {
-			Properties fakeProperties `mapstructure:"fake"`
-		}
-		err := app.AutoConfiguration(fooConfiguration{})
-		assert.Equal(t, app.ErrInvalidObjectType, err)
-	})
+	//t.Run("should not add invalid configuration", func(t *testing.T) {
+	//	type fooConfiguration struct {
+	//		Properties fakeProperties `mapstructure:"fake"`
+	//	}
+	//	err := app.AutoConfiguration(fooConfiguration{})
+	//	assert.Equal(t, app.ErrInvalidObjectType, err)
+	//})
 
 	type configuration struct {
 		app.PreConfiguration
@@ -71,11 +71,11 @@ func TestApp(t *testing.T) {
 	})
 
 	t.Run("should add configuration with pkg name", func(t *testing.T) {
-		type configuration struct {
+		type bazConfiguration struct {
 			app.PostConfiguration
 			Properties fakeProperties `mapstructure:"fake"`
 		}
-		err := app.AutoConfiguration(new(configuration))
+		err := app.AutoConfiguration(new(bazConfiguration))
 		assert.Equal(t, nil, err)
 	})
 
@@ -89,21 +89,21 @@ func TestApp(t *testing.T) {
 	//	assert.Equal(t, app.InvalidObjectTypeError, err)
 	//})
 
-	t.Run("should not add configuration with non point type", func(t *testing.T) {
-		type configuration struct {
-			app.Configuration
-			Properties fakeProperties `mapstructure:"fake"`
-		}
-		err := app.AutoConfiguration(configuration{})
-		assert.Equal(t, app.ErrInvalidObjectType, err)
-	})
+	//t.Run("should not add configuration with non point type", func(t *testing.T) {
+	//	type configuration struct {
+	//		app.Configuration
+	//		Properties fakeProperties `mapstructure:"fake"`
+	//	}
+	//	err := app.AutoConfiguration(configuration{})
+	//	assert.Equal(t, app.ErrInvalidObjectType, err)
+	//})
 
 	//t.Run("should not add invalid configuration that not embedded with app.Configuration", func(t *testing.T) {
 	//	type invalidConfiguration struct {
 	//		Properties fakeProperties `mapstructure:"fake"`
 	//	}
 	//	err := app.AutoConfiguration(new(invalidConfiguration))
-	//	assert.Equal(t, app.InvalidObjectTypeError, err)
+	//	assert.Equal(t, app.ErrInvalidObjectType, err)
 	//})
 
 	t.Run("should not add invalid component", func(t *testing.T) {
@@ -129,8 +129,6 @@ func TestApp(t *testing.T) {
 func TestBaseApplication(t *testing.T) {
 	ba := new(app.BaseApplication)
 
-	ba.BeforeInitialization()
-
 	err := ba.Initialize()
 	assert.Equal(t, nil, err)
 
@@ -149,7 +147,10 @@ func TestBaseApplication(t *testing.T) {
 
 	ba.RegisterController(nil)
 
-	ba.SetProperty(app.PropertyBannerDisabled, false)
+	ba.SetProperty(app.PropertyBannerDisabled, false).
+		SetProperty(app.PropertyAppProfilesInclude, "foo")
+
+	ba.AppendProfiles(ba)
 
 	ba.PrintStartupMessages()
 

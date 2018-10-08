@@ -12,18 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cli
+// Package annotation provides annotations for jwt controller
+package annotation
 
-type rootCommand struct {
-	BaseCommand
-}
-
-func (c *rootCommand) Init() {
-	c.Use = "root"
-	c.Short = "root command"
-	c.Long = "Run root command"
-}
-
-func (c *rootCommand) Run(args []string) error {
-	return nil
+// JwtRestController is the annotation for JWT REST Controller
+type JwtRestController interface {
 }

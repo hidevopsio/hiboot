@@ -1,6 +1,7 @@
-package cli
+package cli_test
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -8,10 +9,18 @@ import (
 func TestCommand(t *testing.T) {
 
 	t.Run("should add child command and found the child", func(t *testing.T) {
-		fooCmd := new(fooCommand)
-		barCmd := new(barCommand)
+		barCmd := newBarCommand()
+		bazCmd := newBazCommand()
+		fooCmd := newFooCommand(barCmd, bazCmd)
 		fooCmd.SetName("foo")
-		fooCmd.Add(barCmd)
+		assert.Equal(t, "foo", fooCmd.FullName())
+
+		fooCmd.SetFullName("foo command")
+
+		assert.Equal(t, "foo command", fooCmd.FullName())
+
+		assert.Equal(t, true, fooCmd.HasChild())
+		assert.Equal(t, barCmd, fooCmd.Children()[0])
 
 		assert.Equal(t, fooCmd.GetName(), barCmd.Parent().GetName())
 
@@ -31,11 +40,11 @@ func TestCommand(t *testing.T) {
 		fooCmd := new(fooCommand)
 		fooCmd.SetName("foo")
 		_, err := fooCmd.Find("bar")
-		assert.Equal(t, ErrCommandNotFound, err)
+		assert.Equal(t, cli.ErrCommandNotFound, err)
 	})
 
 	t.Run("should run command handler", func(t *testing.T) {
-		cmd := new(BaseCommand)
+		cmd := new(cli.BaseCommand)
 		err := cmd.Run(nil)
 		assert.Equal(t, nil, err)
 	})
@@ -43,10 +52,10 @@ func TestCommand(t *testing.T) {
 	t.Run("should run secondary command handler", func(t *testing.T) {
 		cmd := new(fooCommand)
 
-		res := dispatch(cmd, []string{"daz"})
+		res := cli.Dispatch(cmd, []string{"daz"})
 		assert.Equal(t, false, res)
 
-		res = dispatch(cmd, []string{"buzz"})
+		res = cli.Dispatch(cmd, []string{"buzz"})
 		assert.Equal(t, true, res)
 	})
 }

@@ -12,47 +12,59 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cli
+package cli_test
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func init() {
 	log.SetLevel(log.DebugLevel)
 }
 
-type demoCommand struct {
-	BaseCommand
-	Foo     *fooCommand `cmd:""`
-	Profile *string     `flag:"shorthand=p,value=dev,usage=e.g. --profile=test"`
-	IntVal  *int        `flag:"name=integer,shorthand=i,value=0,usage=e.g. --integer=1"`
-	BoolVal *bool       `flag:"name=bool,shorthand=b,value=true,usage=e.g. --bool=true or -b"`
+type rootCommand struct {
+	cli.BaseCommand
+	Profile string
+	IntVal  int
+	BoolVal bool
 }
 
-func (c *demoCommand) Init() {
+func newRootCommand(foo *fooCommand) *rootCommand {
+	c := &rootCommand{}
 	c.Use = "demo"
 	c.Short = "demo command"
 	c.Long = "Run demo command"
+
+	pf := c.PersistentFlags()
+	pf.StringVarP(&c.Profile, "profile", "p", "dev", "e.g. --profile=test")
+	pf.IntVarP(&c.IntVal, "integer", "i", 0, "e.g. --integer=1")
+	pf.BoolVarP(&c.BoolVal, "bool", "b", false, "e.g. --bool=true or -b")
+
+	c.Add(foo)
+	return c
 }
 
-func (c *demoCommand) Run(args []string) (err error) {
-	log.Debugf("on demo command - profile: %v, intVal: %v, boolVal: %v", *c.Profile, *c.IntVal, *c.BoolVal)
+func (c *rootCommand) Run(args []string) (err error) {
+	log.Debugf("on demo command - profile: %v, intVal: %v, boolVal: %v", c.Profile, c.IntVal, c.BoolVal)
 	return
 }
 
 type fooCommand struct {
-	BaseCommand
-	Bar *barCommand `cmd:""`
-	Baz *bazCommand `cmd:""`
+	cli.BaseCommand
 }
 
-func (c *fooCommand) Init() {
+func newFooCommand(bar *barCommand, baz *bazCommand) *fooCommand {
+	c := new(fooCommand)
 	c.Use = "foo"
 	c.Short = "foo command"
 	c.Long = "Run foo command"
+	c.Add(bar, baz)
+	return c
 }
 
 func (c *fooCommand) Run(args []string) (err error) {
@@ -71,13 +83,16 @@ func (c *fooCommand) OnBuzz(args []string) bool {
 }
 
 type barCommand struct {
-	BaseCommand
+	cli.BaseCommand
 }
 
-func (c *barCommand) Init() {
+func newBarCommand() *barCommand {
+	c := new(barCommand)
 	c.Use = "bar"
 	c.Short = "bar command"
 	c.Long = "Run bar command"
+
+	return c
 }
 
 func (c *barCommand) Run(args []string) (err error) {
@@ -86,13 +101,15 @@ func (c *barCommand) Run(args []string) (err error) {
 }
 
 type bazCommand struct {
-	BaseCommand
+	cli.BaseCommand
 }
 
-func (c *bazCommand) Init() {
+func newBazCommand() *bazCommand {
+	c := new(bazCommand)
 	c.Use = "baz"
 	c.Short = "baz command"
 	c.Long = "Run baz command"
+	return c
 }
 
 func (c *bazCommand) Run(args []string) (err error) {
@@ -102,7 +119,12 @@ func (c *bazCommand) Run(args []string) (err error) {
 
 // demo foo bar
 func TestCliApplication(t *testing.T) {
-	testApp := NewTestApplication(t, new(demoCommand))
+	app.Component(newFooCommand, newBarCommand, newBazCommand)
+	testApp := cli.NewTestApplication(t, newRootCommand)
+	testApp.SetProperty("foo", "bar")
+
+	root := testApp.Root()
+	assert.NotEqual(t, nil, root)
 
 	t.Run("should run root command", func(t *testing.T) {
 		_, err := testApp.RunTest("-p", "test", "-i", "2")
@@ -135,37 +157,40 @@ func TestCliApplication(t *testing.T) {
 	})
 }
 
-// demo foo bar
-func TestCliMultiCommand(t *testing.T) {
-	fooCmd := new(fooCommand)
-	barCmd := new(barCommand)
-	testApp := NewTestApplication(t, fooCmd, barCmd)
-
-	t.Run("should run foo command", func(t *testing.T) {
-		_, err := testApp.RunTest("foo")
-		assert.Equal(t, nil, err)
-	})
-
-	t.Run("should run bar command", func(t *testing.T) {
-		_, err := testApp.RunTest("bar")
-		assert.Equal(t, nil, err)
-	})
-
-	t.Run("should get root command", func(t *testing.T) {
-		root := fooCmd.Root()
-		assert.Equal(t, "root", root.Name())
-	})
-
-	t.Run("should get root command", func(t *testing.T) {
-		rootCmd := testApp.Root()
-		assert.Equal(t, "root", rootCmd.GetName())
-	})
-
-	testApp.SetProperty("foo", "bar")
-}
+//
+//// demo foo bar
+//func TestCliMultiCommand(t *testing.T) {
+//	fooCmd := new(fooCommand)
+//	barCmd := new(barCommand)
+//	testApp := cli.NewTestApplication(t)
+//
+//	t.Run("should run foo command", func(t *testing.T) {
+//		_, err := testApp.RunTest("foo")
+//		assert.Equal(t, nil, err)
+//	})
+//
+//	t.Run("should run bar command", func(t *testing.T) {
+//		_, err := testApp.RunTest("bar")
+//		assert.Equal(t, nil, err)
+//	})
+//
+//	t.Run("should get root command", func(t *testing.T) {
+//		root := fooCmd.Root()
+//		assert.Equal(t, "root", root.Name())
+//	})
+//
+//	t.Run("should get root command", func(t *testing.T) {
+//		rootCmd := testApp.Root()
+//		assert.Equal(t, "root", rootCmd.GetName())
+//	})
+//
+//	testApp.SetProperty("foo", "bar")
+//}
 
 func TestNewApplication(t *testing.T) {
-	go NewApplication().Run()
+	go cli.NewApplication().Run()
+	time.Sleep(2 * time.Second)
+
 }
 
 type A struct {
