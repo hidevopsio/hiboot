@@ -17,11 +17,11 @@ package app
 import "github.com/hidevopsio/hiboot/pkg/inject"
 
 type PostProcessor interface {
-	BeforeInitialization(factory interface{})
 	AfterInitialization(factory interface{})
 }
 
 type postProcessor struct {
+	subscribes []PostProcessor
 }
 
 func newPostProcessor() *postProcessor {
@@ -29,26 +29,29 @@ func newPostProcessor() *postProcessor {
 }
 
 var (
-	postProcessors []PostProcessor
+	postProcessors []interface{}
 )
 
 func init() {
 
 }
 
-func RegisterPostProcessor(p ...PostProcessor) {
+func RegisterPostProcessor(p ...interface{}) {
 	postProcessors = append(postProcessors, p...)
 }
 
-func (p *postProcessor) BeforeInitialization(factory interface{}) {
+func (p *postProcessor) Init() {
 	for _, processor := range postProcessors {
-		processor.BeforeInitialization(factory)
+		ss, err := inject.IntoFunc(processor)
+		if err == nil {
+			p.subscribes = append(p.subscribes, ss.(PostProcessor))
+		}
 	}
 }
 
 func (p *postProcessor) AfterInitialization(factory interface{}) {
-	for _, processor := range postProcessors {
-		inject.IntoObject(processor)
+	for _, processor := range p.subscribes {
+		inject.IntoFunc(processor)
 		processor.AfterInitialization(factory)
 	}
 }

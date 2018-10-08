@@ -175,8 +175,8 @@ func IntoObjectValue(object reflect.Value, tags ...Tag) error {
 		}
 	}
 
-	// method injection
-	// Init, Setter
+	//method injection
+	//Init, Setter
 	method, ok := object.Type().MethodByName(initMethodName)
 	if ok {
 		log.Warnf("inject through Init method of object : %v ", object.Type())

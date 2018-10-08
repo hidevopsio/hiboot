@@ -21,22 +21,20 @@ import (
 )
 
 type postProcessor struct {
-	jwtMiddleware      *JwtMiddleware
 	applicationContext app.ApplicationContext
+	jwtMiddleware      *JwtMiddleware
 }
 
 func init() {
 	// register postProcessor
-	app.RegisterPostProcessor(new(postProcessor))
+	app.RegisterPostProcessor(newPostProcessor)
 }
 
-func (p *postProcessor) Init(applicationContext app.ApplicationContext, jwtMiddleware *JwtMiddleware) {
-	p.applicationContext = applicationContext
-	p.jwtMiddleware = jwtMiddleware
-}
-
-func (p *postProcessor) BeforeInitialization(factory interface{}) {
-	//log.Debug("[jwt] BeforeInitialization")
+func newPostProcessor(applicationContext app.ApplicationContext, jwtMiddleware *JwtMiddleware) *postProcessor {
+	return &postProcessor{
+		applicationContext: applicationContext,
+		jwtMiddleware:      jwtMiddleware,
+	}
 }
 
 func (p *postProcessor) AfterInitialization(factory interface{}) {
