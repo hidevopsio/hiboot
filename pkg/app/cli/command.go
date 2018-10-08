@@ -16,10 +16,12 @@ package cli
 
 import (
 	"errors"
+	"github.com/hidevopsio/hiboot/pkg/system/types"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 	"io"
+	"reflect"
 	"strings"
 )
 
@@ -50,6 +52,10 @@ const (
 // ErrCommandNotFound command not found error
 var ErrCommandNotFound = errors.New("command not found")
 
+// ErrCommandHandlerNotFound
+var ErrCommandHandlerNotFound = errors.New("command handler not found")
+
+// BaseCommand is the base command
 type BaseCommand struct {
 	cobra.Command
 	name     string
@@ -58,44 +64,63 @@ type BaseCommand struct {
 	children []Command
 }
 
-// dispatch method with OnAction prefix
-func Dispatch(c Command, args []string) (next bool) {
+// Dispatch method with OnAction prefix
+func Dispatch(c Command, args []string) (retVal interface{}, err error) {
 	if len(args) > 0 && args[0] != "" {
 		methodName := actionPrefix + strings.Title(args[0])
-		result, err := reflector.CallMethodByName(c, methodName, args[1:])
-		if err == nil {
-			next = result.(bool)
-		}
+		retVal, err = reflector.CallMethodByName(c, methodName, args[1:])
+		return
 	}
-	return
+	return nil, ErrCommandHandlerNotFound
 }
 
+// Register register
 func Register(c Command) {
+	var next bool
 	c.EmbeddedCommand().RunE = func(cmd *cobra.Command, args []string) error {
+		result, err := Dispatch(c, args)
+		if err == nil && result != nil {
+			typ := reflect.TypeOf(result)
+			typName := typ.Name()
+			switch typName {
+			case types.Bool:
+				next = result.(bool)
+			default:
+				// assume that error is the default return type
+				return result.(error)
+			}
+		} else {
+			next = true
+		}
 
-		if !Dispatch(c, args) {
+		if next {
 			return c.Run(args)
 		}
 		return nil
 	}
 }
 
+// EmbeddedCommand get embedded command
 func (c *BaseCommand) EmbeddedCommand() *cobra.Command {
 	return &c.Command
 }
 
+// Run method
 func (c *BaseCommand) Run(args []string) error {
 	return nil
 }
 
+// Exec exec method
 func (c *BaseCommand) Exec() error {
 	return c.Execute()
 }
 
+// HasChild check whether it has child or not
 func (c *BaseCommand) HasChild() bool {
 	return len(c.children) > 0
 }
 
+// Children get children
 func (c *BaseCommand) Children() []Command {
 	return c.children
 }
@@ -111,6 +136,7 @@ func (c *BaseCommand) addChild(child Command) {
 	c.AddCommand(child.EmbeddedCommand())
 }
 
+// Add added child command
 func (c *BaseCommand) Add(commands ...Command) Command {
 	for _, command := range commands {
 		c.addChild(command)
@@ -118,15 +144,18 @@ func (c *BaseCommand) Add(commands ...Command) Command {
 	return c
 }
 
+// GetName get command name
 func (c *BaseCommand) GetName() string {
 	return c.name
 }
 
+// SetName set command name
 func (c *BaseCommand) SetName(name string) Command {
 	c.name = name
 	return c
 }
 
+// FullName get command full name
 func (c *BaseCommand) FullName() string {
 	if c.fullName == "" {
 		c.fullName = c.name
@@ -134,20 +163,24 @@ func (c *BaseCommand) FullName() string {
 	return c.fullName
 }
 
+// SetFullName set command full name
 func (c *BaseCommand) SetFullName(name string) Command {
 	c.fullName = name
 	return c
 }
 
+// Parent get parent command
 func (c *BaseCommand) Parent() Command {
 	return c.parent
 }
 
+// SetParent set parent command
 func (c *BaseCommand) SetParent(p Command) Command {
 	c.parent = p
 	return c
 }
 
+// Find find child command
 func (c *BaseCommand) Find(name string) (Command, error) {
 	if c.name == name {
 		return c, nil
