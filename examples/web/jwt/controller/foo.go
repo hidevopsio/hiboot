@@ -35,7 +35,11 @@ type fooController struct {
 
 // init - add &FooController{} to web application
 func init() {
-	web.RestController(&fooController{})
+	web.RestController(newFooController)
+}
+
+func newFooController() *fooController {
+	return &fooController{}
 }
 
 // Before intercept all requests that coming into this controller

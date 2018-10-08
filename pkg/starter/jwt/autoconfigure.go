@@ -25,13 +25,18 @@ type configuration struct {
 
 	Properties Properties `mapstructure:"jwt"`
 	jwtHandler *JwtMiddleware
+	jwtToken   Token
 }
 
 func init() {
-	app.AutoConfiguration(new(configuration))
+	app.AutoConfiguration(newConfiguration)
 }
 
-func (c *configuration) JwtMiddleware(jtk *jwtToken) *JwtMiddleware {
+func newConfiguration() *configuration {
+	return &configuration{}
+}
+
+func (c *configuration) JwtMiddleware(jtk Token) *JwtMiddleware {
 	return NewJwtMiddleware(mw.Config{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 			//log.Debug(token)
@@ -44,6 +49,8 @@ func (c *configuration) JwtMiddleware(jtk *jwtToken) *JwtMiddleware {
 	})
 }
 
+// JwtToken
+// TODO: token or jwtToken
 func (c *configuration) JwtToken() Token {
 	jtk := new(jwtToken)
 	jtk.Initialize(&c.Properties)

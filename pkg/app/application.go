@@ -18,6 +18,7 @@ package app
 import (
 	"errors"
 	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
@@ -26,13 +27,14 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/kataras/iris/context"
-	"reflect"
+	"strings"
 	"sync"
 )
 
 type Application interface {
 	Initialize() error
 	SetProperty(name string, value interface{}) Application
+	GetProperty(name string) (value interface{}, ok bool)
 	Run() error
 }
 
@@ -60,8 +62,8 @@ type BaseApplication struct {
 }
 
 var (
-	configContainer    [][]interface{}
-	componentContainer [][]interface{}
+	configContainer    []*factory.MetaData
+	componentContainer []*factory.MetaData
 
 	// ErrInvalidObjectType indicates that configuration type is invalid
 	ErrInvalidObjectType = errors.New("[app] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
@@ -75,50 +77,6 @@ _  __  / _  / _  /_/ / /_/ / /_/ / /_     Hiboot Application Framework
 
 `
 )
-
-func hasTwoParams(params ...interface{}) bool {
-	return len(params) == 2 && reflect.TypeOf(params[0]).Kind() == reflect.String
-}
-
-func appendParams(container [][]interface{}, params ...interface{}) (retVal [][]interface{}, err error) {
-	retVal = container
-	if len(params) == 0 || params[0] == nil {
-		err = ErrInvalidObjectType
-		return
-	}
-
-	item := make([]interface{}, 2)
-	inst := params[0]
-	if hasTwoParams(params...) {
-		item[0] = params[0]
-		item[1] = params[1]
-		inst = params[1]
-	} else {
-		item[0] = params[0]
-	}
-	if inst != nil {
-		kind := reflect.TypeOf(inst).Kind()
-		if kind == reflect.Func || kind == reflect.Ptr {
-			retVal = append(container, item)
-			return
-		}
-	}
-	err = ErrInvalidObjectType
-	return
-}
-
-// AutoConfiguration register auto configuration struct
-func AutoConfiguration(params ...interface{}) (err error) {
-	configContainer, err = appendParams(configContainer, params...)
-	return
-}
-
-// Component register a struct instance, so that it will be injectable.
-// starter should register component type
-func Component(params ...interface{}) (err error) {
-	componentContainer, err = appendParams(componentContainer, params...)
-	return
-}
 
 // PrintStartupMessages prints startup messages
 func (a *BaseApplication) PrintStartupMessages() {
@@ -153,7 +111,7 @@ func (a *BaseApplication) Initialize() error {
 	a.instances = cmap.New()
 
 	instantiateFactory := new(instantiate.InstantiateFactory)
-	instantiateFactory.Initialize(a.instances)
+	instantiateFactory.Initialize(a.instances, componentContainer)
 	a.instances.Set("instantiateFactory", instantiateFactory)
 
 	configurableFactory := new(autoconfigure.ConfigurableFactory)
@@ -161,8 +119,6 @@ func (a *BaseApplication) Initialize() error {
 	a.instances.Set("configurableFactory", configurableFactory)
 	inject.SetFactory(configurableFactory)
 	a.configurableFactory = configurableFactory
-
-	a.BeforeInitialization()
 
 	err := configurableFactory.Initialize(a.configurations)
 	if err == nil {
@@ -181,7 +137,7 @@ func (a *BaseApplication) BuildConfigurations() {
 	// build configurations
 	a.configurableFactory.Build(configContainer)
 	// build components
-	a.configurableFactory.BuildComponents(componentContainer)
+	a.configurableFactory.BuildComponents()
 }
 
 // ConfigurableFactory get ConfigurableFactory
@@ -189,15 +145,10 @@ func (a *BaseApplication) ConfigurableFactory() *autoconfigure.ConfigurableFacto
 	return a.configurableFactory
 }
 
-// BeforeInitialization pre initialization
-func (a *BaseApplication) BeforeInitialization() {
-	// pass user's instances
-	a.postProcessor.BeforeInitialization(a.configurableFactory)
-}
-
 // AfterInitialization post initialization
 func (a *BaseApplication) AfterInitialization(configs ...cmap.ConcurrentMap) {
 	// pass user's instances
+	a.postProcessor.Init()
 	a.postProcessor.AfterInitialization(a.configurableFactory)
 }
 
@@ -222,4 +173,17 @@ func (a *BaseApplication) GetInstance(name string) (instance interface{}) {
 		instance = a.configurableFactory.GetInstance(name)
 	}
 	return
+}
+
+// AppendProfiles Run run the application
+func (a *BaseApplication) AppendProfiles(app Application) error {
+	profiles, ok := app.GetProperty(PropertyAppProfilesInclude)
+	if ok {
+		appProfilesInclude := strings.SplitN(profiles.(string), ",", -1)
+		if a.systemConfig != nil {
+			a.systemConfig.App.Profiles.Include =
+				append(a.systemConfig.App.Profiles.Include, appProfilesInclude...)
+		}
+	}
+	return nil
 }

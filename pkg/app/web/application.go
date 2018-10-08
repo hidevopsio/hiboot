@@ -18,22 +18,22 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/inject"
+	"github.com/hidevopsio/hiboot/pkg/app/web/annotation"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 	"os"
-	"reflect"
 	"regexp"
 )
 
 const (
 	pathSep = "/"
 
-	beforeMethod = "Before"
-	afterMethod  = "After"
+	beforeMethod       = "Before"
+	afterMethod        = "After"
+	applicationContext = "applicationContext"
 )
 
 // Application is the struct of web Application
@@ -43,9 +43,9 @@ type application struct {
 	jwtEnabled bool
 	//anonControllers []interface{}
 	//jwtControllers  []interface{}
-	controllers   []interface{}
-	dispatcher    dispatcher
-	controllerMap map[string][]interface{}
+	controllers []interface{}
+	dispatcher  dispatcher
+	//controllerMap map[string][]interface{}
 }
 
 var (
@@ -80,38 +80,18 @@ func (a *application) Run() (err error) {
 	}
 
 	err = a.build()
-	if err != nil {
-		return
+	if err == nil {
+		err = a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(defaultConfiguration()))
 	}
 
-	err = a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(defaultConfiguration()))
-	return
-}
-
-func (a *application) add(controllers ...interface{}) (err error) {
-	for _, controller := range controllers {
-		ctrl := controller
-		// TODO: should run it before register
-		if reflect.TypeOf(controller).Kind() == reflect.Func {
-			ctrl, err = inject.IntoFunc(controller)
-			if err != nil {
-				return
-			}
-		}
-		ifcField := reflector.GetEmbeddedInterfaceField(ctrl)
-		if ifcField.Anonymous {
-			ctrlTypeName := ifcField.Name
-			ctrls := a.controllerMap[ctrlTypeName]
-			a.controllerMap[ctrlTypeName] = append(ctrls, ctrl)
-		}
-	}
 	return
 }
 
 // Init init web application
-func (a *application) build(controllers ...interface{}) (err error) {
+func (a *application) build() (err error) {
 	a.PrintStartupMessages()
 
+	a.AppendProfiles(a)
 	systemConfig := a.SystemConfig()
 	if systemConfig != nil {
 		log.SetLevel(systemConfig.Logging.Level)
@@ -121,7 +101,14 @@ func (a *application) build(controllers ...interface{}) (err error) {
 	}
 
 	f := a.ConfigurableFactory()
-	f.SetInstance("applicationContext", a)
+	f.AppendComponent(applicationContext, a)
+	// TODO: is it necessary ?
+	f.SetInstance(applicationContext, a)
+
+	// fill controllers into component container
+	for _, ctrl := range a.controllers {
+		f.AppendComponent(ctrl)
+	}
 
 	// build auto configurations
 	a.BuildConfigurations()
@@ -136,15 +123,8 @@ func (a *application) build(controllers ...interface{}) (err error) {
 		}
 	})
 
-	// categorize controllers
-	a.controllerMap = make(map[string][]interface{})
-	err = a.add(a.controllers...)
-	if err != nil {
-		return
-	}
-
 	// first register anon controllers
-	a.RegisterController(new(AnonController))
+	a.RegisterController(new(annotation.RestController))
 
 	// call AfterInitialization with factory interface
 	a.AfterInitialization()
@@ -156,12 +136,11 @@ func (a *application) RegisterController(controller interface{}) error {
 	// get from controller map
 	// parse controller type
 	controllerInterfaceName, err := reflector.GetName(controller)
-	if err != nil {
-		return ErrInvalidController
-	}
-	controllers, ok := a.controllerMap[controllerInterfaceName]
-	if ok {
-		return a.dispatcher.register(a.webApp, controllers)
+	if err == nil {
+		controllers := a.ConfigurableFactory().GetInstances(controllerInterfaceName)
+		if controllers != nil {
+			return a.dispatcher.register(a.webApp, controllers)
+		}
 	}
 	return ErrControllersNotFound
 }
@@ -181,6 +160,7 @@ func (a *application) initialize(controllers ...interface{}) (err error) {
 	a.webApp = iris.New()
 
 	err = a.Initialize()
+
 	if err == nil {
 		if len(controllers) == 0 {
 			a.controllers = registeredControllers
@@ -191,8 +171,9 @@ func (a *application) initialize(controllers ...interface{}) (err error) {
 	return
 }
 
-// Add add controller to controllers container
+// RestController register rest controller to controllers container
 func RestController(controllers ...interface{}) {
+	// add to registeredControllers as well
 	registeredControllers = append(registeredControllers, controllers...)
 }
 

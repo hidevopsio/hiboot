@@ -50,31 +50,21 @@ func (t *jwtToken) Initialize(p *Properties) error {
 	if io.IsPathNotExist(p.PrivateKeyPath) {
 		log.Fatalf("private key file %v does not exist", p.PrivateKeyPath)
 	}
-
+	var verifyBytes []byte
 	signBytes, err := ioutil.ReadFile(p.PrivateKeyPath)
-	if err != nil {
-		return err
+	if err == nil {
+		t.signKey, err = jwt.ParseRSAPrivateKeyFromPEM(signBytes)
+		if err == nil {
+			verifyBytes, err = ioutil.ReadFile(p.PublicKeyPath)
+			if err == nil {
+				t.verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
+				if err == nil {
+					t.jwtEnabled = true
+				}
+			}
+		}
 	}
-
-	t.signKey, err = jwt.ParseRSAPrivateKeyFromPEM(signBytes)
-	if err != nil {
-		return err
-	}
-
-	verifyBytes, err := ioutil.ReadFile(p.PublicKeyPath)
-	if err != nil {
-		return err
-	}
-
-	t.verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
-
-	if err != nil {
-		return err
-	}
-
-	t.jwtEnabled = true
-
-	return nil
+	return err
 }
 
 func (t *jwtToken) VerifyKey() *rsa.PublicKey {

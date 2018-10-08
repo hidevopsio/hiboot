@@ -25,7 +25,7 @@ import (
 type loginController struct {
 	web.Controller
 
-	jwtToken jwt.Token
+	token jwt.Token
 }
 
 type userRequest struct {
@@ -41,16 +41,18 @@ func init() {
 }
 
 // Init inject jwtToken through the argument jwtToken jwt.Token on constructor
-func newLoginController(jwtToken jwt.Token) *loginController {
+// todo: 1. find the name jwtToken through loginController that has the type jwt.Token
+// 2. else find pkgName + typeName jwt + Token
+func newLoginController(token jwt.Token) *loginController {
 	return &loginController{
-		jwtToken: jwtToken,
+		token: token,
 	}
 }
 
 // Post /
 // The first word of method is the http method POST, the rest is the context mapping
 func (c *loginController) Post(request *userRequest) (response model.Response, err error) {
-	jwtToken, _ := c.jwtToken.Generate(jwt.Map{
+	jwtToken, _ := c.token.Generate(jwt.Map{
 		"username": request.Username,
 		"password": request.Password,
 	}, 30, time.Minute)

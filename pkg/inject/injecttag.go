@@ -27,23 +27,32 @@ func init() {
 	AddTag(new(injectTag))
 }
 
-func (t *injectTag) IsSingleton() bool {
-	return true
-}
-
 func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{}) {
 	properties := t.ParseProperties(tag)
 
 	// first, find if object is already instantiated
-	if field.Type.Kind() == reflect.Ptr {
+	if field.Type.Kind() == reflect.Ptr || field.Type.Kind() == reflect.Interface {
 		// if object is not exist, then instantiate new object
 		// parse tag and instantiate filed
 		ft := field.Type
 		if ft.Kind() == reflect.Ptr {
 			ft = ft.Elem()
 		}
-		o := reflect.New(ft)
-		retVal = o.Interface()
+		// get the user specific instance first
+		retVal = t.ConfigurableFactory.GetInstance(tag)
+		// else to find with the field name if above is not found
+		if retVal == nil {
+			retVal = t.ConfigurableFactory.GetInstance(field.Name)
+		}
+		// else to find with the type name if above is not found
+		if retVal == nil {
+			retVal = t.ConfigurableFactory.GetInstance(ft.Name())
+		}
+		// else create new instance at runtime
+		if retVal == nil && field.Type.Kind() != reflect.Interface {
+			o := reflect.New(ft)
+			retVal = o.Interface()
+		}
 		// inject field value
 		if properties.Count() != 0 {
 			mapstruct.Decode(retVal, properties.Items())

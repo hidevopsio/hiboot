@@ -70,6 +70,12 @@ type FooController struct {
 	jwtToken jwt.Token
 }
 
+func newFooController(jwtToken jwt.Token) *FooController {
+	return &FooController{
+		jwtToken: jwtToken,
+	}
+}
+
 type ExampleController struct {
 	web.Controller
 }
@@ -100,9 +106,9 @@ func init() {
 	app.Component(newFooBarService)
 }
 
-func (c *FooController) Init(jwtToken jwt.Token) {
-	c.jwtToken = jwtToken
-}
+//func (c *FooController) Init(jwtToken jwt.Token) {
+//	c.jwtToken = jwtToken
+//}
 
 func (c *FooController) Before() {
 	log.Debug("FooController.Before")
@@ -199,6 +205,10 @@ type BarController struct {
 	jwt.Controller
 }
 
+func newBarController() *BarController {
+	return &BarController{}
+}
+
 func (c *BarController) Get(request *BarRequest) (response model.Response, err error) {
 	log.Debug("BarController.Get")
 	response = new(model.BaseResponse)
@@ -209,6 +219,10 @@ func (c *BarController) Get(request *BarRequest) (response model.Response, err e
 
 type FoobarController struct {
 	web.Controller
+}
+
+func newFoobarController() *FoobarController {
+	return &FoobarController{}
 }
 
 func (c *FoobarController) Post(request *FoobarRequestForm) (response model.Response, err error) {
@@ -247,6 +261,10 @@ func (c *HelloController) Get() string {
 	return "hello"
 }
 
+func (c *HelloController) GetHtml() {
+	c.Ctx.HTML("<h1>Hello World</h1>")
+}
+
 // Get /all
 func (c *HelloController) GetAll() {
 
@@ -268,7 +286,7 @@ func (c *HelloController) GetAll() {
 }
 
 func TestWebApplication(t *testing.T) {
-	wta := web.NewTestApplication(t, newHelloController, new(FooController), new(BarController), new(FoobarController))
+	wta := web.NewTestApplication(t, newHelloController, newFooController, newBarController, newFoobarController)
 
 	t.Run("should response 200 when GET /all", func(t *testing.T) {
 		wta.
@@ -280,6 +298,12 @@ func TestWebApplication(t *testing.T) {
 	t.Run("should response 200 when GET /", func(t *testing.T) {
 		wta.
 			Get("/").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should response 200 when GET /", func(t *testing.T) {
+		wta.
+			Get("/html").
 			Expect().Status(http.StatusOK)
 	})
 
@@ -490,4 +514,11 @@ func TestNewApplication(t *testing.T) {
 	})
 
 	go wta.SetProperty(app.PropertyBannerDisabled, true).Run()
+}
+
+func TestAnonymousController(t *testing.T) {
+	t.Run("should failed to register anonymous controller", func(t *testing.T) {
+		testApp := web.NewTestApplication(t, (*Bar)(nil))
+		assert.NotEqual(t, nil, testApp)
+	})
 }

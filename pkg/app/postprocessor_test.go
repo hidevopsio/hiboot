@@ -14,7 +14,25 @@
 
 package app
 
-import "testing"
+import (
+	"testing"
+)
+
+type fakePostProcessor struct {
+}
+
+func (p *fakePostProcessor) BeforeInitialization(factory interface{}) {
+}
+
+func (p *fakePostProcessor) AfterInitialization(factory interface{}) {
+
+}
 
 func TestRegisterPostProcessor(t *testing.T) {
+
+	RegisterPostProcessor(new(fakePostProcessor))
+	pp := newPostProcessor()
+
+	pp.AfterInitialization(nil)
+
 }

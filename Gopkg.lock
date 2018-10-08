@@ -55,6 +55,14 @@
   version = "v1.1.0"
 
 [[projects]]
+  digest = "1:aaeffbff5bd24654cb4c190ed75d6c7b57b4f5d6741914c1a7a6bb7447e756c5"
+  name = "github.com/deckarep/golang-set"
+  packages = ["."]
+  pruneopts = ""
+  revision = "cbaa98ba5575e67703b32b4b19f73c91f3c4159e"
+  version = "v1.7.1"
+
+[[projects]]
   digest = "1:6098222470fe0172157ce9bbef5d2200df4edde17ee649c5d6e48330e4afa4c6"
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
@@ -333,7 +341,10 @@
 [[projects]]
   digest = "1:961dc3b1d11f969370533390fdf203813162980c858e1dabe827b60940c909a5"
   name = "github.com/magiconair/properties"
-  packages = ["."]
+  packages = [
+    ".",
+    "assert",
+  ]
   pruneopts = ""
   revision = "c2353362d570a7bfa228149c62842019201cfb71"
   version = "v1.8.0"
@@ -707,6 +718,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/deckarep/golang-set",
     "github.com/dgrijalva/jwt-go",
     "github.com/fatih/camelcase",
     "github.com/golang/protobuf/proto",
@@ -719,6 +731,7 @@
     "github.com/kataras/iris/middleware/i18n",
     "github.com/kataras/iris/middleware/logger",
     "github.com/kataras/pio",
+    "github.com/magiconair/properties/assert",
     "github.com/mitchellh/mapstructure",
     "github.com/sony/sonyflake",
     "github.com/spf13/cobra",

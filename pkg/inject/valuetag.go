@@ -27,9 +27,10 @@ func init() {
 	AddTag(new(valueTag))
 }
 
-func (t *valueTag) IsSingleton() bool {
-	return false
-}
+//
+//func (t *valueTag) IsSingleton() bool {
+//	return false
+//}
 
 func (t *valueTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{}) {
 	if tag != "" {

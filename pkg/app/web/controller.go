@@ -14,12 +14,11 @@
 
 package web
 
-// AnonController is an anonymous controller interface
-type AnonController interface{}
+import "github.com/hidevopsio/hiboot/pkg/app/web/annotation"
 
 // Controller is the web base controller
 type Controller struct {
-	AnonController
+	annotation.RestController
 	ContextMapping string
 	Ctx            *Context
 }

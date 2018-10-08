@@ -17,25 +17,24 @@ package jwt
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/starter/jwt/annotation"
 )
 
 type postProcessor struct {
-	jwtMiddleware      *JwtMiddleware
 	applicationContext app.ApplicationContext
+	jwtMiddleware      *JwtMiddleware
 }
 
 func init() {
 	// register postProcessor
-	app.RegisterPostProcessor(new(postProcessor))
+	app.RegisterPostProcessor(newPostProcessor)
 }
 
-func (p *postProcessor) Init(applicationContext app.ApplicationContext, jwtMiddleware *JwtMiddleware) {
-	p.applicationContext = applicationContext
-	p.jwtMiddleware = jwtMiddleware
-}
-
-func (p *postProcessor) BeforeInitialization(factory interface{}) {
-	//log.Debug("[jwt] BeforeInitialization")
+func newPostProcessor(applicationContext app.ApplicationContext, jwtMiddleware *JwtMiddleware) *postProcessor {
+	return &postProcessor{
+		applicationContext: applicationContext,
+		jwtMiddleware:      jwtMiddleware,
+	}
 }
 
 func (p *postProcessor) AfterInitialization(factory interface{}) {
@@ -45,7 +44,7 @@ func (p *postProcessor) AfterInitialization(factory interface{}) {
 	p.applicationContext.Use(p.jwtMiddleware.Serve)
 
 	// finally register jwt controllers
-	err := p.applicationContext.RegisterController(new(JwtController))
+	err := p.applicationContext.RegisterController(new(annotation.JwtRestController))
 	if err != nil {
 		log.Warnf("[jwt] %v", err)
 	}

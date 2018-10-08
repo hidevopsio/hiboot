@@ -24,15 +24,15 @@ import (
 )
 
 // define the command
-type HelloCommand struct {
+type rootCommand struct {
 	// embedding cli.BaseCommand in each command
 	cli.BaseCommand
 	// inject (bind) flag to field 'To', so that it can be used on Run method, please note that the data type must be pointer
-	To *string `flag:"name=to,shorthand=t,value=world,usage=e.g. --to=world or -t world"`
+	To string `flag:"name=to,shorthand=t,value=world,usage=e.g. --to=world or -t world"`
 }
 
-// Init constructor
-func (c *HelloCommand) Init() {
+func newRootCommand() *rootCommand {
+	c := new(rootCommand)
 	c.Use = "hello"
 	c.Short = "hello command"
 	c.Long = "run hello command for getting started"
@@ -40,20 +40,20 @@ func (c *HelloCommand) Init() {
 hello -h : help
 hello -t John : say hello to John
 `
-	c.BashCompletionFunction = `
-`
+	c.PersistentFlags().StringVarP(&c.To, "to", "t", "world", "e.g. --to=world or -t world")
+	return c
 }
 
 // Run run the command
-func (c *HelloCommand) Run(args []string) error {
-	fmt.Printf("Hello, %v\n", *c.To)
+func (c *rootCommand) Run(args []string) error {
+	fmt.Printf("Hello, %v\n", c.To)
 	return nil
 }
 
 // main function
 func main() {
 	// create new cli application and run it
-	cli.NewApplication(new(HelloCommand)).
+	cli.NewApplication(newRootCommand).
 		SetProperty(app.PropertyBannerDisabled, true).
 		Run()
 }

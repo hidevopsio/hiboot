@@ -16,13 +16,10 @@ package cli
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 	"os"
 	"path/filepath"
-	"reflect"
-	"runtime"
 	"strings"
 	"sync"
 )
@@ -58,42 +55,19 @@ func init() {
 }
 
 // NewApplication create new cli application
-func NewApplication(cmd ...Command) Application {
+func NewApplication(cmd ...interface{}) Application {
 	a := new(application)
-	if a.initialize(cmd...) != nil {
-		log.Fatal("cli application is not initialized")
+	if err := a.initialize(cmd...); err != nil {
+		log.Fatal("failed to init cli application, err: %v", err)
 	}
 	return a
 }
 
-func (a *application) injectCommand(cmd Command) {
-	fullname := "root"
-	if cmd != nil {
-		fullname = cmd.FullName()
+func (a *application) initialize(cmd ...interface{}) (err error) {
+	if len(cmd) > 0 {
+		app.Register("rootCommand", cmd[0])
 	}
-	for _, child := range cmd.Children() {
-		inject.IntoObjectValue(reflect.ValueOf(child))
-		child.SetFullName(fullname + "." + child.GetName())
-		a.injectCommand(child)
-	}
-}
-
-func (a *application) initialize(cmd ...Command) (err error) {
 	err = a.Initialize()
-	if err == nil {
-		var root Command
-		root = new(rootCommand)
-		numOfCmd := len(cmd)
-		if cmd != nil && numOfCmd > 0 {
-			if numOfCmd == 1 {
-				root = cmd[0]
-			} else {
-				root.Add(cmd...)
-			}
-		}
-		root.SetName("root")
-		a.SetRoot(root)
-	}
 	return
 }
 
@@ -101,22 +75,28 @@ func (a *application) initialize(cmd ...Command) (err error) {
 func (a *application) build() error {
 	a.PrintStartupMessages()
 
+	a.AppendProfiles(a)
+
 	basename := filepath.Base(os.Args[0])
-	if runtime.GOOS == "windows" {
-		basename = strings.ToLower(basename)
-		basename = strings.TrimSuffix(basename, ".exe")
-	}
+	basename = strings.ToLower(basename)
+	basename = strings.TrimSuffix(basename, ".exe")
 
-	var root = a.Root()
-	inject.IntoObject(root)
-	Register(root)
-	a.SetRoot(root)
-	if !gotest.IsRunning() {
-		a.Root().EmbeddedCommand().Use = basename
-	}
+	f := a.ConfigurableFactory()
+	f.SetInstance("applicationContext", a)
 
-	if a.root != nil && a.root.HasChild() {
-		a.injectCommand(a.root)
+	// build auto configurations
+	a.BuildConfigurations()
+
+	// set root command
+	r := f.GetInstance("rootCommand")
+	var root Command
+	if r != nil {
+		root = r.(Command)
+		Register(root)
+		a.SetRoot(root)
+		if !gotest.IsRunning() {
+			a.Root().EmbeddedCommand().Use = basename
+		}
 	}
 	return nil
 }
@@ -147,9 +127,7 @@ func (a *application) Run() (err error) {
 	a.build()
 	//log.Debug(commandContainer)
 	if a.root != nil {
-		if err = a.root.Exec(); err != nil {
-			return
-		}
+		err = a.root.Exec()
 	}
 	return
 }

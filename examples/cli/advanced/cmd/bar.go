@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/hidevopsio/hiboot/pkg/log"
 )
@@ -23,10 +24,16 @@ type barCommand struct {
 	cli.BaseCommand
 }
 
-func (c *barCommand) Init() {
+func init() {
+	app.Component(newBarCommand)
+}
+
+func newBarCommand() *barCommand {
+	c := new(barCommand)
 	c.Use = "bar"
 	c.Short = "bar command"
 	c.Long = "Run bar command"
+	return c
 }
 
 // OnBaz run command bar baz, return true means it won't run next action, in this case is method Run(args []string)
@@ -37,7 +44,7 @@ func (c *barCommand) OnBaz(args []string) bool {
 
 // OnBuz run command bar buz, return true means it won't run next action, in this case is method Run(args []string)
 func (c *barCommand) OnBuz(args []string) bool {
-	log.Infof("on baz command")
+	log.Infof("on buz command")
 	return true
 }
 

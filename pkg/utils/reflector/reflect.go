@@ -295,7 +295,13 @@ func GetEmbeddedInterfaceField(object interface{}) (field reflect.StructField) {
 	if object == nil {
 		return
 	}
-	typ := IndirectType(reflect.TypeOf(object))
+
+	typ, ok := GetFuncOutType(object)
+	if ok {
+		return GetEmbeddedInterfaceFieldByType(typ)
+	}
+
+	typ = IndirectType(reflect.TypeOf(object))
 	return GetEmbeddedInterfaceFieldByType(typ)
 }
 
@@ -329,4 +335,71 @@ func ParseObjectPkgName(obj interface{}) string {
 func GetPkgPath(object interface{}) string {
 	objType := IndirectType(reflect.TypeOf(object))
 	return objType.PkgPath()
+}
+
+// GetFuncOutType get the function output data type
+func GetFuncOutType(object interface{}) (typ reflect.Type, ok bool) {
+	obj := reflect.ValueOf(object)
+	t := obj.Type()
+	typName := t.Name()
+	typKind := t.Kind()
+	//log.Debugf("type: %v type name: %v, kind: %v", t, typName, typKind)
+	if typKind == reflect.Func {
+		numOut := obj.Type().NumOut()
+		if numOut > 0 {
+			typ = IndirectType(obj.Type().Out(0))
+			ok = true
+		}
+	} else if typKind == reflect.Struct && typName == "Method" {
+		method := object.(reflect.Method)
+		methodTyp := method.Func.Type()
+		numOut := methodTyp.NumOut()
+		if numOut > 0 {
+			typ = IndirectType(methodTyp.Out(0))
+			ok = true
+		}
+	}
+
+	return
+}
+
+// GetFullName get the object name with package name, e.g. pkg.Object
+func GetFullName(object interface{}) (name string) {
+
+	typ, ok := GetFuncOutType(object)
+	if ok {
+		return GetFullNameByType(typ)
+	}
+
+	name, err := GetName(object)
+	if err == nil {
+		depPkgName := ParseObjectPkgName(object)
+		name = depPkgName + "." + name
+	}
+	return
+}
+
+// GetPkgAndName get the package name and the object name with, e.g. pkg, Object
+func GetPkgAndName(object interface{}) (pkgName, name string) {
+
+	typ, ok := GetFuncOutType(object)
+	if ok {
+		pkgName = io.DirName(typ.PkgPath())
+		name = typ.Name()
+		return
+	}
+
+	name, err := GetName(object)
+	if err == nil {
+		pkgName = ParseObjectPkgName(object)
+	}
+	return
+}
+
+// GetFullNameByType get the object name with package name by type, e.g. pkg.Object
+func GetFullNameByType(objType reflect.Type) (name string) {
+	indTyp := IndirectType(objType)
+	depPkgName := io.DirName(indTyp.PkgPath())
+	name = depPkgName + "." + str.ToLowerCamel(indTyp.Name())
+	return
 }

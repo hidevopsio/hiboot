@@ -18,12 +18,11 @@ package main
 
 // import cli starter and fmt
 import (
-	"github.com/hidevopsio/hiboot/examples/cli/crypto/cmd"
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 )
 
 // main function
 func main() {
 	// create new cli application and run it
-	cli.NewApplication(new(cmd.CryptoCommand)).Run()
+	cli.NewApplication().Run()
 }

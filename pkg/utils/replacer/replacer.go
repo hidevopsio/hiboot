@@ -17,7 +17,6 @@ package replacer
 import (
 	"errors"
 	"fmt"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"os"
 	"reflect"
@@ -99,7 +98,7 @@ func GetFieldValue(f interface{}, name string) (retVal reflect.Value, err error)
 	if !r.IsNil() && r.IsValid() {
 		retVal = reflect.Indirect(r).FieldByName(name)
 	} else {
-		log.Warn("invalid value")
+		//log.Warn("invalid value")
 		err = InvalidObjectError
 	}
 	return
