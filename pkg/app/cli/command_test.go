@@ -52,10 +52,12 @@ func TestCommand(t *testing.T) {
 	t.Run("should run secondary command handler", func(t *testing.T) {
 		cmd := new(fooCommand)
 
-		res := cli.Dispatch(cmd, []string{"daz"})
-		assert.Equal(t, false, res)
+		res, err := cli.Dispatch(cmd, []string{"daz"})
+		assert.Equal(t, nil, err)
+		assert.Equal(t, false, res.(bool))
 
-		res = cli.Dispatch(cmd, []string{"buzz"})
-		assert.Equal(t, true, res)
+		res, err = cli.Dispatch(cmd, []string{"buzz"})
+		assert.Equal(t, nil, err)
+		assert.Equal(t, true, res.(bool))
 	})
 }
