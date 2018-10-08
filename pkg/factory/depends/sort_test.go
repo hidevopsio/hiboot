@@ -47,6 +47,10 @@ func (c *helloConfiguration) HelloHiboot(h Hello) HelloHiboot {
 	return HelloHiboot(h + "Hello Hiboot")
 }
 
+type helloService struct {
+	HelloWorld HelloWorld `inject:""`
+}
+
 type fooConfiguration struct {
 	app.Configuration
 }
@@ -151,6 +155,7 @@ func TestSort(t *testing.T) {
 		// append inst to f.components
 		methodTestData = append(methodTestData, factory.NewMetaData(helloConfig, method))
 	}
+	methodTestData = append(methodTestData, factory.NewMetaData(helloConfig, new(helloService)))
 
 	testData := []struct {
 		title          string
