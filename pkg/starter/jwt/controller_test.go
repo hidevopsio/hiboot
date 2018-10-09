@@ -24,9 +24,9 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
 	"github.com/stretchr/testify/assert"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
-	"strings"
 )
 
 type userRequest struct {
@@ -159,7 +159,7 @@ func TestJwtController(t *testing.T) {
 		assert.Equal(t, "johndoe", username)
 
 		testApp.Get("/bar").
-			WithHeader("Authorization", "1df%^!" + token).
+			WithHeader("Authorization", "1df%^!"+token).
 			Expect().Status(http.StatusUnauthorized)
 
 		testApp.Get("/bar").

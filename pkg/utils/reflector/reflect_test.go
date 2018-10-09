@@ -15,11 +15,11 @@
 package reflector
 
 import (
+	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
-	"fmt"
 )
 
 type Foo struct {
@@ -587,11 +587,11 @@ func TestTypeSwitch(t *testing.T) {
 
 	switch tp := typ.(type) {
 	default:
-		fmt.Printf("unexpected type %T\n", tp)     // %T prints whatever type t has
+		fmt.Printf("unexpected type %T\n", tp) // %T prints whatever type t has
 	case bool:
-		fmt.Printf("boolean %t\n", tp)             // t has type bool
+		fmt.Printf("boolean %t\n", tp) // t has type bool
 	case int:
-		fmt.Printf("integer %d\n", tp)             // t has type int
+		fmt.Printf("integer %d\n", tp) // t has type int
 	case *bool:
 		fmt.Printf("pointer to boolean %t\n", *tp) // t has type *bool
 	case *int:

@@ -22,6 +22,7 @@ import (
 	"strings"
 )
 
+// IsRunning return true if the go test is running
 func IsRunning() (ok bool) {
 
 	args := os.Args
@@ -36,6 +37,7 @@ func IsRunning() (ok bool) {
 	return
 }
 
+// ParseArgs parse args
 func ParseArgs(args []string) {
 
 	a := os.Args[1:]
