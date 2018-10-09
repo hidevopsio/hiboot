@@ -81,17 +81,18 @@ func (f *InstantiateFactory) BuildComponents() (err error) {
 	// then build components
 	var obj interface{}
 	var name string
-	for _, item := range resolved {
+	for i, item := range resolved {
 		// inject dependencies into function
 		// components, controllers
 		switch item.Kind {
 		case types.Func:
 			obj, err = inject.IntoFunc(item.Object)
 			name = item.ShortName
+			log.Debugf("%d: inject into func: %v - %v", i, item.Name, item.Type)
 		case types.Method:
 			obj, err = inject.IntoMethod(item.Context, item.Object)
 			name = item.ShortName
-			log.Debugf("inject into method: %v - %v", item.Name, item.ShortName)
+			log.Debugf("%d: inject into method: %v - %v", i, item.Name, item.Type)
 		default:
 			name, obj = item.Name, item.Object
 		}

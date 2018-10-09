@@ -42,8 +42,6 @@ var (
 	grpcClients []*grpcService
 )
 
-type dummyClient struct{}
-
 // RegisterServer register server from application
 func RegisterServer(cb interface{}, s interface{}) {
 	svrName, _ := reflector.GetName(s)
@@ -72,7 +70,12 @@ func RegisterClient(name string, cbs ...interface{}) {
 		if ok {
 			// NOTE: it's very important !!!
 			// To register grpc client and grpc.ClientConn here, even though it will never be used.
-			app.Component(str.ToLowerCamel(typ.Name()), reflect.New(typ).Interface())
+			// client should depends on grpc.clientFactory
+			metaData := &factory.MetaData{
+				Object:  reflect.New(typ).Interface(),
+				Depends: []string{"grpc.clientFactory"},
+			}
+			app.Component(str.ToLowerCamel(typ.Name()), metaData)
 		}
 	}
 	// Just register grpc.ClientConn in order to pass dependency check

@@ -92,4 +92,12 @@ func TestUtils(t *testing.T) {
 		assert.Equal(t, "factory_test.foo", md.Name)
 		assert.Equal(t, svc, md.Object)
 	})
+
+	t.Run("should parse object pkg name", func(t *testing.T) {
+		type service struct{}
+		svc := new(service)
+		md := factory.NewMetaData(&factory.MetaData{Object: new(service)})
+		assert.Equal(t, "factory_test.service", md.Name)
+		assert.Equal(t, svc, md.Object)
+	})
 }

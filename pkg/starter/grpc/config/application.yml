@@ -9,5 +9,5 @@ app:
     - grpc
 
 logging:
-  level: info
+  level: debug
 
