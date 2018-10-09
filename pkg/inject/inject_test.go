@@ -26,8 +26,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
-	"testing"
 	"reflect"
+	"testing"
 )
 
 type User struct {
@@ -251,7 +251,6 @@ var (
 	cf *autoconfigure.ConfigurableFactory
 )
 
-
 type Hello string
 type HelloWorld string
 
@@ -262,7 +261,6 @@ type helloConfiguration struct {
 func (c *helloConfiguration) HelloWorld(h Hello) HelloWorld {
 	return HelloWorld(h + "World")
 }
-
 
 func init() {
 	log.SetLevel(log.DebugLevel)

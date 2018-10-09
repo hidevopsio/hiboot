@@ -18,10 +18,10 @@ import (
 	"crypto/rsa"
 	"time"
 
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"io/ioutil"
-	"fmt"
 )
 
 // JwtMap is the JWT map
@@ -39,6 +39,7 @@ type jwtToken struct {
 	jwtEnabled bool
 }
 
+// NewJwtToken create new jwt token
 func NewJwtToken(p *Properties) (token Token) {
 	jt := new(jwtToken)
 	err := jt.Initialize(p)

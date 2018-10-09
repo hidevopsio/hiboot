@@ -22,10 +22,12 @@ import (
 	"strings"
 )
 
+// ChangeWorkDir change current working dir
 func ChangeWorkDir(workDir string) error {
 	return os.Chdir(workDir)
 }
 
+// GetWorkDir get current working dir
 func GetWorkDir() string {
 
 	wd, _ := os.Getwd()
@@ -33,7 +35,8 @@ func GetWorkDir() string {
 	return wd
 }
 
-func EnsureWorkDir(skip int, existFile string) (ok bool) {
+// EnsureWorkDir ensure the working dir is set the correct dir specified by user
+func EnsureWorkDir(skip int, dir string) (ok bool) {
 	var path string
 	if _, file, _, ok := runtime.Caller(skip); ok && strings.Contains(os.Args[0], "go_build_") {
 		path = BaseDir(file)
@@ -44,7 +47,7 @@ func EnsureWorkDir(skip int, existFile string) (ok bool) {
 
 	for {
 		//log.Debugf("%v", path)
-		configPath := filepath.Join(path, existFile)
+		configPath := filepath.Join(path, dir)
 		if !IsPathNotExist(configPath) {
 			ChangeWorkDir(path)
 			ok = true
@@ -60,12 +63,14 @@ func EnsureWorkDir(skip int, existFile string) (ok bool) {
 	return
 }
 
+// GetRelativePath get relative path
 func GetRelativePath(level int) string {
 	_, path, _, _ := runtime.Caller(level)
 
 	return filepath.Dir(path)
 }
 
+// IsPathNotExist check if path is not exist
 func IsPathNotExist(path string) bool {
 	_, err := os.Stat(path)
 	isNotExist := os.IsNotExist(err)
@@ -89,17 +94,20 @@ func write(path, filename string, cb func(f *os.File) (n int, err error)) (int, 
 	return 0, err
 }
 
+// CreateFile create file
 func CreateFile(path, filename string) error {
 	_, err := write(path, filename, nil)
 	return err
 }
 
+// WriterFile write bytes to file
 func WriterFile(path, filename string, in []byte) (int, error) {
 	return write(path, filename, func(f *os.File) (int, error) {
 		return f.Write(in)
 	})
 }
 
+// Visit get files in a specific dir
 func Visit(files *[]string) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -110,6 +118,8 @@ func Visit(files *[]string) filepath.WalkFunc {
 	}
 }
 
+// Basename get the base name from a path
+// /a/b/c.ext => /a/b/c
 func Basename(s string) string {
 	n := strings.LastIndexByte(s, '.')
 	if n > 0 {
@@ -118,6 +128,8 @@ func Basename(s string) string {
 	return s
 }
 
+// Filename get file name from a path
+// /a/b/c.ext => c.ext
 func Filename(s string) string {
 	n := strings.LastIndexByte(s, filepath.Separator)
 	if n >= 0 {
@@ -126,6 +138,9 @@ func Filename(s string) string {
 	return s
 }
 
+// BaseDir get base dir from a path
+// /a/b/c.ext => /a/b
+// /a/b/c => /a/b
 func BaseDir(s string) string {
 	n := strings.LastIndexByte(s, filepath.Separator)
 	if n > 0 {
@@ -136,6 +151,8 @@ func BaseDir(s string) string {
 	return s
 }
 
+// DirName get dir name from a path
+// /a/b/c => c
 func DirName(s string) string {
 	n := strings.LastIndexByte(s, filepath.Separator)
 	if n >= 0 {
@@ -144,6 +161,7 @@ func DirName(s string) string {
 	return s
 }
 
+// CallerInfo get call info, include filename, line number or function name
 func CallerInfo(skip int) (file string, line int, fn string) {
 	var pc uintptr
 	var ok bool

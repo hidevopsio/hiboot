@@ -19,8 +19,8 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"google.golang.org/grpc"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"google.golang.org/grpc"
 	"reflect"
 )
 
