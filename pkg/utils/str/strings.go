@@ -37,7 +37,7 @@ func LowerFirst(str string) string {
 	return EmptyString
 }
 
-// StringInSlice check if specific string is in slice
+// InSlice check if specific string is in slice
 func InSlice(a string, list []string) bool {
 
 	var retVal bool
