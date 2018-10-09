@@ -23,6 +23,7 @@ import (
 	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 	"testing"
 	"time"
+	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
 func init() {
@@ -44,8 +45,10 @@ type greeterClientService struct {
 }
 
 // Init inject greeterClient and clientContext
-func (s *greeterClientService) Init(greeterClient pb.GreeterClient) {
-	s.greeterClient = greeterClient
+func newGreeterClientService(greeterClient pb.GreeterClient) *greeterClientService {
+	return &greeterClientService{
+		greeterClient: greeterClient,
+	}
 }
 
 func (s *greeterClientService) SayHello(name string) (*pb.HelloReply, error) {
@@ -55,19 +58,29 @@ func (s *greeterClientService) SayHello(name string) (*pb.HelloReply, error) {
 
 func TestGrpcServerAndClient(t *testing.T) {
 
-	greeterClientSvc := new(greeterClientService)
+	app.Component(newGreeterClientService)
+
 	grpc.RegisterServer(pb.RegisterGreeterServer, new(greeterService))
-	grpc.RegisterClient("greeter-service", pb.NewGreeterClient, greeterClientSvc)
+	grpc.RegisterClient("greeter-service", pb.NewGreeterClient)
 
-	app := web.NewTestApplication(t)
-	assert.NotEqual(t, nil, app)
+	testApp := web.NewTestApplication(t)
+	assert.NotEqual(t, nil, testApp)
 
-	time.Sleep(1000 * time.Millisecond)
+	applicationContext := testApp.(app.ApplicationContext)
+
+	cliSvc := applicationContext.FindInstance(greeterClientService{})
+	assert.NotEqual(t, nil, cliSvc)
+	if cliSvc != nil {
+		greeterCliSvc := cliSvc.(*greeterClientService)
+		assert.NotEqual(t, nil, greeterCliSvc.greeterClient)
+	}
 
 	//name := "Steve"
 	//response, err := greeterClientSvc.SayHello(name)
 	//assert.Equal(t, nil, err)
 	//assert.Equal(t, "Hello " + name, response.Message)
+	time.Sleep(500 * time.Millisecond)
+
 }
 
 func TestInjectIntoObject(t *testing.T) {

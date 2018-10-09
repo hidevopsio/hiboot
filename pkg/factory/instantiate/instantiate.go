@@ -92,8 +92,6 @@ func (f *InstantiateFactory) BuildComponents() (err error) {
 			obj, err = inject.IntoMethod(item.Context, item.Object)
 			name = item.ShortName
 			log.Debugf("inject into method: %v - %v", item.Name, item.ShortName)
-			// TODO: need to shift from _, err = f.InstantiateMethod(configuration, method, method.Name)
-			//continue
 		default:
 			name, obj = item.Name, item.Object
 		}

@@ -26,6 +26,7 @@ import (
 	"net/http"
 	"testing"
 	"time"
+	"strings"
 )
 
 type userRequest struct {
@@ -100,6 +101,10 @@ func (c *barController) Get() string {
 	return "Hello, world"
 }
 
+func (c *barController) Options() {
+	log.Debug("barController.Options")
+}
+
 func TestJwtController(t *testing.T) {
 	testApp := web.NewTestApplication(t, newFooController, newBarController)
 	ctx := testApp.(app.ApplicationContext)
@@ -132,8 +137,13 @@ func TestJwtController(t *testing.T) {
 			Expect().Status(http.StatusUnauthorized)
 	})
 
+	t.Run("should return http.StatusOK after GET /bar", func(t *testing.T) {
+		testApp.Options("/bar").
+			Expect().Status(http.StatusOK)
+	})
+
+	token := fmt.Sprintf("Bearer %v", fooCtrl.tokenStr)
 	t.Run("should return http.StatusOK on /bar with jwt token", func(t *testing.T) {
-		token := fmt.Sprintf("Bearer %v", fooCtrl.tokenStr)
 
 		testApp.Get("/bar").
 			WithHeader("Authorization", token).
@@ -148,6 +158,33 @@ func TestJwtController(t *testing.T) {
 		username := barCtrl.JwtProperty("username")
 		assert.Equal(t, "johndoe", username)
 
+		testApp.Get("/bar").
+			WithHeader("Authorization", "1df%^!" + token).
+			Expect().Status(http.StatusUnauthorized)
+
+		testApp.Get("/bar").
+			WithHeader("Authorization", "").
+			Expect().Status(http.StatusUnauthorized)
+	})
+
+	applicationContext := testApp.(app.ApplicationContext)
+	jwtMiddleware := applicationContext.FindInstance(jwt.JwtMiddleware{}).(*jwt.JwtMiddleware)
+
+	t.Run("should report error with SigningMethod", func(t *testing.T) {
+		jwtMiddleware.Config.SigningMethod = jwtgo.SigningMethodRS512
+		testApp.Get("/bar").
+			WithHeader("Authorization", token).
+			Expect().Status(http.StatusUnauthorized)
+		jwtMiddleware.Config.SigningMethod = jwtgo.SigningMethodRS256
+	})
+
+	t.Run("should failed with invalid token", func(t *testing.T) {
+		testApp.Get("/bar").
+			WithHeader("Authorization", strings.Replace(token, "1", "2", -1)).
+			Expect().Status(http.StatusUnauthorized)
+	})
+
+	t.Run("should set CredentialsOptional", func(t *testing.T) {
 		time.Sleep(2 * time.Second)
 
 		testApp.Get("/bar").
@@ -155,13 +192,20 @@ func TestJwtController(t *testing.T) {
 			Expect().Status(http.StatusUnauthorized)
 	})
 
+	t.Run("should set CredentialsOptional", func(t *testing.T) {
+		jwtMiddleware.Config.CredentialsOptional = true
+		testApp.Get("/bar").
+			WithHeader("Authorization", "").
+			Expect().Status(http.StatusOK)
+	})
+
 }
 
 func TestAppWithoutJwtController(t *testing.T) {
 	fooCtrl := new(fooController)
-	app := web.NewTestApplication(t, fooCtrl)
+	testApp := web.NewTestApplication(t, fooCtrl)
 	t.Run("should return http.StatusUnauthorized after GET /bar", func(t *testing.T) {
-		app.Get("/foo").
+		testApp.Get("/foo").
 			Expect().Status(http.StatusOK)
 	})
 }

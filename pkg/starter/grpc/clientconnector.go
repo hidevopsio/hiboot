@@ -35,13 +35,11 @@ func (c *clientConnector) Connect(name string, cb interface{}, prop *ClientPrope
 		// connect to grpc server
 		conn, err = grpc.Dial(address, grpc.WithInsecure())
 		c.instantiateFactory.SetInstance(name, conn)
-		if err != nil {
-			log.Errorf("failed to connect to grpc server %v", address)
-			return
+		if err == nil {
+			log.Infof("gRPC client connected to: %v", address)
 		}
-		log.Infof("gRPC client connected to: %v", address)
 	}
-	if cb != nil {
+	if err == nil && cb != nil {
 		// get return type for register instance name
 		gRpcCli, err := reflector.CallFunc(cb, conn)
 		if err == nil {
