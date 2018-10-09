@@ -15,5 +15,6 @@
 // Package web/annotation provides annotations for web RestController
 package annotation
 
+// RestController is the annotation that declare current controller is the RESTful Controller
 type RestController interface {
 }

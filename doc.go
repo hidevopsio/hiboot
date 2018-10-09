@@ -16,15 +16,16 @@
 
 Hiboot is a cloud native web and cli application framework written in Go.
 
-Hiboot is not trying to reinvent everything, it integrates the popular libraries but make them simpler, easier to use.
+Hiboot integrates the popular libraries but make them simpler, easier to use.
 It borrowed some of the Spring features like dependency injection, aspect oriented programming, and auto configuration.
-You can integrate any other libraries easily by auto configuration with dependency injection support.
+You can integrate any other libraries easily by auto configuration with dependency injection support. hiboot-data is the
+typical project that implement customized hiboot starters. see https://godoc.org/github.com/hidevopsio/hiboot-data
 
 Overview
 
-	Web MVC (Model-View-Controller).
-	Auto Configuration, pre-create instance with properties configs for dependency injection.
-	Dependency injection with struct tag name `inject:""` or Constructor func.
+	Web MVC - (Model-View-Controller).
+	Auto Configuration - pre-create instance with properties configs for dependency injection.
+	Dependency injection - with struct tag name `inject:""` or Constructor func.
 
 Features
 	App
