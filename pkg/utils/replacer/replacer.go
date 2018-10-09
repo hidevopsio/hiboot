@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package replacer provides utilities that replace the reference and environment variables with its value
 package replacer
 
 import (

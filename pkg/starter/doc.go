@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /*
-Package starter provides quick starters for hiboot cli/web application
+Package starter provides quick starters for hiboot cli/web application.
 
 Auto-configured Starter
 

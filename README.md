@@ -53,8 +53,6 @@ If you are a Java developer, you can start coding in Go without learning curve.
     * inject - inject generic instance into object
     * default - inject default value into struct object 
     * value - inject string value or references / variables into struct string field
-    * cmd - inject command into parent command for cli application
-    * flag - inject flag / options into command object
 
 * **Utils** 
     * cmap - concurrent map

@@ -36,37 +36,42 @@ For example, a struct which accesses a user controller has a dependency on user 
 Ideally Go struct should be as independent as possible from other Go struct. This increases the possibility of reusing
 these struct and to be able to test them independently from other struct.
 
+Dependency injection by constructor
+
 To use dependency injection, first, you need to register the dependency in init func by calling
-app.Component(newFoo), newFoo is the constructor of the dependency.
+app.Component(newFooService), newFoo is the constructor of the dependency.
 
 	// dependency foo
-	type Foo struct {
+	type FooService struct {
 	}
 
-	// foo constructor
-	func newFoo() *Foo {
+	// FooService constructor
+	func newFooService() *FooService {
 		return &Foo{}
 	}
 
-    func init() {
-		app.Component(newFoo)
+	func init() {
+		app.Component(newFooService)
 	}
 
-	// the consumer barService that depends on Foo
-	type barService {
-		foo *Foo
+	// the consumer barController that depends on FooService
+	type barController {
+		fooService *FooService
 	}
 
-	// the consumer's constructor newBarService that inject the instance of Foo
-	func newBarService(foo *Foo) *barService {
+	// the consumer's constructor newBarController that inject the instance of FooService
+	func newBarController(fooService *FooService) *barController {
 		return &barService{
-			foo: foo,
+			fooService: fooService,
 		}
 	}
 
+Auto Configuration
 
 Auto Configuration is another cool feature that comes out of the box with Hiboot,
 for more details, please see https://godoc.org/github.com/hidevopsio/hiboot/pkg/starter
+
+Example
 
 The following example shows a struct which has no hard dependencies.
 

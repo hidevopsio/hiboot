@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package depends provides dependency resolver for factory
 package depends
 
 import (
@@ -22,7 +23,7 @@ import (
 	"reflect"
 )
 
-// ByDependency sort by the configuration dependency which specified by tag depends
+// depResolver sort by the configuration dependency which specified by tag depends
 type depResolver []*factory.MetaData
 
 func (s depResolver) Resolve() (resolved Graph, err error) {
