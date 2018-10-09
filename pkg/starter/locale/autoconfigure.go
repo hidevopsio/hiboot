@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package locale provides the hiboot starter for injectable locale (i18n) dependency
 package locale
 
 import (

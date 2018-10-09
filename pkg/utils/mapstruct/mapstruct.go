@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// package mapstruct provides utilities that decode map and inject values into struct
 package mapstruct
 
 import (
