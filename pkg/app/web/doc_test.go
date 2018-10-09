@@ -25,7 +25,8 @@ import (
 // once you imported "github.com/hidevopsio/hiboot/pkg/starter/jwt",
 // jwtToken jwt.Token will be injectable.
 func Example() {
-
+	// the web application entry
+	web.NewApplication().Run()
 }
 
 // PATH: /login
@@ -47,7 +48,8 @@ func init() {
 	web.RestController(newLoginController)
 }
 
-// Init inject jwtToken through the argument jwtToken jwt.Token on constructor
+// newLoginController inject jwtToken through the argument jwtToken jwt.Token on constructor
+// the dependency jwtToken is auto configured in jwt starter, see https://github.com/hidevopsio/hiboot/tree/master/pkg/starter/jwt
 func newLoginController(jwtToken jwt.Token) *loginController {
 	return &loginController{
 		jwtToken: jwtToken,

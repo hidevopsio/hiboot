@@ -26,11 +26,47 @@ should be configured from the outside.
 Dependency Injection design pattern allows us to remove the hard-coded dependencies and make our application loosely
 coupled, extendable and maintainable.
 
+Dependency Injection is the idea that your components (usually structs in go) should receive their dependencies when
+being created.This runs counter to the associated anti-pattern of components building their own dependencies during
+initialization.
+
 A Go struct has a dependency on another struct, if it uses an instance of this struct. We call this a struct dependency.
 For example, a struct which accesses a user controller has a dependency on user service struct.
 
 Ideally Go struct should be as independent as possible from other Go struct. This increases the possibility of reusing
 these struct and to be able to test them independently from other struct.
+
+To use dependency injection, first, you need to register the dependency in init func by calling
+app.Component(newFoo), newFoo is the constructor of the dependency.
+
+	// dependency foo
+	type Foo struct {
+	}
+
+	// foo constructor
+	func newFoo() *Foo {
+		return &Foo{}
+	}
+
+    func init() {
+		app.Component(newFoo)
+	}
+
+	// the consumer barService that depends on Foo
+	type barService {
+		foo *Foo
+	}
+
+	// the consumer's constructor newBarService that inject the instance of Foo
+	func newBarService(foo *Foo) *barService {
+		return &barService{
+			foo: foo,
+		}
+	}
+
+
+Auto Configuration is another cool feature that comes out of the box with Hiboot,
+for more details, please see https://godoc.org/github.com/hidevopsio/hiboot/pkg/starter
 
 The following example shows a struct which has no hard dependencies.
 

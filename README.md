@@ -249,56 +249,61 @@ The following example shows a struct which has no hard dependencies.
 package main
 
 import (
-    "github.com/hidevopsio/hiboot/pkg/app/web"
-    "github.com/hidevopsio/hiboot/pkg/model"
-    "github.com/hidevopsio/hiboot/pkg/starter/jwt"
-    "time"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/model"
+	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
+	"time"
 )
 
 // This example shows that jwtToken is injected through method Init,
 // once you imported "github.com/hidevopsio/hiboot/pkg/starter/jwt",
 // jwtToken jwt.Token will be injectable.
-func main() {}
+func Example() {
+	// the web application entry
+	web.NewApplication().Run()
+}
 
 // PATH: /login
 type loginController struct {
-    web.Controller
+	web.Controller
 
-    jwtToken jwt.Token
+	jwtToken jwt.Token
 }
 
 type userRequest struct {
-    // embedded field model.RequestBody mark that userRequest is request body
-    model.RequestBody
-    Username string `json:"username" validate:"required"`
-    Password string `json:"password" validate:"required"`
+	// embedded field model.RequestBody mark that userRequest is request body
+	model.RequestBody
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 func init() {
-    // Register Rest Controller through constructor newLoginController
-    web.RestController(newLoginController)
+	// Register Rest Controller through constructor newLoginController
+	web.RestController(newLoginController)
 }
 
-// Init inject jwtToken through the argument jwtToken jwt.Token on constructor
+// newLoginController inject jwtToken through the argument jwtToken jwt.Token on constructor
+// the dependency jwtToken is auto configured in jwt starter, see https://github.com/hidevopsio/hiboot/tree/master/pkg/starter/jwt
 func newLoginController(jwtToken jwt.Token) *loginController {
-    return &loginController{
-        jwtToken: jwtToken,
-    }
+	return &loginController{
+		jwtToken: jwtToken,
+	}
 }
 
 // Post /
 // The first word of method is the http method POST, the rest is the context mapping
 func (c *loginController) Post(request *userRequest) (response model.Response, err error) {
-    jwtToken, _ := c.jwtToken.Generate(jwt.Map{
-        "username": request.Username,
-        "password": request.Password,
-    }, 30, time.Minute)
+	jwtToken, _ := c.jwtToken.Generate(jwt.Map{
+		"username": request.Username,
+		"password": request.Password,
+	}, 30, time.Minute)
 
-    response = new(model.BaseResponse)
-    response.SetData(jwtToken)
+	response = new(model.BaseResponse)
+	response.SetData(jwtToken)
 
-    return
+	return
 }
+
 ```
 
 ## Development Guide
