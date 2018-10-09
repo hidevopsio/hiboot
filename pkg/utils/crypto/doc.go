@@ -12,29 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package sort provides utility that sort slice by length
-package sort
-
-import (
-	"sort"
-)
-
-type ByLen []string
-
-func (a ByLen) Len() int {
-	return len(a)
-}
-
-func (a ByLen) Less(i, j int) bool {
-	return len(a[i]) < len(a[j])
-}
-
-func (a ByLen) Swap(i, j int) {
-	a[i], a[j] = a[j], a[i]
-}
-
-func SortByLen(s []string) {
-
-	sort.Sort(ByLen(s))
-
-}
+// Package crypto provides crypto encryption/decryption utilities
+package crypto

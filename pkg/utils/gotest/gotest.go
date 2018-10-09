@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package gotest provides function to check whether is running in go test mode.
 package gotest
 
 import (

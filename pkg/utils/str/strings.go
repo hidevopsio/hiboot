@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package str provides enhanced string utilities
 package str
 
 import (
@@ -50,6 +51,7 @@ func InSlice(a string, list []string) bool {
 	return retVal
 }
 
+// Convert convert string to specific data type
 func Convert(src string, kind reflect.Kind) (retVal interface{}) {
 	switch kind {
 	case reflect.Slice:

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package jwt provides the hiboot starter for injectable jwt dependency
 package jwt
 
 import (

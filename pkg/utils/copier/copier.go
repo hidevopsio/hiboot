@@ -14,6 +14,7 @@
 
 // Notes: this source code is originally copied from https://github.com/jinzhu/copier
 
+// Package copier provides utility that copy element between structs
 package copier
 
 import (

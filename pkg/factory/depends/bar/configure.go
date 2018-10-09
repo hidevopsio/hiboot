@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package bar is the test package for package depends
 package bar
 
 import "github.com/hidevopsio/hiboot/pkg/app"
