@@ -20,6 +20,7 @@ import (
 )
 
 //This example shows the guide to make customized auto configuration
+//for more details, see https://github.com/hidevopsio/hiboot-data/blob/master/starter/bolt/autoconfigure.go
 func Example() {
 }
 

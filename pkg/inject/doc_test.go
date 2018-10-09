@@ -21,6 +21,7 @@ import (
 
 //This example shows that the dependency is injected through the constructor
 func Example() {
+	web.NewApplication().Run()
 }
 
 // HelloService is a simple service interface, with interface, we can mock a fake service in unit test
@@ -56,7 +57,7 @@ type helloController struct {
 	helloService HelloService
 }
 
-// Init inject jwtToken through the argument jwtToken jwt.Token on constructor
+// newHelloController inject helloService through the argument helloService HelloService on constructor
 func newHelloController(helloService HelloService) *helloController {
 	return &helloController{
 		helloService: helloService,
@@ -67,9 +68,4 @@ func newHelloController(helloService HelloService) *helloController {
 // The first word of method name is the http method GET
 func (c *helloController) Get(name string) string {
 	return c.helloService.SayHello(name)
-}
-
-// run above controller as a web app
-func main() {
-	web.NewApplication().Run()
 }
