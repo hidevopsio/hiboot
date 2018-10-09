@@ -33,7 +33,7 @@ func GetWorkDir() string {
 	return wd
 }
 
-func EnsureWorkDir(skip int, existFile string) bool {
+func EnsureWorkDir(skip int, existFile string) (ok bool) {
 	var path string
 	if _, file, _, ok := runtime.Caller(skip); ok && strings.Contains(os.Args[0], "go_build_") {
 		path = BaseDir(file)
@@ -41,21 +41,23 @@ func EnsureWorkDir(skip int, existFile string) bool {
 		path = GetWorkDir()
 	}
 	lastPath := ""
+
 	for {
 		//log.Debugf("%v", path)
 		configPath := filepath.Join(path, existFile)
 		if !IsPathNotExist(configPath) {
 			ChangeWorkDir(path)
-			return true
+			ok = true
+			break
 		}
 
 		path = BaseDir(path)
 		if lastPath == path {
-			return false
+			break
 		}
 		lastPath = path
 	}
-	return false
+	return
 }
 
 func GetRelativePath(level int) string {

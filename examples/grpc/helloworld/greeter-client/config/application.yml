@@ -6,8 +6,9 @@ app:
   name: grpc-client
   profiles:
     include:
-    - grpc
     - logging
+    - locale
+    - grpc
 
 logging:
   level: info

@@ -20,6 +20,8 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"google.golang.org/grpc"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"reflect"
 )
 
 type configuration struct {
@@ -40,7 +42,9 @@ var (
 	grpcClients []*grpcService
 )
 
-// RegisterClient register server from application
+type dummyClient struct{}
+
+// RegisterServer register server from application
 func RegisterServer(cb interface{}, s interface{}) {
 	svrName, _ := reflector.GetName(s)
 	svr := &grpcService{
@@ -62,7 +66,17 @@ func RegisterClient(name string, cbs ...interface{}) {
 			cb:   cb,
 		}
 		grpcClients = append(grpcClients, svr)
+
+		// pre-allocate client in order to pass dependency check
+		typ, ok := reflector.GetFuncOutType(cb)
+		if ok {
+			// NOTE: it's very important !!!
+			// To register grpc client and grpc.ClientConn here, even though it will never be used.
+			app.Component(str.ToLowerCamel(typ.Name()), reflect.New(typ).Interface())
+		}
 	}
+	// Just register grpc.ClientConn in order to pass dependency check
+	app.Component(new(grpc.ClientConn))
 }
 
 // Client register client from application, it is a alias to RegisterClient
@@ -84,7 +98,7 @@ func (c *configuration) GrpcClientConnector() ClientConnector {
 	return newClientConnector(c.instantiateFactory)
 }
 
-// RunGrpcServers create gRPC Clients that registered by application
+// GrpcClientFactory create gRPC Clients that registered by application
 func (c *configuration) GrpcClientFactory(cc ClientConnector) ClientFactory {
 	return newClientFactory(c.Properties, cc)
 }
@@ -98,7 +112,7 @@ func (c *configuration) GrpcServer() (grpcServer *grpc.Server) {
 	return
 }
 
-// RunGrpcServers create gRPC servers that registered by application
+// GrpcServerFactory create gRPC servers that registered by application
 func (c *configuration) GrpcServerFactory(grpcServer *grpc.Server) ServerFactory {
 	return newServerFactory(c.Properties, grpcServer)
 }

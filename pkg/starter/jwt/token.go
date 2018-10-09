@@ -16,13 +16,12 @@ package jwt
 
 import (
 	"crypto/rsa"
-	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"io/ioutil"
+	"fmt"
 )
 
 // JwtMap is the JWT map
@@ -40,15 +39,18 @@ type jwtToken struct {
 	jwtEnabled bool
 }
 
-func NewJwtToken(p *Properties) Token {
+func NewJwtToken(p *Properties) (token Token) {
 	jt := new(jwtToken)
-	jt.Initialize(p)
-	return jt
+	err := jt.Initialize(p)
+	if err == nil {
+		token = jt
+	}
+	return
 }
 
 func (t *jwtToken) Initialize(p *Properties) error {
 	if io.IsPathNotExist(p.PrivateKeyPath) {
-		log.Fatalf("private key file %v does not exist", p.PrivateKeyPath)
+		return fmt.Errorf("private key file %v does not exist", p.PrivateKeyPath)
 	}
 	var verifyBytes []byte
 	signBytes, err := ioutil.ReadFile(p.PrivateKeyPath)
@@ -72,7 +74,7 @@ func (t *jwtToken) VerifyKey() *rsa.PublicKey {
 }
 
 // Generate generates JWT token with specified exired time
-func (t *jwtToken) Generate(payload Map, expired int64, unit time.Duration) (string, error) {
+func (t *jwtToken) Generate(payload Map, expired int64, unit time.Duration) (tokenString string, err error) {
 	if t.jwtEnabled {
 		claim := jwt.MapClaims{
 			"exp": time.Now().Add(unit * time.Duration(expired)).Unix(),
@@ -86,10 +88,7 @@ func (t *jwtToken) Generate(payload Map, expired int64, unit time.Duration) (str
 		token := jwt.NewWithClaims(jwt.SigningMethodRS256, claim)
 
 		// Sign and get the complete encoded token as a string using the secret
-		tokenString, err := token.SignedString(t.signKey)
-
-		return tokenString, err
+		tokenString, err = token.SignedString(t.signKey)
 	}
-
-	return "", fmt.Errorf("JWT does not work")
+	return
 }

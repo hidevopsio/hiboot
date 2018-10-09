@@ -83,7 +83,7 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 	// Now parse the token
 	parsedToken, err := jwt.Parse(token, m.Config.ValidationKeyGetter)
 	// Check if there was an error in parsing...
-	if err != nil {
+	if err != nil || !parsedToken.Valid {
 		log.Debugf("Error parsing token: %v", err)
 		return fmt.Errorf("error parsing token: %v", err)
 	}
@@ -94,12 +94,6 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 			parsedToken.Header["alg"])
 		log.Debugf("Error validating token algorithm: %s", message)
 		return fmt.Errorf("error validating token algorithm: %s", message)
-	}
-
-	// Check if the parsed token is valid...
-	if !parsedToken.Valid {
-		log.Debug("Token is invalid")
-		return fmt.Errorf("token is invalid")
 	}
 
 	log.Debugf("JWT: %v", parsedToken)

@@ -22,7 +22,7 @@ import (
 	"strings"
 )
 
-func IsRunning() bool {
+func IsRunning() (ok bool) {
 
 	args := os.Args
 
@@ -31,10 +31,9 @@ func IsRunning() bool {
 
 	if str.InSlice("-test.v", args) ||
 		strings.Contains(args[0], ".test") {
-		return true
+		ok = true
 	}
-
-	return false
+	return
 }
 
 func ParseArgs(args []string) {
