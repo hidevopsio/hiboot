@@ -17,42 +17,36 @@ package grpc_test
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
-	pb "google.golang.org/grpc/examples/helloworld/helloworld"
+	"google.golang.org/grpc/examples/helloworld/helloworld"
 	"testing"
-	"time"
 )
-
-func init() {
-	log.SetLevel(log.DebugLevel)
-}
 
 // gRpc server
 // server is used to implement helloworld.GreeterServer.
-type greeterService struct{}
+type greeterServerService struct{}
 
 // SayHello implements helloworld.GreeterServer
-func (s *greeterService) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	return &pb.HelloReply{Message: "Hello " + in.Name}, nil
+func (s *greeterServerService) SayHello(ctx context.Context, in *helloworld.HelloRequest) (*helloworld.HelloReply, error) {
+	return &helloworld.HelloReply{Message: "Hello " + in.Name}, nil
 }
 
 // gRpc client
 type greeterClientService struct {
-	greeterClient pb.GreeterClient
+	greeterClient helloworld.GreeterClient
 }
 
-// Init inject greeterClient and clientContext
-func newGreeterClientService(greeterClient pb.GreeterClient) *greeterClientService {
+// newGreeterClientService inject greeterClient
+func newGreeterClientService(greeterClient helloworld.GreeterClient) *greeterClientService {
 	return &greeterClientService{
 		greeterClient: greeterClient,
 	}
 }
 
-func (s *greeterClientService) SayHello(name string) (*pb.HelloReply, error) {
-	response, err := s.greeterClient.SayHello(context.Background(), &pb.HelloRequest{Name: name})
+func (s *greeterClientService) SayHello(name string) (*helloworld.HelloReply, error) {
+	response, err := s.greeterClient.SayHello(context.Background(), &helloworld.HelloRequest{Name: name})
 	return response, err
 }
 
@@ -60,8 +54,8 @@ func TestGrpcServerAndClient(t *testing.T) {
 
 	app.Component(newGreeterClientService)
 
-	grpc.RegisterServer(pb.RegisterGreeterServer, new(greeterService))
-	grpc.RegisterClient("greeter-service", pb.NewGreeterClient)
+	grpc.RegisterServer(helloworld.RegisterGreeterServer, new(greeterServerService))
+	grpc.RegisterClient("greeter-service", helloworld.NewGreeterClient)
 
 	testApp := web.NewTestApplication(t)
 	assert.NotEqual(t, nil, testApp)
@@ -79,8 +73,6 @@ func TestGrpcServerAndClient(t *testing.T) {
 	//response, err := greeterClientSvc.SayHello(name)
 	//assert.Equal(t, nil, err)
 	//assert.Equal(t, "Hello " + name, response.Message)
-	time.Sleep(500 * time.Millisecond)
-
 }
 
 func TestInjectIntoObject(t *testing.T) {
