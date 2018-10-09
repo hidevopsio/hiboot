@@ -26,6 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 )
 
@@ -250,6 +251,17 @@ var (
 	cf *autoconfigure.ConfigurableFactory
 )
 
+type Hello string
+type HelloWorld string
+
+type helloConfiguration struct {
+	app.Configuration
+}
+
+func (c *helloConfiguration) HelloWorld(h Hello) HelloWorld {
+	return HelloWorld(h + "World")
+}
+
 func init() {
 	log.SetLevel(log.DebugLevel)
 }
@@ -302,6 +314,8 @@ func TestInject(t *testing.T) {
 	cf.InstantiateFactory.Initialize(instances, []*factory.MetaData{})
 	cf.Initialize(configurations)
 	cf.BuildSystemConfig()
+
+	cf.SetInstance("hello", Hello("Hello"))
 
 	inject.SetFactory(cf)
 
@@ -532,5 +546,16 @@ func TestInject(t *testing.T) {
 		assert.Equal(t, buzSvc, svc.BozService)
 		assert.Equal(t, buzSvc, svc.BuzService)
 		assert.Equal(t, bxzSvc, svc.BxzSvc)
+	})
+
+	t.Run("should inject into method", func(t *testing.T) {
+		helloConfig := new(helloConfiguration)
+		helloTyp := reflect.TypeOf(helloConfig)
+		numOfMethod := helloTyp.NumMethod()
+		//log.Debug("methods: ", numOfMethod)
+		for mi := 0; mi < numOfMethod; mi++ {
+			method := helloTyp.Method(mi)
+			inject.IntoMethod(helloConfig, method)
+		}
 	})
 }

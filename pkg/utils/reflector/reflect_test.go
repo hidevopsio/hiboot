@@ -15,6 +15,7 @@
 package reflector
 
 import (
+	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/stretchr/testify/assert"
 	"reflect"
@@ -576,4 +577,28 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 		assert.Equal(t, "Foo", typ.Name())
 
 	})
+}
+
+func TestTypeSwitch(t *testing.T) {
+	var typ interface{}
+	type foo struct{}
+
+	typ = &foo{}
+
+	switch tp := typ.(type) {
+	default:
+		fmt.Printf("unexpected type %T\n", tp) // %T prints whatever type t has
+	case bool:
+		fmt.Printf("boolean %t\n", tp) // t has type bool
+	case int:
+		fmt.Printf("integer %d\n", tp) // t has type int
+	case *bool:
+		fmt.Printf("pointer to boolean %t\n", *tp) // t has type *bool
+	case *int:
+		fmt.Printf("pointer to integer %d\n", *tp) // t has type *int
+	case foo:
+		fmt.Printf("foo %v\n", tp) // t has type *int
+	case *foo:
+		fmt.Printf("pointerr to foo %v\n", *tp) // t has type *int
+	}
 }

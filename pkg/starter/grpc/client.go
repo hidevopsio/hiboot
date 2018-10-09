@@ -22,7 +22,8 @@ func (f *clientFactory) buildClients(properties properties, cc ClientConnector) 
 	clientProps := properties.Client
 	for _, cli := range grpcClients {
 		prop := new(ClientProperties)
-		if err := mapstruct.Decode(prop, clientProps[cli.name]); err == nil {
+		err := mapstruct.Decode(prop, clientProps[cli.name])
+		if err == nil {
 			cc.Connect(cli.name, cli.cb, prop)
 		}
 	}

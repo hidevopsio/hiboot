@@ -6,6 +6,8 @@ app:
   name: grpc-server
   profiles:
     include:
+    - logging
+    - locale
     - grpc
 
 logging:
