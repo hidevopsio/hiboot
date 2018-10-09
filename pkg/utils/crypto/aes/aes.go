@@ -26,11 +26,11 @@ import (
 )
 
 // Encrypt string to base64 crypto using AES
-func Encrypt(key []byte, text string) (string, error) {
+func Encrypt(key []byte, text string) (retVal string, err error) {
 	// key := []byte(keyText)
 	plaintext := []byte(text)
-
-	block, err := aes.NewCipher(key)
+	var block cipher.Block
+	block, err = aes.NewCipher(key)
 	if err != nil {
 		return "", err
 	}
@@ -39,22 +39,21 @@ func Encrypt(key []byte, text string) (string, error) {
 	// include it at the beginning of the ciphertext.
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
 	iv := ciphertext[:aes.BlockSize]
-	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		return "", err
+	if _, err = io.ReadFull(rand.Reader, iv); err == nil {
+		stream := cipher.NewCFBEncrypter(block, iv)
+		stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+
+		// convert to base64
+		retVal = base64.URLEncoding.EncodeToString(ciphertext)
 	}
-
-	stream := cipher.NewCFBEncrypter(block, iv)
-	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
-
-	// convert to base64
-	return base64.URLEncoding.EncodeToString(ciphertext), nil
+	return
 }
 
 // Decrypt from base64 to decrypted string
-func Decrypt(key []byte, cryptoText string) (string, error) {
+func Decrypt(key []byte, cryptoText string) (retVal string, err error) {
 	ciphertext, _ := base64.URLEncoding.DecodeString(cryptoText)
-
-	block, err := aes.NewCipher(key)
+	var block cipher.Block
+	block, err = aes.NewCipher(key)
 	if err != nil {
 		return "", err
 	}

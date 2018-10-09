@@ -104,6 +104,7 @@ func NewMetaData(params ...interface{}) *MetaData {
 	var shortName string
 	var object interface{}
 	var context interface{}
+	var deps []string
 
 	if len(params) == 2 {
 		if reflect.TypeOf(params[0]).Kind() == reflect.String {
@@ -115,6 +116,13 @@ func NewMetaData(params ...interface{}) *MetaData {
 		}
 	} else {
 		object = params[0]
+	}
+
+	switch object.(type) {
+	case *MetaData:
+		md := object.(*MetaData)
+		deps = append(deps, md.Depends...)
+		object = md.Object
 	}
 
 	pkgName, typeName := reflector.GetPkgAndName(object)
@@ -141,9 +149,9 @@ func NewMetaData(params ...interface{}) *MetaData {
 		}
 	}
 
-	deps := parseDependencies(object, kindName, typ)
+	deps = append(deps, parseDependencies(object, kindName, typ)...)
 
-	return &MetaData{
+	metaData := &MetaData{
 		Kind:      kindName,
 		PkgName:   pkgName,
 		TypeName:  typeName,
@@ -154,4 +162,6 @@ func NewMetaData(params ...interface{}) *MetaData {
 		Type:      typ,
 		Depends:   deps,
 	}
+
+	return metaData
 }

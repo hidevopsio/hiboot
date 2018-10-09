@@ -22,7 +22,8 @@ import (
 	"strings"
 )
 
-func IsRunning() bool {
+// IsRunning return true if the go test is running
+func IsRunning() (ok bool) {
 
 	args := os.Args
 
@@ -31,12 +32,12 @@ func IsRunning() bool {
 
 	if str.InSlice("-test.v", args) ||
 		strings.Contains(args[0], ".test") {
-		return true
+		ok = true
 	}
-
-	return false
+	return
 }
 
+// ParseArgs parse args
 func ParseArgs(args []string) {
 
 	a := os.Args[1:]

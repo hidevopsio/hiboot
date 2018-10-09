@@ -38,15 +38,28 @@ func init() {
 }
 
 func TestCheckJWT(t *testing.T) {
-	jwtToken := jwt.NewJwtToken(&jwt.Properties{
-		PrivateKeyPath: "config/ssl/app.rsa",
-		PublicKeyPath:  "config/ssl/app.rsa.pub",
-	})
-	token, err := jwtToken.Generate(jwt.Map{
-		"username": "johndoe",
-		"password": "PA$$W0RD",
-	}, 500, time.Millisecond)
 
-	assert.Equal(t, nil, err)
-	assert.NotEqual(t, nil, token)
+	t.Run("should report error if jwt properties does not injected", func(t *testing.T) {
+
+		jwtToken := jwt.NewJwtToken(&jwt.Properties{})
+
+		assert.Equal(t, nil, jwtToken)
+	})
+
+	t.Run("should generate jwt token", func(t *testing.T) {
+
+		jwtToken := jwt.NewJwtToken(&jwt.Properties{
+			PrivateKeyPath: "config/ssl/app.rsa",
+			PublicKeyPath:  "config/ssl/app.rsa.pub",
+		})
+
+		token, err := jwtToken.Generate(jwt.Map{
+			"username": "johndoe",
+			"password": "PA$$W0RD",
+		}, 500, time.Millisecond)
+
+		assert.Equal(t, nil, err)
+		assert.NotEqual(t, nil, token)
+	})
+
 }

@@ -35,6 +35,7 @@ type TestApplication interface {
 	Put(path string, pathargs ...interface{}) *httpexpect.Request
 	Delete(path string, pathargs ...interface{}) *httpexpect.Request
 	Patch(path string, pathargs ...interface{}) *httpexpect.Request
+	Options(path string, pathargs ...interface{}) *httpexpect.Request
 }
 
 // TestApplication the test web application for unit test only
@@ -89,4 +90,9 @@ func (a *testApplication) Get(path string, pathargs ...interface{}) *httpexpect.
 // Delete wrap of Request with Delete method
 func (a *testApplication) Delete(path string, pathargs ...interface{}) *httpexpect.Request {
 	return a.expect.Request(http.MethodDelete, path, pathargs...)
+}
+
+// Delete wrap of Request with Delete method
+func (a *testApplication) Options(path string, pathargs ...interface{}) *httpexpect.Request {
+	return a.expect.Request(http.MethodOptions, path, pathargs...)
 }
