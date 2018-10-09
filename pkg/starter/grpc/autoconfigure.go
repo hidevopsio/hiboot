@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package grpc provides the hiboot starter for injectable grpc client and server dependency
 package grpc
 
 import (

@@ -14,6 +14,7 @@
 
 // copied from https://github.com/orcaman/concurrent-map
 
+// Package cmap provides concurrent map
 package cmap
 
 import (
