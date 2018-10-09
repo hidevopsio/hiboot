@@ -15,6 +15,7 @@
 package cli_test
 
 import (
+	"errors"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/hidevopsio/hiboot/pkg/log"
@@ -82,6 +83,17 @@ func (c *fooCommand) OnBuzz(args []string) bool {
 	return true
 }
 
+func (c *fooCommand) OnFoo(args []string) error {
+	log.Debug("on foo command")
+	return nil
+}
+
+func (c *fooCommand) OnFooBar(args []string) error {
+	log.Debug("on foo command")
+	// just for the sake of testing
+	return errors.New("testing on fooBar command")
+}
+
 type barCommand struct {
 	cli.BaseCommand
 }
@@ -122,7 +134,6 @@ func TestCliApplication(t *testing.T) {
 	app.Component(newFooCommand, newBarCommand, newBazCommand)
 	testApp := cli.NewTestApplication(t, newRootCommand)
 	testApp.SetProperty("foo", "bar")
-
 	root := testApp.Root()
 	assert.NotEqual(t, nil, root)
 
@@ -155,42 +166,24 @@ func TestCliApplication(t *testing.T) {
 		_, err := testApp.RunTest("foo", "buzz")
 		assert.Equal(t, nil, err)
 	})
-}
 
-//
-//// demo foo bar
-//func TestCliMultiCommand(t *testing.T) {
-//	fooCmd := new(fooCommand)
-//	barCmd := new(barCommand)
-//	testApp := cli.NewTestApplication(t)
-//
-//	t.Run("should run foo command", func(t *testing.T) {
-//		_, err := testApp.RunTest("foo")
-//		assert.Equal(t, nil, err)
-//	})
-//
-//	t.Run("should run bar command", func(t *testing.T) {
-//		_, err := testApp.RunTest("bar")
-//		assert.Equal(t, nil, err)
-//	})
-//
-//	t.Run("should get root command", func(t *testing.T) {
-//		root := fooCmd.Root()
-//		assert.Equal(t, "root", root.Name())
-//	})
-//
-//	t.Run("should get root command", func(t *testing.T) {
-//		rootCmd := testApp.Root()
-//		assert.Equal(t, "root", rootCmd.GetName())
-//	})
-//
-//	testApp.SetProperty("foo", "bar")
-//}
+	t.Run("should run foo foo command", func(t *testing.T) {
+		out, err := testApp.RunTest("foo", "foo")
+		log.Debugf("%v", out)
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should run foo foo command", func(t *testing.T) {
+		out, err := testApp.RunTest("foo", "fooBar")
+		assert.Contains(t, out, "testing on fooBar command")
+		log.Debugf("%v", out)
+		assert.Equal(t, "testing on fooBar command", err.Error())
+	})
+}
 
 func TestNewApplication(t *testing.T) {
 	go cli.NewApplication().Run()
 	time.Sleep(2 * time.Second)
-
 }
 
 type A struct {
