@@ -26,6 +26,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/kataras/iris/context"
 	"strings"
 	"sync"
@@ -43,6 +44,7 @@ type ApplicationContext interface {
 	Use(handlers ...context.Handler)
 	GetProperty(name string) (value interface{}, ok bool)
 	GetInstance(name string) (instance interface{})
+	FindInstance(iType interface{}) (instance interface{})
 }
 
 type Configuration interface{}
@@ -171,6 +173,17 @@ func (a *BaseApplication) Run() error {
 func (a *BaseApplication) GetInstance(name string) (instance interface{}) {
 	if a.configurableFactory != nil {
 		instance = a.configurableFactory.GetInstance(name)
+	}
+	return
+}
+
+// FindInstance get application instance by data type
+func (a *BaseApplication) FindInstance(iType interface{}) (instance interface{}) {
+	if a.configurableFactory != nil {
+		name, err := reflector.GetName(iType)
+		if err == nil {
+			instance = a.configurableFactory.GetInstance(name)
+		}
 	}
 	return
 }

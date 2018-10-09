@@ -40,3 +40,8 @@ func (a *ApplicationContext) GetProperty(name string) (value interface{}, ok boo
 func (a *ApplicationContext) GetInstance(name string) (instance interface{}) {
 	return
 }
+
+// FindInstance get application instance by name
+func (a *ApplicationContext) FindInstance(iType interface{}) (instance interface{}) {
+	return
+}
