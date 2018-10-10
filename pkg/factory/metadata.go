@@ -7,6 +7,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
 	"strings"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 // MetaData is the injectable object meta data
@@ -36,10 +37,10 @@ func findDep(objTyp, inTyp reflect.Type) (name string) {
 	indInTyp := reflector.IndirectType(inTyp)
 	for _, field := range reflector.DeepFields(objTyp) {
 		indFieldTyp := reflector.IndirectType(field.Type)
-		//log.Debugf("%v <> %v", indFieldTyp, indInTyp)
+		log.Debugf("%v <> %v", indFieldTyp, indInTyp)
 		if indFieldTyp == indInTyp {
 			name = str.ToLowerCamel(field.Name)
-			depPkgName := io.DirName(field.Type.PkgPath())
+			depPkgName := io.DirName(indFieldTyp.PkgPath())
 			if depPkgName != "" {
 				name = depPkgName + "." + name
 			}
@@ -63,7 +64,6 @@ func parseDependencies(object interface{}, kind string, typ reflect.Type) (deps 
 			depNames = appendDep(depNames, findDep(typ, inTyp))
 		}
 	case types.Method:
-		// TODO: too many duplicated code, optimize it
 		method := object.(reflect.Method)
 		numIn := method.Type.NumIn()
 		for i := 1; i < numIn; i++ {
