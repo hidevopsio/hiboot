@@ -114,7 +114,7 @@ func (c *configuration) ClientConnector() ClientConnector {
 
 // GrpcClientFactory create gRPC Clients that registered by application
 func (c *configuration) ClientFactory(cc ClientConnector) ClientFactory {
-	return newClientFactory(c.Properties, cc)
+	return newClientFactory(c.instantiateFactory, c.Properties, cc)
 }
 
 // GrpcServer create new gRpc Server

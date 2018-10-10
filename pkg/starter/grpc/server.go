@@ -30,17 +30,12 @@ type ServerFactory interface {
 type serverFactory struct {
 }
 
-func newServerFactory(appFactory factory.InstantiateFactory, properties properties, grpcServer *grpc.Server) ServerFactory {
+func newServerFactory(instantiateFactory factory.InstantiateFactory, properties properties, grpcServer *grpc.Server) ServerFactory {
 	sf := &serverFactory{}
-	sf.buildServers(appFactory, properties, grpcServer)
 
-	return sf
-}
-
-func (f *serverFactory) buildServers(appFactory factory.InstantiateFactory, properties properties, grpcServer *grpc.Server) {
 	// just return if grpc server is not enabled
 	if !properties.Server.Enabled || grpcServer == nil {
-		return
+		return nil
 	}
 
 	address := properties.Server.Host + ":" + properties.Server.Port
@@ -54,7 +49,7 @@ func (f *serverFactory) buildServers(appFactory factory.InstantiateFactory, prop
 	chn := make(chan bool)
 	go func() {
 		for _, srv := range grpcServers {
-			svc := appFactory.GetInstance(srv.name)
+			svc := instantiateFactory.GetInstance(srv.name)
 			reflector.CallFunc(srv.cb, grpcServer, svc)
 			if err == nil {
 				log.Infof("Registered %v on gRPC server", srv.name)
@@ -69,4 +64,6 @@ func (f *serverFactory) buildServers(appFactory factory.InstantiateFactory, prop
 	<-chn
 
 	log.Infof("gRPC server listening on: localhost%v", address)
+
+	return sf
 }
