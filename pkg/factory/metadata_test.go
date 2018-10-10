@@ -100,4 +100,25 @@ func TestUtils(t *testing.T) {
 		assert.Equal(t, "factory_test.service", md.Name)
 		assert.Equal(t, svc, md.Object)
 	})
+
+	t.Run("should parse object pkg name", func(t *testing.T) {
+		type service struct{}
+		svc := new(service)
+		name, object := factory.ParseParams(svc)
+		assert.Equal(t, "factory_test.service", name)
+		assert.Equal(t, svc, object)
+	})
+
+	t.Run("should parse object pkg name", func(t *testing.T) {
+		type service struct{}
+		svc := new(service)
+		name, object := factory.ParseParams("factory_test.fooService", svc)
+		assert.Equal(t, "factory_test.fooService", name)
+		assert.Equal(t, svc, object)
+	})
+
+	t.Run("should parse object pkg name", func(t *testing.T) {
+		name, _ := factory.ParseParams("factory_test.fooService")
+		assert.Equal(t, "factory_test.fooService", name)
+	})
 }
