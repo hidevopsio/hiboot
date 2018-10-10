@@ -277,13 +277,13 @@ func TestGetName(t *testing.T) {
 	})
 
 	t.Run("should get struct name by lower case", func(t *testing.T) {
-		n, err := GetLowerCaseObjectName(new(Foo))
+		n, err := GetLowerCamelName(new(Foo))
 		assert.Equal(t, nil, err)
 		assert.Equal(t, "foo", n)
 	})
 
 	t.Run("should return InvalidInputError if input is nil", func(t *testing.T) {
-		_, err := GetLowerCaseObjectName((*Foo)(nil))
+		_, err := GetLowerCamelName((*Foo)(nil))
 		assert.Equal(t, ErrInvalidInput, err)
 	})
 }
@@ -495,22 +495,22 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 	type fakeChildService struct{ fakeService }
 
 	t.Run("should return error if on nil ", func(t *testing.T) {
-		field := GetEmbeddedInterfaceField(nil)
+		field := GetEmbeddedField(nil)
 		assert.Equal(t, nil, field.Type)
 	})
 
 	t.Run("should return error if on nil ", func(t *testing.T) {
-		field := GetEmbeddedInterfaceField(newFooBarService)
+		field := GetEmbeddedField(newFooBarService)
 		assert.Equal(t, "fooBarInterface", field.Type.Name())
 	})
 
 	t.Run("should get embedded fakeInterface", func(t *testing.T) {
-		field := GetEmbeddedInterfaceField(new(fakeService))
+		field := GetEmbeddedField(new(fakeService))
 		assert.Equal(t, "fakeInterface", field.Name)
 	})
 
 	t.Run("should get embedded fakeInterface", func(t *testing.T) {
-		field := GetEmbeddedInterfaceField(new(fakeChildService))
+		field := GetEmbeddedField(new(fakeChildService))
 		assert.Equal(t, "fakeInterface", field.Name)
 	})
 
@@ -523,7 +523,7 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 		type barService struct {
 			FooService
 		}
-		field := GetEmbeddedInterfaceField(new(barService))
+		field := GetEmbeddedField(new(barService))
 		assert.Equal(t, false, field.Anonymous)
 	})
 
@@ -552,7 +552,17 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 	})
 
 	t.Run("should get the object name by object pointer", func(t *testing.T) {
-		name := GetFullNameByType(reflect.TypeOf(&Foo{}))
+		name := GetLowerCamelFullNameByType(reflect.TypeOf(&Foo{}))
+		assert.Equal(t, "reflector.foo", name)
+	})
+
+	t.Run("should get the object name by object pointer", func(t *testing.T) {
+		name := GetFullName(&Foo{})
+		assert.Equal(t, "reflector.Foo", name)
+	})
+
+	t.Run("should get the object name by object pointer", func(t *testing.T) {
+		name := GetLowerCamelFullName(&Foo{})
 		assert.Equal(t, "reflector.foo", name)
 	})
 

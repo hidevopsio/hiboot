@@ -209,9 +209,9 @@ func GetName(data interface{}) (name string, err error) {
 }
 
 // GetLowerCaseObjectName get lower case object name
-func GetLowerCaseObjectName(data interface{}) (string, error) {
-	name, err := GetName(data)
-	name = strings.ToLower(name)
+func GetLowerCamelName(object interface{}) (string, error) {
+	name, err := GetName(object)
+	name = str.ToLowerCamel(name)
 	return name, err
 }
 
@@ -275,15 +275,19 @@ func HasEmbeddedField(object interface{}, name string) bool {
 }
 
 // GetEmbeddedInterfaceFieldByType get embedded interface field by type
-func GetEmbeddedInterfaceFieldByType(typ reflect.Type) (field reflect.StructField) {
+func GetEmbeddedFieldByType(typ reflect.Type, kind ...reflect.Kind) (field reflect.StructField) {
+	expectedKind := reflect.Interface
+	if len(kind) > 0 {
+		expectedKind = kind[0]
+	}
 	if typ.Kind() == reflect.Struct {
 		for i := 0; i < typ.NumField(); i++ {
 			v := typ.Field(i)
 			if v.Anonymous {
-				if v.Type.Kind() == reflect.Interface {
+				if v.Type.Kind() == expectedKind {
 					return v
 				} else {
-					return GetEmbeddedInterfaceFieldByType(v.Type)
+					return GetEmbeddedFieldByType(v.Type)
 				}
 			}
 		}
@@ -292,23 +296,23 @@ func GetEmbeddedInterfaceFieldByType(typ reflect.Type) (field reflect.StructFiel
 }
 
 // GetEmbeddedInterfaceField get embedded interface field
-func GetEmbeddedInterfaceField(object interface{}) (field reflect.StructField) {
+func GetEmbeddedField(object interface{}, dataTypes ...reflect.Kind) (field reflect.StructField) {
 	if object == nil {
 		return
 	}
 
 	typ, ok := GetFuncOutType(object)
 	if ok {
-		return GetEmbeddedInterfaceFieldByType(typ)
+		return GetEmbeddedFieldByType(typ, dataTypes...)
 	}
 
 	typ = IndirectType(reflect.TypeOf(object))
-	return GetEmbeddedInterfaceFieldByType(typ)
+	return GetEmbeddedFieldByType(typ, dataTypes...)
 }
 
 // FindEmbeddedFieldTag find embedded field tag
 func FindEmbeddedFieldTag(object interface{}, name string) (t string, ok bool) {
-	f := GetEmbeddedInterfaceField(object)
+	f := GetEmbeddedField(object)
 	t, ok = f.Tag.Lookup(name)
 	return
 }
@@ -340,6 +344,7 @@ func GetPkgPath(object interface{}) string {
 
 // GetFuncOutType get the function output data type
 func GetFuncOutType(object interface{}) (typ reflect.Type, ok bool) {
+
 	obj := reflect.ValueOf(object)
 	t := obj.Type()
 	typName := t.Name()
@@ -367,16 +372,18 @@ func GetFuncOutType(object interface{}) (typ reflect.Type, ok bool) {
 // GetFullName get the object name with package name, e.g. pkg.Object
 func GetFullName(object interface{}) (name string) {
 
-	typ, ok := GetFuncOutType(object)
-	if ok {
-		return GetFullNameByType(typ)
-	}
+	pn, n := GetPkgAndName(object)
+	name = pn + "." + n
 
-	name, err := GetName(object)
-	if err == nil {
-		depPkgName := ParseObjectPkgName(object)
-		name = depPkgName + "." + name
-	}
+	return
+}
+
+// GetLowerCamelFullName get the object name with package name, e.g. pkg.objectName
+func GetLowerCamelFullName(object interface{}) (name string) {
+
+	pn, n := GetPkgAndName(object)
+	name = pn + "." + str.ToLowerCamel(n)
+
 	return
 }
 
@@ -398,7 +405,7 @@ func GetPkgAndName(object interface{}) (pkgName, name string) {
 }
 
 // GetFullNameByType get the object name with package name by type, e.g. pkg.Object
-func GetFullNameByType(objType reflect.Type) (name string) {
+func GetLowerCamelFullNameByType(objType reflect.Type) (name string) {
 	indTyp := IndirectType(objType)
 	depPkgName := io.DirName(indTyp.PkgPath())
 	name = depPkgName + "." + str.ToLowerCamel(indTyp.Name())

@@ -25,7 +25,7 @@ type configuration struct {
 	app.Configuration
 
 	Properties Properties `mapstructure:"jwt"`
-	jwtHandler *JwtMiddleware
+	jwtHandler *Middleware
 	jwtToken   Token
 }
 
@@ -37,11 +37,11 @@ func newConfiguration() *configuration {
 	return &configuration{}
 }
 
-func (c *configuration) JwtMiddleware(jtk Token) *JwtMiddleware {
+func (c *configuration) Middleware(jwtToken Token) *Middleware {
 	return NewJwtMiddleware(mw.Config{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 			//log.Debug(token)
-			return jtk.VerifyKey(), nil
+			return jwtToken.VerifyKey(), nil
 		},
 		// When set, the middleware verifies that tokens are signed with the specific signing algorithm
 		// If the signing method is not constant the ValidationKeyGetter callback can be used to implement additional checks
@@ -52,8 +52,8 @@ func (c *configuration) JwtMiddleware(jtk Token) *JwtMiddleware {
 
 // JwtToken
 // TODO: token or jwtToken
-func (c *configuration) JwtToken() Token {
-	jtk := new(jwtToken)
-	jtk.Initialize(&c.Properties)
-	return jtk
+func (c *configuration) Token() Token {
+	t := new(jwtToken)
+	t.Initialize(&c.Properties)
+	return t
 }

@@ -217,7 +217,7 @@ func TestSort(t *testing.T) {
 			err: nil,
 		},
 		{
-			title: "should fail to sort with circular dependencies",
+			title: "should fail to sort with circular dependencies 1",
 			configurations: []*factory.MetaData{
 				factory.NewMetaData(new(circularChildConfiguration)),
 				factory.NewMetaData(new(circularParentConfiguration)),
@@ -226,7 +226,7 @@ func TestSort(t *testing.T) {
 			err: depends.ErrCircularDependency,
 		},
 		{
-			title: "should fail to sort with circular dependencies",
+			title: "should fail to sort with circular dependencies 2",
 			configurations: []*factory.MetaData{
 				factory.NewMetaData(new(Bar)),
 				factory.NewMetaData(new(circularChildConfiguration)),
@@ -236,7 +236,7 @@ func TestSort(t *testing.T) {
 			err: depends.ErrCircularDependency,
 		},
 		{
-			title: "should fail to sort with circular dependencies",
+			title: "should fail to sort with circular dependencies 3",
 			configurations: []*factory.MetaData{
 				factory.NewMetaData(new(circularChildConfiguration2)),
 				factory.NewMetaData(new(circularParentConfiguration2)),

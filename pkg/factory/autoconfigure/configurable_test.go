@@ -56,12 +56,12 @@ type FooProperties struct {
 }
 
 type FooConfiguration struct {
-	app.PreConfiguration
+	app.Configuration
 	FakeProperties FooProperties `mapstructure:"foo"`
 }
 
 type BarConfiguration struct {
-	app.PostConfiguration
+	app.Configuration
 	FakeProperties FooProperties `mapstructure:"bar"`
 }
 
@@ -182,13 +182,33 @@ func (c *foobarConfiguration) Bar() *Bar {
 
 type EarthConfiguration struct {
 	app.Configuration
+	instantiateFactory factory.InstantiateFactory
+}
+
+func newEarthConfiguration(instantiateFactory factory.InstantiateFactory) *EarthConfiguration {
+	c := &EarthConfiguration{
+		instantiateFactory: instantiateFactory,
+	}
+	c.RuntimeDeps.Set("RuntimeTree", []string{"autoconfigure_test.tree", "autoconfigure_test.branch"})
+	return c
 }
 
 type Land struct {
 	Mountain *Mountain
 }
 
+type RuntimeTree struct {
+	leaf   *Leaf
+	branch *Branch
+}
+
 type Tree struct {
+}
+
+type Branch struct {
+}
+
+type Leaf struct {
 }
 
 type Mountain struct {
@@ -203,7 +223,21 @@ func (c *EarthConfiguration) Mountain(tree *Tree) *Mountain {
 	return &Mountain{Tree: tree}
 }
 
-func (c *EarthConfiguration) AutoconfigureTestTree() *Tree {
+func (c *EarthConfiguration) Branch() *Branch {
+	return &Branch{}
+}
+
+func (c *EarthConfiguration) Leaf() *Leaf {
+	return &Leaf{}
+}
+
+func (c *EarthConfiguration) RuntimeTree() *RuntimeTree {
+	leaf := c.instantiateFactory.GetInstance("autoconfigure_test.leaf").(*Leaf)
+	branch := c.instantiateFactory.GetInstance("autoconfigure_test.branch").(*Branch)
+	return &RuntimeTree{leaf: leaf, branch: branch}
+}
+
+func (c *EarthConfiguration) Tree() *Tree {
 	return &Tree{}
 }
 
@@ -239,6 +273,13 @@ func TestConfigurableFactory(t *testing.T) {
 	f.InstantiateFactory.Initialize(cmap.New(), []*factory.MetaData{})
 	f.Initialize(configContainers)
 
+	t.Run("should set factory instance", func(t *testing.T) {
+		err := f.SetInstance(factory.InstantiateFactoryName, f.InstantiateFactory)
+		assert.Equal(t, nil, err)
+
+		f.SetInstance(factory.ConfigurableFactoryName, f)
+		assert.Equal(t, nil, err)
+	})
 	inject.SetFactory(f)
 
 	t.Run("should build app config", func(t *testing.T) {
@@ -270,6 +311,7 @@ func TestConfigurableFactory(t *testing.T) {
 		factory.NewMetaData(new(unknownConfiguration)),
 		factory.NewMetaData(new(unsupportedConfiguration)),
 		factory.NewMetaData(foobarConfiguration{}),
+		factory.NewMetaData(newEarthConfiguration),
 	})
 
 	f.BuildComponents()
@@ -291,18 +333,28 @@ func TestConfigurableFactory(t *testing.T) {
 
 	t.Run("should add instance to factory at runtime", func(t *testing.T) {
 		fakeInstance := &struct{ Name string }{Name: "fake"}
-		f.SetInstance("fakeInstance", fakeInstance)
-		gotFakeInstance := f.GetInstance("fakeInstance")
+		f.SetInstance("autoconfigure_test.fakeInstance", fakeInstance)
+		gotFakeInstance := f.GetInstance("autoconfigure_test.fakeInstance")
 		assert.Equal(t, fakeInstance, gotFakeInstance)
 	})
 
 	t.Run("should get foo configuration", func(t *testing.T) {
-		helloWorld := f.GetInstance("helloWorld")
+		helloWorld := f.GetInstance("autoconfigure_test.helloWorld")
 		assert.NotEqual(t, nil, helloWorld)
 		assert.Equal(t, HelloWorld("Hello world"), helloWorld)
 
 		assert.Equal(t, "hiboot foo", fooConfig.FakeProperties.Nickname)
 		assert.Equal(t, "bar", fooConfig.FakeProperties.Username)
 		assert.Equal(t, "foo", fooConfig.FakeProperties.Name)
+	})
+
+	t.Run("should get runtime created instances", func(t *testing.T) {
+		runtimeTree := f.GetInstance("autoconfigure_test.runtimeTree")
+		leaf := f.GetInstance("autoconfigure_test.leaf")
+		branch := f.GetInstance("autoconfigure_test.branch")
+		assert.NotEqual(t, nil, runtimeTree)
+		rt := runtimeTree.(*RuntimeTree)
+		assert.Equal(t, branch, rt.branch)
+		assert.Equal(t, leaf, rt.leaf)
 	})
 }

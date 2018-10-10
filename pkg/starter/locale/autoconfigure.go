@@ -41,7 +41,7 @@ func init() {
 	app.AutoConfiguration(newConfiguration)
 }
 
-func (c *configuration) LocaleHandler() (handler context.Handler) {
+func (c *configuration) Handler() (handler context.Handler) {
 	// TODO: localePath should be configurable in application.yml
 	// locale:
 	//   en-US: ./config/i18n/en-US.ini

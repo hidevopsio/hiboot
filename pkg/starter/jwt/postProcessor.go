@@ -22,7 +22,7 @@ import (
 
 type postProcessor struct {
 	applicationContext app.ApplicationContext
-	jwtMiddleware      *JwtMiddleware
+	jwtMiddleware      *Middleware
 }
 
 func init() {
@@ -30,7 +30,7 @@ func init() {
 	app.RegisterPostProcessor(newPostProcessor)
 }
 
-func newPostProcessor(applicationContext app.ApplicationContext, jwtMiddleware *JwtMiddleware) *postProcessor {
+func newPostProcessor(applicationContext app.ApplicationContext, jwtMiddleware *Middleware) *postProcessor {
 	return &postProcessor{
 		applicationContext: applicationContext,
 		jwtMiddleware:      jwtMiddleware,

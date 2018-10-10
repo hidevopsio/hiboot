@@ -37,7 +37,7 @@ type userRequest struct {
 
 type fooController struct {
 	web.Controller
-	jwtToken jwt.Token
+	token    jwt.Token
 	tokenStr string
 }
 
@@ -50,7 +50,7 @@ func init() {
 
 func newFooController(jwtToken jwt.Token) *fooController {
 	return &fooController{
-		jwtToken: jwtToken,
+		token: jwtToken,
 	}
 }
 
@@ -64,7 +64,7 @@ func (c *fooController) PostLogin(request *userRequest) (response model.Response
 	log.Debug("fooController.Login")
 
 	// you make validate username and password first
-	token, err := c.jwtToken.Generate(jwt.Map{
+	token, err := c.token.Generate(jwt.Map{
 		"username": request.Username,
 		"password": request.Password,
 	}, tokenExpiredSecond, time.Second)
@@ -109,11 +109,11 @@ func TestJwtController(t *testing.T) {
 	testApp := web.NewTestApplication(t, newFooController, newBarController)
 	ctx := testApp.(app.ApplicationContext)
 
-	fc := ctx.GetInstance("fooController")
+	fc := ctx.FindInstance(fooController{})
 	assert.NotEqual(t, nil, fc)
 	fooCtrl := fc.(*fooController)
 
-	bc := ctx.GetInstance("barController")
+	bc := ctx.FindInstance(barController{})
 	assert.NotEqual(t, nil, bc)
 	barCtrl := bc.(*barController)
 
@@ -168,7 +168,7 @@ func TestJwtController(t *testing.T) {
 	})
 
 	applicationContext := testApp.(app.ApplicationContext)
-	jwtMiddleware := applicationContext.FindInstance(jwt.JwtMiddleware{}).(*jwt.JwtMiddleware)
+	jwtMiddleware := applicationContext.FindInstance(jwt.Middleware{}).(*jwt.Middleware)
 
 	t.Run("should report error with SigningMethod", func(t *testing.T) {
 		jwtMiddleware.Config.SigningMethod = jwtgo.SigningMethodRS512

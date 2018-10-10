@@ -19,19 +19,60 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system"
 )
 
+const (
+	InstantiateFactoryName  = "factory.instantiateFactory"
+	ConfigurableFactoryName = "factory.configurableFactory"
+)
+
 type Factory interface{}
 
+// InstantiateFactory instantiate factory interface
 type InstantiateFactory interface {
 	Initialized() bool
-	SetInstance(name string, instance interface{}) (err error)
-	GetInstance(name string) (retVal interface{})
+	SetInstance(params ...interface{}) (err error)
+	GetInstance(params ...interface{}) (retVal interface{})
 	GetInstances(name string) (retVal []interface{})
 	Items() map[string]interface{}
 	AppendComponent(c ...interface{})
 }
 
+// ConfigurableFactory configurable factory interface
 type ConfigurableFactory interface {
 	InstantiateFactory
 	SystemConfiguration() *system.Configuration
 	Configuration(name string) interface{}
+}
+
+// Configuration configuration interface
+type Configuration interface {
+	dependencies(name string) (deps []string)
+	setDependencies(name string, value []string)
+}
+
+type depsMap map[string][]string
+
+type Deps struct {
+	deps depsMap
+}
+
+func (c *Deps) ensure() {
+	if c.deps == nil {
+		c.deps = make(depsMap)
+	}
+}
+
+func (c *Deps) Get(name string) (deps []string) {
+	c.ensure()
+
+	deps = c.deps[name]
+
+	return
+}
+
+func (c *Deps) Set(name string, value []string) {
+	c.ensure()
+
+	c.deps[name] = value
+
+	return
 }

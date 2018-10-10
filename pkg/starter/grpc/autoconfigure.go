@@ -19,7 +19,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"google.golang.org/grpc"
 	"reflect"
 )
@@ -43,13 +42,14 @@ var (
 )
 
 // RegisterServer register server from application
-func RegisterServer(cb interface{}, s interface{}) {
-	svrName, _ := reflector.GetName(s)
+func RegisterServer(register interface{}, server interface{}) {
+	svrName := reflector.GetLowerCamelFullName(server)
 	svr := &grpcService{
 		name: svrName,
-		cb:   cb,
-		svc:  s,
+		cb:   register,
+		svc:  server,
 	}
+	app.Component(server)
 	grpcServers = append(grpcServers, svr)
 }
 
@@ -57,16 +57,16 @@ func RegisterServer(cb interface{}, s interface{}) {
 var Server = RegisterServer
 
 // RegisterClient register client from application
-func RegisterClient(name string, cbs ...interface{}) {
-	for _, cb := range cbs {
+func RegisterClient(name string, clientConstructors ...interface{}) {
+	for _, clientConstructor := range clientConstructors {
 		svr := &grpcService{
 			name: name,
-			cb:   cb,
+			cb:   clientConstructor,
 		}
 		grpcClients = append(grpcClients, svr)
 
 		// pre-allocate client in order to pass dependency check
-		typ, ok := reflector.GetFuncOutType(cb)
+		typ, ok := reflector.GetFuncOutType(clientConstructor)
 		if ok {
 			// NOTE: it's very important !!!
 			// To register grpc client and grpc.ClientConn here, even though it will never be used.
@@ -75,10 +75,10 @@ func RegisterClient(name string, cbs ...interface{}) {
 				Object:  reflect.New(typ).Interface(),
 				Depends: []string{"grpc.clientFactory"},
 			}
-			app.Component(str.ToLowerCamel(typ.Name()), metaData)
+			app.Component(metaData)
 		}
 	}
-	// Just register grpc.ClientConn in order to pass dependency check
+	// Just register grpc.ClientConn in order to pass the dependency check
 	app.Component(new(grpc.ClientConn))
 }
 
@@ -90,24 +90,35 @@ func init() {
 }
 
 func newConfiguration(instantiateFactory factory.InstantiateFactory) *configuration {
-	return &configuration{
+	c := &configuration{
 		instantiateFactory: instantiateFactory,
 	}
+
+	// we need to specify dependencies for runtime dependency injection
+	var dep []string
+	for _, srv := range grpcServers {
+		if srv.svc != nil {
+			dep = append(dep, srv.name)
+		}
+	}
+	c.RuntimeDeps.Set("GrpcServerFactory", dep)
+
+	return c
 }
 
 // ClientConnector is the interface that connect to grpc client
 // it can be injected to struct at runtime
-func (c *configuration) GrpcClientConnector() ClientConnector {
+func (c *configuration) ClientConnector() ClientConnector {
 	return newClientConnector(c.instantiateFactory)
 }
 
 // GrpcClientFactory create gRPC Clients that registered by application
-func (c *configuration) GrpcClientFactory(cc ClientConnector) ClientFactory {
+func (c *configuration) ClientFactory(cc ClientConnector) ClientFactory {
 	return newClientFactory(c.Properties, cc)
 }
 
 // GrpcServer create new gRpc Server
-func (c *configuration) GrpcServer() (grpcServer *grpc.Server) {
+func (c *configuration) Server() (grpcServer *grpc.Server) {
 	// just return if grpc server is not enabled
 	if c.Properties.Server.Enabled {
 		grpcServer = grpc.NewServer()
@@ -116,6 +127,7 @@ func (c *configuration) GrpcServer() (grpcServer *grpc.Server) {
 }
 
 // GrpcServerFactory create gRPC servers that registered by application
-func (c *configuration) GrpcServerFactory(grpcServer *grpc.Server) ServerFactory {
-	return newServerFactory(c.Properties, grpcServer)
+// go:depends
+func (c *configuration) ServerFactory(grpcServer *grpc.Server) ServerFactory {
+	return newServerFactory(c.instantiateFactory, c.Properties, grpcServer)
 }

@@ -20,6 +20,12 @@ import (
 	"reflect"
 )
 
+// Configuration is the base configuration
+type Configuration struct {
+	factory.Configuration
+	RuntimeDeps factory.Deps
+}
+
 // appendParam is the common func to append meta data to meta data slice
 func appendParam(eliminator string, container []*factory.MetaData, params ...interface{}) (retVal []*factory.MetaData, err error) {
 

@@ -49,6 +49,10 @@ var (
 	once             sync.Once
 )
 
+const (
+	RootCommandName = "cli.rootCommand"
+)
+
 func init() {
 	commandContainer = make(map[string][]Command)
 	commandNames = make([]string, 0)
@@ -65,7 +69,7 @@ func NewApplication(cmd ...interface{}) Application {
 
 func (a *application) initialize(cmd ...interface{}) (err error) {
 	if len(cmd) > 0 {
-		app.Register("rootCommand", cmd[0])
+		app.Register(RootCommandName, cmd[0])
 	}
 	err = a.Initialize()
 	return
@@ -82,13 +86,13 @@ func (a *application) build() error {
 	basename = strings.TrimSuffix(basename, ".exe")
 
 	f := a.ConfigurableFactory()
-	f.SetInstance("applicationContext", a)
+	f.SetInstance(app.ApplicationContextName, a)
 
 	// build auto configurations
 	a.BuildConfigurations()
 
 	// set root command
-	r := f.GetInstance("rootCommand")
+	r := f.GetInstance(RootCommandName)
 	var root Command
 	if r != nil {
 		root = r.(Command)
