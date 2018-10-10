@@ -22,7 +22,7 @@ import (
 )
 
 type configuration struct {
-	app.PreConfiguration
+	app.Configuration
 	Properties         Properties `mapstructure:"logging"`
 	applicationContext app.ApplicationContext
 }

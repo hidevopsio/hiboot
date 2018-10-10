@@ -25,7 +25,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system/types"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
 )
 
@@ -87,25 +86,25 @@ func (f *InstantiateFactory) BuildComponents() (err error) {
 		switch item.Kind {
 		case types.Func:
 			obj, err = inject.IntoFunc(item.Object)
-			name = item.ShortName
+			name = item.Name
 			log.Debugf("%d: inject into func: %v - %v", i, item.Name, item.Type)
 		case types.Method:
 			obj, err = inject.IntoMethod(item.Context, item.Object)
-			name = item.ShortName
+			name = item.Name
 			log.Debugf("%d: inject into method: %v - %v", i, item.Name, item.Type)
 		default:
 			name, obj = item.Name, item.Object
 		}
-		// inject into object
-
 		if obj != nil {
+			// inject into object
 			err = inject.IntoObject(obj)
-			// use interface name if it's available as use does not specify its name
-			field := reflector.GetEmbeddedInterfaceField(obj)
-			if field.Anonymous {
-				err = f.SetInstance(field.Name, obj)
-				//log.Debugf("component %v has embedded field: %v", inst, name)
-			}
+
+			//field := reflector.GetEmbeddedField(obj)
+			//if field.Anonymous {
+			//	// use interface name if it's available as use does not specify its name
+			//	name = io.DirName(field.PkgPath) + "." + field.Name
+			//	log.Debugf("component %v has embedded field: %v", obj, name)
+			//}
 			if name != "" {
 				err = f.SetInstance(name, obj)
 			}
@@ -115,13 +114,12 @@ func (f *InstantiateFactory) BuildComponents() (err error) {
 }
 
 // SetInstance save instance
-func (f *InstantiateFactory) SetInstance(name string, instance interface{}) (err error) {
+func (f *InstantiateFactory) SetInstance(params ...interface{}) (err error) {
 	if !f.Initialized() {
 		return ErrNotInitialized
 	}
 
-	// force to use camel case name
-	name = str.ToLowerCamel(name)
+	name, instance := factory.ParseParams(params...)
 
 	if _, ok := f.instanceMap.Get(name); ok {
 		return fmt.Errorf("instance name %v is already taken", name)
@@ -129,7 +127,7 @@ func (f *InstantiateFactory) SetInstance(name string, instance interface{}) (err
 
 	f.instanceMap.Set(name, instance)
 
-	ifcField := reflector.GetEmbeddedInterfaceField(instance)
+	ifcField := reflector.GetEmbeddedField(instance)
 	if ifcField.Anonymous {
 		typeName := ifcField.Name
 		categorised, ok := f.categorized[typeName]
@@ -142,15 +140,16 @@ func (f *InstantiateFactory) SetInstance(name string, instance interface{}) (err
 }
 
 // GetInstance get instance by name
-func (f *InstantiateFactory) GetInstance(name string) (retVal interface{}) {
+func (f *InstantiateFactory) GetInstance(params ...interface{}) (retVal interface{}) {
 	if !f.Initialized() {
 		return nil
 	}
 
-	// force to use camel case name
-	name = str.ToLowerCamel(name)
+	name, _ := factory.ParseParams(params...)
+
 	//items := f.Items()
 	//log.Debug(items)
+
 	var ok bool
 	if retVal, ok = f.instanceMap.Get(name); !ok {
 		return nil

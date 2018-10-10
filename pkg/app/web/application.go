@@ -33,7 +33,7 @@ const (
 
 	beforeMethod       = "Before"
 	afterMethod        = "After"
-	applicationContext = "applicationContext"
+	applicationContext = "app.applicationContext"
 )
 
 // Application is the struct of web Application
@@ -101,9 +101,8 @@ func (a *application) build() (err error) {
 	}
 
 	f := a.ConfigurableFactory()
-	f.AppendComponent(applicationContext, a)
-	// TODO: is it necessary ?
-	f.SetInstance(applicationContext, a)
+	f.AppendComponent(app.ApplicationContextName, a)
+	f.SetInstance(app.ApplicationContextName, a)
 
 	// fill controllers into component container
 	for _, ctrl := range a.controllers {

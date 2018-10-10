@@ -24,12 +24,15 @@ func newClientConnector(instantiateFactory factory.InstantiateFactory) ClientCon
 }
 
 // Connect connect to grpc server from client
-func (c *clientConnector) Connect(name string, cb interface{}, prop *ClientProperties) (err error) {
-	host := prop.Host
+// name: client name
+// clientConstructor: client constructor
+// properties: properties for configuring
+func (c *clientConnector) Connect(name string, clientConstructor interface{}, properties *ClientProperties) (err error) {
+	host := properties.Host
 	if host == "" {
 		host = name
 	}
-	address := host + ":" + prop.Port
+	address := host + ":" + properties.Port
 	conn := c.instantiateFactory.GetInstance(name)
 	if conn == nil {
 		// connect to grpc server
@@ -39,9 +42,9 @@ func (c *clientConnector) Connect(name string, cb interface{}, prop *ClientPrope
 			log.Infof("gRPC client connected to: %v", address)
 		}
 	}
-	if err == nil && cb != nil {
+	if err == nil && clientConstructor != nil {
 		// get return type for register instance name
-		gRpcCli, err := reflector.CallFunc(cb, conn)
+		gRpcCli, err := reflector.CallFunc(clientConstructor, conn)
 		if err == nil {
 			clientInstanceName, err := reflector.GetName(gRpcCli)
 			if err == nil {

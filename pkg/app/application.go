@@ -28,8 +28,13 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/kataras/iris/context"
+	"reflect"
 	"strings"
 	"sync"
+)
+
+const (
+	ApplicationContextName = "app.applicationContext"
 )
 
 type Application interface {
@@ -46,10 +51,6 @@ type ApplicationContext interface {
 	GetInstance(name string) (instance interface{})
 	FindInstance(iType interface{}) (instance interface{})
 }
-
-type Configuration interface{}
-type PreConfiguration interface{}
-type PostConfiguration interface{}
 
 type BaseApplication struct {
 	WorkDir             string
@@ -68,7 +69,7 @@ var (
 	componentContainer []*factory.MetaData
 
 	// ErrInvalidObjectType indicates that configuration type is invalid
-	ErrInvalidObjectType = errors.New("[app] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
+	ErrInvalidObjectType = errors.New("[app] invalid Configuration type, one of app.Configuration need to be embedded")
 
 	banner = `
 ______  ____________             _____
@@ -114,11 +115,12 @@ func (a *BaseApplication) Initialize() error {
 
 	instantiateFactory := new(instantiate.InstantiateFactory)
 	instantiateFactory.Initialize(a.instances, componentContainer)
-	a.instances.Set("instantiateFactory", instantiateFactory)
+	// TODO: should set or get instance by passing object instantiateFactory
+	a.instances.Set(factory.InstantiateFactoryName, instantiateFactory)
 
 	configurableFactory := new(autoconfigure.ConfigurableFactory)
 	configurableFactory.InstantiateFactory = instantiateFactory
-	a.instances.Set("configurableFactory", configurableFactory)
+	a.instances.Set(factory.ConfigurableFactoryName, configurableFactory)
 	inject.SetFactory(configurableFactory)
 	a.configurableFactory = configurableFactory
 
@@ -180,8 +182,8 @@ func (a *BaseApplication) GetInstance(name string) (instance interface{}) {
 // FindInstance get application instance by data type
 func (a *BaseApplication) FindInstance(iType interface{}) (instance interface{}) {
 	if a.configurableFactory != nil {
-		name, err := reflector.GetName(iType)
-		if err == nil {
+		name := reflector.GetLowerCamelFullNameByType(reflect.TypeOf(iType))
+		if name != "" {
 			instance = a.configurableFactory.GetInstance(name)
 		}
 	}

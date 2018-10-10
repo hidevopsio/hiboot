@@ -15,7 +15,10 @@
 package inject
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/factory"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
 )
 
@@ -25,6 +28,12 @@ type injectTag struct {
 
 func init() {
 	AddTag(new(injectTag))
+}
+
+func getInstance(cf factory.ConfigurableFactory, pkgName, name string) (retVal interface{}) {
+	name = str.ToLowerCamel(name)
+	retVal = cf.GetInstance(pkgName + "." + name)
+	return
 }
 
 func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{}) {
@@ -38,15 +47,18 @@ func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, tag 
 		if ft.Kind() == reflect.Ptr {
 			ft = ft.Elem()
 		}
+
+		pkgName := io.DirName(ft.PkgPath())
+
 		// get the user specific instance first
-		retVal = t.ConfigurableFactory.GetInstance(tag)
+		retVal = getInstance(t.ConfigurableFactory, pkgName, tag)
 		// else to find with the field name if above is not found
 		if retVal == nil {
-			retVal = t.ConfigurableFactory.GetInstance(field.Name)
+			retVal = getInstance(t.ConfigurableFactory, pkgName, field.Name)
 		}
 		// else to find with the type name if above is not found
 		if retVal == nil {
-			retVal = t.ConfigurableFactory.GetInstance(ft.Name())
+			retVal = getInstance(t.ConfigurableFactory, pkgName, ft.Name())
 		}
 		// else create new instance at runtime
 		if retVal == nil && field.Type.Kind() != reflect.Interface {

@@ -28,6 +28,11 @@ import (
 // server is used to implement helloworld.GreeterServer.
 type greeterServerService struct{}
 
+// newGreeterServerService is the constructor of greeterServerService
+func newGreeterServerService() *greeterServerService {
+	return &greeterServerService{}
+}
+
 // SayHello implements helloworld.GreeterServer
 func (s *greeterServerService) SayHello(ctx context.Context, in *helloworld.HelloRequest) (*helloworld.HelloReply, error) {
 	return &helloworld.HelloReply{Message: "Hello " + in.Name}, nil
@@ -45,6 +50,7 @@ func newGreeterClientService(greeterClient helloworld.GreeterClient) *greeterCli
 	}
 }
 
+// SayHello gRpc client service that call remote server service
 func (s *greeterClientService) SayHello(name string) (*helloworld.HelloReply, error) {
 	response, err := s.greeterClient.SayHello(context.Background(), &helloworld.HelloRequest{Name: name})
 	return response, err
@@ -54,8 +60,8 @@ func TestGrpcServerAndClient(t *testing.T) {
 
 	app.Component(newGreeterClientService)
 
-	grpc.RegisterServer(helloworld.RegisterGreeterServer, new(greeterServerService))
-	grpc.RegisterClient("greeter-service", helloworld.NewGreeterClient)
+	grpc.Server(helloworld.RegisterGreeterServer, newGreeterServerService)
+	grpc.Client("greeter-service", helloworld.NewGreeterClient)
 
 	testApp := web.NewTestApplication(t)
 	assert.NotEqual(t, nil, testApp)
@@ -67,14 +73,10 @@ func TestGrpcServerAndClient(t *testing.T) {
 	if cliSvc != nil {
 		greeterCliSvc := cliSvc.(*greeterClientService)
 		assert.NotEqual(t, nil, greeterCliSvc.greeterClient)
+
+		name := "Steve"
+		response, err := greeterCliSvc.SayHello(name)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "Hello "+name, response.Message)
 	}
-
-	//name := "Steve"
-	//response, err := greeterClientSvc.SayHello(name)
-	//assert.Equal(t, nil, err)
-	//assert.Equal(t, "Hello " + name, response.Message)
-}
-
-func TestInjectIntoObject(t *testing.T) {
-	//InjectIntoObject()
 }
