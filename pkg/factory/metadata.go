@@ -108,9 +108,8 @@ func ParseParams(params ...interface{}) (name string, object interface{}) {
 			if kind == reflect.String {
 				name = str.LowerFirst(params[0].(string))
 				return
-			} else {
-				object = params[0]
 			}
+			object = params[0]
 		} else {
 			if kind == reflect.String {
 				name = str.LowerFirst(params[0].(string))
