@@ -82,12 +82,12 @@ func getInstanceByName(name string, typ reflect.Type) (inst interface{}) {
 	return
 }
 
-func saveInstance(name string, inst interface{}) error {
+func saveInstance(name string, inst interface{}) (err error) {
 	name = str.LowerFirst(name)
-	if appFactory == nil {
-		return ErrFactoryIsNil
+	if appFactory != nil {
+		err = appFactory.SetInstance(name, inst)
 	}
-	return appFactory.SetInstance(name, inst)
+	return
 }
 
 // DefaultValue injects instance into the tagged field with `inject:"instanceName"`

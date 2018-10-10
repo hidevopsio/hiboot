@@ -102,9 +102,7 @@ func parseDependencies(object interface{}, kind string, typ reflect.Type) (deps 
 // ParseParams parse parameters
 func ParseParams(params ...interface{}) (name string, object interface{}) {
 	numParams := len(params)
-	if numParams == 0 {
-		return
-	} else {
+	if numParams != 0 {
 		kind := reflect.TypeOf(params[0]).Kind()
 		if numParams == 1 {
 			if kind == reflect.String {
@@ -121,16 +119,17 @@ func ParseParams(params ...interface{}) (name string, object interface{}) {
 				object = params[1]
 			}
 		}
-	}
 
-	pkgName, typeName := reflector.GetPkgAndName(object)
-	if pkgName != "" {
-		if name == "" {
-			name = pkgName + "." + str.ToLowerCamel(typeName)
-		} else if !strings.Contains(name, ".") {
-			name = pkgName + "." + name
+		pkgName, typeName := reflector.GetPkgAndName(object)
+		if pkgName != "" {
+			if name == "" {
+				name = pkgName + "." + str.ToLowerCamel(typeName)
+			} else if !strings.Contains(name, ".") {
+				name = pkgName + "." + name
+			}
 		}
 	}
+
 	return
 }
 
