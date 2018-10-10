@@ -74,7 +74,7 @@ func (f *InstantiateFactory) AppendComponent(c ...interface{}) {
 
 // BuildComponents build all registered components
 func (f *InstantiateFactory) BuildComponents() (err error) {
-	//TODO: should sort components according to dependency tree first
+	// first resolve the dependency graph
 	var resolved []*factory.MetaData
 	resolved, err = depends.Resolve(f.components)
 	// then build components
