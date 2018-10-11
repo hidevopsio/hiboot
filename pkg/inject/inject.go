@@ -68,20 +68,26 @@ func AddTag(tag Tag) {
 	}
 }
 
-func getInstanceByName(name string, instType reflect.Type) (inst interface{}) {
-	name = str.ToLowerCamel(name)
+func getInstanceByName(name string, typ reflect.Type) (inst interface{}) {
+	typ = reflector.IndirectType(typ)
+
+	if name == "" {
+		name = typ.Name()
+	}
+
+	name = io.DirName(typ.PkgPath()) + "." + str.ToLowerCamel(name)
 	if appFactory != nil {
 		inst = appFactory.GetInstance(name)
 	}
 	return
 }
 
-func saveInstance(name string, inst interface{}) error {
+func saveInstance(name string, inst interface{}) (err error) {
 	name = str.LowerFirst(name)
-	if appFactory == nil {
-		return ErrFactoryIsNil
+	if appFactory != nil {
+		err = appFactory.SetInstance(name, inst)
 	}
-	return appFactory.SetInstance(name, inst)
+	return
 }
 
 // DefaultValue injects instance into the tagged field with `inject:"instanceName"`
@@ -134,6 +140,7 @@ func IntoObjectValue(object reflect.Value, tags ...Tag) error {
 		}
 
 		// TODO: assume that the f.Name of value and inject tag is not the same
+
 		injectedObject = getInstanceByName(f.Name, f.Type)
 		if injectedObject == nil {
 			for _, tagImpl := range targetTags {
@@ -177,16 +184,10 @@ func IntoObjectValue(object reflect.Value, tags ...Tag) error {
 	return err
 }
 
-func parseMethodInput(inType reflect.Type) (paramValue reflect.Value, ok bool) {
+func parseFuncOrMethodInput(inType reflect.Type) (paramValue reflect.Value, ok bool) {
 	inType = reflector.IndirectType(inType)
 	inTypeName := inType.Name()
-	pkgName := io.DirName(inType.PkgPath())
-	//log.Debugf("pkg: %v", pkgName)
 	inst := getInstanceByName(inTypeName, inType)
-	if inst == nil {
-		alternativeName := pkgName + inTypeName
-		inst = getInstanceByName(alternativeName, inType)
-	}
 	ok = true
 	if inst == nil {
 		log.Debug(inType.Kind())
@@ -201,6 +202,7 @@ func parseMethodInput(inType reflect.Type) (paramValue reflect.Value, ok bool) {
 			// if it is not found, then create new instance
 			paramValue = reflect.New(inType)
 			inst = paramValue.Interface()
+			// TODO: inTypeName
 			err := saveInstance(inTypeName, inst)
 			if err != nil {
 				log.Warnf("instance %v is already exist", inTypeName)
@@ -223,10 +225,10 @@ func IntoFunc(object interface{}) (retVal interface{}, err error) {
 		// TODO: should load function inputs when resolving dependencies to improve performance
 		for i := 0; i < numIn; i++ {
 			fnInType := fn.Type().In(i)
-			val, ok := parseMethodInput(fnInType)
+			val, ok := parseFuncOrMethodInput(fnInType)
 			if ok {
 				inputs[i] = val
-				log.Debugf("Injected %v into func parameter %v", val, fnInType)
+				//log.Debugf("Injected %v into func parameter %v", val, fnInType)
 			} else {
 				return nil, fmt.Errorf("%v is not injected", fnInType.Name())
 			}
@@ -257,7 +259,7 @@ func IntoMethod(object interface{}, m interface{}) (retVal interface{}, err erro
 		inputs[0] = reflect.ValueOf(object)
 		for i := 1; i < numIn; i++ {
 			fnInType := method.Type.In(i)
-			val, ok := parseMethodInput(fnInType)
+			val, ok := parseFuncOrMethodInput(fnInType)
 			if ok {
 				inputs[i] = val
 			} else {

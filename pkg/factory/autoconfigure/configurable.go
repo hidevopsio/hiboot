@@ -59,8 +59,8 @@ var (
 	// ErrFactoryIsNotInitialized means that the InstantiateFactory is not initialized
 	ErrFactoryIsNotInitialized = errors.New("[factory] InstantiateFactory is not initialized")
 
-	// ErrInvalidObjectType means that the Configuration type is invalid, it should embeds app.PreConfiguration
-	ErrInvalidObjectType = errors.New("[factory] invalid Configuration type, one of app.Configuration, app.PreConfiguration, or app.PostConfiguration need to be embedded")
+	// ErrInvalidObjectType means that the Configuration type is invalid, it should embeds app.Configuration
+	ErrInvalidObjectType = errors.New("[factory] invalid Configuration type, one of app.Configuration need to be embedded")
 
 	// ErrConfigurationNameIsTaken means that the configuration name is already taken
 	ErrConfigurationNameIsTaken = errors.New("[factory] configuration name is already taken")
@@ -140,48 +140,56 @@ func (f *ConfigurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 func (f *ConfigurableFactory) Build(configs []*factory.MetaData) {
 	// categorize configurations first, then inject object if necessary
 	for _, item := range configs {
-		ifcField := reflector.GetEmbeddedInterfaceField(item.Object)
-
-		if ifcField.Anonymous {
-			switch ifcField.Name {
-			case "Configuration":
-				f.configureContainer = append(f.configureContainer, item)
-			case "PreConfiguration":
-				f.preConfigureContainer = append(f.preConfigureContainer, item)
-			case "PostConfiguration":
-				f.postConfigureContainer = append(f.postConfigureContainer, item)
-			default:
-				continue
-			}
-		} else {
+		typ := reflect.TypeOf(item.Object)
+		if item.Kind == types.Func {
+			typ, _ = reflector.GetFuncOutType(item.Object)
+		}
+		typ = reflector.IndirectType(typ)
+		embeddedField := reflector.GetEmbeddedFieldByType(typ)
+		switch embeddedField.Name {
+		case "Configuration":
+			f.configureContainer = append(f.configureContainer, item)
+		default:
 			err := ErrInvalidObjectType
 			log.Errorf("item: %v err: %v", item, err)
 			continue
 		}
 	}
 
-	f.build(f.preConfigureContainer)
 	f.build(f.configureContainer)
-	f.build(f.postConfigureContainer)
 }
 
 // Instantiate run instantiation by method
 func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error) {
 	cv := reflect.ValueOf(configuration)
+	icv := reflector.Indirect(cv)
 
 	// inject configuration before instantiation
 	configType := cv.Type()
 	//log.Debug("type: ", configType)
 	//name := configType.Elem().Name()
 	//log.Debug("fieldName: ", name)
-
+	pkgName := io.DirName(icv.Type().PkgPath())
+	runtimeDeps := icv.FieldByName("RuntimeDeps").Interface().(factory.Deps)
 	// call Init
 	numOfMethod := cv.NumMethod()
 	//log.Debug("methods: ", numOfMethod)
 	for mi := 0; mi < numOfMethod; mi++ {
+		// get method
+		// find the dependencies of the method
 		method := configType.Method(mi)
+		methodName := str.LowerFirst(method.Name)
+
+		deps := runtimeDeps.Get(method.Name)
+
+		metaData := &factory.MetaData{
+			Name:    pkgName + "." + methodName,
+			Object:  method,
+			Depends: deps,
+		}
+
 		// append inst to f.components
-		f.AppendComponent(configuration, method)
+		f.AppendComponent(configuration, metaData)
 	}
 	return
 }
@@ -237,7 +245,7 @@ func (f *ConfigurableFactory) build(cfgContainer []*factory.MetaData) {
 			if confTyp != nil && confTyp.Kind() == reflect.Ptr {
 				cf = config
 			} else {
-				log.Errorf("Unsupported type: %v", confTyp)
+				log.Fatalf("Unsupported configuration type: %v", confTyp)
 				continue
 			}
 		}
@@ -258,5 +266,4 @@ func (f *ConfigurableFactory) build(cfgContainer []*factory.MetaData) {
 		f.configurations.Set(name, cf)
 
 	}
-	//}
 }

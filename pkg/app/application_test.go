@@ -52,7 +52,7 @@ func TestApp(t *testing.T) {
 	//})
 
 	type configuration struct {
-		app.PreConfiguration
+		app.Configuration
 		Properties fakeProperties `mapstructure:"fake"`
 	}
 	t.Run("should add configuration with pkg name", func(t *testing.T) {
@@ -72,7 +72,7 @@ func TestApp(t *testing.T) {
 
 	t.Run("should add configuration with pkg name", func(t *testing.T) {
 		type bazConfiguration struct {
-			app.PostConfiguration
+			app.Configuration
 			Properties fakeProperties `mapstructure:"fake"`
 		}
 		err := app.AutoConfiguration(new(bazConfiguration))

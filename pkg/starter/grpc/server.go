@@ -15,6 +15,7 @@
 package grpc
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"google.golang.org/grpc"
@@ -29,17 +30,12 @@ type ServerFactory interface {
 type serverFactory struct {
 }
 
-func newServerFactory(properties properties, grpcServer *grpc.Server) ServerFactory {
+func newServerFactory(instantiateFactory factory.InstantiateFactory, properties properties, grpcServer *grpc.Server) ServerFactory {
 	sf := &serverFactory{}
-	sf.buildServers(properties, grpcServer)
 
-	return sf
-}
-
-func (f *serverFactory) buildServers(properties properties, grpcServer *grpc.Server) {
 	// just return if grpc server is not enabled
 	if !properties.Server.Enabled || grpcServer == nil {
-		return
+		return nil
 	}
 
 	address := properties.Server.Host + ":" + properties.Server.Port
@@ -53,10 +49,10 @@ func (f *serverFactory) buildServers(properties properties, grpcServer *grpc.Ser
 	chn := make(chan bool)
 	go func() {
 		for _, srv := range grpcServers {
-			reflector.CallFunc(srv.cb, grpcServer, srv.svc)
-			svcName, err := reflector.GetName(srv.svc)
+			svc := instantiateFactory.GetInstance(srv.name)
+			reflector.CallFunc(srv.cb, grpcServer, svc)
 			if err == nil {
-				log.Infof("Registered %v on gRPC server", svcName)
+				log.Infof("Registered %v on gRPC server", srv.name)
 			}
 		}
 		reflection.Register(grpcServer)
@@ -68,4 +64,6 @@ func (f *serverFactory) buildServers(properties properties, grpcServer *grpc.Ser
 	<-chn
 
 	log.Infof("gRPC server listening on: localhost%v", address)
+
+	return sf
 }

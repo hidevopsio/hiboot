@@ -1,6 +1,7 @@
 package factory
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system/types"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
@@ -36,10 +37,10 @@ func findDep(objTyp, inTyp reflect.Type) (name string) {
 	indInTyp := reflector.IndirectType(inTyp)
 	for _, field := range reflector.DeepFields(objTyp) {
 		indFieldTyp := reflector.IndirectType(field.Type)
-		//log.Debugf("%v <> %v", indFieldTyp, indInTyp)
+		log.Debugf("%v <> %v", indFieldTyp, indInTyp)
 		if indFieldTyp == indInTyp {
 			name = str.ToLowerCamel(field.Name)
-			depPkgName := io.DirName(field.Type.PkgPath())
+			depPkgName := io.DirName(indFieldTyp.PkgPath())
 			if depPkgName != "" {
 				name = depPkgName + "." + name
 			}
@@ -47,7 +48,7 @@ func findDep(objTyp, inTyp reflect.Type) (name string) {
 		}
 	}
 	if name == "" {
-		name = reflector.GetFullNameByType(inTyp)
+		name = reflector.GetLowerCamelFullNameByType(inTyp)
 	}
 	return
 }
@@ -63,7 +64,6 @@ func parseDependencies(object interface{}, kind string, typ reflect.Type) (deps 
 			depNames = appendDep(depNames, findDep(typ, inTyp))
 		}
 	case types.Method:
-		// TODO: too many duplicated code, optimize it
 		method := object.(reflect.Method)
 		numIn := method.Type.NumIn()
 		for i := 1; i < numIn; i++ {
@@ -86,7 +86,8 @@ func parseDependencies(object interface{}, kind string, typ reflect.Type) (deps 
 		// find user specific depends tag
 		var depTag string
 		var hasDepTag bool
-		depTag, hasDepTag = reflector.FindEmbeddedFieldTag(object, "depends")
+		f := reflector.GetEmbeddedField(object, reflect.Struct)
+		depTag, hasDepTag = f.Tag.Lookup("depends")
 		if hasDepTag {
 			depNames = appendDep(depNames, depTag)
 		}
@@ -95,6 +96,39 @@ func parseDependencies(object interface{}, kind string, typ reflect.Type) (deps 
 	if depNames != "" {
 		deps = strings.Split(depNames, ",")
 	}
+	return
+}
+
+// ParseParams parse parameters
+func ParseParams(params ...interface{}) (name string, object interface{}) {
+	numParams := len(params)
+	if numParams != 0 {
+		kind := reflect.TypeOf(params[0]).Kind()
+		if numParams == 1 {
+			if kind == reflect.String {
+				name = str.LowerFirst(params[0].(string))
+				return
+			}
+			object = params[0]
+		} else {
+			if kind == reflect.String {
+				name = str.LowerFirst(params[0].(string))
+				object = params[1]
+			} else {
+				object = params[1]
+			}
+		}
+
+		pkgName, typeName := reflector.GetPkgAndName(object)
+		if pkgName != "" {
+			if name == "" {
+				name = pkgName + "." + str.ToLowerCamel(typeName)
+			} else if !strings.Contains(name, ".") {
+				name = pkgName + "." + name
+			}
+		}
+	}
+
 	return
 }
 
@@ -123,6 +157,7 @@ func NewMetaData(params ...interface{}) *MetaData {
 		md := object.(*MetaData)
 		deps = append(deps, md.Depends...)
 		object = md.Object
+		name = md.Name
 	}
 
 	pkgName, typeName := reflector.GetPkgAndName(object)
@@ -131,11 +166,10 @@ func NewMetaData(params ...interface{}) *MetaData {
 	kindName := kind.String()
 
 	if pkgName != "" {
+		shortName = str.ToLowerCamel(typeName)
 		if name == "" {
-			shortName = str.ToLowerCamel(typeName)
 			name = pkgName + "." + shortName
-		} else {
-			shortName = name
+		} else if !strings.Contains(name, ".") {
 			name = pkgName + "." + name
 		}
 	}
