@@ -26,12 +26,12 @@ import (
 )
 
 // JwtMiddleware derrived from github.com/iris-contrib/middleware/jwt/Middleware
-type JwtMiddleware struct {
+type Middleware struct {
 	mwjwt.Middleware
 }
 
 // Serve the middleware's action
-func (m *JwtMiddleware) Serve(ctx context.Context) {
+func (m *Middleware) Serve(ctx context.Context) {
 	if err := m.CheckJWT(ctx); err != nil {
 		c := ctx.(*web.Context)
 		c.ResponseError(err.Error(), http.StatusUnauthorized)
@@ -43,7 +43,7 @@ func (m *JwtMiddleware) Serve(ctx context.Context) {
 }
 
 // CheckJWT the main functionality, checks for token
-func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
+func (m *Middleware) CheckJWT(ctx context.Context) error {
 	if !m.Config.EnableAuthOnOptions {
 		if ctx.Method() == http.MethodOptions {
 			return nil
@@ -106,7 +106,7 @@ func (m *JwtMiddleware) CheckJWT(ctx context.Context) error {
 }
 
 // NewJwtMiddleware New constructs a new Secure instance with supplied options.
-func NewJwtMiddleware(cfg ...mwjwt.Config) *JwtMiddleware {
+func NewJwtMiddleware(cfg ...mwjwt.Config) *Middleware {
 
 	var c mwjwt.Config
 	if len(cfg) == 0 {
@@ -127,5 +127,5 @@ func NewJwtMiddleware(cfg ...mwjwt.Config) *JwtMiddleware {
 		c.Extractor = mwjwt.FromAuthHeader
 	}
 
-	return &JwtMiddleware{mwjwt.Middleware{Config: c}}
+	return &Middleware{mwjwt.Middleware{Config: c}}
 }

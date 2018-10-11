@@ -315,7 +315,7 @@ func TestInject(t *testing.T) {
 	cf.Initialize(configurations)
 	cf.BuildSystemConfig()
 
-	cf.SetInstance("hello", Hello("Hello"))
+	cf.SetInstance("inject_test.hello", Hello("Hello"))
 
 	inject.SetFactory(cf)
 
@@ -344,17 +344,17 @@ func TestInject(t *testing.T) {
 	})
 
 	t.Run("should get config", func(t *testing.T) {
-		fr := cf.GetInstance("fakeRepository")
+		fr := cf.GetInstance("inject_test.fakeRepository")
 		assert.NotEqual(t, nil, fr)
 	})
 
 	t.Run("should inject through method", func(t *testing.T) {
-		fu := cf.GetInstance("fooUser")
-		bu := cf.GetInstance("user")
-		fp := cf.GetInstance("fakeRepository")
+		fu := cf.GetInstance("inject_test.fooUser")
+		bu := cf.GetInstance("inject_test.user")
+		fp := cf.GetInstance("inject_test.fakeRepository")
 		u := new(User)
 
-		cf.SetInstance("barUser", u)
+		cf.SetInstance("inject_test.barUser", u)
 
 		svc, err := inject.IntoFunc(newMethodInjectionService)
 		assert.Equal(t, nil, err)
@@ -530,16 +530,16 @@ func TestInject(t *testing.T) {
 	})
 
 	t.Run("should inject into object by inject tag", func(t *testing.T) {
-		cf.SetInstance("bazService", new(bazService))
-		cf.SetInstance("buzService", new(buzService))
-		cf.SetInstance("bxzService", new(bxzServiceImpl))
+		cf.SetInstance("inject_test.bazService", new(bazService))
+		cf.SetInstance("inject_test.buzService", new(buzService))
+		cf.SetInstance("inject_test.bxzService", new(bxzServiceImpl))
 
 		svc := new(dependencyInjectionTestService)
 		err := inject.IntoObject(svc)
 
-		bazSvc := cf.GetInstance("bazService")
-		buzSvc := cf.GetInstance("buzService")
-		bxzSvc := cf.GetInstance("bxzService")
+		bazSvc := cf.GetInstance("inject_test.bazService")
+		buzSvc := cf.GetInstance("inject_test.buzService")
+		bxzSvc := cf.GetInstance("inject_test.bxzService")
 
 		assert.Equal(t, nil, err)
 		assert.Equal(t, bazSvc, svc.BazService)

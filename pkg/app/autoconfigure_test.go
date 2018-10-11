@@ -12,31 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package jwt
+package app
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func init() {
-	log.SetLevel(log.DebugLevel)
-	io.EnsureWorkDir(1, "config/application.yml")
-}
-
-func TestAutoConfigure(t *testing.T) {
-
-	config := &configuration{
-		Properties: Properties{
-			PrivateKeyPath: "config/ssl/app.rsa",
-			PublicKeyPath:  "config/ssl/app.rsa.pub",
-		},
+func TestDependencies(t *testing.T) {
+	type config struct {
+		Configuration
 	}
 
-	token := config.Token()
-	assert.NotEqual(t, nil, token)
-	mw := config.Middleware(token.(*jwtToken))
-	assert.NotEqual(t, nil, mw)
+	c := new(config)
+	deps := []string{"world"}
+	c.RuntimeDeps.Set("hello", deps)
+
+	assert.Equal(t, deps, c.RuntimeDeps.Get("hello"))
 }

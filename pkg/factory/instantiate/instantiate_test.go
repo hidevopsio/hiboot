@@ -103,13 +103,13 @@ func TestInstantiateFactory(t *testing.T) {
 	})
 
 	t.Run("should get built instance", func(t *testing.T) {
-		inst := appFactory.GetInstance("helloWorld")
+		inst := appFactory.GetInstance("instantiate_test.helloWorld")
 		assert.Equal(t, HelloWorld("Hello world"), inst)
 	})
 
 	t.Run("should set and get instance from factory", func(t *testing.T) {
-		appFactory.SetInstance("foo", f)
-		inst := appFactory.GetInstance("foo")
+		appFactory.SetInstance(f)
+		inst := appFactory.GetInstance(foo{})
 		assert.Equal(t, f, inst)
 	})
 

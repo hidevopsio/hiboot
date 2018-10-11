@@ -67,12 +67,12 @@ type Bar struct {
 // PATH /foo
 type FooController struct {
 	web.Controller
-	jwtToken jwt.Token
+	token jwt.Token
 }
 
-func newFooController(jwtToken jwt.Token) *FooController {
+func newFooController(token jwt.Token) *FooController {
 	return &FooController{
-		jwtToken: jwtToken,
+		token: token,
 	}
 }
 
@@ -120,7 +120,7 @@ func (c *FooController) PostLogin(request *UserRequest) (response model.Response
 	log.Debug("FooController.Login")
 
 	// you make validate username and password first
-	token, err := c.jwtToken.Generate(jwt.Map{
+	token, err := c.token.Generate(jwt.Map{
 		"username": request.Username,
 		"password": request.Password,
 	}, 10, time.Minute)
@@ -514,6 +514,7 @@ func TestNewApplication(t *testing.T) {
 	})
 
 	go wta.SetProperty(app.PropertyBannerDisabled, true).Run()
+	time.Sleep(time.Second)
 }
 
 func TestAnonymousController(t *testing.T) {
