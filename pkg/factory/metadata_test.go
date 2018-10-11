@@ -2,20 +2,19 @@ package factory
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/system/types"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 )
 
 type foo struct {
 	name string
 }
 
-
 type fooBarService struct {
 	HelloWorld HelloWorld `inject:""`
-	foo *foo
+	foo        *foo
 }
 
 type Hello string

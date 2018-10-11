@@ -1,13 +1,13 @@
 package factory
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system/types"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
 	"strings"
-	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 // MetaData is the injectable object meta data

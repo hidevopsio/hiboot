@@ -228,7 +228,7 @@ func IntoFunc(object interface{}) (retVal interface{}, err error) {
 			val, ok := parseFuncOrMethodInput(fnInType)
 			if ok {
 				inputs[i] = val
-				log.Debugf("Injected %v into func parameter %v", val, fnInType)
+				//log.Debugf("Injected %v into func parameter %v", val, fnInType)
 			} else {
 				return nil, fmt.Errorf("%v is not injected", fnInType.Name())
 			}
