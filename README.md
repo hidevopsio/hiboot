@@ -36,47 +36,47 @@ If you are a Java developer, you can start coding in Go without learning curve.
 * Auto Configuration, pre-create instance with properties configs for dependency injection.
 * Dependency injection with struct tag name **\`inject:""\`** or **Constructor** func.
 
-Introduction to Hiboot
+## Introduction to Hiboot
 
 One of the most significant feature of Hiboot is Dependency Injection. Hiboot implements JSR-330 standard.
 
 Let's say that we have two implementations of AuthenticationService, below will explain how does Hiboot work.
 
 ```go
-	type AuthenticationService interface {
-		Authenticate(credential Credential) error
-	}
+type AuthenticationService interface {
+	Authenticate(credential Credential) error
+}
 
-	type basicAuthenticationService struct {
-	}
+type basicAuthenticationService struct {
+}
 
-	func newBasicAuthenticationService() AuthenticationService {
-		return &basicAuthenticationService{}
-	}
+func newBasicAuthenticationService() AuthenticationService {
+	return &basicAuthenticationService{}
+}
 
-	func (s *basicAuthenticationService) Authenticate(credential Credential) error {
-		// business logic ...
-		return nil
-	}
+func (s *basicAuthenticationService) Authenticate(credential Credential) error {
+	// business logic ...
+	return nil
+}
 
-	type oauth2AuthenticationService struct {
-	}
+type oauth2AuthenticationService struct {
+}
 
-	func newOauth2AuthenticationService() AuthenticationService {
-		return &oauth2AuthenticationService{}
-	}
+func newOauth2AuthenticationService() AuthenticationService {
+	return &oauth2AuthenticationService{}
+}
 
-	func (s *oauth2AuthenticationService) Authenticate(credential Credential) error {
-		// business logic ...
-		return nil
-	}
+func (s *oauth2AuthenticationService) Authenticate(credential Credential) error {
+	// business logic ...
+	return nil
+}
 
-	func init() {
-		app.Register(newBasicAuthenticationService, newOauth2AuthenticationService)
-	}
+func init() {
+	app.Register(newBasicAuthenticationService, newOauth2AuthenticationService)
+}
 ```
 
-Field Injection
+### Field Injection
 
 In Hiboot the injection into fields is triggered by **\`inject:""\`** struct tag. when inject tag is present
 on a field, Hiboot tries to resolve the object to inject by the type of the field. If several implementations
@@ -84,47 +84,47 @@ of the same service interface are available, you have to disambiguate which impl
 injected. This can be done by naming the field to specific implementation.
 
 ```go
-	type userController struct {
-		web.Controller
+type userController struct {
+	web.Controller
 
-		BasicAuthenticationService AuthenticationService	`inject:""`
-		Oauth2AuthenticationService AuthenticationService	`inject:""`
-	}
+	BasicAuthenticationService AuthenticationService	`inject:""`
+	Oauth2AuthenticationService AuthenticationService	`inject:""`
+}
 
-	func newUserController() {
-		return &userController{}
-	}
+func newUserController() {
+	return &userController{}
+}
 
-	func init() {
-		app.Register(newUserController)
-	}
+func init() {
+	app.Register(newUserController)
+}
 ```
-Constructor Injection
+### Constructor Injection
 
 Although Field Injection is pretty convenient, but the Constructor Injection is the first-class citizen, we
 usually advise people to use constructor injection as it has below advantages,
 
-	* It's testable, easy to implement unit test.
-	* Syntax validation, with syntax validation on most of the IDEs to avoid typo.
-	* No need to use a dedicated mechanism to ensure required properties are set.
+* It's testable, easy to implement unit test.
+* Syntax validation, with syntax validation on most of the IDEs to avoid typo.
+* No need to use a dedicated mechanism to ensure required properties are set.
 
 ```go
-	type userController struct {
-		web.Controller
+type userController struct {
+	web.Controller
 
-		basicAuthenticationService AuthenticationService
-	}
+	basicAuthenticationService AuthenticationService
+}
 
-	// Hiboot will inject the implementation of AuthenticationService
-	func newUserController(basicAuthenticationService AuthenticationService) {
-		return &userController{
-			basicAuthenticationService: basicAuthenticationService,
-		}
+// Hiboot will inject the implementation of AuthenticationService
+func newUserController(basicAuthenticationService AuthenticationService) {
+	return &userController{
+		basicAuthenticationService: basicAuthenticationService,
 	}
+}
 
-	func init() {
-		app.Register(newUserController)
-	}
+func init() {
+	app.Register(newUserController)
+}
 ```
 
 ## Features
