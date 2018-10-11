@@ -237,9 +237,8 @@ func CallMethodByName(object interface{}, name string, args ...interface{}) (int
 		results := method.Func.Call(inputs)
 		if len(results) != 0 {
 			return results[0].Interface(), nil
-		} else {
-			return nil, nil
 		}
+		return nil, nil
 	}
 	return nil, ErrInvalidMethod
 }

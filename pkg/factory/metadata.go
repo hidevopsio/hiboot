@@ -1,7 +1,6 @@
 package factory
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system/types"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
@@ -37,7 +36,7 @@ func findDep(objTyp, inTyp reflect.Type) (name string) {
 	indInTyp := reflector.IndirectType(inTyp)
 	for _, field := range reflector.DeepFields(objTyp) {
 		indFieldTyp := reflector.IndirectType(field.Type)
-		log.Debugf("%v <> %v", indFieldTyp, indInTyp)
+		//log.Debugf("%v <> %v", indFieldTyp, indInTyp)
 		if indFieldTyp == indInTyp {
 			name = str.ToLowerCamel(field.Name)
 			depPkgName := io.DirName(indFieldTyp.PkgPath())
