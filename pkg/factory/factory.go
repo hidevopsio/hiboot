@@ -19,7 +19,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"reflect"
 	"runtime"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"strings"
 )
 
@@ -79,11 +78,14 @@ func (c *Deps) Set(dep interface{}, value []string) {
 	switch kind {
 	case reflect.Func:
 		name = runtime.FuncForPC(val.Pointer()).Name()
-		name = io.DirName(name)
-		names := strings.SplitAfter(name, ").")
-		name = names[1]
-		names = strings.Split(name, "-")
-		name = names[0]
+		n := strings.LastIndexByte(name, byte('.'))
+		if n > 0 {
+			name = name[n+1:]
+			n := strings.LastIndexByte(name, byte('-'))
+			if n > 0 {
+				name = name[:n]
+			}
+		}
 	case reflect.String:
 		name = dep.(string)
 	default:
@@ -93,5 +95,3 @@ func (c *Deps) Set(dep interface{}, value []string) {
 
 	return
 }
-
-

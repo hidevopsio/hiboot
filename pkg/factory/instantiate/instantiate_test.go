@@ -15,14 +15,14 @@
 package instantiate_test
 
 import (
+	"fmt"
+	"github.com/deckarep/golang-set"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
-	"github.com/deckarep/golang-set"
-	"fmt"
 )
 
 type FooBar struct {
