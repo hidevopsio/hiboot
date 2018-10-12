@@ -17,6 +17,7 @@ package str
 
 import (
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 	"unicode"
@@ -155,6 +156,28 @@ func Convert(src string, kind reflect.Kind) (retVal interface{}) {
 			retVal = val
 		} else {
 			retVal = false
+		}
+	}
+	return
+}
+
+// GetFuncName get func name
+func GetFuncName(fn interface{}) (name string) {
+	val := reflect.ValueOf(fn)
+	kind := val.Kind()
+	if kind == reflect.Func {
+		name = runtime.FuncForPC(val.Pointer()).Name()
+		n := strings.LastIndexByte(name, byte('.'))
+		if n > 0 {
+			name = name[n+1:]
+			n = strings.LastIndexByte(name, byte('-'))
+			if n > 0 {
+				name = name[:n]
+			}
+			n = strings.LastIndexByte(name, byte(')'))
+			if n > 0 {
+				name = name[:n]
+			}
 		}
 	}
 	return

@@ -17,9 +17,8 @@ package factory
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
-	"runtime"
-	"strings"
 )
 
 const (
@@ -77,15 +76,7 @@ func (c *Deps) Set(dep interface{}, value []string) {
 	kind := val.Kind()
 	switch kind {
 	case reflect.Func:
-		name = runtime.FuncForPC(val.Pointer()).Name()
-		n := strings.LastIndexByte(name, byte('.'))
-		if n > 0 {
-			name = name[n+1:]
-			n := strings.LastIndexByte(name, byte('-'))
-			if n > 0 {
-				name = name[:n]
-			}
-		}
+		name = str.GetFuncName(dep)
 	case reflect.String:
 		name = dep.(string)
 	default:
