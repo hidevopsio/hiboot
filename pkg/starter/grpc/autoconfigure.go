@@ -101,7 +101,7 @@ func newConfiguration(instantiateFactory factory.InstantiateFactory) *configurat
 			dep = append(dep, srv.name)
 		}
 	}
-	c.RuntimeDeps.Set("GrpcServerFactory", dep)
+	c.RuntimeDeps.Set(c.ServerFactory, dep)
 
 	return c
 }
