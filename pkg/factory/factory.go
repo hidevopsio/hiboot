@@ -17,6 +17,8 @@ package factory
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"reflect"
 )
 
 const (
@@ -45,8 +47,6 @@ type ConfigurableFactory interface {
 
 // Configuration configuration interface
 type Configuration interface {
-	dependencies(name string) (deps []string)
-	setDependencies(name string, value []string)
 }
 
 type depsMap map[string][]string
@@ -69,9 +69,19 @@ func (c *Deps) Get(name string) (deps []string) {
 	return
 }
 
-func (c *Deps) Set(name string, value []string) {
+func (c *Deps) Set(dep interface{}, value []string) {
 	c.ensure()
-
+	var name string
+	val := reflect.ValueOf(dep)
+	kind := val.Kind()
+	switch kind {
+	case reflect.Func:
+		name = reflector.GetFuncName(dep)
+	case reflect.String:
+		name = dep.(string)
+	default:
+		return
+	}
 	c.deps[name] = value
 
 	return

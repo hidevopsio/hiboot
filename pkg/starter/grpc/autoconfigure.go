@@ -69,7 +69,7 @@ func RegisterClient(name string, clientConstructors ...interface{}) {
 		typ, ok := reflector.GetFuncOutType(clientConstructor)
 		if ok {
 			// NOTE: it's very important !!!
-			// To register grpc client and grpc.ClientConn here, even though it will never be used.
+			// To register grpc client and grpc.ClientConn in advance.
 			// client should depends on grpc.clientFactory
 			metaData := &factory.MetaData{
 				Object:  reflect.New(typ).Interface(),
@@ -101,7 +101,7 @@ func newConfiguration(instantiateFactory factory.InstantiateFactory) *configurat
 			dep = append(dep, srv.name)
 		}
 	}
-	c.RuntimeDeps.Set("GrpcServerFactory", dep)
+	c.RuntimeDeps.Set(c.ServerFactory, dep)
 
 	return c
 }

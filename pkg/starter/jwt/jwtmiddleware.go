@@ -109,9 +109,7 @@ func (m *Middleware) CheckJWT(ctx context.Context) error {
 func NewJwtMiddleware(cfg ...mwjwt.Config) *Middleware {
 
 	var c mwjwt.Config
-	if len(cfg) == 0 {
-		c = mwjwt.Config{}
-	} else {
+	if len(cfg) != 0 {
 		c = cfg[0]
 	}
 
