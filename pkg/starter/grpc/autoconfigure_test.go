@@ -17,6 +17,7 @@ package grpc_test
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -68,15 +69,27 @@ func TestGrpcServerAndClient(t *testing.T) {
 
 	applicationContext := testApp.(app.ApplicationContext)
 
-	cliSvc := applicationContext.FindInstance(greeterClientService{})
-	assert.NotEqual(t, nil, cliSvc)
-	if cliSvc != nil {
-		greeterCliSvc := cliSvc.(*greeterClientService)
-		assert.NotEqual(t, nil, greeterCliSvc.greeterClient)
+	t.Run("should find grpc client and call its services", func(t *testing.T) {
+		cliSvc := applicationContext.GetInstance(greeterClientService{})
+		assert.NotEqual(t, nil, cliSvc)
+		if cliSvc != nil {
+			greeterCliSvc := cliSvc.(*greeterClientService)
+			assert.NotEqual(t, nil, greeterCliSvc.greeterClient)
 
-		//name := "Steve"
-		//response, err := greeterCliSvc.SayHello(name)
-		//assert.Equal(t, nil, err)
-		//assert.Equal(t, "Hello "+name, response.Message)
-	}
+			//name := "Steve"
+			//response, err := greeterCliSvc.SayHello(name)
+			//assert.Equal(t, nil, err)
+			//assert.Equal(t, "Hello "+name, response.Message)
+		}
+	})
+
+	t.Run("should connnect to grpc service at runtime", func(t *testing.T) {
+		cc := applicationContext.GetInstance("grpc.clientConnector").(grpc.ClientConnector)
+		assert.NotEqual(t, nil, cc)
+		prop := new(grpc.ClientProperties)
+		inject.DefaultValue(prop)
+		grpcCli, err := cc.Connect("", helloworld.NewGreeterClient, prop)
+		assert.Equal(t, nil, err)
+		assert.NotEqual(t, nil, grpcCli)
+	})
 }

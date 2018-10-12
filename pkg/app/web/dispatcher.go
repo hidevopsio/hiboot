@@ -55,12 +55,6 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 		controller := field.Interface()
 		//log.Debug("controller: ", controller)
 
-		// inject component
-		//err := inject.IntoObjectValue(field)
-		//if err != nil {
-		//	return err
-		//}
-
 		fieldValue := field.Elem()
 
 		// get context mapping

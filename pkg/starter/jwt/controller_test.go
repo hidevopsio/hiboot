@@ -109,11 +109,11 @@ func TestJwtController(t *testing.T) {
 	testApp := web.NewTestApplication(t, newFooController, newBarController)
 	ctx := testApp.(app.ApplicationContext)
 
-	fc := ctx.FindInstance(fooController{})
+	fc := ctx.GetInstance(fooController{})
 	assert.NotEqual(t, nil, fc)
 	fooCtrl := fc.(*fooController)
 
-	bc := ctx.FindInstance(barController{})
+	bc := ctx.GetInstance(barController{})
 	assert.NotEqual(t, nil, bc)
 	barCtrl := bc.(*barController)
 
@@ -168,7 +168,7 @@ func TestJwtController(t *testing.T) {
 	})
 
 	applicationContext := testApp.(app.ApplicationContext)
-	jwtMiddleware := applicationContext.FindInstance(jwt.Middleware{}).(*jwt.Middleware)
+	jwtMiddleware := applicationContext.GetInstance(jwt.Middleware{}).(*jwt.Middleware)
 
 	t.Run("should report error with SigningMethod", func(t *testing.T) {
 		jwtMiddleware.Config.SigningMethod = jwtgo.SigningMethodRS512

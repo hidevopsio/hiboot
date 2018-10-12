@@ -26,9 +26,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/kataras/iris/context"
-	"reflect"
 	"strings"
 	"sync"
 )
@@ -48,8 +46,7 @@ type ApplicationContext interface {
 	RegisterController(controller interface{}) error
 	Use(handlers ...context.Handler)
 	GetProperty(name string) (value interface{}, ok bool)
-	GetInstance(name string) (instance interface{})
-	FindInstance(iType interface{}) (instance interface{})
+	GetInstance(params ...interface{}) (instance interface{})
 }
 
 type BaseApplication struct {
@@ -172,20 +169,9 @@ func (a *BaseApplication) Run() error {
 }
 
 // GetInstance get application instance by name
-func (a *BaseApplication) GetInstance(name string) (instance interface{}) {
+func (a *BaseApplication) GetInstance(params ...interface{}) (instance interface{}) {
 	if a.configurableFactory != nil {
-		instance = a.configurableFactory.GetInstance(name)
-	}
-	return
-}
-
-// FindInstance get application instance by data type
-func (a *BaseApplication) FindInstance(iType interface{}) (instance interface{}) {
-	if a.configurableFactory != nil {
-		name := reflector.GetLowerCamelFullNameByType(reflect.TypeOf(iType))
-		if name != "" {
-			instance = a.configurableFactory.GetInstance(name)
-		}
+		instance = a.configurableFactory.GetInstance(params...)
 	}
 	return
 }
