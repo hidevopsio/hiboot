@@ -511,6 +511,13 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 		assert.Equal(t, "fakeInterface", field.Name)
 	})
 
+	type fooService struct{}
+	type foobarService struct{ fooService }
+	t.Run("should get embedded fakeInterface", func(t *testing.T) {
+		field := GetEmbeddedField(new(foobarService), reflect.Struct)
+		assert.Equal(t, "fooService", field.Name)
+	})
+
 	type FooServiceInterface interface {
 	}
 	type FooService struct {
