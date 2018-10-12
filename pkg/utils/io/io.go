@@ -20,6 +20,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"path"
 )
 
 // ChangeWorkDir change current working dir
@@ -37,37 +39,37 @@ func GetWorkDir() string {
 
 // EnsureWorkDir ensure the working dir is set the correct dir specified by user
 func EnsureWorkDir(skip int, dir string) (ok bool) {
-	var path string
+	var p string
 	if _, file, _, ok := runtime.Caller(skip); ok && strings.Contains(os.Args[0], "go_build_") {
-		path = BaseDir(file)
+		p = BaseDir(file)
 	} else {
-		path = GetWorkDir()
+		p = GetWorkDir()
 	}
 	lastPath := ""
 
 	for {
 		//log.Debugf("%v", path)
-		configPath := filepath.Join(path, dir)
+		configPath := filepath.Join(p, dir)
 		if !IsPathNotExist(configPath) {
-			ChangeWorkDir(path)
+			ChangeWorkDir(p)
 			ok = true
 			break
 		}
 
-		path = BaseDir(path)
-		if lastPath == path {
+		p = BaseDir(p)
+		if lastPath == p {
 			break
 		}
-		lastPath = path
+		lastPath = p
 	}
 	return
 }
 
 // GetRelativePath get relative path
 func GetRelativePath(level int) string {
-	_, path, _, _ := runtime.Caller(level)
+	_, p, _, _ := runtime.Caller(level)
 
-	return filepath.Dir(path)
+	return path.Base(path.Dir(p))
 }
 
 // IsPathNotExist check if path is not exist
@@ -142,23 +144,15 @@ func Filename(s string) string {
 // /a/b/c.ext => /a/b
 // /a/b/c => /a/b
 func BaseDir(s string) string {
-	n := strings.LastIndexByte(s, filepath.Separator)
-	if n > 0 {
-		return s[:n]
-	} else if n == 0 {
-		return s[:n+1]
-	}
-	return s
+	dn := path.Dir(s)
+	return dn
 }
 
 // DirName get dir name from a path
 // /a/b/c => c
 func DirName(s string) string {
-	n := strings.LastIndexByte(s, filepath.Separator)
-	if n >= 0 {
-		return s[n+1:]
-	}
-	return s
+	bn := path.Base(s)
+	return bn
 }
 
 // CallerInfo get call info, include filename, line number or function name

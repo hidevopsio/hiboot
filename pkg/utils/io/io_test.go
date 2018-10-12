@@ -21,11 +21,13 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"runtime"
 )
 
-const testPath = "/a/b/c.txt"
+var testPath = ""
 
 func init() {
+	testPath = filepath.Join(os.TempDir(), "a","b", "c.txt")
 	log.SetLevel(log.DebugLevel)
 }
 
@@ -46,9 +48,9 @@ func TestGetWorkingDir(t *testing.T) {
 }
 
 func TestGetRelativePath(t *testing.T) {
-	path := GetRelativePath(1)
+	p := GetRelativePath(1)
 
-	assert.Equal(t, "io", DirName(path))
+	assert.Equal(t, "io", DirName(p))
 }
 
 func TestIsPathNotExist(t *testing.T) {
@@ -76,8 +78,10 @@ func TestWriteFile(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, len(in), n)
 
-	_, err = WriterFile("/should-not-have-access-permission", "test.txt", buf.Bytes())
-	assert.Equal(t, "mkdir /should-not-have-access-permission: permission denied", err.Error())
+	if runtime.GOOS != "windows" {
+		_, err = WriterFile("/should-not-have-access-permission", "test.txt", buf.Bytes())
+		assert.Equal(t, "mkdir /should-not-have-access-permission: permission denied", err.Error())
+	}
 }
 
 func TestListFiles(t *testing.T) {
@@ -97,13 +101,13 @@ func TestListFiles(t *testing.T) {
 
 func TestBasename(t *testing.T) {
 	b := Basename(testPath)
-	assert.Equal(t, "/a/b/c", b)
+	assert.Equal(t, filepath.Join(os.TempDir(), "a", "b", "c"), b)
 
-	b = Basename(".a/b/c")
-	assert.Equal(t, ".a/b/c", b)
+	b = Basename(filepath.Join(".a", "b", "c"))
+	assert.Equal(t, filepath.Join(".a", "b", "c"), b)
 
-	b = Basename(".a")
-	assert.Equal(t, ".a", b)
+	b = Basename(filepath.Join(".a"))
+	assert.Equal(t, filepath.Join(".a"), b)
 }
 
 func TestFilename(t *testing.T) {
@@ -113,7 +117,7 @@ func TestFilename(t *testing.T) {
 	b = Filename("test.txt")
 	assert.Equal(t, "test.txt", b)
 
-	b = Filename("/test.txt")
+	b = Filename(filepath.Join(os.TempDir(), "test.txt"))
 	assert.Equal(t, "test.txt", b)
 }
 
@@ -151,7 +155,7 @@ func TestEnsureWorkDir(t *testing.T) {
 	res := EnsureWorkDir(1, "dir-does-not-exist")
 	assert.Equal(t, false, res)
 
-	res = EnsureWorkDir(1, "config/application.yml")
+	res = EnsureWorkDir(1, filepath.Join("config", "application.yml"))
 	assert.Equal(t, true, res)
 	assert.NotEqual(t, wd, GetWorkDir())
 }
@@ -159,6 +163,6 @@ func TestEnsureWorkDir(t *testing.T) {
 func TestCallerInfo(t *testing.T) {
 	file, line, fn := CallerInfo(1)
 	assert.Contains(t, file, "io_test.go")
-	assert.Equal(t, 160, line)
+	assert.NotEqual(t, 0, line)
 	assert.Contains(t, fn, "TestCallerInfo")
 }
