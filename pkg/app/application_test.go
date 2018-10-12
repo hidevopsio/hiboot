@@ -142,12 +142,6 @@ func TestBaseApplication(t *testing.T) {
 		ba.GetInstance("foo")
 	})
 
-	t.Run("should find instance by type", func(t *testing.T) {
-		type FooService struct{}
-
-		ba.FindInstance(FooService{})
-	})
-
 	cf := ba.ConfigurableFactory()
 	assert.NotEqual(t, nil, cf)
 
