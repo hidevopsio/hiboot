@@ -265,26 +265,23 @@ func TestValidateReflectType(t *testing.T) {
 func TestGetName(t *testing.T) {
 
 	t.Run("should get struct name by pointer", func(t *testing.T) {
-		n, err := GetName(new(Foo))
-		assert.Equal(t, nil, err)
+		n := GetName(new(Foo))
 		assert.Equal(t, "Foo", n)
 	})
 
 	t.Run("should get struct name", func(t *testing.T) {
-		n, err := GetName(Foo{})
-		assert.Equal(t, nil, err)
+		n := GetName(Foo{})
 		assert.Equal(t, "Foo", n)
 	})
 
 	t.Run("should get struct name by lower case", func(t *testing.T) {
-		n, err := GetLowerCamelName(new(Foo))
-		assert.Equal(t, nil, err)
+		n := GetLowerCamelName(new(Foo))
 		assert.Equal(t, "foo", n)
 	})
 
 	t.Run("should return InvalidInputError if input is nil", func(t *testing.T) {
-		_, err := GetLowerCamelName((*Foo)(nil))
-		assert.Equal(t, ErrInvalidInput, err)
+		n := GetLowerCamelName((*Foo)(nil))
+		assert.Equal(t, "", n)
 	})
 }
 
@@ -611,4 +608,25 @@ func TestTypeSwitch(t *testing.T) {
 	case *foo:
 		fmt.Printf("pointerr to foo %v\n", *tp) // t has type *int
 	}
+}
+
+func foo() {
+}
+
+type fooService struct{}
+
+func (s *fooService) foobar() {
+
+}
+
+func TestGetFuncName(t *testing.T) {
+	name := GetFuncName(foo)
+	assert.Equal(t, "foo", name)
+	s := fooService{}
+	name = GetFuncName(s.foobar)
+	assert.Equal(t, "foobar", name)
+
+	ps := &fooService{}
+	name = GetFuncName(ps.foobar)
+	assert.Equal(t, "foobar", name)
 }

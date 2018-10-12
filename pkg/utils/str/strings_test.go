@@ -270,24 +270,3 @@ func TestConvert(t *testing.T) {
 		}
 	})
 }
-
-func foo() {
-}
-
-type fooService struct{}
-
-func (s *fooService) foobar() {
-
-}
-
-func TestGetFuncName(t *testing.T) {
-	name := GetFuncName(foo)
-	assert.Equal(t, "foo", name)
-	s := fooService{}
-	name = GetFuncName(s.foobar)
-	assert.Equal(t, "foobar", name)
-
-	ps := &fooService{}
-	name = GetFuncName(ps.foobar)
-	assert.Equal(t, "foobar", name)
-}

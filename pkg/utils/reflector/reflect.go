@@ -20,6 +20,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
+	"runtime"
 	"strings"
 )
 
@@ -198,8 +199,30 @@ func GetType(data interface{}) (typ reflect.Type, err error) {
 	return
 }
 
+// GetFuncName get func name
+func GetFuncName(fn interface{}) (name string) {
+	val := reflect.ValueOf(fn)
+	kind := val.Kind()
+	if kind == reflect.Func {
+		name = runtime.FuncForPC(val.Pointer()).Name()
+		n := strings.LastIndexByte(name, byte('.'))
+		if n > 0 {
+			name = name[n+1:]
+			n = strings.LastIndexByte(name, byte('-'))
+			if n > 0 {
+				name = name[:n]
+			}
+			n = strings.LastIndexByte(name, byte(')'))
+			if n > 0 {
+				name = name[:n]
+			}
+		}
+	}
+	return
+}
+
 // GetName get object name
-func GetName(data interface{}) (name string, err error) {
+func GetName(data interface{}) (name string) {
 
 	typ, err := GetType(data)
 	if err == nil {
@@ -209,10 +232,10 @@ func GetName(data interface{}) (name string, err error) {
 }
 
 // GetLowerCaseObjectName get lower case object name
-func GetLowerCamelName(object interface{}) (string, error) {
-	name, err := GetName(object)
+func GetLowerCamelName(object interface{}) (name string) {
+	name = GetName(object)
 	name = str.ToLowerCamel(name)
-	return name, err
+	return name
 }
 
 // HasField check if has specific field
@@ -318,11 +341,9 @@ func FindEmbeddedFieldTag(object interface{}, name string) (t string, ok bool) {
 
 // ParseObjectName e.g. ExampleObject => example
 func ParseObjectName(obj interface{}, eliminator string) string {
-	name, err := GetName(obj)
-	if err == nil {
-		name = strings.Replace(name, eliminator, "", -1)
-		name = str.LowerFirst(name)
-	}
+	name := GetName(obj)
+	name = strings.Replace(name, eliminator, "", -1)
+	name = str.LowerFirst(name)
 	return name
 }
 
@@ -396,10 +417,8 @@ func GetPkgAndName(object interface{}) (pkgName, name string) {
 		return
 	}
 
-	name, err := GetName(object)
-	if err == nil {
-		pkgName = ParseObjectPkgName(object)
-	}
+	name = GetName(object)
+	pkgName = ParseObjectPkgName(object)
 	return
 }
 
