@@ -134,14 +134,12 @@ func (a *application) build() (err error) {
 func (a *application) RegisterController(controller interface{}) error {
 	// get from controller map
 	// parse controller type
-	controllerInterfaceName, err := reflector.GetName(controller)
-	if err == nil {
-		controllers := a.ConfigurableFactory().GetInstances(controllerInterfaceName)
-		if controllers != nil {
-			return a.dispatcher.register(a.webApp, controllers)
-		}
+	controllerInterfaceName := reflector.GetName(controller)
+	controllers := a.ConfigurableFactory().GetInstances(controllerInterfaceName)
+	if controllers != nil {
+		return a.dispatcher.register(a.webApp, controllers)
 	}
-	return ErrControllersNotFound
+	return nil
 }
 
 // Use apply middleware

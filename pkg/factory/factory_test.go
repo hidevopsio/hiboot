@@ -25,4 +25,6 @@ func TestDependencies(t *testing.T) {
 
 	c.Deps.Set(c.Hello, deps)
 	assert.Equal(t, deps, c.Deps.Get("Hello"))
+
+	c.Deps.Set(nil, deps)
 }

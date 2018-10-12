@@ -17,7 +17,7 @@ package factory
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/system"
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"reflect"
 )
 
@@ -76,7 +76,7 @@ func (c *Deps) Set(dep interface{}, value []string) {
 	kind := val.Kind()
 	switch kind {
 	case reflect.Func:
-		name = str.GetFuncName(dep)
+		name = reflector.GetFuncName(dep)
 	case reflect.String:
 		name = dep.(string)
 	default:
