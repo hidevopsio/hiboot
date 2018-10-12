@@ -23,5 +23,5 @@ func TestApplicationContext(t *testing.T) {
 	ac.GetProperty("foo")
 	ac.GetInstance("bar")
 	type Foo struct{}
-	ac.FindInstance(Foo{})
+	ac.GetInstance(Foo{})
 }

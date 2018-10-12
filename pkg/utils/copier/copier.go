@@ -46,9 +46,8 @@ func set(to, from reflect.Value) bool {
 			}
 		} else if from.Kind() == reflect.Ptr {
 			return set(to, from.Elem())
-		} else {
-			return false
 		}
+		return false
 	} else {
 		return false
 	}

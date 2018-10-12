@@ -5,17 +5,26 @@ import (
 	"testing"
 )
 
-func TestFactory(t *testing.T) {
+type config struct {
+	Deps Deps
+}
+
+func (c *config) Hello() {
 
 }
 
+func TestFactory(t *testing.T) {
+
+}
 func TestDependencies(t *testing.T) {
-	type config struct {
-		Deps Deps
-	}
 
 	c := new(config)
 	deps := []string{"world"}
-	c.Deps.Set("hello", deps)
-	assert.Equal(t, deps, c.Deps.Get("hello"))
+	c.Deps.Set("Hello", deps)
+	assert.Equal(t, deps, c.Deps.Get("Hello"))
+
+	c.Deps.Set(c.Hello, deps)
+	assert.Equal(t, deps, c.Deps.Get("Hello"))
+
+	c.Deps.Set(nil, deps)
 }

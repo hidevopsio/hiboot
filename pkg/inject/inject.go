@@ -242,9 +242,8 @@ func IntoFunc(object interface{}) (retVal interface{}, err error) {
 		if len(results) != 0 {
 			retVal = results[0].Interface()
 			return
-		} else {
-			return
 		}
+		return
 	}
 	err = ErrInvalidFunc
 	return
