@@ -395,42 +395,6 @@ func (c *loginController) Post(request *userRequest) (response model.Response, e
 
 ```
 
-## Development Guide
+## Community Contributions Guide
 
-### Git workflow
-Below, we outline one of the more common Git workflows that core developers use. Other Git workflows are also valid.
-
-### Fork the main repository
-
-* Go to https://github.com/hidevopsio/hiboot
-* Click the "Fork" button (at the top right)
-
-### Clone your fork
-
-The commands below require that you have $GOPATH set ($GOPATH docs). We highly recommend you put Istio's code into your GOPATH. Note: the commands below will not work if there is more than one directory in your $GOPATH.
-
-```bash
-export GITHUB_USER=your-github-username
-mkdir -p $GOPATH/src/github.com/hidevopsio
-cd $GOPATH/src/github.com/hidevopsio
-git clone https://github.com/$GITHUB_USER/hiboot
-cd hiboot
-git remote add upstream 'https://github.com/hidevopsio/hiboot'
-git config --global --add http.followRedirects 1
-```
-
-### Create a branch and make changes
-
-```bash
-git checkout -b my-feature
-# Then make your code changes
-```
-
-### Keeping your fork in sync
-
-```bash
-git fetch upstream
-git rebase upstream/master
-```
-
-Note: If you have write access to the main repositories (e.g. github.com/hidevopsio/hiboot), you should modify your Git configuration so that you can't accidentally push to upstream:
+Thank you for considering contributing to the Hiboot framework, The contribution guide can be found [here](CONTRIBUTING.md).

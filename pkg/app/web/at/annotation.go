@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package annotation provides annotations for jwt controller
-package annotation
+// Package web/annotation provides annotations for web RestController
+package at
 
-// JwtRestController is the annotation for JWT REST Controller
-type JwtRestController interface {
+// RestController is the annotation that declare current controller is the RESTful Controller
+type RestController interface {
 }

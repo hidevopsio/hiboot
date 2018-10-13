@@ -25,7 +25,7 @@ import (
 // Controller Rest Controller with path /
 // Line 3-5: RESTful Controller, derived from web.Controller. The context mapping of this controller is '/' by default
 type Controller struct {
-	web.Controller
+	web.Controller `path:"/"`
 }
 
 // Get GET /
