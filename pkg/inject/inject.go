@@ -250,6 +250,7 @@ func IntoFunc(object interface{}) (retVal interface{}, err error) {
 }
 
 //IntoMethod inject object into func and return instance
+//TODO: IntoMethod or IntoFunc should accept metaData, because it contains dependencies
 func IntoMethod(object interface{}, m interface{}) (retVal interface{}, err error) {
 	if object != nil && m != nil {
 		method := m.(reflect.Method)

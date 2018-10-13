@@ -18,7 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/app/web/annotation"
+	"github.com/hidevopsio/hiboot/pkg/app/web/at"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
@@ -123,7 +123,7 @@ func (a *application) build() (err error) {
 	})
 
 	// first register anon controllers
-	a.RegisterController(new(annotation.RestController))
+	a.RegisterController(new(at.RestController))
 
 	// call AfterInitialization with factory interface
 	a.AfterInitialization()

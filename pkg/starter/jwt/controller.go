@@ -18,12 +18,12 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"github.com/hidevopsio/hiboot/pkg/starter/jwt/annotation"
+	"github.com/hidevopsio/hiboot/pkg/starter/jwt/at"
 )
 
 // JwtController is the base web controller that enabled JWT
 type Controller struct {
-	annotation.JwtRestController
+	at.JwtRestController
 	web.Controller
 }
 
