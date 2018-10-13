@@ -27,6 +27,93 @@ Overview
 	Auto Configuration - pre-create instance with properties configs for dependency injection.
 	Dependency injection - with struct tag name `inject:""` or Constructor func.
 
+Introduction to Hiboot
+
+One of the most significant feature of Hiboot is Dependency Injection. Hiboot implements JSR-330 standard.
+
+Let's say that we have two implementations of AuthenticationService, below will explain how does Hiboot work.
+
+	type AuthenticationService interface {
+		Authenticate(credential Credential) error
+	}
+
+	type basicAuthenticationService struct {
+	}
+
+	func newBasicAuthenticationService() AuthenticationService {
+		return &basicAuthenticationService{}
+	}
+
+	func (s *basicAuthenticationService) Authenticate(credential Credential) error {
+		// business logic ...
+		return nil
+	}
+
+	type oauth2AuthenticationService struct {
+	}
+
+	func newOauth2AuthenticationService() AuthenticationService {
+		return &oauth2AuthenticationService{}
+	}
+
+	func (s *oauth2AuthenticationService) Authenticate(credential Credential) error {
+		// business logic ...
+		return nil
+	}
+
+	func init() {
+		app.Register(newBasicAuthenticationService, newOauth2AuthenticationService)
+	}
+
+Field Injection
+
+In Hiboot the injection into fields is triggered by `inject:""` struct tag. when inject tag is present
+on a field, Hiboot tries to resolve the object to inject by the type of the field. If several implementations
+of the same service interface are available, you have to disambiguate which implementation you want to be
+injected. This can be done by naming the field to specific implementation.
+
+	type userController struct {
+		web.Controller
+
+		BasicAuthenticationService AuthenticationService	`inject:""`
+		Oauth2AuthenticationService AuthenticationService	`inject:""`
+	}
+
+	func newUserController() {
+		return &userController{}
+	}
+
+	func init() {
+		app.Register(newUserController)
+	}
+
+Constructor Injection
+
+Although Field Injection is pretty convenient, but the Constructor Injection is the first-class citizen, we
+usually advise people to use constructor injection as it has below advantages,
+
+	* It's testable, easy to implement unit test.
+	* Syntax validation, with syntax validation on most of the IDEs to avoid typo.
+	* No need to use a dedicated mechanism to ensure required properties are set.
+
+	type userController struct {
+		web.Controller
+
+		basicAuthenticationService AuthenticationService
+	}
+
+	// Hiboot will inject the implementation of AuthenticationService
+	func newUserController(basicAuthenticationService AuthenticationService) {
+		return &userController{
+			basicAuthenticationService: basicAuthenticationService,
+		}
+	}
+
+	func init() {
+		app.Register(newUserController)
+	}
+
+
 Features
 	App
 		cli - command line application

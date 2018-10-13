@@ -14,11 +14,11 @@
 
 package web
 
-import "github.com/hidevopsio/hiboot/pkg/app/web/annotation"
+import "github.com/hidevopsio/hiboot/pkg/app/web/at"
 
 // Controller is the web base controller
 type Controller struct {
-	annotation.RestController
+	at.RestController
 	ContextMapping string
 	Ctx            *Context
 }
