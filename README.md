@@ -36,6 +36,97 @@ If you are a Java developer, you can start coding in Go without learning curve.
 * Auto Configuration, pre-create instance with properties configs for dependency injection.
 * Dependency injection with struct tag name **\`inject:""\`** or **Constructor** func.
 
+## Introduction to Hiboot
+
+One of the most significant feature of Hiboot is Dependency Injection. Hiboot implements JSR-330 standard.
+
+Let's say that we have two implementations of AuthenticationService, below will explain how does Hiboot work.
+
+```go
+type AuthenticationService interface {
+	Authenticate(credential Credential) error
+}
+
+type basicAuthenticationService struct {
+}
+
+func newBasicAuthenticationService() AuthenticationService {
+	return &basicAuthenticationService{}
+}
+
+func (s *basicAuthenticationService) Authenticate(credential Credential) error {
+	// business logic ...
+	return nil
+}
+
+type oauth2AuthenticationService struct {
+}
+
+func newOauth2AuthenticationService() AuthenticationService {
+	return &oauth2AuthenticationService{}
+}
+
+func (s *oauth2AuthenticationService) Authenticate(credential Credential) error {
+	// business logic ...
+	return nil
+}
+
+func init() {
+	app.Register(newBasicAuthenticationService, newOauth2AuthenticationService)
+}
+```
+
+### Field Injection
+
+In Hiboot the injection into fields is triggered by **\`inject:""\`** struct tag. when inject tag is present
+on a field, Hiboot tries to resolve the object to inject by the type of the field. If several implementations
+of the same service interface are available, you have to disambiguate which implementation you want to be
+injected. This can be done by naming the field to specific implementation.
+
+```go
+type userController struct {
+	web.Controller
+
+	BasicAuthenticationService AuthenticationService	`inject:""`
+	Oauth2AuthenticationService AuthenticationService	`inject:""`
+}
+
+func newUserController() {
+	return &userController{}
+}
+
+func init() {
+	app.Register(newUserController)
+}
+```
+### Constructor Injection
+
+Although Field Injection is pretty convenient, but the Constructor Injection is the first-class citizen, we
+usually advise people to use constructor injection as it has below advantages,
+
+* It's testable, easy to implement unit test.
+* Syntax validation, with syntax validation on most of the IDEs to avoid typo.
+* No need to use a dedicated mechanism to ensure required properties are set.
+
+```go
+type userController struct {
+	web.Controller
+
+	basicAuthenticationService AuthenticationService
+}
+
+// Hiboot will inject the implementation of AuthenticationService
+func newUserController(basicAuthenticationService AuthenticationService) {
+	return &userController{
+		basicAuthenticationService: basicAuthenticationService,
+	}
+}
+
+func init() {
+	app.Register(newUserController)
+}
+```
+
 ## Features
 
 * **Apps**
@@ -304,42 +395,6 @@ func (c *loginController) Post(request *userRequest) (response model.Response, e
 
 ```
 
-## Development Guide
+## Community Contributions Guide
 
-### Git workflow
-Below, we outline one of the more common Git workflows that core developers use. Other Git workflows are also valid.
-
-### Fork the main repository
-
-* Go to https://github.com/hidevopsio/hiboot
-* Click the "Fork" button (at the top right)
-
-### Clone your fork
-
-The commands below require that you have $GOPATH set ($GOPATH docs). We highly recommend you put Istio's code into your GOPATH. Note: the commands below will not work if there is more than one directory in your $GOPATH.
-
-```bash
-export GITHUB_USER=your-github-username
-mkdir -p $GOPATH/src/github.com/hidevopsio
-cd $GOPATH/src/github.com/hidevopsio
-git clone https://github.com/$GITHUB_USER/hiboot
-cd hiboot
-git remote add upstream 'https://github.com/hidevopsio/hiboot'
-git config --global --add http.followRedirects 1
-```
-
-### Create a branch and make changes
-
-```bash
-git checkout -b my-feature
-# Then make your code changes
-```
-
-### Keeping your fork in sync
-
-```bash
-git fetch upstream
-git rebase upstream/master
-```
-
-Note: If you have write access to the main repositories (e.g. github.com/hidevopsio/hiboot), you should modify your Git configuration so that you can't accidentally push to upstream:
+Thank you for considering contributing to the Hiboot framework, The contribution guide can be found [here](CONTRIBUTING.md).
