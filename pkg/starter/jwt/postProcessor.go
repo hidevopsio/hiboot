@@ -16,7 +16,7 @@ package jwt
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/starter/jwt/annotation"
+	"github.com/hidevopsio/hiboot/pkg/starter/jwt/at"
 )
 
 type postProcessor struct {
@@ -43,5 +43,5 @@ func (p *postProcessor) AfterInitialization(factory interface{}) {
 	p.applicationContext.Use(p.jwtMiddleware.Serve)
 
 	// finally register jwt controllers
-	p.applicationContext.RegisterController(new(annotation.JwtRestController))
+	p.applicationContext.RegisterController(new(at.JwtRestController))
 }

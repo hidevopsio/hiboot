@@ -45,7 +45,7 @@ func (s depResolver) Resolve() (resolved Graph, err error) {
 		workingGraph = append(workingGraph, node)
 	}
 	resolved, err = resolveGraph(workingGraph)
-	displayDependencyGraph("working graph", workingGraph, log.Debug)
+	//displayDependencyGraph("working graph", workingGraph, log.Debug)
 	return
 }
 

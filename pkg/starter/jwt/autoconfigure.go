@@ -25,8 +25,8 @@ type configuration struct {
 	app.Configuration
 
 	Properties Properties `mapstructure:"jwt"`
-	jwtHandler *Middleware
-	jwtToken   Token
+	middleware *Middleware
+	token      Token
 }
 
 func init() {

@@ -33,7 +33,7 @@ func Example() {
 type loginController struct {
 	web.Controller
 
-	jwtToken jwt.Token
+	token jwt.Token
 }
 
 type userRequest struct {
@@ -50,16 +50,16 @@ func init() {
 
 // newLoginController inject jwtToken through the argument jwtToken jwt.Token on constructor
 // the dependency jwtToken is auto configured in jwt starter, see https://github.com/hidevopsio/hiboot/tree/master/pkg/starter/jwt
-func newLoginController(jwtToken jwt.Token) *loginController {
+func newLoginController(token jwt.Token) *loginController {
 	return &loginController{
-		jwtToken: jwtToken,
+		token: token,
 	}
 }
 
 // Post /
 // The first word of method is the http method POST, the rest is the context mapping
 func (c *loginController) Post(request *userRequest) (response model.Response, err error) {
-	jwtToken, _ := c.jwtToken.Generate(jwt.Map{
+	jwtToken, _ := c.token.Generate(jwt.Map{
 		"username": request.Username,
 		"password": request.Password,
 	}, 30, time.Minute)

@@ -56,19 +56,19 @@ func (c *configuration) Handler() (handler context.Handler) {
 
 	// parse language files
 	languages := make(map[string]string)
-	err := filepath.Walk(localePath, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(localePath, func(lngPath string, info os.FileInfo, err error) error {
 		if err == nil {
 			//*files = append(*files, path)
-			lng := strings.Replace(path, localePath, "", 1)
+			lng := strings.Replace(lngPath, localePath, "", 1)
 			lng = io.BaseDir(lng)
 			lng = io.Basename(lng)
 
-			if lng != "" && path != localePath+lng {
+			if lng != "" && lng != "." && lngPath != localePath+lng {
 				//languages[lng] = path
 				if languages[lng] == "" {
-					languages[lng] = path
+					languages[lng] = lngPath
 				} else {
-					languages[lng] = languages[lng] + ", " + path
+					languages[lng] = languages[lng] + ", " + lngPath
 				}
 				//log.Debugf("%v, %v", lng, languages[lng])
 			}
