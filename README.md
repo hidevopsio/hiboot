@@ -347,9 +347,9 @@ import (
 	"time"
 )
 
-// This example shows that jwtToken is injected through method Init,
+// This example shows that token is injected through method Init,
 // once you imported "github.com/hidevopsio/hiboot/pkg/starter/jwt",
-// jwtToken jwt.Token will be injectable.
+// token jwt.Token will be injectable.
 func Example() {
 	// the web application entry
 	web.NewApplication().Run()
@@ -359,7 +359,7 @@ func Example() {
 type loginController struct {
 	web.Controller
 
-	jwtToken jwt.Token
+	token jwt.Token
 }
 
 type userRequest struct {
@@ -374,18 +374,18 @@ func init() {
 	web.RestController(newLoginController)
 }
 
-// newLoginController inject jwtToken through the argument jwtToken jwt.Token on constructor
-// the dependency jwtToken is auto configured in jwt starter, see https://github.com/hidevopsio/hiboot/tree/master/pkg/starter/jwt
-func newLoginController(jwtToken jwt.Token) *loginController {
+// newLoginController inject token through the argument token jwt.Token on constructor
+// the dependency token is auto configured in jwt starter, see https://github.com/hidevopsio/hiboot/tree/master/pkg/starter/jwt
+func newLoginController(token jwt.Token) *loginController {
 	return &loginController{
-		jwtToken: jwtToken,
+		token: token,
 	}
 }
 
 // Post /
 // The first word of method is the http method POST, the rest is the context mapping
 func (c *loginController) Post(request *userRequest) (response model.Response, err error) {
-	jwtToken, _ := c.jwtToken.Generate(jwt.Map{
+	jwtToken, _ := c.token.Generate(jwt.Map{
 		"username": request.Username,
 		"password": request.Password,
 	}, 30, time.Minute)
