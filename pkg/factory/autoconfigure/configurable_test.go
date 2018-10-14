@@ -159,6 +159,10 @@ type foobarConfiguration struct {
 	FakeProperties FakeProperties `mapstructure:"foobar"`
 }
 
+func newFoobarConfiguration() *foobarConfiguration {
+	return &foobarConfiguration{}
+}
+
 func (c *foobarConfiguration) Foo(bar *Bar) *Foo {
 	f := new(Foo)
 	f.Name = c.FakeProperties.Name
@@ -261,7 +265,14 @@ func (c *EarthConfiguration) MapleTree() Tree {
 	return &mapleTree{}
 }
 
+type helloService struct{ foo *Foo }
+
+func newHelloService(foo *Foo) *helloService {
+	return &helloService{foo: foo}
+}
+
 func TestConfigurableFactory(t *testing.T) {
+
 	configPath := filepath.Join(os.TempDir(), "config")
 
 	fakeFile := "application.yml"
@@ -330,9 +341,11 @@ func TestConfigurableFactory(t *testing.T) {
 		factory.NewMetaData(new(mercuryConfiguration)),
 		factory.NewMetaData(new(unknownConfiguration)),
 		factory.NewMetaData(new(unsupportedConfiguration)),
-		factory.NewMetaData(foobarConfiguration{}),
+		factory.NewMetaData(newFoobarConfiguration),
 		factory.NewMetaData(newEarthConfiguration),
 	})
+
+	f.AppendComponent(newHelloService)
 
 	f.BuildComponents()
 
