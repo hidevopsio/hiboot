@@ -48,9 +48,9 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 }
 
-func newFooController(jwtToken jwt.Token) *fooController {
+func newFooController(token jwt.Token) *fooController {
 	return &fooController{
-		token: jwtToken,
+		token: token,
 	}
 }
 

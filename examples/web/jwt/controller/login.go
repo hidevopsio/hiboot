@@ -40,8 +40,8 @@ func init() {
 	web.RestController(newLoginController)
 }
 
-// Init inject jwtToken through the argument jwtToken jwt.Token on constructor
-// todo: 1. find the name jwtToken through loginController that has the type jwt.Token
+// Init inject token through the argument token jwt.Token on constructor
+// todo: 1. find the name token through loginController that has the type jwt.Token
 // 2. else find pkgName + typeName jwt + Token
 func newLoginController(token jwt.Token) *loginController {
 	return &loginController{
