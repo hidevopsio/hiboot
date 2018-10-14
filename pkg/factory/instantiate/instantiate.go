@@ -87,11 +87,15 @@ func (f *InstantiateFactory) BuildComponents() (err error) {
 		case types.Func:
 			obj, err = inject.IntoFunc(item.Object)
 			name = item.Name
-			log.Debugf("%d: inject into func: %v - %v", i, item.Name, item.Type)
+			if err == nil {
+				log.Debugf("%d: inject into func: %v %v", i, item.ShortName, item.Type)
+			}
 		case types.Method:
 			obj, err = inject.IntoMethod(item.Context, item.Object)
 			name = item.Name
-			log.Debugf("%d: inject into method: %v - %v", i, item.Name, item.Type)
+			if err == nil {
+				log.Debugf("%d: inject into method: %v %v", i, item.ShortName, item.Type)
+			}
 		default:
 			name, obj = item.Name, item.Object
 		}
@@ -108,6 +112,8 @@ func (f *InstantiateFactory) BuildComponents() (err error) {
 			if name != "" {
 				err = f.SetInstance(name, obj)
 			}
+		} else {
+			log.Errorf("%d: object %v %v is not injected", i, item.ShortName, item.Type)
 		}
 	}
 	return

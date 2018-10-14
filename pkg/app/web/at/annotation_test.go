@@ -1,4 +1,4 @@
-package annotation
+package at
 
 import "testing"
 

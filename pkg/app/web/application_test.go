@@ -106,10 +106,6 @@ func init() {
 	app.Component(newFooBarService)
 }
 
-//func (c *FooController) Init(jwtToken jwt.Token) {
-//	c.jwtToken = jwtToken
-//}
-
 func (c *FooController) Before() {
 	log.Debug("FooController.Before")
 

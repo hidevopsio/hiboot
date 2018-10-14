@@ -159,6 +159,10 @@ type foobarConfiguration struct {
 	FakeProperties FakeProperties `mapstructure:"foobar"`
 }
 
+func newFoobarConfiguration() *foobarConfiguration {
+	return &foobarConfiguration{}
+}
+
 func (c *foobarConfiguration) Foo(bar *Bar) *Foo {
 	f := new(Foo)
 	f.Name = c.FakeProperties.Name
@@ -189,7 +193,7 @@ func newEarthConfiguration(instantiateFactory factory.InstantiateFactory) *Earth
 	c := &EarthConfiguration{
 		instantiateFactory: instantiateFactory,
 	}
-	c.RuntimeDeps.Set("RuntimeTree", []string{"autoconfigure_test.tree", "autoconfigure_test.branch"})
+	c.RuntimeDeps.Set(c.RuntimeTree, []string{"autoconfigure_test.leaf", "autoconfigure_test.branch"})
 	return c
 }
 
@@ -202,7 +206,23 @@ type RuntimeTree struct {
 	branch *Branch
 }
 
-type Tree struct {
+type Tree interface {
+	Family() string
+}
+
+type oakTree struct {
+	Tree
+}
+
+func (t *oakTree) Family() string {
+	return "Beech"
+}
+
+type mapleTree struct {
+}
+
+func (t *mapleTree) Family() string {
+	return "Soapberry"
 }
 
 type Branch struct {
@@ -212,15 +232,15 @@ type Leaf struct {
 }
 
 type Mountain struct {
-	Tree *Tree
+	oakTree Tree
 }
 
 func (c *EarthConfiguration) Land(mountain *Mountain) *Land {
 	return &Land{Mountain: mountain}
 }
 
-func (c *EarthConfiguration) Mountain(tree *Tree) *Mountain {
-	return &Mountain{Tree: tree}
+func (c *EarthConfiguration) Mountain(tree Tree) *Mountain {
+	return &Mountain{oakTree: tree}
 }
 
 func (c *EarthConfiguration) Branch() *Branch {
@@ -237,11 +257,22 @@ func (c *EarthConfiguration) RuntimeTree() *RuntimeTree {
 	return &RuntimeTree{leaf: leaf, branch: branch}
 }
 
-func (c *EarthConfiguration) Tree() *Tree {
-	return &Tree{}
+func (c *EarthConfiguration) OakTree() Tree {
+	return &oakTree{}
+}
+
+func (c *EarthConfiguration) MapleTree() Tree {
+	return &mapleTree{}
+}
+
+type helloService struct{ foo *Foo }
+
+func newHelloService(foo *Foo) *helloService {
+	return &helloService{foo: foo}
 }
 
 func TestConfigurableFactory(t *testing.T) {
+
 	configPath := filepath.Join(os.TempDir(), "config")
 
 	fakeFile := "application.yml"
@@ -310,9 +341,11 @@ func TestConfigurableFactory(t *testing.T) {
 		factory.NewMetaData(new(mercuryConfiguration)),
 		factory.NewMetaData(new(unknownConfiguration)),
 		factory.NewMetaData(new(unsupportedConfiguration)),
-		factory.NewMetaData(foobarConfiguration{}),
+		factory.NewMetaData(newFoobarConfiguration),
 		factory.NewMetaData(newEarthConfiguration),
 	})
+
+	f.AppendComponent(newHelloService)
 
 	f.BuildComponents()
 
@@ -349,9 +382,9 @@ func TestConfigurableFactory(t *testing.T) {
 	})
 
 	t.Run("should get runtime created instances", func(t *testing.T) {
-		runtimeTree := f.GetInstance("autoconfigure_test.runtimeTree")
-		leaf := f.GetInstance("autoconfigure_test.leaf")
-		branch := f.GetInstance("autoconfigure_test.branch")
+		runtimeTree := f.GetInstance(RuntimeTree{})
+		leaf := f.GetInstance(Leaf{})
+		branch := f.GetInstance(Branch{})
 		assert.NotEqual(t, nil, runtimeTree)
 		rt := runtimeTree.(*RuntimeTree)
 		assert.Equal(t, branch, rt.branch)
