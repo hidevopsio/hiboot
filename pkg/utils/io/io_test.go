@@ -19,15 +19,16 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/stretchr/testify/assert"
 	"os"
+	"path"
 	"path/filepath"
-	"testing"
 	"runtime"
+	"testing"
 )
 
 var testPath = ""
 
 func init() {
-	testPath = filepath.Join(os.TempDir(), "a","b", "c.txt")
+	testPath = filepath.Join(os.TempDir(), "a", "b", "c.txt")
 	log.SetLevel(log.DebugLevel)
 }
 
@@ -123,19 +124,8 @@ func TestFilename(t *testing.T) {
 
 func TestBaseDir(t *testing.T) {
 	b := BaseDir(testPath)
-	assert.Equal(t, "/a/b", b)
-
-	b = BaseDir("/a/b/c")
-	assert.Equal(t, "/a/b", b)
-
-	b = BaseDir("/a")
-	assert.Equal(t, "/", b)
-
-	b = BaseDir("a/b")
-	assert.Equal(t, "a", b)
-
-	b = BaseDir("a")
-	assert.Equal(t, "a", b)
+	expected := path.Dir(testPath)
+	assert.Equal(t, expected, b)
 }
 
 func TestDirName(t *testing.T) {
