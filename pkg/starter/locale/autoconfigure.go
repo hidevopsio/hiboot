@@ -59,12 +59,11 @@ func (c *configuration) Handler() (handler context.Handler) {
 	err := filepath.Walk(localePath, func(lngPath string, info os.FileInfo, err error) error {
 		if err == nil {
 			//*files = append(*files, path)
-			lngPath, _ = filepath.Abs(lngPath)
-			lng := strings.Replace(lngPath, localePath, "", -1)
-			lng = strings.Replace(lng, ".ini", "", -1)
-			lng = io.Filename(lng)
+			lng := strings.Replace(lngPath, localePath, "", 1)
+			lng = io.BaseDir(lng)
+			lng = io.Basename(lng)
 
-			if lng != "" {
+			if lng != "" && lng != "." && lngPath != localePath+lng {
 				//languages[lng] = path
 				if languages[lng] == "" {
 					languages[lng] = lngPath
