@@ -15,6 +15,7 @@
 package web
 
 import (
+	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
@@ -157,12 +158,12 @@ func (h *handler) responseData(ctx *Context, numOut int, results []reflect.Value
 
 	result := results[0]
 	if !result.CanInterface() {
-		log.Warn("response is invalid")
+		ctx.ResponseError("response is invalid", http.StatusInternalServerError)
+		return
 	}
 
 	respVal := result.Interface()
 	if respVal == nil {
-		// TODO: add unit test
 		log.Warn("response is nil")
 		return
 	}
@@ -199,6 +200,8 @@ func (h *handler) responseData(ctx *Context, numOut int, results []reflect.Value
 			}
 		}
 		ctx.JSON(response)
+	default:
+		ctx.ResponseError("response type is not implemented!", http.StatusInternalServerError)
 	}
 }
 
@@ -243,7 +246,8 @@ func (h *handler) call(ctx *Context) {
 			val := str.Convert(strVal, req.kind)
 			h.inputs[i] = reflect.ValueOf(val)
 		} else {
-			log.Errorf("input type: %v is not supported!", req.typ)
+			msg := fmt.Sprintf("input type: %v is not supported!", req.typ)
+			ctx.ResponseError(msg, http.StatusInternalServerError)
 			return
 		}
 	}

@@ -33,7 +33,7 @@ func (a *testApplication) RunTest(args ...string) (output string, err error) {
 
 		_, err = a.root.ExecuteC()
 
-		return buf.String(), err
+		output = buf.String()
 	}
 	return
 }

@@ -37,30 +37,29 @@ func newServerFactory(instantiateFactory factory.InstantiateFactory, properties 
 	if properties.Server.Enabled && grpcServer != nil {
 		address := properties.Server.Host + ":" + properties.Server.Port
 		lis, err := net.Listen(properties.Server.Network, address)
-		if err != nil {
-			log.Fatalf("failed to listen: %v, %v", address, err)
+		if err == nil {
+			// register server
+			// Register reflection service on gRPC server.
+			chn := make(chan bool)
+			go func() {
+				for _, srv := range grpcServers {
+					svc := instantiateFactory.GetInstance(srv.name)
+					reflector.CallFunc(srv.cb, grpcServer, svc)
+					if err == nil {
+						log.Infof("Registered %v on gRPC server", srv.name)
+					}
+				}
+				reflection.Register(grpcServer)
+				chn <- true
+				if err := grpcServer.Serve(lis); err != nil {
+					log.Errorf("failed to serve: %v", err)
+				}
+			}()
+			<-chn
+
+			log.Infof("gRPC server listening on: localhost%v", address)
 		}
 
-		// register server
-		// Register reflection service on gRPC server.
-		chn := make(chan bool)
-		go func() {
-			for _, srv := range grpcServers {
-				svc := instantiateFactory.GetInstance(srv.name)
-				reflector.CallFunc(srv.cb, grpcServer, svc)
-				if err == nil {
-					log.Infof("Registered %v on gRPC server", srv.name)
-				}
-			}
-			reflection.Register(grpcServer)
-			chn <- true
-			if err := grpcServer.Serve(lis); err != nil {
-				log.Errorf("failed to serve: %v", err)
-			}
-		}()
-		<-chn
-
-		log.Infof("gRPC server listening on: localhost%v", address)
 	}
 
 	return sf
