@@ -15,8 +15,6 @@
 package web
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/hidevopsio/hiboot/pkg/model"
@@ -73,10 +71,7 @@ func (ctx *Context) HTML(htmlContents string) (int, error) {
 }
 
 // RequestEx get RequestBody
-func (ctx *Context) RequestEx(data interface{}, cb func() error) error {
-	if cb == nil {
-		return fmt.Errorf("callback func can't be nil")
-	}
+func (ctx *Context) requestEx(data interface{}, cb func() error) error {
 	err := cb()
 	if err != nil {
 		ctx.ResponseError(err.Error(), http.StatusInternalServerError)
@@ -94,7 +89,7 @@ func (ctx *Context) RequestEx(data interface{}, cb func() error) error {
 // RequestBody get RequestBody
 func (ctx *Context) RequestBody(data interface{}) error {
 
-	return ctx.RequestEx(data, func() error {
+	return ctx.requestEx(data, func() error {
 		return ctx.ReadJSON(data)
 	})
 }
@@ -102,7 +97,7 @@ func (ctx *Context) RequestBody(data interface{}) error {
 // RequestForm get RequestFrom
 func (ctx *Context) RequestForm(data interface{}) error {
 
-	return ctx.RequestEx(data, func() error {
+	return ctx.requestEx(data, func() error {
 		return ctx.ReadForm(data)
 	})
 }
@@ -110,14 +105,13 @@ func (ctx *Context) RequestForm(data interface{}) error {
 // RequestParams get RequestParams
 func (ctx *Context) RequestParams(data interface{}) error {
 
-	return ctx.RequestEx(data, func() error {
+	return ctx.requestEx(data, func() error {
 
 		values := ctx.URLParams()
-		if values == nil {
-			return errors.New("an empty form passed on ReadForm")
+		if len(values) != 0 {
+			return mapstruct.Decode(data, values)
 		}
-
-		return mapstruct.Decode(data, values)
+		return nil
 	})
 }
 
@@ -134,9 +128,9 @@ func (ctx *Context) Translate(format string, args ...interface{}) string {
 
 	msg := ctx.Context.Translate(format, args...)
 
-	if msg == "" {
-		msg = format
-	}
+	//if msg == "" {
+	//	msg = format
+	//}
 
 	return msg
 }

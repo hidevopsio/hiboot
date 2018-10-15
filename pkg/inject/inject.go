@@ -111,7 +111,7 @@ func IntoObjectValue(object reflect.Value, tags ...Tag) error {
 
 	obj := reflector.Indirect(object)
 	if obj.Kind() != reflect.Struct {
-		log.Warnf("[inject] ignore object: %v, kind: %v", object, obj.Kind())
+		log.Debugf("[inject] ignore object: %v, kind: %v", object, obj.Kind())
 		return ErrInvalidObject
 	}
 

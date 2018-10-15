@@ -49,11 +49,8 @@ func (c *configuration) Handler() (handler context.Handler) {
 	// TODO: or
 	// locale:
 	//   path: ./config/i18n/
-	localePath := c.Properties.LocalePath
-	if io.IsPathNotExist(localePath) {
-		return nil
-	}
 
+	localePath, _ := filepath.Abs(c.Properties.LocalePath)
 	// parse language files
 	languages := make(map[string]string)
 	err := filepath.Walk(localePath, func(lngPath string, info os.FileInfo, err error) error {
@@ -61,8 +58,7 @@ func (c *configuration) Handler() (handler context.Handler) {
 			//*files = append(*files, path)
 			lng := strings.Replace(lngPath, localePath, "", 1)
 			lng = io.BaseDir(lng)
-			lng = io.Basename(lng)
-
+			lng = strings.Replace(lng, string(filepath.Separator), "", -1)
 			if lng != "" && lng != "." && lngPath != localePath+lng {
 				//languages[lng] = path
 				if languages[lng] == "" {
@@ -75,7 +71,7 @@ func (c *configuration) Handler() (handler context.Handler) {
 		}
 		return err
 	})
-	if err == nil {
+	if err == nil && len(languages) != 0 {
 		handler = i18n.New(i18n.Config{
 			Default:      c.Properties.Default,
 			URLParameter: c.Properties.URLParameter,

@@ -26,8 +26,9 @@ func TestConfiguration(t *testing.T) {
 	c := newConfiguration(new(fake.ApplicationContext))
 
 	t.Run("should get nil handler", func(t *testing.T) {
-		lh := c.Handler()
-		assert.IsType(t, reflect.Func, reflect.TypeOf(lh).Kind())
+		h := c.Handler()
+		val := reflect.ValueOf(h)
+		assert.Equal(t, true, val.IsNil())
 	})
 
 	t.Run("should get handler", func(t *testing.T) {
@@ -37,6 +38,9 @@ func TestConfiguration(t *testing.T) {
 			URLParameter: "lang",
 			LocalePath:   "config/i18n/",
 		}
-		c.Handler()
+		h := c.Handler()
+		val := reflect.ValueOf(h)
+		assert.Equal(t, false, val.IsNil())
+		assert.IsType(t, reflect.Func, reflect.TypeOf(h).Kind())
 	})
 }
