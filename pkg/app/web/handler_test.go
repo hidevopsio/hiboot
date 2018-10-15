@@ -53,4 +53,9 @@ func TestParse(t *testing.T) {
 		assert.Equal(t, "string", hdl.requests[2].typeName)
 		assert.Equal(t, "int", hdl.requests[3].typeName)
 	})
+
+	t.Run("should clean path", func(t *testing.T) {
+		p := clean("///a///b//c/d//e/////f/")
+		assert.Equal(t, "/a/b/c/d/e/f/", p)
+	})
 }

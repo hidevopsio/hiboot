@@ -449,7 +449,7 @@ func TestWebApplication(t *testing.T) {
 			Expect().Status(http.StatusOK)
 	})
 
-	t.Run("should Get foo by name", func(t *testing.T) {
+	t.Run("should Get by options", func(t *testing.T) {
 		wta.Get("/foo/options/{options}").
 			WithPath("options", "mars,earth,mercury,jupiter").
 			Expect().Status(http.StatusOK).
