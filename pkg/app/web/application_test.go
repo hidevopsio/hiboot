@@ -64,6 +64,10 @@ type Bar struct {
 	Greeting string
 }
 
+func newBar() *Bar {
+	return &Bar{}
+}
+
 // PATH /foo
 type FooController struct {
 	web.Controller
@@ -192,6 +196,36 @@ func (c *FooController) DeleteById(id int) error {
 	return nil
 }
 
+func (c *FooController) GetBar(bar string) {
+	log.Debugf("FooController.GetBar: %v", bar)
+}
+
+func (c *FooController) Options() {
+	log.Debug("FooController.Options")
+}
+
+// GET /invalid
+func (c *FooController) GetInvalid() (err error) {
+	return fmt.Errorf("response invalid")
+}
+
+// GET /integer
+func (c *FooController) GetInteger() (i int) {
+	return 123
+}
+
+// GET /intPointer
+func (c *FooController) GetIntPointer() (ip *int) {
+	iv := 123
+	ip = &iv
+	return
+}
+
+// GET /intNullPointer
+func (c *FooController) GetIntNilPointer() (ip *int) {
+	return
+}
+
 func (c *FooController) After() {
 	log.Debug("FooController.After")
 }
@@ -257,7 +291,7 @@ func (c *HelloController) Get() string {
 	return "hello"
 }
 
-func (c *HelloController) GetHtml() {
+func (c *HelloController) GetHelloWorld() {
 	c.Ctx.HTML("<h1>Hello World</h1>")
 }
 
@@ -282,30 +316,30 @@ func (c *HelloController) GetAll() {
 }
 
 func TestWebApplication(t *testing.T) {
-	wta := web.NewTestApplication(t, newHelloController, newFooController, newBarController, newFoobarController)
+	testApp := web.NewTestApplication(t, newHelloController, newFooController, newBarController, newFoobarController)
 
 	t.Run("should response 200 when GET /all", func(t *testing.T) {
-		wta.
+		testApp.
 			Request(http.MethodGet, "/all").
 			Expect().Status(http.StatusOK).
 			Body().Contains("Success").Contains("John Doe").Contains("Zhang San")
 	})
 
 	t.Run("should response 200 when GET /", func(t *testing.T) {
-		wta.
+		testApp.
 			Get("/").
 			Expect().Status(http.StatusOK)
 	})
 
 	t.Run("should response 200 when GET /", func(t *testing.T) {
-		wta.
-			Get("/html").
+		testApp.
+			Get("/helloWorld").
 			Expect().Status(http.StatusOK)
 	})
 
 	t.Run("should response 你好, 世界 with language zh-CN", func(t *testing.T) {
 		// test cn-ZH
-		wta.Get("/").
+		testApp.Get("/").
 			WithHeader("Accept-Language", "zh-CN").
 			Expect().Status(http.StatusOK).
 			Body().Contains("你好, 世界")
@@ -313,7 +347,7 @@ func TestWebApplication(t *testing.T) {
 
 	t.Run("should response Success with language en-US", func(t *testing.T) {
 		// test en-US
-		wta.Get("/").
+		testApp.Get("/").
 			WithHeader("Accept-Language", "en-US").
 			Expect().
 			Status(http.StatusOK).
@@ -325,53 +359,53 @@ func TestWebApplication(t *testing.T) {
 	//})
 
 	t.Run("should login with username and password", func(t *testing.T) {
-		wta.Post("/foo/login").
+		testApp.Post("/foo/login").
 			WithJSON(&UserRequest{Username: "johndoe", Password: "iHop91#15"}).
 			Expect().Status(http.StatusOK).
 			Body().NotEqual("")
 	})
 
 	t.Run("should failed to pass validation", func(t *testing.T) {
-		wta.Post("/foo/login").
+		testApp.Post("/foo/login").
 			WithJSON(&UserRequest{Username: "johndoe"}).
 			Expect().Status(http.StatusBadRequest)
 	})
 
 	t.Run("should return success after POST /foo", func(t *testing.T) {
-		wta.Post("/foo").
+		testApp.Post("/foo").
 			WithJSON(&FooRequest{Name: "John"}).
 			Expect().Status(http.StatusOK).
 			Body().Contains("Hello")
 	})
 
 	t.Run("should return StatusInternalServerError after POST /foo with illegal name", func(t *testing.T) {
-		wta.Post("/foo").
+		testApp.Post("/foo").
 			WithJSON(&FooRequest{Name: "Illegal name"}).
 			Expect().Status(http.StatusInternalServerError)
 	})
 
 	t.Run("should return success after GET /foo/hello", func(t *testing.T) {
-		wta.Get("/foo/hello").
+		testApp.Get("/foo/hello").
 			WithJSON(&FooRequest{Name: "John"}).
 			Expect().Status(http.StatusOK).
 			Body().Equal("Hello, World")
 	})
 
 	t.Run("should return http.StatusUnauthorized after GET /bar", func(t *testing.T) {
-		wta.Get("/bar").
+		testApp.Get("/bar").
 			Expect().Status(http.StatusUnauthorized)
 	})
 
 	t.Run("should return http.StatusInternalServerError when input form field validation failed", func(t *testing.T) {
 		// test request form
-		wta.Post("/foobar").
+		testApp.Post("/foobar").
 			WithFormField("name", "John Doe").
 			Expect().Status(http.StatusInternalServerError)
 	})
 
 	t.Run("should return (http.StatusOK on /foobar", func(t *testing.T) {
 		//  test request query
-		wta.Get("/foobar").
+		testApp.Get("/foobar").
 			WithQuery("name", "John Doe").
 			Expect().Status(http.StatusOK)
 	})
@@ -391,20 +425,20 @@ func TestWebApplication(t *testing.T) {
 
 			t := fmt.Sprintf("Bearer %v", token)
 
-			wta.Get("/bar").
+			testApp.Get("/bar").
 				WithHeader("Authorization", t).
 				Expect().Status(http.StatusOK)
 
 			time.Sleep(2 * time.Second)
 
-			wta.Get("/bar").
+			testApp.Get("/bar").
 				WithHeader("Authorization", t).
 				Expect().Status(http.StatusUnauthorized)
 		}
 	})
 
 	t.Run("should return http.StatusOK on /foo with PUT, PATCH, DELETE methods", func(t *testing.T) {
-		wta.Put("/foo/id/{id}/name/{name}/age/{age}").
+		testApp.Put("/foo/id/{id}/name/{name}/age/{age}").
 			WithPath("id", 123456).
 			WithPath("name", "Mike").
 			WithPath("age", 18).
@@ -412,7 +446,7 @@ func TestWebApplication(t *testing.T) {
 	})
 
 	t.Run("should return http.StatusOK on /foo with PUT, PATCH, DELETE methods", func(t *testing.T) {
-		wta.Put("/foo/id/{id}/name/{name}/age/{age}").
+		testApp.Put("/foo/id/{id}/name/{name}/age/{age}").
 			WithPath("id", 0).
 			WithPath("name", "").
 			WithPath("age", 0).
@@ -420,7 +454,7 @@ func TestWebApplication(t *testing.T) {
 	})
 
 	t.Run("should return http.StatusOK on /foo with PUT, PATCH, DELETE methods", func(t *testing.T) {
-		wta.Put("/foo/id/{id}/name/{name}/age/{age}").
+		testApp.Put("/foo/id/{id}/name/{name}/age/{age}").
 			WithPath("id", " ").
 			WithPath("name", " ").
 			WithPath("age", " ").
@@ -428,7 +462,7 @@ func TestWebApplication(t *testing.T) {
 	})
 
 	t.Run("should return http.StatusOK on /foo with PUT, PATCH, DELETE methods", func(t *testing.T) {
-		wta.Put("/foo/id/{id}/name/{name}/age/{age}").
+		testApp.Put("/foo/id/{id}/name/{name}/age/{age}").
 			WithPath("id", "").
 			WithPath("name", "").
 			WithPath("age", " ").
@@ -436,7 +470,7 @@ func TestWebApplication(t *testing.T) {
 	})
 
 	t.Run("should return http.StatusOK on /foo with PUT, PATCH, DELETE methods", func(t *testing.T) {
-		wta.Put("/foo/id/{id}/name/{name}/age/{age}").
+		testApp.Put("/foo/id/{id}/name/{name}/age/{age}").
 			WithPath("id", "").
 			WithPath("name", "").
 			WithPath("age", "").
@@ -444,41 +478,72 @@ func TestWebApplication(t *testing.T) {
 	})
 
 	t.Run("should Get foo by id", func(t *testing.T) {
-		wta.Get("/foo/id/{id}").
+		testApp.Get("/foo/id/{id}").
 			WithPath("id", 123).
 			Expect().Status(http.StatusOK)
 	})
 
-	t.Run("should Get foo by name", func(t *testing.T) {
-		wta.Get("/foo/options/{options}").
+	t.Run("should Get by options", func(t *testing.T) {
+		testApp.Get("/foo/options/{options}").
 			WithPath("options", "mars,earth,mercury,jupiter").
 			Expect().Status(http.StatusOK).
 			Body().Contains("mercury")
 	})
 
 	t.Run("should Get foo by name", func(t *testing.T) {
-		wta.Get("/foo/name/{name}").
+		testApp.Get("/foo/name/{name}").
 			WithPath("name", "Peter Phil").
 			Expect().Status(http.StatusOK).
 			Body().Contains("Peter Phil")
 	})
 
 	t.Run("should Get foo by name", func(t *testing.T) {
-		wta.Get("/foo/name/{name}").
+		testApp.Get("/foo/name/{name}").
 			WithPath("name", "张三").
 			Expect().Status(http.StatusOK).
 			Body().Contains("张三")
 	})
 
 	t.Run("should Patch foo by id", func(t *testing.T) {
-		wta.Patch("/foo/id/{id}").
+		testApp.Patch("/foo/id/{id}").
 			WithPath("id", 456).
 			Expect().Status(http.StatusOK)
 	})
+
 	t.Run("should Delete foo by id", func(t *testing.T) {
-		wta.Delete("/foo/id/{id}").
+		testApp.Delete("/foo/id/{id}").
 			WithPath("id", 789).
 			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should call Options method", func(t *testing.T) {
+		testApp.Options("/foo").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should return failure for unsupported args", func(t *testing.T) {
+		testApp.Get("/foo/bar").
+			Expect().Status(http.StatusInternalServerError)
+	})
+
+	t.Run("should return invalid response", func(t *testing.T) {
+		testApp.Get("/foo/invalid").
+			Expect().Status(http.StatusInternalServerError)
+	})
+
+	t.Run("should return integer", func(t *testing.T) {
+		testApp.Get("/foo/integer").
+			Expect().Status(http.StatusInternalServerError)
+	})
+
+	t.Run("should return integer pointer", func(t *testing.T) {
+		testApp.Get("/foo/intPointer").
+			Expect().Status(http.StatusInternalServerError)
+	})
+
+	t.Run("should return integer nil pointer", func(t *testing.T) {
+		testApp.Get("/foo/intNilPointer").
+			Expect().Status(http.StatusInternalServerError)
 	})
 }
 
@@ -493,9 +558,9 @@ func TestNewApplication(t *testing.T) {
 
 	web.RestController(new(ExampleController))
 
-	wta := web.NewApplication()
+	testApp := web.NewApplication()
 	t.Run("should init web application", func(t *testing.T) {
-		assert.NotEqual(t, nil, wta)
+		assert.NotEqual(t, nil, testApp)
 	})
 
 	t.Run("should get interface name", func(t *testing.T) {
@@ -509,13 +574,18 @@ func TestNewApplication(t *testing.T) {
 		assert.Equal(t, "myInterface", typ.Name())
 	})
 
-	go wta.SetProperty(app.PropertyBannerDisabled, true).Run()
+	go testApp.SetProperty(app.PropertyBannerDisabled, true).Run()
 	time.Sleep(time.Second)
 }
 
 func TestAnonymousController(t *testing.T) {
 	t.Run("should failed to register anonymous controller", func(t *testing.T) {
 		testApp := web.NewTestApplication(t, (*Bar)(nil))
+		assert.NotEqual(t, nil, testApp)
+	})
+
+	t.Run("should failed to register anonymous controller", func(t *testing.T) {
+		testApp := web.NewTestApplication(t, newBar)
 		assert.NotEqual(t, nil, testApp)
 	})
 }
