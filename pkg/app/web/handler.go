@@ -21,7 +21,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"net/http"
-	"path/filepath"
 	"reflect"
 	"strings"
 )
@@ -57,6 +56,14 @@ type handler struct {
 	lenOfPathParams int
 }
 
+func clean(in string) (out string) {
+	out = strings.Replace(in, "//", "/", -1)
+	if strings.Contains(out,"//") {
+		out = clean(out)
+	}
+	return
+}
+
 func (h *handler) parse(method reflect.Method, object interface{}, path string) {
 	//log.Debug("NumIn: ", method.Type.NumIn())
 	h.controller = object
@@ -69,7 +76,7 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 	//log.Debugf("method: %v", method.Name)
 
 	// TODO: should parse all of below request and response during router register to improve performance
-	path = filepath.Clean(path)
+	path = clean(path)
 	//log.Debugf("path: %v", path)
 	pps := strings.SplitN(path, "/", -1)
 	//log.Debug(pps)
@@ -236,7 +243,7 @@ func (h *handler) call(ctx *Context) {
 			val := str.Convert(strVal, req.kind)
 			h.inputs[i] = reflect.ValueOf(val)
 		} else {
-			log.Warn("input type is not supported!")
+			log.Errorf("input type: %v is not supported!", req.typ)
 			return
 		}
 	}

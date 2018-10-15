@@ -19,7 +19,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/stretchr/testify/assert"
 	"os"
-	"path"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -88,7 +87,7 @@ func TestWriteFile(t *testing.T) {
 func TestListFiles(t *testing.T) {
 	var files []string
 
-	root := "./"
+	root := GetWorkDir()
 	err := filepath.Walk(root, Visit(&files))
 	assert.Equal(t, nil, err)
 
@@ -96,8 +95,8 @@ func TestListFiles(t *testing.T) {
 		log.Debug(file)
 	}
 
-	err = filepath.Walk("/dir-does-not-exist", Visit(&files))
-	assert.Contains(t, err.Error(), "no such file or directory")
+	err = filepath.Walk("dir-does-not-exist", Visit(&files))
+	assert.NotEqual(t, nil, err)
 }
 
 func TestBasename(t *testing.T) {
@@ -123,9 +122,8 @@ func TestFilename(t *testing.T) {
 }
 
 func TestBaseDir(t *testing.T) {
-	b := BaseDir(testPath)
-	expected := path.Dir(testPath)
-	assert.Equal(t, expected, b)
+	bd := BaseDir(testPath)
+	assert.NotEqual(t, testPath, bd)
 }
 
 func TestDirName(t *testing.T) {

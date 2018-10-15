@@ -144,8 +144,13 @@ func Filename(s string) string {
 // /a/b/c.ext => /a/b
 // /a/b/c => /a/b
 func BaseDir(s string) string {
-	dn := path.Dir(s)
-	return dn
+	dir, _ := filepath.Split(s)
+	// remove last sep
+	n := strings.LastIndex(dir, string(filepath.Separator))
+	if n > 0 {
+		dir = dir[:n]
+	}
+	return dir
 }
 
 // DirName get dir name from a path

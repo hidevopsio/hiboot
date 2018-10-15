@@ -49,20 +49,21 @@ func (c *configuration) Handler() (handler context.Handler) {
 	// TODO: or
 	// locale:
 	//   path: ./config/i18n/
-	localePath := c.Properties.LocalePath
+	localePath, err := filepath.Abs(c.Properties.LocalePath)
+	if err != nil {
+		return nil
+	}
 	if io.IsPathNotExist(localePath) {
 		return nil
 	}
-
 	// parse language files
 	languages := make(map[string]string)
-	err := filepath.Walk(localePath, func(lngPath string, info os.FileInfo, err error) error {
+	err = filepath.Walk(localePath, func(lngPath string, info os.FileInfo, err error) error {
 		if err == nil {
 			//*files = append(*files, path)
 			lng := strings.Replace(lngPath, localePath, "", 1)
 			lng = io.BaseDir(lng)
-			lng = io.Basename(lng)
-
+			lng = strings.Replace(lng, string(filepath.Separator), "", -1)
 			if lng != "" && lng != "." && lngPath != localePath+lng {
 				//languages[lng] = path
 				if languages[lng] == "" {
