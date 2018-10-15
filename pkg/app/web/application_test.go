@@ -291,7 +291,7 @@ func (c *HelloController) Get() string {
 	return "hello"
 }
 
-func (c *HelloController) GetHtml() {
+func (c *HelloController) GetHelloWorld() {
 	c.Ctx.HTML("<h1>Hello World</h1>")
 }
 
@@ -333,7 +333,7 @@ func TestWebApplication(t *testing.T) {
 
 	t.Run("should response 200 when GET /", func(t *testing.T) {
 		testApp.
-			Get("/html").
+			Get("/helloWorld").
 			Expect().Status(http.StatusOK)
 	})
 
