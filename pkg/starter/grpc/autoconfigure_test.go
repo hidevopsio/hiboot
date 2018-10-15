@@ -76,10 +76,10 @@ func TestGrpcServerAndClient(t *testing.T) {
 			greeterCliSvc := cliSvc.(*greeterClientService)
 			assert.NotEqual(t, nil, greeterCliSvc.greeterClient)
 
-			//name := "Steve"
-			//response, err := greeterCliSvc.SayHello(name)
-			//assert.Equal(t, nil, err)
-			//assert.Equal(t, "Hello "+name, response.Message)
+			name := "Steve"
+			response, err := greeterCliSvc.SayHello(name)
+			assert.Equal(t, nil, err)
+			assert.Equal(t, "Hello "+name, response.Message)
 		}
 	})
 
