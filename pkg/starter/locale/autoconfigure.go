@@ -76,7 +76,7 @@ func (c *configuration) Handler() (handler context.Handler) {
 		}
 		return err
 	})
-	if err == nil {
+	if err == nil && len(languages) != 0 {
 		handler = i18n.New(i18n.Config{
 			Default:      c.Properties.Default,
 			URLParameter: c.Properties.URLParameter,

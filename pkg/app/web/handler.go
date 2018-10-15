@@ -58,7 +58,7 @@ type handler struct {
 
 func clean(in string) (out string) {
 	out = strings.Replace(in, "//", "/", -1)
-	if strings.Contains(out,"//") {
+	if strings.Contains(out, "//") {
 		out = clean(out)
 	}
 	return
