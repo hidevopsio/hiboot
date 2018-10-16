@@ -128,9 +128,9 @@ func (ctx *Context) Translate(format string, args ...interface{}) string {
 
 	msg := ctx.Context.Translate(format, args...)
 
-	//if msg == "" {
-	//	msg = format
-	//}
+	if msg == "" {
+		msg = format
+	}
 
 	return msg
 }
