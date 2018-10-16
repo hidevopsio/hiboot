@@ -226,6 +226,10 @@ func (c *FooController) GetIntNilPointer() (ip *int) {
 	return
 }
 
+func (c *FooController) GetError() error {
+	return fmt.Errorf("buildconfigs.mio.io \"hello-world\" not found")
+}
+
 func (c *FooController) After() {
 	log.Debug("FooController.After")
 }
@@ -543,6 +547,11 @@ func TestWebApplication(t *testing.T) {
 
 	t.Run("should return integer nil pointer", func(t *testing.T) {
 		testApp.Get("/foo/intNilPointer").
+			Expect().Status(http.StatusInternalServerError)
+	})
+
+	t.Run("should return error message", func(t *testing.T) {
+		testApp.Get("/foo/error").
 			Expect().Status(http.StatusInternalServerError)
 	})
 }
