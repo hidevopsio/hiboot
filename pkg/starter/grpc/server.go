@@ -51,9 +51,7 @@ func newServerFactory(instantiateFactory factory.InstantiateFactory, properties 
 				}
 				reflection.Register(grpcServer)
 				chn <- true
-				if err := grpcServer.Serve(lis); err != nil {
-					log.Errorf("failed to serve: %v", err)
-				}
+				grpcServer.Serve(lis)
 			}()
 			<-chn
 

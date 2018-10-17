@@ -15,19 +15,16 @@
 package grpc_test
 
 import (
-	"fmt"
 	"github.com/golang/mock/gomock"
-	"github.com/golang/protobuf/proto"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
-	hwmock "github.com/hidevopsio/hiboot/pkg/starter/grpc/mock_helloworld"
+	mockproto "github.com/hidevopsio/hiboot/pkg/starter/grpc/mock_protobuf"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/examples/helloworld/helloworld"
 	"testing"
-	"time"
 )
 
 // gRpc server
@@ -62,23 +59,6 @@ func (s *greeterClientService) SayHello(name string) (*helloworld.HelloReply, er
 	return response, err
 }
 
-// rpcMsg implements the gomock.Matcher interface
-type rpcMsg struct {
-	msg proto.Message
-}
-
-func (r *rpcMsg) Matches(msg interface{}) bool {
-	m, ok := msg.(proto.Message)
-	if !ok {
-		return false
-	}
-	return proto.Equal(m, r.msg)
-}
-
-func (r *rpcMsg) String() string {
-	return fmt.Sprintf("is %s", r.msg)
-}
-
 func TestGrpcServerAndClient(t *testing.T) {
 
 	app.Component(newGreeterClientService)
@@ -110,19 +90,22 @@ func TestGrpcServerAndClient(t *testing.T) {
 		assert.NotEqual(t, nil, grpcCli)
 	})
 
-	t.Run("should get message from mock gRpc server", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-		mockGreeterClient := hwmock.NewMockGreeterClient(ctrl)
-		req := &helloworld.HelloRequest{Name: "unit_test"}
-		mockGreeterClient.EXPECT().SayHello(
-			gomock.Any(),
-			&rpcMsg{msg: req},
-		).Return(&helloworld.HelloReply{Message: "Mocked Interface"}, nil)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		defer cancel()
-		r, err := mockGreeterClient.SayHello(ctx, &helloworld.HelloRequest{Name: "unit_test"})
-		assert.Equal(t, nil, err)
-		assert.Equal(t, "Mocked Interface", r.Message)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockGreeterClient := mockproto.NewMockGreeterClient(ctrl)
+
+	t.Run("should get message from mock gRpc client indirectly", func(t *testing.T) {
+		cliSvc := newGreeterClientService(mockGreeterClient)
+		assert.NotEqual(t, nil, cliSvc)
+		if cliSvc != nil {
+			req := &helloworld.HelloRequest{Name: "Steve"}
+			mockGreeterClient.EXPECT().SayHello(
+				gomock.Any(),
+				&mockproto.RpcMsg{Message: req},
+			).Return(&helloworld.HelloReply{Message: "Hello " + req.Name}, nil)
+			resp, err := cliSvc.SayHello("Steve")
+			assert.Equal(t, nil, err)
+			assert.Equal(t, "Hello "+req.Name, resp.Message)
+		}
 	})
 }
