@@ -32,9 +32,11 @@ import (
 )
 
 const (
+	// ApplicationContextName is the application context instance name
 	ApplicationContextName = "app.applicationContext"
 )
 
+// Application is the base application interface
 type Application interface {
 	Initialize() error
 	SetProperty(name string, value interface{}) Application
@@ -42,6 +44,7 @@ type Application interface {
 	Run() error
 }
 
+// ApplicationContext is the alias interface of Application
 type ApplicationContext interface {
 	RegisterController(controller interface{}) error
 	Use(handlers ...context.Handler)
@@ -49,12 +52,13 @@ type ApplicationContext interface {
 	GetInstance(params ...interface{}) (instance interface{})
 }
 
+// BaseApplication is the base application
 type BaseApplication struct {
 	WorkDir             string
 	configurations      cmap.ConcurrentMap
 	instances           cmap.ConcurrentMap
 	potatoes            cmap.ConcurrentMap
-	configurableFactory *autoconfigure.ConfigurableFactory
+	configurableFactory factory.ConfigurableFactory
 	systemConfig        *system.Configuration
 	postProcessor       postProcessor
 	propertyMap         cmap.ConcurrentMap
@@ -99,7 +103,7 @@ func (a *BaseApplication) GetProperty(name string) (value interface{}, ok bool) 
 }
 
 // Initialize init application
-func (a *BaseApplication) Initialize() error {
+func (a *BaseApplication) Initialize() (err error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
@@ -110,25 +114,20 @@ func (a *BaseApplication) Initialize() error {
 	a.configurations = cmap.New()
 	a.instances = cmap.New()
 
-	instantiateFactory := new(instantiate.InstantiateFactory)
-	instantiateFactory.Initialize(a.instances, componentContainer)
+	instantiateFactory := instantiate.NewInstantiateFactory(a.instances, componentContainer)
 	// TODO: should set or get instance by passing object instantiateFactory
 	a.instances.Set(factory.InstantiateFactoryName, instantiateFactory)
 
-	configurableFactory := new(autoconfigure.ConfigurableFactory)
-	configurableFactory.InstantiateFactory = instantiateFactory
+	configurableFactory := autoconfigure.NewConfigurableFactory(instantiateFactory, a.configurations)
 	a.instances.Set(factory.ConfigurableFactoryName, configurableFactory)
 	inject.SetFactory(configurableFactory)
 	a.configurableFactory = configurableFactory
 
-	err := configurableFactory.Initialize(a.configurations)
-	if err == nil {
-		a.systemConfig, err = configurableFactory.BuildSystemConfig()
-	}
+	a.systemConfig, _ = configurableFactory.BuildSystemConfig()
 	return nil
 }
 
-// Config returns application config
+// SystemConfig returns application config
 func (a *BaseApplication) SystemConfig() *system.Configuration {
 	return a.systemConfig
 }
@@ -142,7 +141,7 @@ func (a *BaseApplication) BuildConfigurations() {
 }
 
 // ConfigurableFactory get ConfigurableFactory
-func (a *BaseApplication) ConfigurableFactory() *autoconfigure.ConfigurableFactory {
+func (a *BaseApplication) ConfigurableFactory() factory.ConfigurableFactory {
 	return a.configurableFactory
 }
 

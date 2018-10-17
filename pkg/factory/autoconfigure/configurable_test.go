@@ -288,24 +288,13 @@ func TestConfigurableFactory(t *testing.T) {
 
 	configContainers := cmap.New()
 
-	f := new(autoconfigure.ConfigurableFactory)
-
-	t.Run("should check if factory is FactoryCannotBeNilError", func(t *testing.T) {
-		err := f.Initialize(nil)
-		assert.Equal(t, autoconfigure.ErrFactoryCannotBeNil, err)
-	})
-
-	f.InstantiateFactory = new(instantiate.InstantiateFactory)
-	t.Run("should check if factory is FactoryIsNotInitializedError", func(t *testing.T) {
-		err := f.Initialize(nil)
-		assert.Equal(t, autoconfigure.ErrFactoryIsNotInitialized, err)
-	})
-
-	f.InstantiateFactory.Initialize(cmap.New(), []*factory.MetaData{})
-	f.Initialize(configContainers)
+	f := autoconfigure.NewConfigurableFactory(
+		instantiate.NewInstantiateFactory(cmap.New(), []*factory.MetaData{}),
+		configContainers,
+	)
 
 	t.Run("should set factory instance", func(t *testing.T) {
-		err := f.SetInstance(factory.InstantiateFactoryName, f.InstantiateFactory)
+		err = f.SetInstance(factory.InstantiateFactoryName, f)
 		assert.Equal(t, nil, err)
 
 		f.SetInstance(factory.ConfigurableFactoryName, f)
@@ -315,7 +304,7 @@ func TestConfigurableFactory(t *testing.T) {
 
 	t.Run("should build app config", func(t *testing.T) {
 		io.ChangeWorkDir(os.TempDir())
-		_, err := f.BuildSystemConfig()
+		_, err = f.BuildSystemConfig()
 		assert.Equal(t, nil, err)
 	})
 

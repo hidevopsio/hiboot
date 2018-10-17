@@ -13,14 +13,3 @@
 // limitations under the License.
 
 package model_test
-
-import "github.com/hidevopsio/hiboot/pkg/model"
-
-//This example shows that the request body definition
-func Example_RequestBody() {
-	type UserRequest struct {
-		model.RequestBody
-		Username string
-		Password string
-	}
-}

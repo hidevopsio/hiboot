@@ -14,7 +14,7 @@
 
 package locale
 
-type Properties struct {
+type properties struct {
 	Default      string `json:"default" default:"en-US"`
 	URLParameter string `json:"url_parameter" default:"lang"`
 	LocalePath   string `json:"locale_path" default:"config/i18n/"`

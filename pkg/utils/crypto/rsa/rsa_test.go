@@ -45,7 +45,7 @@ func TestExeptions(t *testing.T) {
 	t.Run("should report error with invalid public key", func(t *testing.T) {
 		src := []byte("hello")
 		_, err := Encrypt([]byte(src), []byte("invalid-key"))
-		assert.Equal(t, crypto.InvalidPublicKeyError, err)
+		assert.Equal(t, crypto.ErrInvalidPublicKey, err)
 	})
 
 	t.Run("should report error with invalid public key", func(t *testing.T) {
@@ -65,12 +65,12 @@ func TestExeptions(t *testing.T) {
 		src := []byte("hello")
 		data, _ := Encrypt([]byte(src))
 		_, err := Decrypt(data, []byte("invalid-key"))
-		assert.Equal(t, crypto.InvalidPrivateKeyError, err)
+		assert.Equal(t, crypto.ErrInvalidPrivateKey, err)
 	})
 
 	t.Run("should report error with invalid base64 string", func(t *testing.T) {
 		src := []byte("invalid-base64")
 		_, err := DecryptBase64([]byte(src))
-		assert.Equal(t, crypto.InvalidInputError, err)
+		assert.Equal(t, crypto.ErrInvalidInput, err)
 	})
 }

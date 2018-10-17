@@ -28,13 +28,13 @@ func GetTestApplication(t *testing.T) web.TestApplication {
 func TestFooGet(t *testing.T) {
 	GetTestApplication(t).
 		Get("/foo").
-		WithQueryObject(FooRequest{Name: "Peter", Age: 18}).
+		WithQueryObject(fooRequest{Name: "Peter", Age: 18}).
 		Expect().Status(http.StatusOK)
 }
 
 func TestFooPost(t *testing.T) {
 	GetTestApplication(t).
 		Post("/foo").
-		WithJSON(FooRequest{Name: "Mike", Age: 18}).
+		WithJSON(fooRequest{Name: "Mike", Age: 18}).
 		Expect().Status(http.StatusOK)
 }

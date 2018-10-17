@@ -15,10 +15,12 @@
 package grpc_test
 
 import (
+	"github.com/golang/mock/gomock"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
+	mockproto "github.com/hidevopsio/hiboot/pkg/starter/grpc/mock"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/examples/helloworld/helloworld"
@@ -69,21 +71,16 @@ func TestGrpcServerAndClient(t *testing.T) {
 
 	applicationContext := testApp.(app.ApplicationContext)
 
-	t.Run("should find grpc client and call its services", func(t *testing.T) {
+	t.Run("should find gRpc client and call its services", func(t *testing.T) {
 		cliSvc := applicationContext.GetInstance(greeterClientService{})
 		assert.NotEqual(t, nil, cliSvc)
 		if cliSvc != nil {
 			greeterCliSvc := cliSvc.(*greeterClientService)
 			assert.NotEqual(t, nil, greeterCliSvc.greeterClient)
-
-			//name := "Steve"
-			//response, err := greeterCliSvc.SayHello(name)
-			//assert.Equal(t, nil, err)
-			//assert.Equal(t, "Hello "+name, response.Message)
 		}
 	})
 
-	t.Run("should connnect to grpc service at runtime", func(t *testing.T) {
+	t.Run("should connect to gRpc service at runtime", func(t *testing.T) {
 		cc := applicationContext.GetInstance("grpc.clientConnector").(grpc.ClientConnector)
 		assert.NotEqual(t, nil, cc)
 		prop := new(grpc.ClientProperties)
@@ -91,5 +88,24 @@ func TestGrpcServerAndClient(t *testing.T) {
 		grpcCli, err := cc.Connect("", helloworld.NewGreeterClient, prop)
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, nil, grpcCli)
+	})
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockGreeterClient := mockproto.NewMockGreeterClient(ctrl)
+
+	t.Run("should get message from mock gRpc client indirectly", func(t *testing.T) {
+		cliSvc := newGreeterClientService(mockGreeterClient)
+		assert.NotEqual(t, nil, cliSvc)
+		if cliSvc != nil {
+			req := &helloworld.HelloRequest{Name: "Steve"}
+			mockGreeterClient.EXPECT().SayHello(
+				gomock.Any(),
+				&mockproto.RPCMsg{Message: req},
+			).Return(&helloworld.HelloReply{Message: "Hello " + req.Name}, nil)
+			resp, err := cliSvc.SayHello("Steve")
+			assert.Equal(t, nil, err)
+			assert.Equal(t, "Hello "+req.Name, resp.Message)
+		}
 	})
 }

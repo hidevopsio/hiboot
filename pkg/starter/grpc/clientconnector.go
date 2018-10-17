@@ -9,7 +9,8 @@ import (
 
 // ClientConnector interface is response for creating grpc client connection
 type ClientConnector interface {
-	Connect(name string, cb interface{}, prop *ClientProperties) (gRpcCli interface{}, err error)
+	// Connect connect the gRPC client
+	Connect(name string, cb interface{}, prop *ClientProperties) (gRPCCli interface{}, err error)
 }
 
 type clientConnector struct {
@@ -27,7 +28,7 @@ func newClientConnector(instantiateFactory factory.InstantiateFactory) ClientCon
 // name: client name
 // clientConstructor: client constructor
 // properties: properties for configuring
-func (c *clientConnector) Connect(name string, clientConstructor interface{}, properties *ClientProperties) (gRpcCli interface{}, err error) {
+func (c *clientConnector) Connect(name string, clientConstructor interface{}, properties *ClientProperties) (gRPCCli interface{}, err error) {
 	host := properties.Host
 	if host == "" {
 		host = name
@@ -44,7 +45,7 @@ func (c *clientConnector) Connect(name string, clientConstructor interface{}, pr
 	}
 	if err == nil && clientConstructor != nil {
 		// get return type for register instance name
-		gRpcCli, err = reflector.CallFunc(clientConstructor, conn)
+		gRPCCli, err = reflector.CallFunc(clientConstructor, conn)
 	}
 	return
 }

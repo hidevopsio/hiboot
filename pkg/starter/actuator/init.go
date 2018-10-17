@@ -16,6 +16,7 @@
 package actuator
 
 import (
+	// import from package starter/actuator
 	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator/controller"
 )
 

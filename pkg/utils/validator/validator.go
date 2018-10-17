@@ -19,6 +19,7 @@ import (
 	"gopkg.in/go-playground/validator.v8"
 )
 
+// Validate is the instance of the validator
 var Validate *validator.Validate
 
 func init() {

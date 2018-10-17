@@ -3,6 +3,7 @@ package aes
 import (
 	"crypto/aes"
 	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/utils/crypto"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -20,7 +21,7 @@ func TestEncrypt(t *testing.T) {
 	})
 
 	// encrypt base64 crypto to original value
-	t.Run("should report too aes.KeySizeError(3) error", func(t *testing.T) {
+	t.Run("should report to aes.KeySizeError(3) error", func(t *testing.T) {
 		_, err := Encrypt([]byte("abc"), originalText)
 		assert.Equal(t, aes.KeySizeError(3), err)
 	})
@@ -33,6 +34,14 @@ func TestEncrypt(t *testing.T) {
 		assert.Equal(t, nil, err)
 		assert.Equal(t, originalText, text)
 	})
+
+	t.Run("should decrypt with aes protocol", func(t *testing.T) {
+		cryptoText, err := Encrypt(key, originalText)
+		assert.Equal(t, nil, err)
+		_, err = Decrypt(key[4:], cryptoText[40:])
+		assert.Equal(t, crypto.ErrCipherTooShort, err)
+	})
+
 	// encrypt base64 crypto to original value
 	t.Run("should decrypt with aes protocol", func(t *testing.T) {
 		cryptoText, err := Encrypt(key, originalText)

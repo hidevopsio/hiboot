@@ -16,5 +16,12 @@
 Package model provides common request and response models.
 
 
+	// UserRequest is the request body
+	type UserRequest struct {
+		model.RequestBody	// annotation RequestBody
+		Username string		`validate:"required"`
+		Password string 	`validate:"required"`
+	}
+
 */
 package model

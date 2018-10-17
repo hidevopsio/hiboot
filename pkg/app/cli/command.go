@@ -25,23 +25,41 @@ import (
 	"strings"
 )
 
+// Command the command interface for cli application
 type Command interface {
+	// EmbeddedCommand return the embedded command
 	EmbeddedCommand() *cobra.Command
+	// Add add a new command
 	Add(commands ...Command) Command
+	// HasChild check if it has child
 	HasChild() bool
+	// Children get children
 	Children() []Command
+	// Exec execute the command
 	Exec() error
+	// GetName get the command name
 	GetName() string
+	// FullName get the command full name
 	FullName() string
+	// SetName set the command name
 	SetName(name string) Command
+	// SetFullName set the command full name
 	SetFullName(name string) Command
+	// Parent get parent command
 	Parent() Command
+	// SetParent set parent command
 	SetParent(p Command) Command
+	// Run the callback of command, once the command is received, this method will be called
 	Run(args []string) error
+	// Find find child command
 	Find(name string) (Command, error)
+	// SetOutput set output, type: io.Writer
 	SetOutput(output io.Writer)
+	// SetArgs set args
 	SetArgs(a []string)
+	// ExecuteC execute command
 	ExecuteC() (cmd *cobra.Command, err error)
+	// PersistentFlags get persistent flags
 	PersistentFlags() *flag.FlagSet
 }
 
@@ -52,7 +70,7 @@ const (
 // ErrCommandNotFound command not found error
 var ErrCommandNotFound = errors.New("command not found")
 
-// ErrCommandHandlerNotFound
+// ErrCommandHandlerNotFound the error message for 'command handler not found'
 var ErrCommandHandlerNotFound = errors.New("command handler not found")
 
 // BaseCommand is the base command
