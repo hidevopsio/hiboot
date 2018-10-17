@@ -2,7 +2,7 @@
 // Source: github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf (interfaces: HolaServiceClient)
 
 // Package mock_protobuf is a generated GoMock package.
-package mock_protobuf
+package mock
 
 import (
 	context "context"
