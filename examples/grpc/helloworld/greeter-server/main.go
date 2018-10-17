@@ -31,6 +31,10 @@ import (
 type helloServiceServerImpl struct {
 }
 
+func newHelloServiceServer() protobuf.HelloServiceServer {
+	return &helloServiceServerImpl{}
+}
+
 // SayHello implements helloworld.GreeterServer
 func (s *helloServiceServerImpl) SayHello(ctx context.Context, request *protobuf.HelloRequest) (*protobuf.HelloReply, error) {
 	// response to client
@@ -39,6 +43,10 @@ func (s *helloServiceServerImpl) SayHello(ctx context.Context, request *protobuf
 
 // server is used to implement protobuf.GreeterServer.
 type holaServiceServerImpl struct {
+}
+
+func newHolaServiceServer() protobuf.HolaServiceServer {
+	return &holaServiceServerImpl{}
 }
 
 // SayHello implements helloworld.GreeterServer
@@ -50,8 +58,8 @@ func (s *holaServiceServerImpl) SayHola(ctx context.Context, request *protobuf.H
 func init() {
 	// must: register grpc server
 	// please note that greeterService must implement protobuf.GreeterServer, or it won't be registered.
-	grpc.Server(protobuf.RegisterHelloServiceServer, new(helloServiceServerImpl))
-	grpc.Server(protobuf.RegisterHolaServiceServer, new(holaServiceServerImpl))
+	grpc.Server(protobuf.RegisterHelloServiceServer, newHelloServiceServer)
+	grpc.Server(protobuf.RegisterHolaServiceServer, newHolaServiceServer)
 }
 
 func main() {
