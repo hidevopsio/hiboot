@@ -19,7 +19,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
-// FirstCommand is the root command
+// RootCommand is the root command
 type RootCommand struct {
 	// embedded cli.BaseCommand
 	cli.BaseCommand
