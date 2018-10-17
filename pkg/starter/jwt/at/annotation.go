@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package annotation provides annotations for jwt controller
+// Package at provides annotations for jwt controller
 package at
 
 // JwtRestController is the annotation for JWT REST Controller

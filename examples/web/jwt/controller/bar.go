@@ -23,8 +23,8 @@ import (
 	"strings"
 )
 
-type Bar struct {
-	Greeting string
+type bar struct {
+	greeting string
 }
 
 type barController struct {
@@ -39,6 +39,7 @@ func newBarController() *barController {
 	return &barController{}
 }
 
+// Get method GET /bar
 func (c *barController) Get() (response model.Response) {
 	username := c.JwtProperty("username")
 	password := c.JwtProperty("password")
@@ -49,6 +50,6 @@ func (c *barController) Get() (response model.Response) {
 	response = new(model.BaseResponse)
 	response.SetCode(http.StatusOK)
 	response.SetMessage("success")
-	response.SetData(&Bar{Greeting: "Hello " + username})
+	response.SetData(&bar{greeting: "Hello " + username})
 	return
 }

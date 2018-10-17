@@ -1,17 +1,17 @@
-package mock_protobuf
+package mock
 
 import (
 	"fmt"
 	"github.com/golang/protobuf/proto"
 )
 
-// RpcMsg implements the gomock.Matcher interface
-type RpcMsg struct {
+// RPCMsg implements the gomock.Matcher interface
+type RPCMsg struct {
 	Message proto.Message
 }
 
 // Matches return matches message
-func (r *RpcMsg) Matches(msg interface{}) bool {
+func (r *RPCMsg) Matches(msg interface{}) bool {
 	m, ok := msg.(proto.Message)
 	if !ok {
 		return false
@@ -20,6 +20,6 @@ func (r *RpcMsg) Matches(msg interface{}) bool {
 }
 
 // String return message in string
-func (r *RpcMsg) String() string {
+func (r *RPCMsg) String() string {
 	return fmt.Sprintf("is %s", r.Message)
 }

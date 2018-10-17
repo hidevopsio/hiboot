@@ -24,9 +24,10 @@ import (
 	"io/ioutil"
 )
 
-// JwtMap is the JWT map
+// Map is the JWT map
 type Map map[string]interface{}
 
+// Token is the token interface
 type Token interface {
 	Generate(payload Map, expired int64, unit time.Duration) (string, error)
 	VerifyKey() *rsa.PublicKey

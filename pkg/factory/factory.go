@@ -22,10 +22,13 @@ import (
 )
 
 const (
-	InstantiateFactoryName  = "factory.instantiateFactory"
+	// InstantiateFactoryName is the instance name of factory.instantiateFactory
+	InstantiateFactoryName = "factory.instantiateFactory"
+	// ConfigurableFactoryName is the instance name of factory.configurableFactory
 	ConfigurableFactoryName = "factory.configurableFactory"
 )
 
+// Factory interface
 type Factory interface{}
 
 // InstantiateFactory instantiate factory interface
@@ -36,6 +39,7 @@ type InstantiateFactory interface {
 	GetInstances(name string) (retVal []interface{})
 	Items() map[string]interface{}
 	AppendComponent(c ...interface{})
+	BuildComponents() (err error)
 }
 
 // ConfigurableFactory configurable factory interface
@@ -43,6 +47,9 @@ type ConfigurableFactory interface {
 	InstantiateFactory
 	SystemConfiguration() *system.Configuration
 	Configuration(name string) interface{}
+	//Initialize(configurations cmap.ConcurrentMap) (err error)
+	BuildSystemConfig() (systemConfig *system.Configuration, err error)
+	Build(configs []*MetaData)
 }
 
 // Configuration configuration interface
@@ -51,6 +58,7 @@ type Configuration interface {
 
 type depsMap map[string][]string
 
+// Deps the dependency mapping of configuration
 type Deps struct {
 	deps depsMap
 }
@@ -61,6 +69,7 @@ func (c *Deps) ensure() {
 	}
 }
 
+// Get get the dependencies mapping
 func (c *Deps) Get(name string) (deps []string) {
 	c.ensure()
 
@@ -69,6 +78,7 @@ func (c *Deps) Get(name string) (deps []string) {
 	return
 }
 
+// Set set dependencies
 func (c *Deps) Set(dep interface{}, value []string) {
 	c.ensure()
 	var name string

@@ -15,14 +15,21 @@
 package model
 
 var (
-	RequestTypeBody   = "RequestBody"
+	// RequestTypeBody means it is RequestBody
+	RequestTypeBody = "RequestBody"
+	// RequestTypeParams means it is RequestParams
 	RequestTypeParams = "RequestParams"
-	RequestTypeForm   = "RequestForm"
-	Context           = "Context"
+	// RequestTypeForm means it is RequestForm
+	RequestTypeForm = "RequestForm"
+	// Context means it is Context
+	Context = "Context"
 )
 
+// RequestBody the annotation RequestBody
 type RequestBody struct{}
 
+// RequestForm the annotation RequestForm
 type RequestForm struct{}
 
+// RequestParams the annotation RequestParams
 type RequestParams struct{}

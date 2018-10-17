@@ -14,6 +14,7 @@
 
 package logging
 
+// Properties is the logging properties
 type Properties struct {
 	Level       string   `json:"level" default:"info"`
 	Status      bool     `json:"status" default:"true"`

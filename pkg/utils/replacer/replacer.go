@@ -26,13 +26,16 @@ import (
 )
 
 const (
+	// EmptyString is the empty string ""
 	EmptyString = ""
 )
 
 var (
-	NilPointerError    = errors.New("nil pointer error")
-	InvalidObjectError = errors.New("invalid object")
-	compiledRegExp     = regexp.MustCompile(`\$\{(.*?)\}`)
+	// ErrNilPointer nil pointer error
+	ErrNilPointer = errors.New("nil pointer error")
+	// ErrInvalidObject invalid object error
+	ErrInvalidObject = errors.New("invalid object")
+	compiledRegExp   = regexp.MustCompile(`\$\{(.*?)\}`)
 )
 
 // ParseVariables parse reference and env variables
@@ -44,6 +47,7 @@ func ParseVariables(src string, re *regexp.Regexp) [][]string {
 	return matches
 }
 
+// GetMatches get compiled matches
 func GetMatches(source string) [][]string {
 	return ParseVariables(source, compiledRegExp)
 }
@@ -100,11 +104,12 @@ func GetFieldValue(f interface{}, name string) (retVal reflect.Value, err error)
 		retVal = reflect.Indirect(r).FieldByName(name)
 	} else {
 		//log.Warn("invalid value")
-		err = InvalidObjectError
+		err = ErrInvalidObject
 	}
 	return
 }
 
+// GetReferenceValue get the value of the reference, e.g. ${app.name}
 func GetReferenceValue(object interface{}, name string) (reflect.Value, error) {
 	capitalizedVarName := strings.Title(name)
 	retVal, err := GetFieldValue(object, capitalizedVarName)
@@ -149,7 +154,7 @@ func ParseReferences(st interface{}, varName []string) interface{} {
 // ReplaceMap replace references and env variables
 func ReplaceMap(m map[string]interface{}, root interface{}) error {
 	if root == nil {
-		return NilPointerError
+		return ErrNilPointer
 	}
 	for k, v := range m {
 		// log.Println(k, ": ", v)

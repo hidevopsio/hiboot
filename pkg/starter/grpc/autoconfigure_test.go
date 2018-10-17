@@ -20,7 +20,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
-	mockproto "github.com/hidevopsio/hiboot/pkg/starter/grpc/mock_protobuf"
+	mockproto "github.com/hidevopsio/hiboot/pkg/starter/grpc/mock"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/examples/helloworld/helloworld"
@@ -101,7 +101,7 @@ func TestGrpcServerAndClient(t *testing.T) {
 			req := &helloworld.HelloRequest{Name: "Steve"}
 			mockGreeterClient.EXPECT().SayHello(
 				gomock.Any(),
-				&mockproto.RpcMsg{Message: req},
+				&mockproto.RPCMsg{Message: req},
 			).Return(&helloworld.HelloReply{Message: "Hello " + req.Name}, nil)
 			resp, err := cliSvc.SayHello("Steve")
 			assert.Equal(t, nil, err)

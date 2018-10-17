@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestApplicationInterface the test web application interface for unit test only
+// TestApplication the test web application interface for unit test only
 type TestApplication interface {
 	app.Application
 	RunTestServer(t *testing.T) (expect *httpexpect.Expect, err error)

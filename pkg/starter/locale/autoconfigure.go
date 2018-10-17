@@ -27,7 +27,7 @@ import (
 
 type configuration struct {
 	app.Configuration
-	Properties         Properties `mapstructure:"locale"`
+	Properties         properties `mapstructure:"locale"`
 	applicationContext app.ApplicationContext
 }
 

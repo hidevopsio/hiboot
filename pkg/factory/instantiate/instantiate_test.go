@@ -65,7 +65,7 @@ func TestInstantiateFactory(t *testing.T) {
 	type foo struct{ Name string }
 	f := new(foo)
 
-	appFactory := new(instantiate.InstantiateFactory)
+	appFactory := instantiate.NewInstantiateFactory(nil, nil)
 	testName := "foobar"
 	t.Run("should failed to set/get instance when factory is not initialized", func(t *testing.T) {
 		inst := appFactory.GetInstance("not-exist-instance")
@@ -95,8 +95,8 @@ func TestInstantiateFactory(t *testing.T) {
 		factory.NewMetaData(newFooBarService))
 
 	ic := cmap.New()
+	appFactory = instantiate.NewInstantiateFactory(ic, testComponents)
 	t.Run("should initialize factory", func(t *testing.T) {
-		appFactory.Initialize(ic, testComponents)
 		assert.Equal(t, true, appFactory.Initialized())
 	})
 
@@ -134,21 +134,6 @@ func TestInstantiateFactory(t *testing.T) {
 	t.Run("should get factory items", func(t *testing.T) {
 		items := appFactory.Items()
 		assert.NotEqual(t, 0, len(items))
-	})
-
-	t.Run("should check valid object", func(t *testing.T) {
-		assert.Equal(t, true, appFactory.IsValidObjectType(f))
-	})
-
-	t.Run("should check invalid object", func(t *testing.T) {
-		assert.Equal(t, false, appFactory.IsValidObjectType(1))
-	})
-
-	t.Run("should append component", func(t *testing.T) {
-		appFactory.AppendComponent(&struct {
-			Name string
-		}{Name: "foo"})
-		assert.Equal(t, false, appFactory.IsValidObjectType(1))
 	})
 }
 

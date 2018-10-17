@@ -151,7 +151,7 @@ func TestReplaceMap(t *testing.T) {
 	assert.Equal(t, "nested bar", b.SubMap["nestedMap"].(map[string]interface{})["name"])
 
 	err = ReplaceMap(nil, nil)
-	assert.Equal(t, NilPointerError, err)
+	assert.Equal(t, ErrNilPointer, err)
 }
 
 func TestReplaceVariable(t *testing.T) {
@@ -265,7 +265,7 @@ func TestGetReferenceValue(t *testing.T) {
 
 	t.Run("should failed to get reference value", func(t *testing.T) {
 		_, err := GetReferenceValue((*FooBar)(nil), "foo")
-		assert.Equal(t, InvalidObjectError, err)
+		assert.Equal(t, ErrInvalidObject, err)
 	})
 }
 
