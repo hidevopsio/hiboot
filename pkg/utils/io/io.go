@@ -40,7 +40,7 @@ func GetWorkDir() string {
 // EnsureWorkDir ensure the working dir is set the correct dir specified by user
 func EnsureWorkDir(skip int, dir string) (ok bool) {
 	var p string
-	if _, file, _, ok := runtime.Caller(skip); ok && strings.Contains(os.Args[0], "go_build_") {
+	if _, file, _, found := runtime.Caller(skip); found && strings.Contains(os.Args[0], "go_build_") {
 		p = BaseDir(file)
 	} else {
 		p = GetWorkDir()

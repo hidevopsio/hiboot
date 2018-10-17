@@ -586,10 +586,23 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 		foo := new(Foo)
 		expectedTyp := reflect.TypeOf(foo)
 		method, ok := expectedTyp.MethodByName("SetNickname")
+		assert.Equal(t, true, ok)
 		typ, ok := GetFuncOutType(method)
 		assert.Equal(t, true, ok)
 		assert.Equal(t, "Foo", typ.Name())
 
+	})
+
+	t.Run("should check valid object", func(t *testing.T) {
+		assert.Equal(t, true, IsValidObjectType(&Foo{}))
+	})
+
+	t.Run("should check invalid object", func(t *testing.T) {
+		assert.Equal(t, false, IsValidObjectType(1))
+	})
+
+	t.Run("should append component", func(t *testing.T) {
+		assert.Equal(t, false, IsValidObjectType(1))
 	})
 }
 

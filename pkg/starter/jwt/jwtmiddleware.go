@@ -25,7 +25,7 @@ import (
 	"github.com/kataras/iris/context"
 )
 
-// JwtMiddleware derrived from github.com/iris-contrib/middleware/jwt/Middleware
+// Middleware derived from github.com/iris-contrib/middleware/jwt/Middleware
 type Middleware struct {
 	mwjwt.Middleware
 }

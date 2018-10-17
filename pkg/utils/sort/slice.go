@@ -19,22 +19,26 @@ import (
 	"sort"
 )
 
-type ByLen []string
+type byLen []string
 
-func (a ByLen) Len() int {
+// get slice length
+func (a byLen) Len() int {
 	return len(a)
 }
 
-func (a ByLen) Less(i, j int) bool {
+// Less check which element is less
+func (a byLen) Less(i, j int) bool {
 	return len(a[i]) < len(a[j])
 }
 
-func (a ByLen) Swap(i, j int) {
+// Swap swap elements
+func (a byLen) Swap(i, j int) {
 	a[i], a[j] = a[j], a[i]
 }
 
-func SortByLen(s []string) {
+// ByLen sort by length
+func ByLen(s []string) {
 
-	sort.Sort(ByLen(s))
+	sort.Sort(byLen(s))
 
 }

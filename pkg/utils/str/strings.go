@@ -22,6 +22,7 @@ import (
 	"unicode"
 )
 
+// EmptyString the empty string ""
 const EmptyString = ""
 
 // UpperFirst upper case first character of specific string

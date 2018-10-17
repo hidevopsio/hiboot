@@ -8,6 +8,6 @@ import (
 func TestSortByLen(t *testing.T) {
 	s := []string{"a", "bb", "ccc", "d", "ee", "fff"}
 	sorted := []string{"a", "d", "bb", "ee", "ccc", "fff"}
-	SortByLen(s)
+	ByLen(s)
 	assert.Equal(t, s, sorted)
 }

@@ -25,7 +25,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system/types"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"reflect"
 )
 
 var (
@@ -37,43 +36,34 @@ var (
 )
 
 // InstantiateFactory is the factory that responsible for object instantiation
-type InstantiateFactory struct {
+type instantiateFactory struct {
 	instanceMap cmap.ConcurrentMap
 	components  []*factory.MetaData
 	categorized map[string][]interface{}
 }
 
-// Initialize init the factory
-func (f *InstantiateFactory) Initialize(instanceMap cmap.ConcurrentMap, components []*factory.MetaData) {
-	f.instanceMap = instanceMap
-	f.components = components
-	f.categorized = make(map[string][]interface{})
+// NewInstantiateFactory the constructor of instantiateFactory
+func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory.MetaData) factory.InstantiateFactory {
+	return &instantiateFactory{
+		instanceMap: instanceMap,
+		components:  components,
+		categorized: make(map[string][]interface{}),
+	}
 }
 
 // Initialized check if factory is initialized
-func (f *InstantiateFactory) Initialized() bool {
+func (f *instantiateFactory) Initialized() bool {
 	return f.instanceMap != nil
 }
 
-// IsValidObjectType check if is valid object type
-func (f *InstantiateFactory) IsValidObjectType(inst interface{}) bool {
-	val := reflect.ValueOf(inst)
-	//log.Println(val.Kind())
-	//log.Println(reflect.Indirect(val).Kind())
-	if val.Kind() == reflect.Ptr && reflect.Indirect(val).Kind() == reflect.Struct {
-		return true
-	}
-	return false
-}
-
 // AppendComponent append component
-func (f *InstantiateFactory) AppendComponent(c ...interface{}) {
+func (f *instantiateFactory) AppendComponent(c ...interface{}) {
 	metaData := factory.NewMetaData(c...)
 	f.components = append(f.components, metaData)
 }
 
 // BuildComponents build all registered components
-func (f *InstantiateFactory) BuildComponents() (err error) {
+func (f *instantiateFactory) BuildComponents() (err error) {
 	// first resolve the dependency graph
 	var resolved []*factory.MetaData
 	resolved, err = depends.Resolve(f.components)
@@ -120,7 +110,7 @@ func (f *InstantiateFactory) BuildComponents() (err error) {
 }
 
 // SetInstance save instance
-func (f *InstantiateFactory) SetInstance(params ...interface{}) (err error) {
+func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 	if !f.Initialized() {
 		return ErrNotInitialized
 	}
@@ -146,7 +136,7 @@ func (f *InstantiateFactory) SetInstance(params ...interface{}) (err error) {
 }
 
 // GetInstance get instance by name
-func (f *InstantiateFactory) GetInstance(params ...interface{}) (retVal interface{}) {
+func (f *instantiateFactory) GetInstance(params ...interface{}) (retVal interface{}) {
 	if !f.Initialized() {
 		return nil
 	}
@@ -164,7 +154,7 @@ func (f *InstantiateFactory) GetInstance(params ...interface{}) (retVal interfac
 }
 
 // GetInstances get instance by name
-func (f *InstantiateFactory) GetInstances(name string) (retVal []interface{}) {
+func (f *instantiateFactory) GetInstances(name string) (retVal []interface{}) {
 	//items := f.Items()
 	//log.Debug(items)
 	if f.Initialized() {
@@ -174,7 +164,7 @@ func (f *InstantiateFactory) GetInstances(name string) (retVal []interface{}) {
 }
 
 // Items return instance map
-func (f *InstantiateFactory) Items() map[string]interface{} {
+func (f *instantiateFactory) Items() map[string]interface{} {
 	if !f.Initialized() {
 		return nil
 	}

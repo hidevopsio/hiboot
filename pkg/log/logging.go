@@ -121,7 +121,7 @@ func SetTimeFormat(s string) {
 // "debug"
 //
 
-// Alternatively you can use the exported `golog.Level` field, i.e `golog.Level = golog.ErrorLevel`
+// SetLevel alternatively you can use the exported `golog.Level` field, i.e `golog.Level = golog.ErrorLevel`
 func SetLevel(levelName string) {
 	golog.SetLevel(levelName)
 }

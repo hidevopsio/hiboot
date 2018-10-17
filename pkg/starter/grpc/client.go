@@ -18,16 +18,16 @@ func newClientFactory(instantiateFactory factory.InstantiateFactory, properties 
 	cf := &clientFactory{}
 
 	clientProps := properties.Client
-	var gRpcCli interface{}
+	var gRPCCli interface{}
 	for _, cli := range grpcClients {
 		prop := new(ClientProperties)
 		err := mapstruct.Decode(prop, clientProps[cli.name])
 		if err == nil {
-			gRpcCli, err = cc.Connect(cli.name, cli.cb, prop)
+			gRPCCli, err = cc.Connect(cli.name, cli.cb, prop)
 			if err == nil {
-				clientInstanceName := reflector.GetName(gRpcCli)
+				clientInstanceName := reflector.GetName(gRPCCli)
 				// register grpc client
-				instantiateFactory.SetInstance(clientInstanceName, gRpcCli)
+				instantiateFactory.SetInstance(clientInstanceName, gRPCCli)
 
 				log.Infof("Registered gRPC client %v", clientInstanceName)
 			}

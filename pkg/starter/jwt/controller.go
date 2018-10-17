@@ -21,7 +21,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt/at"
 )
 
-// JwtController is the base web controller that enabled JWT
+// Controller is the base web controller that enabled JWT
 type Controller struct {
 	at.JwtRestController
 	web.Controller
@@ -32,7 +32,7 @@ func (c *Controller) ParseToken(claims jwt.MapClaims, prop string) string {
 	return fmt.Sprintf("%v", claims[prop])
 }
 
-// GetJwtProperty is an util that parsing JWT token and return single property from jwt.MapClaims
+// JwtProperty is an util that parsing JWT token and return single property from jwt.MapClaims
 func (c *Controller) JwtProperty(propName string) (propVal string) {
 	claims, ok := c.JwtProperties()
 	if ok {
@@ -41,7 +41,7 @@ func (c *Controller) JwtProperty(propName string) (propVal string) {
 	return
 }
 
-// GetJwtProperty is an util that parsing JWT token and return all properties from jwt.MapClaims
+// JwtProperties is an util that parsing JWT token and return all properties from jwt.MapClaims
 func (c *Controller) JwtProperties() (propMap map[string]interface{}, ok bool) {
 	var token *jwt.Token
 	if c.Ctx != nil {
@@ -59,7 +59,7 @@ func (c *Controller) JwtProperties() (propMap map[string]interface{}, ok bool) {
 	return
 }
 
-// GetJwtProperty is an util that parsing JWT token and return all properties in string from jwt.MapClaims
+// JwtPropertiesString is an util that parsing JWT token and return all properties in string from jwt.MapClaims
 func (c *Controller) JwtPropertiesString() (propMap map[string]string, ok bool) {
 	propMap = make(map[string]string)
 

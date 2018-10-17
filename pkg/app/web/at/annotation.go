@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package web/annotation provides annotations for web RestController
+// Package at provides annotations for web RestController
 package at
 
 // RestController is the annotation that declare current controller is the RESTful Controller

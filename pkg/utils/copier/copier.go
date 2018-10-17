@@ -13,6 +13,26 @@
 // limitations under the License.
 
 // Notes: this source code is originally copied from https://github.com/jinzhu/copier
+// The MIT License (MIT)
+//
+// Copyright (c) 2015 Jinzhu
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy of
+// this software and associated documentation files (the "Software"), to deal in
+// the Software without restriction, including without limitation the rights to
+// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+// the Software, and to permit persons to whom the Software is furnished to do so,
+// subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+// FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+// CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Package copier provides utility that copy element between structs
 package copier
@@ -31,7 +51,9 @@ func set(to, from reflect.Value) bool {
 			if from.Kind() == reflect.Ptr && from.IsNil() {
 				to.Set(reflect.Zero(to.Type()))
 				return true
-			} else if to.IsNil() {
+			}
+
+			if to.IsNil() {
 				to.Set(reflect.New(to.Type().Elem()))
 			}
 			to = to.Elem()
@@ -48,10 +70,8 @@ func set(to, from reflect.Value) bool {
 			return set(to, from.Elem())
 		}
 		return false
-	} else {
-		return false
 	}
-	return true
+	return false
 }
 
 // Copy copy things

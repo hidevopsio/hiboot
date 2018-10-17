@@ -231,7 +231,7 @@ func GetName(data interface{}) (name string) {
 	return
 }
 
-// GetLowerCaseObjectName get lower case object name
+// GetLowerCamelName get lower case object name
 func GetLowerCamelName(object interface{}) (name string) {
 	name = GetName(object)
 	name = str.ToLowerCamel(name)
@@ -278,9 +278,8 @@ func CallFunc(object interface{}, args ...interface{}) (interface{}, error) {
 		results := fn.Call(inputs)
 		if len(results) != 0 {
 			return results[0].Interface(), nil
-		} else {
-			return nil, nil
 		}
+		return nil, nil
 	}
 	return nil, ErrInvalidFunc
 }
@@ -296,7 +295,7 @@ func HasEmbeddedField(object interface{}, name string) bool {
 	return field.Anonymous && ok
 }
 
-// GetEmbeddedInterfaceFieldByType get embedded interface field by type
+// GetEmbeddedFieldByType get embedded interface field by type
 func GetEmbeddedFieldByType(typ reflect.Type, kind ...reflect.Kind) (field reflect.StructField) {
 	expectedKind := reflect.Interface
 	if len(kind) > 0 {
@@ -308,16 +307,15 @@ func GetEmbeddedFieldByType(typ reflect.Type, kind ...reflect.Kind) (field refle
 			if v.Anonymous {
 				if v.Type.Kind() == expectedKind {
 					return v
-				} else {
-					return GetEmbeddedFieldByType(v.Type)
 				}
+				return GetEmbeddedFieldByType(v.Type)
 			}
 		}
 	}
 	return
 }
 
-// GetEmbeddedInterfaceField get embedded interface field
+// GetEmbeddedField get embedded interface field
 func GetEmbeddedField(object interface{}, dataTypes ...reflect.Kind) (field reflect.StructField) {
 	if object == nil {
 		return
@@ -347,7 +345,7 @@ func ParseObjectName(obj interface{}, eliminator string) string {
 	return name
 }
 
-// ParseObjectName e.g. ExampleObject => example
+// ParseObjectPkgName e.g. ExampleObject => example
 func ParseObjectPkgName(obj interface{}) string {
 
 	typ := IndirectType(reflect.TypeOf(obj))
@@ -422,10 +420,21 @@ func GetPkgAndName(object interface{}) (pkgName, name string) {
 	return
 }
 
-// GetFullNameByType get the object name with package name by type, e.g. pkg.Object
+// GetLowerCamelFullNameByType get the object name with package name by type, e.g. pkg.Object
 func GetLowerCamelFullNameByType(objType reflect.Type) (name string) {
 	indTyp := IndirectType(objType)
 	depPkgName := io.DirName(indTyp.PkgPath())
 	name = depPkgName + "." + str.ToLowerCamel(indTyp.Name())
 	return
+}
+
+// IsValidObjectType check if is valid object type
+func IsValidObjectType(inst interface{}) bool {
+	val := reflect.ValueOf(inst)
+	//log.Println(val.Kind())
+	//log.Println(reflect.Indirect(val).Kind())
+	if val.Kind() == reflect.Ptr && reflect.Indirect(val).Kind() == reflect.Struct {
+		return true
+	}
+	return false
 }

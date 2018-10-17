@@ -248,7 +248,7 @@ var (
 	fakeUrl    = "http://fake.com/api/foo"
 	defaultUrl = "http://localhost:8080"
 
-	cf *autoconfigure.ConfigurableFactory
+	cf factory.ConfigurableFactory
 )
 
 type Hello string
@@ -309,10 +309,9 @@ func TestInject(t *testing.T) {
 
 	instances := cmap.New()
 	configurations := cmap.New()
-	cf = new(autoconfigure.ConfigurableFactory)
-	cf.InstantiateFactory = new(instantiate.InstantiateFactory)
-	cf.InstantiateFactory.Initialize(instances, []*factory.MetaData{})
-	cf.Initialize(configurations)
+	cf = autoconfigure.NewConfigurableFactory(
+		instantiate.NewInstantiateFactory(instances, []*factory.MetaData{}),
+		configurations)
 	cf.BuildSystemConfig()
 
 	cf.SetInstance("inject_test.hello", Hello("Hello"))
