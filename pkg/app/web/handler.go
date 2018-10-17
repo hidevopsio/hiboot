@@ -147,7 +147,6 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 		h.responses[i].kind = typ.Kind()
 		h.responses[i].typeName = typ.Name()
 		//log.Debug(h.responses[i])
-
 	}
 }
 

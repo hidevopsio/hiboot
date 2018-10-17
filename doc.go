@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/* Package hiboot is a web/cli app application framework
+/*Package hiboot is a web/cli app application framework
 
 Hiboot is a cloud native web and cli application framework written in Go.
 

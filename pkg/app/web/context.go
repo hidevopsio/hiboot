@@ -24,6 +24,7 @@ import (
 	"github.com/kataras/iris/middleware/i18n"
 )
 
+// ExtendedContext extended context
 type ExtendedContext interface {
 	RequestEx(data interface{}, cb func() error) error
 	RequestBody(data interface{}) error
@@ -32,10 +33,11 @@ type ExtendedContext interface {
 	ResponseError(message string, code int)
 }
 
-type ApplicationContext interface {
-	context.Context
-	ExtendedContext
-}
+// ApplicationContext is interface of application
+//type ApplicationContext interface {
+//	context.Context
+//	ExtendedContext
+//}
 
 // Context Create your own custom Context, put any fields you wanna need.
 type Context struct {
@@ -47,14 +49,14 @@ type Context struct {
 
 var _ context.Context = &Context{} // optionally: validate on compile-time if Context implements context.Context.
 
-// Do: The only one important if you will override the Context
+// Do The only one important if you will override the Context
 // with an embedded context.Context inside it.
 // Required in order to run the handlers via this "*Context".
 func (ctx *Context) Do(handlers context.Handlers) {
 	context.Do(ctx, handlers)
 }
 
-// Next: The second one important if you will override the Context
+// Next The second one important if you will override the Context
 // with an embedded context.Context inside it.
 // Required in order to run the chain of handlers via this "*Context".
 func (ctx *Context) Next() {
@@ -135,7 +137,7 @@ func (ctx *Context) Translate(format string, args ...interface{}) string {
 	return msg
 }
 
-// ResponseBody set response
+// ResponseString set response
 func (ctx *Context) ResponseString(data string) {
 	ctx.WriteString(ctx.translate(data))
 }
@@ -152,7 +154,7 @@ func (ctx *Context) ResponseBody(message string, data interface{}) {
 	ctx.JSON(response)
 }
 
-// Response Errorset response
+// ResponseError response with error
 func (ctx *Context) ResponseError(message string, code int) {
 
 	response := new(model.BaseResponse)

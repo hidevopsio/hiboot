@@ -18,7 +18,6 @@ package autoconfigure
 import (
 	"errors"
 	"github.com/hidevopsio/hiboot/pkg/factory"
-	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system"
@@ -69,8 +68,8 @@ var (
 	ErrComponentNameIsTaken = errors.New("[factory] component name is already taken")
 )
 
-type ConfigurableFactory struct {
-	*instantiate.InstantiateFactory
+type configurableFactory struct {
+	factory.InstantiateFactory
 	configurations cmap.ConcurrentMap
 	systemConfig   *system.Configuration
 	builder        *system.Builder
@@ -80,27 +79,39 @@ type ConfigurableFactory struct {
 	postConfigureContainer []*factory.MetaData
 }
 
-// Initialize initialize ConfigurableFactory
-func (f *ConfigurableFactory) Initialize(configurations cmap.ConcurrentMap) (err error) {
-	if f.InstantiateFactory == nil {
-		return ErrFactoryCannotBeNil
+// NewConfigurableFactory is the constructor of configurableFactory
+func NewConfigurableFactory(instantiateFactory factory.InstantiateFactory, configurations cmap.ConcurrentMap) factory.ConfigurableFactory {
+	f := &configurableFactory{
+		InstantiateFactory: instantiateFactory,
+		configurations:     configurations,
 	}
-	if !f.Initialized() {
-		return ErrFactoryIsNotInitialized
-	}
+
 	f.configurations = configurations
 	f.SetInstance("configurations", configurations)
-
-	return
+	return f
 }
 
+//// Initialize initialize ConfigurableFactory
+//func (f *configurableFactory) Initialize(configurations cmap.ConcurrentMap) (err error) {
+//	if f.InstantiateFactory == nil {
+//		return ErrFactoryCannotBeNil
+//	}
+//	if !f.Initialized() {
+//		return ErrFactoryIsNotInitialized
+//	}
+//	f.configurations = configurations
+//	f.SetInstance("configurations", configurations)
+//
+//	return
+//}
+
 // SystemConfiguration getter
-func (f *ConfigurableFactory) SystemConfiguration() *system.Configuration {
+func (f *configurableFactory) SystemConfiguration() *system.Configuration {
 	return f.systemConfig
 }
 
 // Configuration getter
-func (f *ConfigurableFactory) Configuration(name string) interface{} {
+func (f *configurableFactory) Configuration(name string) interface{} {
 	cfg, ok := f.configurations.Get(name)
 	if ok {
 		return cfg
@@ -109,7 +120,7 @@ func (f *ConfigurableFactory) Configuration(name string) interface{} {
 }
 
 // BuildSystemConfig build system configuration
-func (f *ConfigurableFactory) BuildSystemConfig() (systemConfig *system.Configuration, err error) {
+func (f *configurableFactory) BuildSystemConfig() (systemConfig *system.Configuration, err error) {
 	workDir := io.GetWorkDir()
 	systemConfig = new(system.Configuration)
 	profile := os.Getenv(EnvAppProfilesActive)
@@ -137,7 +148,7 @@ func (f *ConfigurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 }
 
 // Build build all auto configurations
-func (f *ConfigurableFactory) Build(configs []*factory.MetaData) {
+func (f *configurableFactory) Build(configs []*factory.MetaData) {
 	// categorize configurations first, then inject object if necessary
 	for _, item := range configs {
 		typ := reflect.TypeOf(item.Object)
@@ -160,7 +171,7 @@ func (f *ConfigurableFactory) Build(configs []*factory.MetaData) {
 }
 
 // Instantiate run instantiation by method
-func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error) {
+func (f *configurableFactory) Instantiate(configuration interface{}) (err error) {
 	cv := reflect.ValueOf(configuration)
 	icv := reflector.Indirect(cv)
 
@@ -195,14 +206,14 @@ func (f *ConfigurableFactory) Instantiate(configuration interface{}) (err error)
 }
 
 // appProfilesActive getter
-func (f *ConfigurableFactory) appProfilesActive() string {
+func (f *configurableFactory) appProfilesActive() string {
 	if f.systemConfig == nil {
 		return os.Getenv(EnvAppProfilesActive)
 	}
 	return f.systemConfig.App.Profiles.Active
 }
 
-func (f *ConfigurableFactory) parseName(item *factory.MetaData) string {
+func (f *configurableFactory) parseName(item *factory.MetaData) string {
 	name := strings.Replace(item.TypeName, PostfixConfiguration, "", -1)
 	name = str.ToLowerCamel(name)
 
@@ -213,7 +224,7 @@ func (f *ConfigurableFactory) parseName(item *factory.MetaData) string {
 }
 
 // build
-func (f *ConfigurableFactory) build(cfgContainer []*factory.MetaData) {
+func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 
 	isTestRunning := gotest.IsRunning()
 	for _, item := range cfgContainer {

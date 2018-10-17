@@ -14,6 +14,7 @@
 
 package jwt
 
+// Properties the jwt properties
 type Properties struct {
 	PrivateKeyPath string `json:"private_key_path" default:"config/ssl/app.rsa"`
 	PublicKeyPath  string `json:"public_key_path" default:"config/ssl/app.rsa.pub"`

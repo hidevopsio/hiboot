@@ -27,6 +27,7 @@ import (
 	"reflect"
 )
 
+// Builder is the config file (yaml, json) builder
 type Builder struct {
 	Path       string
 	Name       string
@@ -35,7 +36,7 @@ type Builder struct {
 	ConfigType interface{}
 }
 
-// create new viper instance
+// New create new viper instance
 func (b *Builder) New(name string) *viper.Viper {
 	v := viper.New()
 	v.AddConfigPath(b.Path)
@@ -44,7 +45,7 @@ func (b *Builder) New(name string) *viper.Viper {
 	return v
 }
 
-// create file if it's not exist
+// Init create file if it's not exist
 func (b *Builder) Init() error {
 	return io.CreateFile(b.Path, b.Name+"."+b.FileType)
 }
@@ -58,7 +59,7 @@ func (b *Builder) isFileNotExist(path string) bool {
 	return true
 }
 
-// build config file
+// Build config file
 func (b *Builder) Build(profiles ...string) (interface{}, error) {
 
 	conf, err := b.Read(b.Name)
@@ -89,7 +90,7 @@ func (b *Builder) Build(profiles ...string) (interface{}, error) {
 	return conf, err
 }
 
-// build config file
+// BuildWithProfile build config file
 func (b *Builder) BuildWithProfile() (interface{}, error) {
 	name := b.Name + "-" + b.Profile
 	// allow the empty of the profile

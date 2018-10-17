@@ -23,19 +23,26 @@ import (
 	"strings"
 )
 
+// Tag the interface of Tag
 type Tag interface {
+	// Init init tag
 	Init(configurableFactory factory.ConfigurableFactory)
+	// Decode parse tag and do dependency injection
 	Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{})
+	// Properties get properties
 	Properties() cmap.ConcurrentMap
+	// IsSingleton check if it is Singleton
 	IsSingleton() bool
 }
 
+// BaseTag is the base struct of tag
 type BaseTag struct {
 	ConfigurableFactory factory.ConfigurableFactory
 	properties          cmap.ConcurrentMap
 	systemConfig        *system.Configuration
 }
 
+// IsSingleton check if it is Singleton
 func (t *BaseTag) IsSingleton() bool {
 	return false
 }
@@ -76,6 +83,7 @@ func (t *BaseTag) replaceReferences(val string) interface{} {
 	return retVal
 }
 
+// ParseProperties parse properties
 func (t *BaseTag) ParseProperties(tag string) cmap.ConcurrentMap {
 	t.properties = cmap.New()
 
@@ -97,10 +105,12 @@ func (t *BaseTag) ParseProperties(tag string) cmap.ConcurrentMap {
 	return t.properties
 }
 
+// Properties get properties
 func (t *BaseTag) Properties() cmap.ConcurrentMap {
 	return t.properties
 }
 
+// Decode no implementation for base tag
 func (t *BaseTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{}) {
 	return nil
 }

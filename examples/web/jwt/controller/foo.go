@@ -19,12 +19,12 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
-type FooRequest struct {
+type fooRequest struct {
 	Name string `json:"name" validate:"required"`
 	Age  int    `json:"age"`
 }
 
-type FooResponse struct {
+type fooResponse struct {
 	Greeting string `json:"greeting"`
 	Age      int    `json:"age"`
 }
@@ -48,28 +48,31 @@ func (c *fooController) Before(ctx *web.Context) {
 	ctx.Next()
 }
 
+// Post endpoint POST /foo
 func (c *fooController) Post(ctx *web.Context) {
 	log.Debug("FooController.Post")
 
-	foo := &FooRequest{}
+	foo := &fooRequest{}
 	if ctx.RequestBody(foo) == nil {
-		ctx.ResponseBody("success", &FooResponse{Greeting: "Hello, " + foo.Name})
+		ctx.ResponseBody("success", &fooResponse{Greeting: "Hello, " + foo.Name})
 	}
 
 }
 
+// Get endpoint GET /foo
 func (c *fooController) Get(ctx *web.Context) {
 	log.Debug("FooController.Get")
 
-	foo := &FooRequest{}
+	foo := &fooRequest{}
 
 	if ctx.RequestParams(foo) == nil {
-		ctx.ResponseBody("success", &FooResponse{
+		ctx.ResponseBody("success", &fooResponse{
 			Greeting: "Hello, " + foo.Name,
 			Age:      foo.Age})
 	}
 }
 
+// After interceptor of the controller
 func (c *fooController) After(ctx *web.Context) {
 	log.Debug("FooController.After")
 }

@@ -61,7 +61,7 @@ func Decrypt(key []byte, cryptoText string) (retVal string, err error) {
 	// The IV needs to be unique, but not secure. Therefore it's common to
 	// include it at the beginning of the ciphertext.
 	if len(ciphertext) < aes.BlockSize {
-		return "", crypto.CipherTooShortError
+		return "", crypto.ErrCipherTooShort
 	}
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]

@@ -21,7 +21,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 )
 
 // Application cli application interface
@@ -36,27 +35,16 @@ type application struct {
 	root Command
 }
 
-// CommandNameValue
+// CommandNameValue is the command name value pair
 type CommandNameValue struct {
 	Name    string
 	Command interface{}
 }
 
-var (
-	commandContainer map[string][]Command
-	commandNames     []string
-	cliApp           *application
-	once             sync.Once
-)
-
 const (
+	// RootCommandName the instance name of cli.rootCommand
 	RootCommandName = "cli.rootCommand"
 )
-
-func init() {
-	commandContainer = make(map[string][]Command)
-	commandNames = make([]string, 0)
-}
 
 // NewApplication create new cli application
 func NewApplication(cmd ...interface{}) Application {

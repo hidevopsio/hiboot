@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mock_protobuf
+package mock
 
 import (
 	"github.com/golang/mock/gomock"
@@ -34,7 +34,7 @@ func TestMockHelloWorld(t *testing.T) {
 		opt := &grpc.HeaderCallOption{}
 		mockGreeterClient.EXPECT().SayHello(
 			gomock.Any(),
-			&RpcMsg{Message: req},
+			&RPCMsg{Message: req},
 			opt,
 		).Return(&helloworld.HelloReply{Message: "Mocked Interface"}, nil)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)

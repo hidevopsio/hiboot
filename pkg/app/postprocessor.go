@@ -16,6 +16,7 @@ package app
 
 import "github.com/hidevopsio/hiboot/pkg/inject"
 
+// PostProcessor is the post processor
 type PostProcessor interface {
 	AfterInitialization(factory interface{})
 }
@@ -36,10 +37,12 @@ func init() {
 
 }
 
+// RegisterPostProcessor register post processor
 func RegisterPostProcessor(p ...interface{}) {
 	postProcessors = append(postProcessors, p...)
 }
 
+// Init init the post processor
 func (p *postProcessor) Init() {
 	for _, processor := range postProcessors {
 		ss, err := inject.IntoFunc(processor)
@@ -49,6 +52,7 @@ func (p *postProcessor) Init() {
 	}
 }
 
+// AfterInitialization post processor after initialization
 func (p *postProcessor) AfterInitialization(factory interface{}) {
 	for _, processor := range p.subscribes {
 		inject.IntoFunc(processor)

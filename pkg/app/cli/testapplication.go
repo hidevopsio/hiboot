@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+// TestApplication the interface of cli test application
 type TestApplication interface {
 	Application
 	RunTest(args ...string) (output string, err error)

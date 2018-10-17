@@ -17,7 +17,7 @@ package mock_protobuf
 import (
 	"github.com/golang/mock/gomock"
 	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf"
-	mockproto "github.com/hidevopsio/hiboot/pkg/starter/grpc/mock_protobuf"
+	mockproto "github.com/hidevopsio/hiboot/pkg/starter/grpc/mock"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -35,7 +35,7 @@ func TestMockHola(t *testing.T) {
 		opt := &grpc.HeaderCallOption{}
 		mockHolaClient.EXPECT().SayHola(
 			gomock.Any(),
-			&mockproto.RpcMsg{Message: req},
+			&mockproto.RPCMsg{Message: req},
 			opt,
 		).Return(&protobuf.HolaReply{Message: "Mocked Interface"}, nil)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)

@@ -275,8 +275,6 @@ func IntoMethod(object interface{}, m interface{}) (retVal interface{}, err erro
 		if len(results) != 0 {
 			retVal = results[0].Interface()
 			return
-		} else {
-			return
 		}
 	}
 	err = ErrInvalidFunc

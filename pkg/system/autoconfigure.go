@@ -14,6 +14,7 @@
 
 package system
 
+// Configuration is the system configuration
 type Configuration struct {
 	App     App     `mapstructure:"app"`
 	Server  Server  `mapstructure:"server"`

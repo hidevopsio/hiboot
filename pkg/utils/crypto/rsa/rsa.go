@@ -53,7 +53,7 @@ dtOs4rP6YpVbzGQd22K0tkADbsxMBHKsHsFcg02uFGSF6qIPnrWJIN0wNEJrNumo
 -----END PUBLIC KEY-----
 `)
 
-// Encrypt
+// Encrypt to rsa string
 func Encrypt(input []byte, publicKey ...[]byte) ([]byte, error) {
 	//decrypt pem public key
 	// TODO: check if the publicKey or privateKey is a file
@@ -64,7 +64,7 @@ func Encrypt(input []byte, publicKey ...[]byte) ([]byte, error) {
 
 	block, _ := pem.Decode(actualPublicKey)
 	if block == nil {
-		return nil, crypto.InvalidPublicKeyError
+		return nil, crypto.ErrInvalidPublicKey
 	}
 	pubInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
@@ -74,7 +74,7 @@ func Encrypt(input []byte, publicKey ...[]byte) ([]byte, error) {
 	return rsa.EncryptPKCS1v15(rand.Reader, pub, input)
 }
 
-// Decrypt
+// Decrypt from rsa string
 func Decrypt(ciphertext []byte, privateKey ...[]byte) ([]byte, error) {
 	// decrypt
 	actualPrivateKey := defaultPrivateKey
@@ -83,7 +83,7 @@ func Decrypt(ciphertext []byte, privateKey ...[]byte) ([]byte, error) {
 	}
 	block, _ := pem.Decode(actualPrivateKey)
 	if block == nil {
-		return nil, crypto.InvalidPrivateKeyError
+		return nil, crypto.ErrInvalidPrivateKey
 	}
 	pk, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
@@ -92,19 +92,19 @@ func Decrypt(ciphertext []byte, privateKey ...[]byte) ([]byte, error) {
 	return rsa.DecryptPKCS1v15(rand.Reader, pk, ciphertext)
 }
 
-// EncryptBase64
+// EncryptBase64 encrypt to base64 string
 func EncryptBase64(input []byte, publicKey ...[]byte) ([]byte, error) {
 	data, err := Encrypt([]byte(input), publicKey...)
 	data = base64.Encode(data)
 	return data, err
 }
 
-// DecryptBase64
+// DecryptBase64 decrypt from base64 string
 func DecryptBase64(input []byte, privateKey ...[]byte) ([]byte, error) {
 	ciphertext, err := base64.Decode(input)
 	if err == nil {
 		data, err := Decrypt(ciphertext, privateKey...)
 		return data, err
 	}
-	return nil, crypto.InvalidInputError
+	return nil, crypto.ErrInvalidInput
 }

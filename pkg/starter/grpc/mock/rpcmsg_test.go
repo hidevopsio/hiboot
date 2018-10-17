@@ -1,4 +1,4 @@
-package mock_protobuf
+package mock
 
 import (
 	"github.com/stretchr/testify/assert"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestRpcMsg(t *testing.T) {
-	rpcMsg := new(RpcMsg)
+	rpcMsg := new(RPCMsg)
 	req := &helloworld.HelloRequest{Name: "unit_test"}
 
 	ok := rpcMsg.Matches(nil)

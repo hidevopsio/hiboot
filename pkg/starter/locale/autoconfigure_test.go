@@ -33,7 +33,7 @@ func TestConfiguration(t *testing.T) {
 
 	t.Run("should get handler", func(t *testing.T) {
 		io.EnsureWorkDir(1, "config/application.yml")
-		c.Properties = Properties{
+		c.Properties = properties{
 			Default:      "en-US",
 			URLParameter: "lang",
 			LocalePath:   "config/i18n/",

@@ -20,10 +20,13 @@ import (
 	"encoding/hex"
 )
 
-func Encrypt(data string) string {
-	md5Ctx := md5.New()                            //md5 init
-	md5Ctx.Write([]byte(data))                     //md5 updata
-	cipherStr := md5Ctx.Sum(nil)                   //md5 final
-	encryptedData := hex.EncodeToString(cipherStr) //hex_digest
-	return encryptedData
+// Encrypt md5 encryption util
+func Encrypt(in string) (out string) {
+	md5Ctx := md5.New()                // md5 init
+	n, err := md5Ctx.Write([]byte(in)) // md5 update
+	if err == nil && n != 0 {
+		cipherStr := md5Ctx.Sum(nil)        // md5 final
+		out = hex.EncodeToString(cipherStr) // hex digest
+	}
+	return
 }

@@ -215,10 +215,10 @@ func GetSet(m ConcurrentMap, finished chan struct{}) (set func(key, value string
 }
 
 func runWithShards(bench func(b *testing.B), b *testing.B, shardsCount int) {
-	oldShardsCount := SHARD_COUNT
-	SHARD_COUNT = shardsCount
+	oldShardsCount := shardCount
+	shardCount = shardsCount
 	bench(b)
-	SHARD_COUNT = oldShardsCount
+	shardCount = oldShardsCount
 }
 
 func BenchmarkKeys(b *testing.B) {

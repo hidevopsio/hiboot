@@ -2,7 +2,7 @@
 // Source: google.golang.org/grpc/examples/helloworld/helloworld (interfaces: GreeterClient)
 
 // Package mock_helloworld is a generated GoMock package.
-package mock_protobuf
+package mock
 
 import (
 	context "context"
