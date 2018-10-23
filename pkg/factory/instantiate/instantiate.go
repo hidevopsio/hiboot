@@ -97,17 +97,10 @@ func (f *instantiateFactory) BuildComponents() (err error) {
 				name = tagName
 				log.Debugf("name: %v, Qualifier: %v, ok: %v", item.Name, name, ok)
 			}
-			//field := reflector.GetEmbeddedField(obj)
-			//if field.Anonymous {
-			//	// use interface name if it's available as use does not specify its name
-			//	name = io.DirName(field.PkgPath) + "." + field.Name
-			//	log.Debugf("component %v has embedded field: %v", obj, name)
-			//}
+
 			if name != "" {
 				err = f.SetInstance(name, obj)
 			}
-		} else {
-			log.Errorf("%d: object %v %v is not injected", i, item.ShortName, item.Type)
 		}
 	}
 	return
