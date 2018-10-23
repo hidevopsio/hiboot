@@ -21,6 +21,10 @@ import (
 type fakePostProcessor struct {
 }
 
+func newFakePostPrecessor() *fakePostProcessor {
+	return new(fakePostProcessor)
+}
+
 func (p *fakePostProcessor) BeforeInitialization(factory interface{}) {
 }
 
@@ -30,9 +34,9 @@ func (p *fakePostProcessor) AfterInitialization(factory interface{}) {
 
 func TestRegisterPostProcessor(t *testing.T) {
 
-	RegisterPostProcessor(new(fakePostProcessor))
+	RegisterPostProcessor(newFakePostPrecessor)
 	pp := newPostProcessor()
-
+	pp.Init()
 	pp.AfterInitialization(nil)
 
 }

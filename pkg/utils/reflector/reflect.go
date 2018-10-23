@@ -296,7 +296,7 @@ func HasEmbeddedField(object interface{}, name string) bool {
 }
 
 // GetEmbeddedFieldByType get embedded interface field by type
-func GetEmbeddedFieldByType(typ reflect.Type, kind ...reflect.Kind) (field reflect.StructField) {
+func GetEmbeddedFieldByType(typ reflect.Type, name string, kind ...reflect.Kind) (field reflect.StructField) {
 	expectedKind := reflect.Interface
 	if len(kind) > 0 {
 		expectedKind = kind[0]
@@ -305,10 +305,10 @@ func GetEmbeddedFieldByType(typ reflect.Type, kind ...reflect.Kind) (field refle
 		for i := 0; i < typ.NumField(); i++ {
 			v := typ.Field(i)
 			if v.Anonymous {
-				if v.Type.Kind() == expectedKind {
+				if v.Type.Kind() == expectedKind && (name == "" || v.Name == name) {
 					return v
 				}
-				return GetEmbeddedFieldByType(v.Type)
+				return GetEmbeddedFieldByType(v.Type, name)
 			}
 		}
 	}
@@ -316,24 +316,24 @@ func GetEmbeddedFieldByType(typ reflect.Type, kind ...reflect.Kind) (field refle
 }
 
 // GetEmbeddedField get embedded interface field
-func GetEmbeddedField(object interface{}, dataTypes ...reflect.Kind) (field reflect.StructField) {
+func GetEmbeddedField(object interface{}, name string, dataTypes ...reflect.Kind) (field reflect.StructField) {
 	if object == nil {
 		return
 	}
 
 	typ, ok := GetFuncOutType(object)
 	if ok {
-		return GetEmbeddedFieldByType(typ, dataTypes...)
+		return GetEmbeddedFieldByType(typ, name, dataTypes...)
 	}
 
 	typ = IndirectType(reflect.TypeOf(object))
-	return GetEmbeddedFieldByType(typ, dataTypes...)
+	return GetEmbeddedFieldByType(typ, name, dataTypes...)
 }
 
 // FindEmbeddedFieldTag find embedded field tag
-func FindEmbeddedFieldTag(object interface{}, name string) (t string, ok bool) {
-	f := GetEmbeddedField(object)
-	t, ok = f.Tag.Lookup(name)
+func FindEmbeddedFieldTag(object interface{}, fieldName, tagName string) (t string, ok bool) {
+	f := GetEmbeddedField(object, fieldName)
+	t, ok = f.Tag.Lookup(tagName)
 	return
 }
 

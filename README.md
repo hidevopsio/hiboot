@@ -245,8 +245,7 @@ import (
 
 // define the command
 type rootCommand struct {
-	// embedding cli.BaseCommand in each command
-	cli.BaseCommand
+	cli.RootCommand
 	To string
 }
 

@@ -23,9 +23,7 @@ import (
 
 // define the command
 type cryptoCommand struct {
-	// embedding cli.BaseCommand in each command
-	cli.BaseCommand
-	// inject (bind) flag to field 'Source', 'Encrypt', and 'Decrypt', so that it can be used on Run method, please note that the data type must be pointer
+	cli.RootCommand
 	Source  string
 	Encrypt bool
 	Decrypt bool
@@ -33,9 +31,10 @@ type cryptoCommand struct {
 }
 
 func init() {
-	app.Component("rootCommand", newCryptoCommand)
+	app.Component(newCryptoCommand)
 }
 
+// newCryptoCommand crypto command constructor
 func newCryptoCommand() *cryptoCommand {
 	c := new(cryptoCommand)
 	c.Use = "crypto"

@@ -21,7 +21,7 @@ import (
 )
 
 type secondCommand struct {
-	cli.BaseCommand
+	cli.SubCommand
 }
 
 func init() {
