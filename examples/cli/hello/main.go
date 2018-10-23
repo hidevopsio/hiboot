@@ -25,8 +25,7 @@ import (
 
 // define the command
 type rootCommand struct {
-	// embedding cli.BaseCommand in each command
-	cli.BaseCommand
+	cli.RootCommand
 	// inject (bind) flag to field 'To', so that it can be used on Run method, please note that the data type must be pointer
 	To string `flag:"name=to,shorthand=t,value=world,usage=e.g. --to=world or -t world"`
 }

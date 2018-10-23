@@ -23,8 +23,7 @@ import (
 
 // define the command
 type cryptoCommand struct {
-	// embedding cli.BaseCommand in each command
-	cli.BaseCommand
+	cli.RootCommand
 	Source  string
 	Encrypt bool
 	Decrypt bool
@@ -32,7 +31,7 @@ type cryptoCommand struct {
 }
 
 func init() {
-	app.Component("cli.rootCommand", newCryptoCommand)
+	app.Component(newCryptoCommand)
 }
 
 // newCryptoCommand crypto command constructor

@@ -85,7 +85,7 @@ func parseDependencies(object interface{}, kind string, typ reflect.Type) (deps 
 		// find user specific depends tag
 		var depTag string
 		var hasDepTag bool
-		f := reflector.GetEmbeddedField(object, reflect.Struct)
+		f := reflector.GetEmbeddedField(object, "", reflect.Struct)
 		depTag, hasDepTag = f.Tag.Lookup("depends")
 		if hasDepTag {
 			depNames = appendDep(depNames, depTag)

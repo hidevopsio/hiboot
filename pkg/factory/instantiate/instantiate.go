@@ -92,7 +92,11 @@ func (f *instantiateFactory) BuildComponents() (err error) {
 		if obj != nil {
 			// inject into object
 			err = inject.IntoObject(obj)
-
+			tagName, ok := reflector.FindEmbeddedFieldTag(obj, "Qualifier", "name")
+			if ok {
+				name = tagName
+				log.Debugf("name: %v, Qualifier: %v, ok: %v", item.Name, name, ok)
+			}
 			//field := reflector.GetEmbeddedField(obj)
 			//if field.Anonymous {
 			//	// use interface name if it's available as use does not specify its name
@@ -123,7 +127,7 @@ func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 
 	f.instanceMap.Set(name, instance)
 
-	ifcField := reflector.GetEmbeddedField(instance)
+	ifcField := reflector.GetEmbeddedField(instance, "")
 	if ifcField.Anonymous {
 		typeName := ifcField.Name
 		categorised, ok := f.categorized[typeName]

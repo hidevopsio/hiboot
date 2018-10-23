@@ -19,26 +19,23 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/spf13/cobra"
 )
 
 type fooCommand struct {
-	cli.BaseCommand
+	cli.SubCommand
 
 	fooBar *model.Foo
 }
 
 func newFooCommand(fooBar *model.Foo) *fooCommand {
-	return &fooCommand{
+	c := &fooCommand{
 		fooBar: fooBar,
-		BaseCommand: cli.BaseCommand{
-			Command: cobra.Command{
-				Use:   "foo",
-				Short: "foo command",
-				Long:  "Run foo command",
-			},
-		},
 	}
+	c.Use = "foo"
+	c.Short = "foo command"
+	c.Long = "Run foo command"
+
+	return c
 }
 
 func init() {
