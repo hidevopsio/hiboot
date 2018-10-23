@@ -25,7 +25,6 @@ import (
 type cryptoCommand struct {
 	// embedding cli.BaseCommand in each command
 	cli.BaseCommand
-	// inject (bind) flag to field 'Source', 'Encrypt', and 'Decrypt', so that it can be used on Run method, please note that the data type must be pointer
 	Source  string
 	Encrypt bool
 	Decrypt bool
