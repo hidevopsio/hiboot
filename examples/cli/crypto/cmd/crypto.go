@@ -33,9 +33,10 @@ type cryptoCommand struct {
 }
 
 func init() {
-	app.Component("rootCommand", newCryptoCommand)
+	app.Component("cli.rootCommand", newCryptoCommand)
 }
 
+// newCryptoCommand crypto command constructor
 func newCryptoCommand() *cryptoCommand {
 	c := new(cryptoCommand)
 	c.Use = "crypto"
