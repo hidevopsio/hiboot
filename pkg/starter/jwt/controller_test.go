@@ -213,6 +213,14 @@ func TestAppWithoutJwtController(t *testing.T) {
 func TestParseToken(t *testing.T) {
 	claims := jwtgo.MapClaims{"username": "john"}
 	jc := &jwt.Controller{}
-	username := jc.ParseToken(claims, "username")
-	assert.Equal(t, "john", username)
+	t.Run("should get username from jwt token", func(t *testing.T) {
+		username := jc.ParseToken(claims, "username")
+		assert.Equal(t, "john", username)
+	})
+
+	t.Run("should get empty string from jwt token", func(t *testing.T) {
+		nonExist := jc.ParseToken(claims, "non-exist")
+		assert.Equal(t, "", nonExist)
+	})
+
 }

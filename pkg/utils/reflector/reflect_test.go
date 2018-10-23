@@ -492,29 +492,29 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 	type fakeChildService struct{ fakeService }
 
 	t.Run("should return error if on nil ", func(t *testing.T) {
-		field := GetEmbeddedField(nil)
+		field := GetEmbeddedField(nil, "")
 		assert.Equal(t, nil, field.Type)
 	})
 
 	t.Run("should return error if on nil ", func(t *testing.T) {
-		field := GetEmbeddedField(newFooBarService)
+		field := GetEmbeddedField(newFooBarService, "fooBarInterface")
 		assert.Equal(t, "fooBarInterface", field.Type.Name())
 	})
 
 	t.Run("should get embedded fakeInterface", func(t *testing.T) {
-		field := GetEmbeddedField(new(fakeService))
+		field := GetEmbeddedField(new(fakeService), "fakeInterface")
 		assert.Equal(t, "fakeInterface", field.Name)
 	})
 
 	t.Run("should get embedded fakeInterface", func(t *testing.T) {
-		field := GetEmbeddedField(new(fakeChildService))
+		field := GetEmbeddedField(new(fakeChildService), "")
 		assert.Equal(t, "fakeInterface", field.Name)
 	})
 
 	type fooService struct{}
 	type foobarService struct{ fooService }
 	t.Run("should get embedded fakeInterface", func(t *testing.T) {
-		field := GetEmbeddedField(new(foobarService), reflect.Struct)
+		field := GetEmbeddedField(new(foobarService), "fooService", reflect.Struct)
 		assert.Equal(t, "fooService", field.Name)
 	})
 
@@ -527,7 +527,7 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 		type barService struct {
 			FooService
 		}
-		field := GetEmbeddedField(new(barService))
+		field := GetEmbeddedField(new(barService), "FooService")
 		assert.Equal(t, false, field.Anonymous)
 	})
 
@@ -535,7 +535,7 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 		type barService struct {
 			FooServiceInterface `name:"foo"`
 		}
-		tag, ok := FindEmbeddedFieldTag(new(barService), "name")
+		tag, ok := FindEmbeddedFieldTag(new(barService), "FooServiceInterface", "name")
 		assert.Equal(t, ok, true)
 		assert.Equal(t, "foo", tag)
 	})

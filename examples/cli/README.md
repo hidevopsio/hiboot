@@ -17,8 +17,7 @@ import (
 
 // define the command
 type PromptuiCommand struct {
-	// embedding cli.BaseCommand in each command
-	cli.BaseCommand
+	cli.RootCommand
 }
 
 // Init constructor

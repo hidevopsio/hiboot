@@ -16,6 +16,7 @@ package cli
 
 import (
 	"errors"
+	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/system/types"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/spf13/cobra"
@@ -73,13 +74,24 @@ var ErrCommandNotFound = errors.New("command not found")
 // ErrCommandHandlerNotFound the error message for 'command handler not found'
 var ErrCommandHandlerNotFound = errors.New("command handler not found")
 
-// BaseCommand is the base command
-type BaseCommand struct {
+// baseCommand is the base command
+type baseCommand struct {
 	cobra.Command
 	name     string
 	fullName string
 	parent   Command
 	children []Command
+}
+
+// RootCommand root command qualifier
+type RootCommand struct {
+	at.Qualifier `name:"cli.rootCommand"`
+	baseCommand
+}
+
+// SubCommand sub command qualifier
+type SubCommand struct {
+	baseCommand
 }
 
 // Dispatch method with OnAction prefix
@@ -119,31 +131,31 @@ func Register(c Command) {
 }
 
 // EmbeddedCommand get embedded command
-func (c *BaseCommand) EmbeddedCommand() *cobra.Command {
+func (c *baseCommand) EmbeddedCommand() *cobra.Command {
 	return &c.Command
 }
 
 // Run method
-func (c *BaseCommand) Run(args []string) error {
+func (c *baseCommand) Run(args []string) error {
 	return nil
 }
 
 // Exec exec method
-func (c *BaseCommand) Exec() error {
+func (c *baseCommand) Exec() error {
 	return c.Execute()
 }
 
 // HasChild check whether it has child or not
-func (c *BaseCommand) HasChild() bool {
+func (c *baseCommand) HasChild() bool {
 	return len(c.children) > 0
 }
 
 // Children get children
-func (c *BaseCommand) Children() []Command {
+func (c *baseCommand) Children() []Command {
 	return c.children
 }
 
-func (c *BaseCommand) addChild(child Command) {
+func (c *baseCommand) addChild(child Command) {
 	if child.GetName() == "" {
 		name := reflector.ParseObjectName(child, "Command")
 		child.SetName(name)
@@ -155,7 +167,7 @@ func (c *BaseCommand) addChild(child Command) {
 }
 
 // Add added child command
-func (c *BaseCommand) Add(commands ...Command) Command {
+func (c *baseCommand) Add(commands ...Command) Command {
 	for _, command := range commands {
 		c.addChild(command)
 	}
@@ -163,18 +175,18 @@ func (c *BaseCommand) Add(commands ...Command) Command {
 }
 
 // GetName get command name
-func (c *BaseCommand) GetName() string {
+func (c *baseCommand) GetName() string {
 	return c.name
 }
 
 // SetName set command name
-func (c *BaseCommand) SetName(name string) Command {
+func (c *baseCommand) SetName(name string) Command {
 	c.name = name
 	return c
 }
 
 // FullName get command full name
-func (c *BaseCommand) FullName() string {
+func (c *baseCommand) FullName() string {
 	if c.fullName == "" {
 		c.fullName = c.name
 	}
@@ -182,24 +194,24 @@ func (c *BaseCommand) FullName() string {
 }
 
 // SetFullName set command full name
-func (c *BaseCommand) SetFullName(name string) Command {
+func (c *baseCommand) SetFullName(name string) Command {
 	c.fullName = name
 	return c
 }
 
 // Parent get parent command
-func (c *BaseCommand) Parent() Command {
+func (c *baseCommand) Parent() Command {
 	return c.parent
 }
 
 // SetParent set parent command
-func (c *BaseCommand) SetParent(p Command) Command {
+func (c *baseCommand) SetParent(p Command) Command {
 	c.parent = p
 	return c
 }
 
 // Find find child command
-func (c *BaseCommand) Find(name string) (Command, error) {
+func (c *baseCommand) Find(name string) (Command, error) {
 	if c.name == name {
 		return c, nil
 	}

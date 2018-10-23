@@ -124,6 +124,14 @@ func TestApp(t *testing.T) {
 		err := app.Component("myService", new(fakeServiceImpl))
 		assert.Equal(t, nil, err)
 	})
+
+	t.Run("should add more than one new component at the same time", func(t *testing.T) {
+		type fakeService interface{}
+		type fakeFooService struct{ fakeService }
+		type fakeBarService struct{ fakeService }
+		err := app.Component(new(fakeFooService), new(fakeBarService))
+		assert.Equal(t, nil, err)
+	})
 }
 
 func TestBaseApplication(t *testing.T) {

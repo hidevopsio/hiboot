@@ -21,8 +21,7 @@ import (
 
 // RootCommand is the root command
 type RootCommand struct {
-	// embedded cli.BaseCommand
-	cli.BaseCommand
+	cli.RootCommand
 
 	//TODO: inject flag
 	Profile string `flag:"shorthand=p,value=dev,usage=e.g. --profile=test"`

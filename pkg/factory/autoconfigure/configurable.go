@@ -156,14 +156,12 @@ func (f *configurableFactory) Build(configs []*factory.MetaData) {
 			typ, _ = reflector.GetFuncOutType(item.Object)
 		}
 		typ = reflector.IndirectType(typ)
-		embeddedField := reflector.GetEmbeddedFieldByType(typ)
-		switch embeddedField.Name {
-		case "Configuration":
+		embeddedField := reflector.GetEmbeddedFieldByType(typ, "Configuration")
+		if embeddedField.Name == "Configuration" {
 			f.configureContainer = append(f.configureContainer, item)
-		default:
+		} else {
 			err := ErrInvalidObjectType
 			log.Errorf("item: %v err: %v", item, err)
-			continue
 		}
 	}
 
@@ -223,7 +221,6 @@ func (f *configurableFactory) parseName(item *factory.MetaData) string {
 	return name
 }
 
-// build
 func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 
 	isTestRunning := gotest.IsRunning()

@@ -44,7 +44,7 @@ func TestCommand(t *testing.T) {
 	})
 
 	t.Run("should run command handler", func(t *testing.T) {
-		cmd := new(cli.BaseCommand)
+		cmd := new(cli.SubCommand)
 		err := cmd.Run(nil)
 		assert.Equal(t, nil, err)
 	})
