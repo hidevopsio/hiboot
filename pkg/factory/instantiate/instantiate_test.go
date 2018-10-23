@@ -17,6 +17,7 @@ package instantiate_test
 import (
 	"fmt"
 	"github.com/deckarep/golang-set"
+	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
@@ -32,6 +33,14 @@ type FooBar struct {
 type fooBarService struct {
 	Name   string
 	fooBar *FooBar
+}
+
+type qualifierService struct {
+	at.Qualifier `name:"instantiate_test.hibootService"`
+}
+
+type testService struct {
+	at.Qualifier `name:"instantiate_test.hibootService"`
 }
 
 type BarService interface {
@@ -53,6 +62,14 @@ func newFooBarService(fooBar *FooBar) *fooBarService {
 }
 
 type helloService struct {
+}
+
+func newHelloService() *helloService {
+	return &helloService{}
+}
+
+func newHelloNilService() *helloService {
+	return nil
 }
 
 type HelloWorld string
@@ -92,7 +109,11 @@ func TestInstantiateFactory(t *testing.T) {
 	testComponents = append(testComponents, factory.NewMetaData(f),
 		factory.NewMetaData(&FooBar{Name: testName}),
 		factory.NewMetaData(&BarServiceImpl{}),
-		factory.NewMetaData(newFooBarService))
+		factory.NewMetaData(newFooBarService),
+		factory.NewMetaData(new(qualifierService)),
+		factory.NewMetaData(newHelloNilService),
+	)
+	appFactory.AppendComponent(new(testService))
 
 	ic := cmap.New()
 	appFactory = instantiate.NewInstantiateFactory(ic, testComponents)
@@ -134,6 +155,16 @@ func TestInstantiateFactory(t *testing.T) {
 	t.Run("should get factory items", func(t *testing.T) {
 		items := appFactory.Items()
 		assert.NotEqual(t, 0, len(items))
+	})
+
+	t.Run("should get qualifierService with qualifier name hibootService", func(t *testing.T) {
+		svc := appFactory.GetInstance("instantiate_test.hibootService")
+		assert.NotEqual(t, 0, svc)
+	})
+
+	t.Run("should get appended testService", func(t *testing.T) {
+		svc := appFactory.GetInstance(testService{})
+		assert.NotEqual(t, 0, svc)
 	})
 }
 

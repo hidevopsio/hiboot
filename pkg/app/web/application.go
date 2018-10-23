@@ -180,7 +180,6 @@ func NewApplication(controllers ...interface{}) app.Application {
 	a := new(application)
 	err := a.initialize(controllers...)
 	if err != nil {
-		log.Error(err)
 		os.Exit(1)
 	}
 	return a

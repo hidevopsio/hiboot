@@ -28,8 +28,12 @@ type Controller struct {
 }
 
 // ParseToken is an util that parsing JWT token from jwt.MapClaims
-func (c *Controller) ParseToken(claims jwt.MapClaims, prop string) string {
-	return fmt.Sprintf("%v", claims[prop])
+func (c *Controller) ParseToken(claims jwt.MapClaims, prop string) (retVal string) {
+	val, ok := claims[prop]
+	if ok {
+		retVal = fmt.Sprintf("%v", val)
+	}
+	return
 }
 
 // JwtProperty is an util that parsing JWT token and return single property from jwt.MapClaims

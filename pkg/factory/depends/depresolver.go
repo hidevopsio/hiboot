@@ -106,7 +106,7 @@ func Resolve(data []*factory.MetaData) (result []*factory.MetaData, err error) {
 			log.Errorf("Failed to resolve dependencies: %s", err)
 			displayDependencyGraph("circular dependency graph", resolved, log.Error)
 		} else {
-			log.Infof("The dependency graph resolved successfully")
+			log.Debugf("The dependency graph resolved successfully")
 			displayDependencyGraph("resolved dependency graph", resolved, log.Debug)
 			for _, item := range resolved {
 				if item.index >= 0 {

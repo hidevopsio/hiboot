@@ -29,7 +29,7 @@ func init() {
 }
 
 type rootCommand struct {
-	cli.BaseCommand
+	cli.RootCommand
 	Profile string
 	IntVal  int
 	BoolVal bool
@@ -56,7 +56,7 @@ func (c *rootCommand) Run(args []string) (err error) {
 }
 
 type fooCommand struct {
-	cli.BaseCommand
+	cli.SubCommand
 }
 
 func newFooCommand(bar *barCommand, baz *bazCommand) *fooCommand {
@@ -95,7 +95,7 @@ func (c *fooCommand) OnFooBar(args []string) error {
 }
 
 type barCommand struct {
-	cli.BaseCommand
+	cli.SubCommand
 }
 
 func newBarCommand() *barCommand {
@@ -113,7 +113,7 @@ func (c *barCommand) Run(args []string) (err error) {
 }
 
 type bazCommand struct {
-	cli.BaseCommand
+	cli.SubCommand
 }
 
 func newBazCommand() *bazCommand {

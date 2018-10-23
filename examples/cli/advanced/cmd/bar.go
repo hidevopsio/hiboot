@@ -21,7 +21,7 @@ import (
 )
 
 type barCommand struct {
-	cli.BaseCommand
+	cli.SubCommand
 }
 
 func init() {
