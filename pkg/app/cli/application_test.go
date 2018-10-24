@@ -131,7 +131,7 @@ func (c *bazCommand) Run(args []string) (err error) {
 
 // demo foo bar
 func TestCliApplication(t *testing.T) {
-	app.Component(newFooCommand, newBarCommand, newBazCommand)
+	app.Register(newFooCommand, newBarCommand, newBazCommand)
 	testApp := cli.NewTestApplication(t, newRootCommand)
 	testApp.SetProperty("foo", "bar")
 	root := testApp.Root()

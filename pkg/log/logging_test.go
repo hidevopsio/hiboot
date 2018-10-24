@@ -151,11 +151,11 @@ func TestChild(t *testing.T) {
 }
 
 func TestFatal(t *testing.T) {
-
+	go Fatal("test")
 }
 
 func TestFatalf(t *testing.T) {
-
+	go Fatalf("test: %v", "log")
 }
 
 func newLogFile(filename string) *os.File {
