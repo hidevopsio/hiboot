@@ -79,10 +79,10 @@ func Register(params ...interface{}) (err error) {
 	return
 }
 
-// Deprecated: should use app.Register() instead.
 // AutoConfiguration register auto configuration struct
+// Deprecated: should use app.Register() instead.
 var AutoConfiguration = Register
 
-// Deprecated: should use app.Register() instead.
 // Component register all component into container
+// Deprecated: should use app.Register() instead.
 var Component = Register

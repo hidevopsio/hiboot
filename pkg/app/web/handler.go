@@ -55,6 +55,7 @@ type handler struct {
 	requests        []request
 	responses       []response
 	lenOfPathParams int
+	hasCtxField     bool
 }
 
 func clean(in string) (out string) {
@@ -102,6 +103,7 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 	h.requests[0].typeName = objTyp.Name()
 	h.requests[0].typ = objTyp
 	h.requests[0].val = objVal
+	h.hasCtxField = reflector.HasEmbeddedFieldType(object, Controller{})
 
 	lenOfPathParams := len(h.pathParams)
 	for i := 1; i < h.numIn; i++ {
@@ -117,6 +119,7 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 		h.requests[i].val = reflect.New(typ)
 		h.requests[i].iVal = reflect.New(iTyp)
 		h.requests[i].genKind = reflector.GetKindByValue(h.requests[i].iVal) // TODO:
+
 		pi := i - 1
 		if pi < lenOfPathParams {
 			h.requests[i].name = pp[pi][1]
@@ -254,7 +257,9 @@ func (h *handler) call(ctx *Context) {
 	//var respErr error
 	var results []reflect.Value
 	if reqErr == nil {
-		reflector.SetFieldValue(h.controller, "Ctx", ctx)
+		if h.hasCtxField {
+			reflector.SetFieldValue(h.controller, "Ctx", ctx)
+		}
 		// call controller method
 		results = h.method.Func.Call(h.inputs)
 		h.responseData(ctx, h.numOut, results)

@@ -12,31 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Line 1: main package
-
 // Package helloworld provides the quick start web application example
+// main package
 package main
 
-// Line 2: import web starter from hiboot
+// import web starter from hiboot
 import (
 	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/at"
 )
 
 // Controller Rest Controller with path /
-// Line 3-5: RESTful Controller, derived from web.Controller. The context mapping of this controller is '/' by default
+// RESTful Controller, derived from web.Controller. The context mapping of this controller is '/' by default
 type Controller struct {
-	web.Controller `path:"/"`
+	// at.RestController or web.Controller must be embedded here
+	at.RestController
 }
 
 // Get GET /
-// Line 6-8: Get method, the context mapping of this method is '/' by default
+// Get method, the context mapping of this method is '/' by default
 // the Method name Get means that the http request method is GET
 func (c *Controller) Get() string {
 	// response
 	return "hello"
 }
 
-// Line 9-11: main function
+// main function
 func main() {
 	// create new web application and run it
 	web.NewApplication(new(Controller)).Run()

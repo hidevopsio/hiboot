@@ -17,7 +17,6 @@ package web
 import (
 	"fmt"
 	"github.com/fatih/camelcase"
-	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
@@ -58,11 +57,11 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 		fieldValue := field.Elem()
 
 		// get context mapping
+		var contextMapping string
 		cp := fieldValue.FieldByName("ContextMapping")
-		if !cp.IsValid() {
-			return &system.ErrInvalidController{Name: fieldName}
+		if cp.IsValid() {
+			contextMapping = fmt.Sprintf("%v", cp.Interface())
 		}
-		contextMapping := fmt.Sprintf("%v", cp.Interface())
 
 		// parse method
 		fieldNames := camelcase.Split(fieldName)
