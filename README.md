@@ -370,7 +370,7 @@ type userRequest struct {
 
 func init() {
 	// Register Rest Controller through constructor newLoginController
-	web.RestController(newLoginController)
+	app.Register(newLoginController)
 }
 
 // newLoginController inject token through the argument token jwt.Token on constructor

@@ -101,7 +101,7 @@ func parseDependencies(object interface{}, kind string, typ reflect.Type) (deps 
 // ParseParams parse parameters
 func ParseParams(params ...interface{}) (name string, object interface{}) {
 	numParams := len(params)
-	if numParams != 0 {
+	if numParams != 0 && params[0] != nil {
 		kind := reflect.TypeOf(params[0]).Kind()
 		if numParams == 1 {
 			if kind == reflect.String {
@@ -132,68 +132,71 @@ func ParseParams(params ...interface{}) (name string, object interface{}) {
 }
 
 // NewMetaData create new meta data
-func NewMetaData(params ...interface{}) *MetaData {
+func NewMetaData(params ...interface{}) (metaData *MetaData) {
 	var name string
 	var shortName string
 	var object interface{}
 	var context interface{}
 	var deps []string
 
-	if len(params) == 2 {
-		if reflect.TypeOf(params[0]).Kind() == reflect.String {
-			name = params[0].(string)
-			object = params[1]
+	numParams := len(params)
+	if numParams != 0 && params[0] != nil {
+		if len(params) == 2 {
+			if reflect.TypeOf(params[0]).Kind() == reflect.String {
+				name = params[0].(string)
+				object = params[1]
+			} else {
+				context = params[0]
+				object = params[1]
+			}
 		} else {
-			context = params[0]
-			object = params[1]
+			object = params[0]
 		}
-	} else {
-		object = params[0]
-	}
 
-	switch object.(type) {
-	case *MetaData:
-		md := object.(*MetaData)
-		deps = append(deps, md.Depends...)
-		object = md.Object
-		name = md.Name
-	}
-
-	pkgName, typeName := reflector.GetPkgAndName(object)
-	typ := reflect.TypeOf(object)
-	kind := typ.Kind()
-	kindName := kind.String()
-
-	if pkgName != "" {
-		shortName = str.ToLowerCamel(typeName)
-		if name == "" {
-			name = pkgName + "." + shortName
-		} else if !strings.Contains(name, ".") {
-			name = pkgName + "." + name
+		switch object.(type) {
+		case *MetaData:
+			md := object.(*MetaData)
+			deps = append(deps, md.Depends...)
+			object = md.Object
+			name = md.Name
 		}
-	}
-	if kind == reflect.Struct && typ.Name() == types.Method {
-		kindName = types.Method
-	}
-	if kindName == types.Method || kindName == types.Func {
-		t, ok := reflector.GetFuncOutType(object)
-		if ok {
-			typ = t
+
+		pkgName, typeName := reflector.GetPkgAndName(object)
+		typ := reflect.TypeOf(object)
+		kind := typ.Kind()
+		kindName := kind.String()
+
+		if pkgName != "" {
+			shortName = str.ToLowerCamel(typeName)
+			if name == "" {
+				name = pkgName + "." + shortName
+			} else if !strings.Contains(name, ".") {
+				name = pkgName + "." + name
+			}
 		}
-	}
+		if kind == reflect.Struct && typ.Name() == types.Method {
+			kindName = types.Method
+		}
+		if kindName == types.Method || kindName == types.Func {
+			t, ok := reflector.GetObjectType(object)
+			if ok {
+				typ = t
+			}
+		}
 
-	deps = append(deps, parseDependencies(object, kindName, typ)...)
+		deps = append(deps, parseDependencies(object, kindName, typ)...)
 
-	metaData := &MetaData{
-		Kind:      kindName,
-		PkgName:   pkgName,
-		TypeName:  typeName,
-		Name:      name,
-		ShortName: shortName,
-		Context:   context,
-		Object:    object,
-		Type:      typ,
-		Depends:   deps,
+		metaData = &MetaData{
+			Kind:      kindName,
+			PkgName:   pkgName,
+			TypeName:  typeName,
+			Name:      name,
+			ShortName: shortName,
+			Context:   context,
+			Object:    object,
+			Type:      typ,
+			Depends:   deps,
+		}
 	}
 
 	return metaData

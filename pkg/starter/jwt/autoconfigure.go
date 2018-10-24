@@ -18,11 +18,12 @@ package jwt
 import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/at"
 	mw "github.com/iris-contrib/middleware/jwt"
 )
 
 type configuration struct {
-	app.Configuration
+	at.AutoConfiguration
 
 	Properties Properties `mapstructure:"jwt"`
 	middleware *Middleware
@@ -30,7 +31,7 @@ type configuration struct {
 }
 
 func init() {
-	app.AutoConfiguration(newConfiguration)
+	app.Register(newConfiguration)
 }
 
 func newConfiguration() *configuration {

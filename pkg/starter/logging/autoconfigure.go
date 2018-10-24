@@ -34,7 +34,7 @@ func newConfiguration(applicationContext app.ApplicationContext) *configuration 
 }
 
 func init() {
-	app.AutoConfiguration(newConfiguration)
+	app.Register(newConfiguration)
 }
 
 // LoggerHandler config logger handler

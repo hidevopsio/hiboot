@@ -31,7 +31,7 @@ type cryptoCommand struct {
 }
 
 func init() {
-	app.Component(newCryptoCommand)
+	app.Register(newCryptoCommand)
 }
 
 // newCryptoCommand crypto command constructor

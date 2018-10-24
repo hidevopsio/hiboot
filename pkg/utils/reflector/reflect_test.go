@@ -17,6 +17,7 @@ package reflector
 import (
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector/tester"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
@@ -587,7 +588,7 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 		expectedTyp := reflect.TypeOf(foo)
 		method, ok := expectedTyp.MethodByName("SetNickname")
 		assert.Equal(t, true, ok)
-		typ, ok := GetFuncOutType(method)
+		typ, ok := GetObjectType(method)
 		assert.Equal(t, true, ok)
 		assert.Equal(t, "Foo", typ.Name())
 
@@ -649,4 +650,39 @@ func TestGetFuncName(t *testing.T) {
 	ps := &fooService{}
 	name = GetFuncName(ps.foobar)
 	assert.Equal(t, "foobar", name)
+}
+
+func TestHasEmbeddedFieldByInterface(t *testing.T) {
+	type fooInterface interface {
+	}
+
+	type foo struct {
+		fooInterface
+	}
+
+	t.Run("should find embedded field by type", func(t *testing.T) {
+		ok := HasEmbeddedFieldType(new(foo), new(fooInterface))
+		assert.Equal(t, true, ok)
+	})
+
+	type bar struct {
+		foo
+	}
+
+	t.Run("should find nested embedded field by type", func(t *testing.T) {
+		ok := HasEmbeddedFieldType(new(bar), new(fooInterface))
+		assert.Equal(t, true, ok)
+	})
+
+	t.Run("should find nested embedded field by type with different package", func(t *testing.T) {
+		type Foo struct {
+			tester.Foo
+		}
+
+		type foobar struct {
+			Foo
+		}
+		ok := HasEmbeddedFieldType(new(foobar), new(tester.Foo))
+		assert.Equal(t, true, ok)
+	})
 }

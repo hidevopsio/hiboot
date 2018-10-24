@@ -17,6 +17,7 @@ package autoconfigure
 
 import (
 	"errors"
+	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
@@ -151,13 +152,7 @@ func (f *configurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 func (f *configurableFactory) Build(configs []*factory.MetaData) {
 	// categorize configurations first, then inject object if necessary
 	for _, item := range configs {
-		typ := reflect.TypeOf(item.Object)
-		if item.Kind == types.Func {
-			typ, _ = reflector.GetFuncOutType(item.Object)
-		}
-		typ = reflector.IndirectType(typ)
-		embeddedField := reflector.GetEmbeddedFieldByType(typ, "Configuration")
-		if embeddedField.Name == "Configuration" {
+		if reflector.HasEmbeddedFieldType(item.Object, new(at.AutoConfiguration)) {
 			f.configureContainer = append(f.configureContainer, item)
 		} else {
 			err := ErrInvalidObjectType
@@ -179,7 +174,11 @@ func (f *configurableFactory) Instantiate(configuration interface{}) (err error)
 	//name := configType.Elem().Name()
 	//log.Debug("fieldName: ", name)
 	pkgName := io.DirName(icv.Type().PkgPath())
-	runtimeDeps := icv.FieldByName("RuntimeDeps").Interface().(factory.Deps)
+	var runtimeDeps factory.Deps
+	rd := icv.FieldByName("RuntimeDeps")
+	if rd.IsValid() {
+		runtimeDeps = rd.Interface().(factory.Deps)
+	}
 	// call Init
 	numOfMethod := cv.NumMethod()
 	//log.Debug("methods: ", numOfMethod)
@@ -188,17 +187,20 @@ func (f *configurableFactory) Instantiate(configuration interface{}) (err error)
 		// find the dependencies of the method
 		method := configType.Method(mi)
 		methodName := str.LowerFirst(method.Name)
+		if rd.IsValid() {
+			// append inst to f.components
+			deps := runtimeDeps.Get(method.Name)
 
-		deps := runtimeDeps.Get(method.Name)
-
-		metaData := &factory.MetaData{
-			Name:    pkgName + "." + methodName,
-			Object:  method,
-			Depends: deps,
+			metaData := &factory.MetaData{
+				Name:    pkgName + "." + methodName,
+				Object:  method,
+				Depends: deps,
+			}
+			f.AppendComponent(configuration, metaData)
+		} else {
+			f.AppendComponent(configuration, method)
 		}
 
-		// append inst to f.components
-		f.AppendComponent(configuration, metaData)
 	}
 	return
 }

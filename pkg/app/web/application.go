@@ -18,7 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/app/web/at"
+	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
@@ -169,10 +169,8 @@ func (a *application) initialize(controllers ...interface{}) (err error) {
 }
 
 // RestController register rest controller to controllers container
-func RestController(controllers ...interface{}) {
-	// add to registeredControllers as well
-	registeredControllers = append(registeredControllers, controllers...)
-}
+// Deprecated: please use app.Register() instead
+var RestController = app.Register
 
 // NewApplication create new web application instance and init it
 func NewApplication(controllers ...interface{}) app.Application {

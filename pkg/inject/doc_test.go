@@ -34,10 +34,8 @@ type helloServiceImpl struct {
 
 func init() {
 	// Register Rest Controller through constructor newHelloController
-	web.RestController(newHelloController)
-
 	// Register Service through constructor newHelloService
-	app.Component(newHelloService)
+	app.Register(newHelloController, newHelloService)
 }
 
 // please note that the return type name of the constructor HelloService,

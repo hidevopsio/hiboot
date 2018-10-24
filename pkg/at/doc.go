@@ -12,8 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//Package at provides annotations for struct
 package at
-
-// Qualifier is the annotation that used for disambiguate the references.
-type Qualifier interface {
-}

@@ -14,6 +14,6 @@
 
 package at
 
-// Qualifier is the annotation that used for disambiguate the references.
-type Qualifier interface {
+// AutoConfiguration is the annotation of auto configuration
+type AutoConfiguration interface {
 }

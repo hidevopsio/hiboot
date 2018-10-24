@@ -25,7 +25,7 @@ type barCommand struct {
 }
 
 func init() {
-	app.Component(newBarCommand)
+	app.Register(newBarCommand)
 }
 
 func newBarCommand() *barCommand {

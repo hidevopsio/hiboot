@@ -25,7 +25,7 @@ type secondCommand struct {
 }
 
 func init() {
-	app.Component(newSecondCommand)
+	app.Register(newSecondCommand)
 }
 
 func newSecondCommand(foo *fooCommand, bar *barCommand) *secondCommand {
