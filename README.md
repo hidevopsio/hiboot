@@ -44,6 +44,7 @@ If you are a Java developer, you can start coding in Go without learning curve.
 ## Getting Started
 
 * [Hiboot Documentations](https://hiboot.hidevops.io) https://hiboot.hidevops.io
+* [Hiboot 文档](https://hiboot.hidevops.io/cn) https://hiboot.hidevops.io/cn
 
 ## Community Contributions Guide
 
