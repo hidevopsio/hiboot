@@ -26,8 +26,9 @@ import (
 // define the command
 type rootCommand struct {
 	cli.RootCommand
-	// inject (bind) flag to field 'To', so that it can be used on Run method, please note that the data type must be pointer
-	To string `flag:"name=to,shorthand=t,value=world,usage=e.g. --to=world or -t world"`
+
+	// flag to
+	to string
 }
 
 func newRootCommand() *rootCommand {
@@ -39,13 +40,13 @@ func newRootCommand() *rootCommand {
 hello -h : help
 hello -t John : say hello to John
 `
-	c.PersistentFlags().StringVarP(&c.To, "to", "t", "world", "e.g. --to=world or -t world")
+	c.PersistentFlags().StringVarP(&c.to, "to", "t", "world", "e.g. --to=world or -t world")
 	return c
 }
 
 // Run run the command
 func (c *rootCommand) Run(args []string) error {
-	fmt.Printf("Hello, %v\n", c.To)
+	fmt.Printf("Hello, %v\n", c.to)
 	return nil
 }
 
