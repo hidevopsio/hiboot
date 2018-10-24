@@ -15,7 +15,7 @@
 package controller
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
@@ -32,7 +32,7 @@ type barController struct {
 }
 
 func init() {
-	web.RestController(newBarController)
+	app.Register(newBarController)
 }
 
 func newBarController() *barController {

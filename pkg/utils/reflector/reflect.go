@@ -295,6 +295,16 @@ func HasEmbeddedField(object interface{}, name string) bool {
 	return field.Anonymous && ok
 }
 
+// HasEmbeddedFieldType check if has embedded fieled
+func HasEmbeddedFieldType(object interface{}, expected interface{}) (found bool) {
+	typ, _ := GetObjectType(object)
+	expectedTyp, _ := GetObjectType(expected)
+
+	field := GetEmbeddedFieldByType(typ, expectedTyp.Name(), expectedTyp.Kind())
+
+	return field.Anonymous
+}
+
 // GetEmbeddedFieldByType get embedded interface field by type
 func GetEmbeddedFieldByType(typ reflect.Type, name string, kind ...reflect.Kind) (field reflect.StructField) {
 	expectedKind := reflect.Interface
@@ -321,13 +331,11 @@ func GetEmbeddedField(object interface{}, name string, dataTypes ...reflect.Kind
 		return
 	}
 
-	typ, ok := GetFuncOutType(object)
+	typ, ok := GetObjectType(object)
 	if ok {
-		return GetEmbeddedFieldByType(typ, name, dataTypes...)
+		field = GetEmbeddedFieldByType(typ, name, dataTypes...)
 	}
-
-	typ = IndirectType(reflect.TypeOf(object))
-	return GetEmbeddedFieldByType(typ, name, dataTypes...)
+	return
 }
 
 // FindEmbeddedFieldTag find embedded field tag
@@ -360,8 +368,8 @@ func GetPkgPath(object interface{}) string {
 	return objType.PkgPath()
 }
 
-// GetFuncOutType get the function output data type
-func GetFuncOutType(object interface{}) (typ reflect.Type, ok bool) {
+// GetObjectType get the function output data type
+func GetObjectType(object interface{}) (typ reflect.Type, ok bool) {
 
 	obj := reflect.ValueOf(object)
 	t := obj.Type()
@@ -382,6 +390,10 @@ func GetFuncOutType(object interface{}) (typ reflect.Type, ok bool) {
 			typ = IndirectType(methodTyp.Out(0))
 			ok = true
 		}
+	} else {
+		// TODO: check if it effects others
+		typ = IndirectType(t)
+		ok = true
 	}
 
 	return
@@ -408,15 +420,11 @@ func GetLowerCamelFullName(object interface{}) (name string) {
 // GetPkgAndName get the package name and the object name with, e.g. pkg, Object
 func GetPkgAndName(object interface{}) (pkgName, name string) {
 
-	typ, ok := GetFuncOutType(object)
+	typ, ok := GetObjectType(object)
 	if ok {
 		pkgName = io.DirName(typ.PkgPath())
 		name = typ.Name()
-		return
 	}
-
-	name = GetName(object)
-	pkgName = ParseObjectPkgName(object)
 	return
 }
 

@@ -106,8 +106,8 @@ func (s *FooBarService) FooBar() *FooBar {
 
 func init() {
 	log.SetLevel(log.DebugLevel)
-	app.Component(&FooBar{Name: "fooBar"})
-	app.Component(newFooBarService)
+	app.Register(&FooBar{Name: "fooBar"})
+	app.Register(newFooBarService)
 }
 
 func (c *FooController) Before() {
@@ -565,7 +565,7 @@ func TestWebApplication(t *testing.T) {
 
 func TestNewApplication(t *testing.T) {
 
-	web.RestController(new(ExampleController))
+	app.Register(new(ExampleController))
 
 	testApp := web.NewApplication()
 	t.Run("should init web application", func(t *testing.T) {

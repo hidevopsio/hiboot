@@ -39,7 +39,7 @@ func newFooCommand(fooBar *model.Foo) *fooCommand {
 }
 
 func init() {
-	app.Component(newFooCommand)
+	app.Register(newFooCommand)
 }
 
 func (c *fooCommand) Run(args []string) error {

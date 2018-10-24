@@ -15,6 +15,7 @@
 package controller
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
@@ -37,7 +38,7 @@ type userRequest struct {
 
 func init() {
 	// Register Rest Controller through constructor newLoginController
-	web.RestController(newLoginController)
+	app.Register(newLoginController)
 }
 
 // Init inject token through the argument token jwt.Token on constructor

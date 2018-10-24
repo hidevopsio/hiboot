@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf"
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
 	"golang.org/x/net/context"
@@ -50,7 +51,6 @@ func init() {
 	grpc.Client("hello-world-service",
 		protobuf.NewHolaServiceClient)
 
-	// must: register Rest Controller
-	web.RestController(
-		newHolaController)
+	// must: register Controller
+	app.Register(newHolaController)
 }

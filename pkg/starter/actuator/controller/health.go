@@ -16,6 +16,7 @@
 package controller
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 )
 
@@ -29,7 +30,7 @@ type healthController struct {
 }
 
 func init() {
-	web.RestController(newHealthController)
+	app.Register(newHealthController)
 }
 
 func newHealthController() *healthController {

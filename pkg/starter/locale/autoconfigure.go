@@ -38,7 +38,7 @@ func newConfiguration(applicationContext app.ApplicationContext) *configuration 
 }
 
 func init() {
-	app.AutoConfiguration(newConfiguration)
+	app.Register(newConfiguration)
 }
 
 func (c *configuration) Handler() (handler context.Handler) {

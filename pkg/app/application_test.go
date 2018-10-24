@@ -34,7 +34,7 @@ func TestApp(t *testing.T) {
 		Properties fakeProperties `mapstructure:"fake"`
 	}
 	t.Run("should add configuration", func(t *testing.T) {
-		err := app.AutoConfiguration(new(fakeConfiguration))
+		err := app.Register(new(fakeConfiguration))
 		assert.Equal(t, nil, err)
 	})
 
@@ -56,7 +56,7 @@ func TestApp(t *testing.T) {
 		Properties fakeProperties `mapstructure:"fake"`
 	}
 	t.Run("should add configuration with pkg name", func(t *testing.T) {
-		err := app.AutoConfiguration(new(configuration))
+		err := app.Register(new(configuration))
 		assert.Equal(t, nil, err)
 	})
 
@@ -66,7 +66,7 @@ func TestApp(t *testing.T) {
 	//})
 
 	t.Run("should not add invalid configuration", func(t *testing.T) {
-		err := app.AutoConfiguration(nil)
+		err := app.Register(nil)
 		assert.Equal(t, app.ErrInvalidObjectType, err)
 	})
 
@@ -75,7 +75,7 @@ func TestApp(t *testing.T) {
 			app.Configuration
 			Properties fakeProperties `mapstructure:"fake"`
 		}
-		err := app.AutoConfiguration(new(bazConfiguration))
+		err := app.Register(new(bazConfiguration))
 		assert.Equal(t, nil, err)
 	})
 
@@ -107,21 +107,21 @@ func TestApp(t *testing.T) {
 	//})
 
 	t.Run("should not add invalid component", func(t *testing.T) {
-		err := app.Component(nil)
+		err := app.Register(nil)
 		assert.Equal(t, app.ErrInvalidObjectType, err)
 	})
 
 	t.Run("should add new component", func(t *testing.T) {
 		type fakeService interface{}
 		type fakeServiceImpl struct{ fakeService }
-		err := app.Component(new(fakeServiceImpl))
+		err := app.Register(new(fakeServiceImpl))
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should add new named component", func(t *testing.T) {
 		type fakeService interface{}
 		type fakeServiceImpl struct{ fakeService }
-		err := app.Component("myService", new(fakeServiceImpl))
+		err := app.Register("myService", new(fakeServiceImpl))
 		assert.Equal(t, nil, err)
 	})
 
@@ -129,7 +129,7 @@ func TestApp(t *testing.T) {
 		type fakeService interface{}
 		type fakeFooService struct{ fakeService }
 		type fakeBarService struct{ fakeService }
-		err := app.Component(new(fakeFooService), new(fakeBarService))
+		err := app.Register(new(fakeFooService), new(fakeBarService))
 		assert.Equal(t, nil, err)
 	})
 }

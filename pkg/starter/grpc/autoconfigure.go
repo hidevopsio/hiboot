@@ -49,7 +49,7 @@ func RegisterServer(register interface{}, server interface{}) {
 		cb:   register,
 		svc:  server,
 	}
-	app.Component(server)
+	app.Register(server)
 	grpcServers = append(grpcServers, svr)
 }
 
@@ -66,7 +66,7 @@ func RegisterClient(name string, clientConstructors ...interface{}) {
 		grpcClients = append(grpcClients, svr)
 
 		// pre-allocate client in order to pass dependency check
-		typ, ok := reflector.GetFuncOutType(clientConstructor)
+		typ, ok := reflector.GetObjectType(clientConstructor)
 		if ok {
 			// NOTE: it's very important !!!
 			// To register grpc client and grpc.ClientConn in advance.
@@ -75,18 +75,18 @@ func RegisterClient(name string, clientConstructors ...interface{}) {
 				Object:  reflect.New(typ).Interface(),
 				Depends: []string{"grpc.clientFactory"},
 			}
-			app.Component(metaData)
+			app.Register(metaData)
 		}
 	}
 	// Just register grpc.ClientConn in order to pass the dependency check
-	app.Component(new(grpc.ClientConn))
+	app.Register(new(grpc.ClientConn))
 }
 
 // Client register client from application, it is a alias to RegisterClient
 var Client = RegisterClient
 
 func init() {
-	app.AutoConfiguration(newConfiguration)
+	app.Register(newConfiguration)
 }
 
 func newConfiguration(instantiateFactory factory.InstantiateFactory) *configuration {

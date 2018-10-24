@@ -168,11 +168,9 @@ func (a *application) initialize(controllers ...interface{}) (err error) {
 	return
 }
 
+// Deprecated: please use app.Register() instead
 // RestController register rest controller to controllers container
-func RestController(controllers ...interface{}) {
-	// add to registeredControllers as well
-	registeredControllers = append(registeredControllers, controllers...)
-}
+var RestController = app.Register
 
 // NewApplication create new web application instance and init it
 func NewApplication(controllers ...interface{}) app.Application {
