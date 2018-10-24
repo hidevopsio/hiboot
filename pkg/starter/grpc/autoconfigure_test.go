@@ -61,7 +61,7 @@ func (s *greeterClientService) SayHello(name string) (*helloworld.HelloReply, er
 
 func TestGrpcServerAndClient(t *testing.T) {
 
-	app.Component(newGreeterClientService)
+	app.Register(newGreeterClientService)
 
 	grpc.Server(helloworld.RegisterGreeterServer, newGreeterServerService)
 	grpc.Client("greeter-service", helloworld.NewGreeterClient)

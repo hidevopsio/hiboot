@@ -45,7 +45,7 @@ type BoltRepository struct {
 
 func init() {
 	// register newBoltConfiguration as AutoConfiguration
-	app.AutoConfiguration(newBoltConfiguration)
+	app.Register(newBoltConfiguration)
 }
 
 // boltConfiguration constructor

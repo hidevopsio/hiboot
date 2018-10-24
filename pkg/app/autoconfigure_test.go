@@ -20,9 +20,16 @@ import (
 )
 
 func TestDependencies(t *testing.T) {
+	type foo struct{}
+
+	Component(new(foo))
+
 	type config struct {
 		Configuration
 	}
+
+	// should show deprecated message on Component
+	AutoConfiguration(new(config))
 
 	c := new(config)
 	deps := []string{"world"}

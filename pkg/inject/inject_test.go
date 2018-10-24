@@ -39,6 +39,8 @@ type fakeRepository struct {
 }
 
 type fakeProperties struct {
+	DefVarSlice   []string `default:"${app.name}"`
+	DefProfiles   []string `default:"${app.profiles.include}"`
 	Name          string   `default:"should not inject this default value as it will inject by system.Builder"`
 	Nickname      string   `default:"should not inject this default value as it will inject by system.Builder"`
 	Username      string   `default:"should not inject this default value as it will inject by system.Builder"`

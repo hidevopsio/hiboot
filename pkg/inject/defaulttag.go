@@ -37,8 +37,13 @@ func (t *defaultTag) Decode(object reflect.Value, field reflect.StructField, tag
 		switch kind {
 		case reflect.Slice:
 			retVal = t.replaceReferences(tag)
+			typ := reflect.TypeOf(retVal)
 			if retVal != tag {
-				needConvert = false
+				if typ.Kind() == reflect.Slice {
+					needConvert = false
+				} else if typ.Kind() == reflect.String {
+					return str.Convert(retVal.(string), kind)
+				}
 			}
 		case reflect.String:
 			retVal = t.replaceReferences(tag)

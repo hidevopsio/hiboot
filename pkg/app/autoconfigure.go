@@ -15,14 +15,16 @@
 package app
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"reflect"
 )
 
 // Configuration is the base configuration
 type Configuration struct {
-	factory.Configuration
+	at.AutoConfiguration
 	RuntimeDeps factory.Deps
 }
 
@@ -63,15 +65,24 @@ func appendParams(eliminator string, container []*factory.MetaData, params ...in
 
 // Register register a struct instance or constructor (func), so that it will be injectable.
 func Register(params ...interface{}) (err error) {
-	componentContainer, err = appendParams("", componentContainer, params...)
+	_, obj := factory.ParseParams(params...)
+
+	if obj == nil {
+		return ErrInvalidObjectType
+	}
+	ok := reflector.HasEmbeddedFieldType(obj, new(at.AutoConfiguration))
+	if ok {
+		configContainer, err = appendParams(autoconfigure.PostfixConfiguration, configContainer, params...)
+	} else {
+		componentContainer, err = appendParams("", componentContainer, params...)
+	}
 	return
 }
 
+// Deprecated: should use app.Register() instead.
 // AutoConfiguration register auto configuration struct
-func AutoConfiguration(params ...interface{}) (err error) {
-	configContainer, err = appendParams(autoconfigure.PostfixConfiguration, configContainer, params...)
-	return
-}
+var AutoConfiguration = Register
 
+// Deprecated: should use app.Register() instead.
 // Component register all component into container
 var Component = Register

@@ -128,7 +128,7 @@ func TestUtils(t *testing.T) {
 
 	t.Run("should parse func dependencies", func(t *testing.T) {
 		fn := newFooBarService
-		ft, ok := reflector.GetFuncOutType(fn)
+		ft, ok := reflector.GetObjectType(fn)
 		assert.Equal(t, true, ok)
 
 		deps := parseDependencies(fn, types.Func, ft)

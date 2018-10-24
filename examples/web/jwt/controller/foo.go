@@ -15,6 +15,7 @@
 package controller
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/log"
 )
@@ -35,7 +36,7 @@ type fooController struct {
 
 // init - add &FooController{} to web application
 func init() {
-	web.RestController(newFooController)
+	app.Register(newFooController)
 }
 
 func newFooController() *fooController {
