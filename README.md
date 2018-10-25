@@ -10,6 +10,7 @@
   <a href="https://travis-ci.org/hidevopsio/hiboot?branch=master">
     <img src="https://travis-ci.org/hidevopsio/hiboot.svg?branch=master" alt="Build Status"/>
   </a>
+  <a class="badge-align" href="https://www.codacy.com/app/john-deng/hiboot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hidevopsio/hiboot&amp;utm_campaign=Badge_Grade"><img src="https://api.codacy.com/project/badge/Grade/ee8ddbf56ece4f46a6efeb216c351a0f"/></a>
   <a href="https://codecov.io/gh/hidevopsio/hiboot">
     <img src="https://codecov.io/gh/hidevopsio/hiboot/branch/master/graph/badge.svg" />
   </a>
