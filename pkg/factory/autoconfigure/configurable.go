@@ -125,6 +125,9 @@ func (f *configurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 	workDir := io.GetWorkDir()
 	systemConfig = new(system.Configuration)
 	profile := os.Getenv(EnvAppProfilesActive)
+	if profile == "" {
+		os.Setenv(EnvAppProfilesActive, "default")
+	}
 	f.builder = &system.Builder{
 		Path:       filepath.Join(workDir, config),
 		Name:       application,
@@ -207,9 +210,9 @@ func (f *configurableFactory) Instantiate(configuration interface{}) (err error)
 
 // appProfilesActive getter
 func (f *configurableFactory) appProfilesActive() string {
-	if f.systemConfig == nil {
-		return os.Getenv(EnvAppProfilesActive)
-	}
+	//if f.systemConfig == nil {
+	//	return os.Getenv(EnvAppProfilesActive)
+	//}
 	return f.systemConfig.App.Profiles.Active
 }
 
@@ -250,15 +253,15 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 		// build properties, inject settings
 		cf, _ := f.builder.Build(name, f.appProfilesActive())
 		// No properties needs to build, use default config
-		if cf == nil {
-			confTyp := reflect.TypeOf(config)
-			if confTyp != nil && confTyp.Kind() == reflect.Ptr {
-				cf = config
-			} else {
-				log.Fatalf("Unsupported configuration type: %v", confTyp)
-				continue
-			}
-		}
+		//if cf == nil {
+		//	confTyp := reflect.TypeOf(config)
+		//	if confTyp != nil && confTyp.Kind() == reflect.Ptr {
+		//		cf = config
+		//	} else {
+		//		log.Fatalf("Unsupported configuration type: %v", confTyp)
+		//		continue
+		//	}
+		//}
 
 		// replace references and environment variables
 		if f.systemConfig != nil {
