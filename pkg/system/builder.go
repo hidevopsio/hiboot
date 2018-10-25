@@ -65,7 +65,7 @@ func (b *Builder) Build(profiles ...string) (interface{}, error) {
 	conf, err := b.Read(b.Name)
 	if err != nil {
 		//log.Errorf("failed to read: %v", b.Name)
-		return nil, err
+		return conf, nil
 	}
 
 	if len(profiles) == 0 && b.Profile != "" {
@@ -82,9 +82,6 @@ func (b *Builder) Build(profiles ...string) (interface{}, error) {
 		}
 
 		_, err = b.Read(name)
-		if err != nil {
-			break
-		}
 	}
 
 	return conf, err
@@ -107,7 +104,7 @@ func (b *Builder) Read(name string) (interface{}, error) {
 	v := b.New(name)
 	err := v.ReadInConfig()
 	if err != nil {
-		return nil, fmt.Errorf("error on config file: %s", err)
+		return b.ConfigType, fmt.Errorf("error on config file: %s", err)
 	}
 	st := b.ConfigType
 
