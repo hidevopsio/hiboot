@@ -1,5 +1,8 @@
 # Hiboot - web/cli application framework 
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/7291d36256464380868488e9ca5f29d7)](https://app.codacy.com/app/john-deng/hiboot?utm_source=github.com&utm_medium=referral&utm_content=hidevopsio/hiboot&utm_campaign=Badge_Grade_Dashboard)
+
+
 <p align="center">
   <a href="https://hiboot.hidevops.io">
     <img src="https://github.com/hidevopsio/hiboot/blob/master/hiboot.png?raw=true" alt="hiboot">
