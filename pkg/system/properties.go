@@ -19,7 +19,7 @@ package system
 // .active active profile
 type Profiles struct {
 	Include []string `json:"include"`
-	Active  string   `json:"active" default:"${APP_PROFILES_ACTIVE:dev}"`
+	Active  string   `json:"active" default:"${APP_PROFILES_ACTIVE:default}"`
 }
 
 // App is the properties of the application, it hold the base info of the application
