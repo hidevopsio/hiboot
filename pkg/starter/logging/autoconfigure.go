@@ -21,6 +21,10 @@ import (
 	"github.com/kataras/iris/middleware/logger"
 )
 
+const (
+	Profile = "logging"
+)
+
 type configuration struct {
 	app.Configuration
 	Properties         Properties `mapstructure:"logging"`

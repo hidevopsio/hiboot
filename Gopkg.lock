@@ -122,6 +122,14 @@
   revision = "6f8212e8d10df7383609d3c377ca08884d8f3ec0"
 
 [[projects]]
+  digest = "1:73a7106c799f98af4f3da7552906efc6a2570329f4cd2d2f5fb8f9d6c053ff2f"
+  name = "github.com/golang/mock"
+  packages = ["gomock"]
+  pruneopts = ""
+  revision = "c34cdb4725f4c3844d095133c6e40e448b86589b"
+  version = "v1.1.1"
+
+[[projects]]
   digest = "1:3dd078fda7500c341bc26cfbc6c6a34614f295a2457149fc1045cab767cbcf18"
   name = "github.com/golang/protobuf"
   packages = [
@@ -505,12 +513,12 @@
   version = "v1.0.1"
 
 [[projects]]
-  digest = "1:3dab237cd3263a290d771d133fed777bb56c22e380b00ebe92e6531d5c8d3d0c"
+  digest = "1:1ed7a19588d3b74fc6a45fe89f95aa980a34870342fb9c3183b19cad08b18a1e"
   name = "github.com/spf13/viper"
   packages = ["."]
   pruneopts = ""
-  revision = "b5e8006cbee93ec955a89ab31e0e3ce3204f3736"
-  version = "v1.0.2"
+  revision = "2c12c60302a5a0e62ee102ca9bc996277c2f64f5"
+  version = "v1.2.1"
 
 [[projects]]
   digest = "1:a30066593578732a356dc7e5d7f78d69184ca65aeeff5939241a3ab10559bb06"
@@ -721,6 +729,7 @@
     "github.com/deckarep/golang-set",
     "github.com/dgrijalva/jwt-go",
     "github.com/fatih/camelcase",
+    "github.com/golang/mock/gomock",
     "github.com/golang/protobuf/proto",
     "github.com/iris-contrib/httpexpect",
     "github.com/iris-contrib/middleware/jwt",
