@@ -23,9 +23,8 @@ import (
 type RootCommand struct {
 	cli.RootCommand
 
-	//TODO: inject flag
-	Profile string `flag:"shorthand=p,value=dev,usage=e.g. --profile=test"`
-	Timeout int    `flag:"shorthand=t,value=1,usage=e.g. --timeout=2"`
+	profile string
+	timeout int
 }
 
 // NewRootCommand the root command
@@ -36,14 +35,14 @@ func NewRootCommand(second *secondCommand) *RootCommand {
 	c.Long = "Run first command"
 	c.ValidArgs = []string{"baz"}
 	pf := c.PersistentFlags()
-	pf.StringVarP(&c.Profile, "profile", "p", "dev", "e.g. --profile=test")
-	pf.IntVarP(&c.Timeout, "timeout", "t", 1, "e.g. --timeout=1")
+	pf.StringVarP(&c.profile, "profile", "p", "dev", "e.g. --profile=test")
+	pf.IntVarP(&c.timeout, "timeout", "t", 1, "e.g. --timeout=1")
 	c.Add(second)
 	return c
 }
 
 // Run root command handler
 func (c *RootCommand) Run(args []string) error {
-	log.Infof("handle first command: profile=%v, timeout=%v", c.Profile, c.Timeout)
+	log.Infof("handle first command: profile=%v, timeout=%v", c.profile, c.timeout)
 	return nil
 }
