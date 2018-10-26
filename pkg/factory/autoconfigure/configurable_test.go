@@ -16,6 +16,7 @@ package autoconfigure_test
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
@@ -55,8 +56,15 @@ type FooProperties struct {
 	Username string `default:"fb"`
 }
 
+type Configuration struct {
+	at.AutoConfiguration
+}
+
+type emptyConfiguration struct {
+}
+
 type FooConfiguration struct {
-	app.Configuration
+	at.AutoConfiguration
 	FakeProperties FooProperties `mapstructure:"foo"`
 }
 
@@ -302,8 +310,19 @@ func TestConfigurableFactory(t *testing.T) {
 	})
 	inject.SetFactory(f)
 
+	io.ChangeWorkDir(os.TempDir())
 	t.Run("should build app config", func(t *testing.T) {
-		io.ChangeWorkDir(os.TempDir())
+		// backup profile
+		profile := os.Getenv(autoconfigure.EnvAppProfilesActive)
+		os.Setenv(autoconfigure.EnvAppProfilesActive, "")
+		sc, err := f.BuildSystemConfig()
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "default", sc.App.Profiles.Active)
+		// restore profile
+		os.Setenv(autoconfigure.EnvAppProfilesActive, profile)
+	})
+
+	t.Run("should build app config", func(t *testing.T) {
 		_, err = f.BuildSystemConfig()
 		assert.Equal(t, nil, err)
 	})
@@ -322,8 +341,10 @@ func TestConfigurableFactory(t *testing.T) {
 	fakeCfg := new(fakeConfiguration)
 
 	f.Build([]*factory.MetaData{
+		factory.NewMetaData(new(emptyConfiguration)),
 		factory.NewMetaData("foo", fooConfig),
 		factory.NewMetaData(fakeCfg),
+		factory.NewMetaData(new(Configuration)),
 		factory.NewMetaData(new(BarConfiguration)),
 		factory.NewMetaData(new(marsConfiguration)),
 		factory.NewMetaData(new(jupiterConfiguration)),
