@@ -157,10 +157,36 @@ func TestBaseApplication(t *testing.T) {
 
 	ba.RegisterController(nil)
 
-	ba.SetProperty(app.PropertyBannerDisabled, false).
-		SetProperty(app.PropertyAppProfilesInclude, "foo")
+	t.Run("should set PropertyBannerDisabled", func(t *testing.T) {
+		ba.SetProperty(app.PropertyBannerDisabled, false)
+		err := ba.AppendProfiles(ba)
+		assert.Equal(t, nil, err)
+	})
 
-	ba.AppendProfiles(ba)
+	t.Run("should set profiles", func(t *testing.T) {
+		ba.SetProperty(app.PropertyBannerDisabled, false).
+			SetProperty(app.PropertyAppProfilesInclude, "foo,bar")
+		err := ba.AppendProfiles(ba)
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should set profiles with slice", func(t *testing.T) {
+		ba.SetProperty(app.PropertyAppProfilesInclude, "foo", "bar")
+		err := ba.AppendProfiles(ba)
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should failed set profiles wrong slice format", func(t *testing.T) {
+		ba.SetProperty(app.PropertyAppProfilesInclude, 123, 456)
+		err := ba.AppendProfiles(ba)
+		assert.NotEqual(t, nil, err)
+	})
+
+	t.Run("should failed set profiles wrong format int", func(t *testing.T) {
+		ba.SetProperty(app.PropertyAppProfilesInclude, 123)
+		err := ba.AppendProfiles(ba)
+		assert.NotEqual(t, nil, err)
+	})
 
 	ba.PrintStartupMessages()
 

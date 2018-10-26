@@ -12,9 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package controller provide the controller for health check
 package actuator
 
-import "testing"
+import (
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+)
 
-func TestDummy(t *testing.T) {
+// Health is the health check struct
+type Health struct {
+	Status string `json:"status"`
+}
+
+type healthController struct {
+	web.Controller
+}
+
+func init() {
+	app.Register(newHealthController)
+}
+
+func newHealthController() *healthController {
+	return &healthController{}
+}
+
+// GET /health
+func (c *healthController) Get() {
+
+	health := Health{
+		Status: "UP",
+	}
+	c.Ctx.JSON(health)
 }

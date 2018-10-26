@@ -128,13 +128,12 @@ func (f *configurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 	if profile == "" {
 		os.Setenv(EnvAppProfilesActive, "default")
 	}
-	f.builder = &system.Builder{
-		Path:       filepath.Join(workDir, config),
-		Name:       application,
-		FileType:   yaml,
-		Profile:    profile,
-		ConfigType: systemConfig,
-	}
+	f.builder = system.NewBuilder(systemConfig,
+		filepath.Join(workDir, config),
+		application,
+		yaml,
+		profile,
+	)
 
 	f.SetInstance("systemConfiguration", systemConfig)
 	inject.DefaultValue(systemConfig)
@@ -148,6 +147,9 @@ func (f *configurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 
 		f.systemConfig = systemConfig
 	}
+
+	appName := f.builder.Get("app")
+	log.Debugf("app.name: %v", appName)
 	return
 }
 

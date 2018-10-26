@@ -29,6 +29,7 @@ import (
 
 // Builder is the config file (yaml, json) builder
 type Builder struct {
+	*viper.Viper
 	Path       string
 	Name       string
 	FileType   string
@@ -36,13 +37,22 @@ type Builder struct {
 	ConfigType interface{}
 }
 
+func NewBuilder(configType interface{}, path, name, fileType, profile string) *Builder {
+	return &Builder{
+		Path:       path,
+		Name:       name,
+		FileType:   fileType,
+		Profile:    profile,
+		ConfigType: configType,
+	}
+}
+
 // New create new viper instance
-func (b *Builder) New(name string) *viper.Viper {
-	v := viper.New()
-	v.AddConfigPath(b.Path)
-	v.SetConfigName(name)
-	v.SetConfigType(b.FileType)
-	return v
+func (b *Builder) New(name string) {
+	b.Viper = viper.New()
+	b.AddConfigPath(b.Path)
+	b.SetConfigName(name)
+	b.SetConfigType(b.FileType)
 }
 
 // Init create file if it's not exist
@@ -100,38 +110,38 @@ func (b *Builder) BuildWithProfile() (interface{}, error) {
 
 // Read single file
 func (b *Builder) Read(name string) (interface{}, error) {
-
-	v := b.New(name)
-	err := v.ReadInConfig()
-	if err != nil {
-		return b.ConfigType, fmt.Errorf("error on config file: %s", err)
-	}
+	b.New(name)
+	// create new instance
 	st := b.ConfigType
-
 	val := reflect.ValueOf(st)
 	//log.Debugf("value of configuration: %v, kind: %v", val, val.Kind())
 	cp := b.ConfigType
 	if val.Kind() == reflect.Struct {
 		cp = reflector.NewReflectType(st)
 	}
+	// read config
+	err := b.ReadInConfig()
+	if err != nil {
+		return cp, fmt.Errorf("error on config file: %s", err)
+	}
 
-	err = v.Unmarshal(cp)
+	err = b.Unmarshal(cp)
 	return cp, err
 }
 
 // Save configurations to file
 func (b *Builder) Save(p interface{}) error {
 
-	v := b.New(b.Name)
+	b.New(b.Name)
 
 	y, err := yaml.Marshal(p)
 	if err == nil {
-		err = v.ReadConfig(bytes.NewBuffer(y))
+		err = b.ReadConfig(bytes.NewBuffer(y))
 		if err != nil {
 			fmt.Printf("err: %v\n", err)
 			return err
 		}
 	}
 
-	return v.WriteConfig()
+	return b.WriteConfig()
 }

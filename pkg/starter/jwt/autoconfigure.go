@@ -22,6 +22,10 @@ import (
 	mw "github.com/iris-contrib/middleware/jwt"
 )
 
+const (
+	Profile = "jwt"
+)
+
 type configuration struct {
 	at.AutoConfiguration
 
