@@ -27,6 +27,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/kataras/iris/context"
+	"reflect"
 	"strings"
 	"sync"
 )
@@ -39,7 +40,7 @@ const (
 // Application is the base application interface
 type Application interface {
 	Initialize() error
-	SetProperty(name string, value interface{}) Application
+	SetProperty(name string, value ...interface{}) Application
 	GetProperty(name string) (value interface{}, ok bool)
 	Run() error
 }
@@ -91,8 +92,13 @@ func (a *BaseApplication) PrintStartupMessages() {
 }
 
 // SetProperty set application property
-func (a *BaseApplication) SetProperty(name string, value interface{}) Application {
-	a.propertyMap.Set(name, value)
+// TODO: should set property from source by SetProperty or accept from program argument, e.g. myapp --app.profiles.active=dev
+func (a *BaseApplication) SetProperty(name string, value ...interface{}) Application {
+	if len(value) == 1 {
+		a.propertyMap.Set(name, value[0])
+	} else {
+		a.propertyMap.Set(name, value)
+	}
 	return a
 }
 
@@ -176,10 +182,25 @@ func (a *BaseApplication) GetInstance(params ...interface{}) (instance interface
 }
 
 // AppendProfiles Run run the application
+// TODO: should set property from source by SetProperty or accept from program argument, e.g. myapp --app.profiles.active=dev
 func (a *BaseApplication) AppendProfiles(app Application) error {
 	profiles, ok := app.GetProperty(PropertyAppProfilesInclude)
 	if ok {
-		appProfilesInclude := strings.SplitN(profiles.(string), ",", -1)
+		var appProfilesInclude []string
+		kind := reflect.TypeOf(profiles).Kind()
+		if kind == reflect.String {
+			appProfilesInclude = strings.SplitN(profiles.(string), ",", -1)
+		} else if kind == reflect.Slice {
+			for _, p := range profiles.([]interface{}) {
+				if reflect.TypeOf(p).Kind() == reflect.String {
+					appProfilesInclude = append(appProfilesInclude, p.(string))
+				} else {
+					return fmt.Errorf("[app] property %v must be string or []string", PropertyAppProfilesInclude)
+				}
+			}
+		} else {
+			return fmt.Errorf("[app] property %v must be string or []string", PropertyAppProfilesInclude)
+		}
 		if a.systemConfig != nil {
 			a.systemConfig.App.Profiles.Include =
 				append(a.systemConfig.App.Profiles.Include, appProfilesInclude...)

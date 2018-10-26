@@ -44,19 +44,17 @@ type logging struct {
 }
 
 func init() {
-	io.ChangeWorkDir("../../")
+	io.EnsureWorkDir(1, "config/application.yml")
 	log.SetLevel(log.DebugLevel)
 }
 
 func TestBuilderBuild(t *testing.T) {
 
-	b := &Builder{
-		Path:       filepath.Join(io.GetWorkDir(), "config"),
-		Name:       "application",
-		FileType:   "yaml",
-		Profile:    "local",
-		ConfigType: Configuration{},
-	}
+	b := NewBuilder(&Configuration{},
+		filepath.Join(io.GetWorkDir(), "config"),
+		"application",
+		"yaml",
+		"local")
 
 	t.Run("should build configuration properly", func(t *testing.T) {
 		cp, err := b.Build()
@@ -66,11 +64,13 @@ func TestBuilderBuild(t *testing.T) {
 	})
 
 	t.Run("should build configuration properly", func(t *testing.T) {
-		b.ConfigType = new(Configuration)
 		cp, err := b.Build()
 		assert.Equal(t, nil, err)
 		c := cp.(*Configuration)
 		assert.Equal(t, "hiboot", c.App.Name)
+		log.Debugf("app: %v", b.Get("app"))
+		log.Debugf("app.name: %v", b.Get("app.name"))
+		log.Debugf("server: %v", b.Get("server"))
 	})
 
 }
@@ -86,13 +86,11 @@ func TestBuilderBuildWithError(t *testing.T) {
 
 func TestBuilderBuildWithProfile(t *testing.T) {
 
-	b := &Builder{
-		Path:       filepath.Join(io.GetWorkDir(), "config"),
-		Name:       "application",
-		FileType:   "yaml",
-		Profile:    "local",
-		ConfigType: Configuration{},
-	}
+	b := NewBuilder(&Configuration{},
+		filepath.Join(io.GetWorkDir(), "config"),
+		"application",
+		"yaml",
+		"local")
 
 	cp, err := b.BuildWithProfile()
 	assert.Equal(t, nil, err)
@@ -109,13 +107,11 @@ func TestBuilderBuildWithProfile(t *testing.T) {
 
 func TestFileDoesNotExist(t *testing.T) {
 
-	b := &Builder{
-		Path:       filepath.Join(io.GetWorkDir(), "config"),
-		Name:       "application",
-		FileType:   "yaml",
-		Profile:    "does-not-exist",
-		ConfigType: Configuration{},
-	}
+	b := NewBuilder(&Configuration{},
+		filepath.Join(io.GetWorkDir(), "config"),
+		"application",
+		"yaml",
+		"does-not-exist")
 	t.Run("use default profile if custom profile does not exist", func(t *testing.T) {
 		_, err := b.Build()
 		assert.Equal(t, nil, err)
@@ -124,13 +120,11 @@ func TestFileDoesNotExist(t *testing.T) {
 
 func TestWrongFileFormat(t *testing.T) {
 
-	b := &Builder{
-		Path:       os.TempDir(),
-		Name:       "test",
-		FileType:   "yml",
-		Profile:    "abc",
-		ConfigType: Configuration{},
-	}
+	b := NewBuilder(&Configuration{},
+		filepath.Join(os.TempDir(), "config"),
+		"test",
+		"yaml",
+		"abc")
 	io.CreateFile(os.TempDir(), "test-abc.yml")
 	io.WriterFile(os.TempDir(), "test-abc.yml", []byte(": 1234"))
 	t.Run("should report error: did not find expected key", func(t *testing.T) {
@@ -146,13 +140,11 @@ func TestWrongFileFormat(t *testing.T) {
 
 func TestProfileIsEmpty(t *testing.T) {
 
-	b := &Builder{
-		Path:       filepath.Join(io.GetWorkDir(), "config"),
-		Name:       "application",
-		FileType:   "yaml",
-		Profile:    "",
-		ConfigType: Configuration{},
-	}
+	b := NewBuilder(&Configuration{},
+		filepath.Join(io.GetWorkDir(), "config"),
+		"application",
+		"yaml",
+		"")
 
 	t.Run("use default profile if custom profile does not exist", func(t *testing.T) {
 		_, err := b.Build()
@@ -165,15 +157,12 @@ func TestWithoutReplacer(t *testing.T) {
 	path := filepath.Join(io.GetWorkDir(), "config")
 	testProfile := "xxx"
 	appConfig := "application"
-	FileType := "yaml"
 	testFile := appConfig + "-" + testProfile + ".yml"
-	b := &Builder{
-		Path:       path,
-		Name:       appConfig,
-		FileType:   FileType,
-		Profile:    testProfile,
-		ConfigType: Configuration{},
-	}
+	b := NewBuilder(&Configuration{},
+		path,
+		"application",
+		"yaml",
+		"xxx")
 	io.CreateFile(path, testFile)
 	_, err := b.Build()
 	os.Remove(filepath.Join(path, testFile))
@@ -182,24 +171,22 @@ func TestWithoutReplacer(t *testing.T) {
 }
 
 func TestBuilderInit(t *testing.T) {
-	b := &Builder{
-		Path:       filepath.Join(os.TempDir(), "config"),
-		Name:       "foo",
-		FileType:   "yaml",
-		ConfigType: Configuration{},
-	}
+	b := NewBuilder(&Configuration{},
+		filepath.Join(os.TempDir(), "config"),
+		"foo",
+		"yaml",
+		"")
 
 	err := b.Init()
 	assert.Equal(t, nil, err)
 }
 
 func TestBuilderSave(t *testing.T) {
-	b := &Builder{
-		Path:       filepath.Join(os.TempDir(), "config"),
-		Name:       "foo",
-		FileType:   "yaml",
-		ConfigType: Configuration{},
-	}
+	b := NewBuilder(&Configuration{},
+		filepath.Join(os.TempDir(), "config"),
+		"foo",
+		"yaml",
+		"")
 
 	err := b.Init()
 	assert.Equal(t, nil, err)
