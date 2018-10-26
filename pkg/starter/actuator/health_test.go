@@ -12,14 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package actuator provide the health check endpoint for web application
 package actuator
 
 import (
-	// import from package starter/actuator
-	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator/controller"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"net/http"
+	"testing"
 )
 
-func init() {
-
+func TestHealthController(t *testing.T) {
+	web.NewTestApplication(t).
+		Get("/health").
+		Expect().Status(http.StatusOK)
 }

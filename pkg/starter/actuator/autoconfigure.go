@@ -12,36 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package controller provide the controller for health check
-package controller
+// Package actuator provide the health check endpoint for web application
+package actuator
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/at"
 )
 
-// Health is the health check struct
-type Health struct {
-	Status string `json:"status"`
+const (
+	Profile = "actuator"
+)
+
+type Properties struct {
 }
 
-type healthController struct {
-	web.Controller
+type configuration struct {
+	at.AutoConfiguration
+
+	Properties Properties `mapstructure:"actuator"`
+}
+
+func newConfiguration() *configuration {
+	return &configuration{}
 }
 
 func init() {
-	app.Register(newHealthController)
+	app.Register(newConfiguration)
 }
 
-func newHealthController() *healthController {
-	return &healthController{}
-}
+func (c *configuration) HealthController() {
 
-// GET /health
-func (c *healthController) Get() {
-
-	health := Health{
-		Status: "UP",
-	}
-	c.Ctx.JSON(health)
 }

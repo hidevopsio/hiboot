@@ -23,6 +23,10 @@ import (
 	"reflect"
 )
 
+const (
+	Profile = "grpc"
+)
+
 type configuration struct {
 	app.Configuration
 	Properties properties `mapstructure:"grpc"`

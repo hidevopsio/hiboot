@@ -25,6 +25,10 @@ import (
 	"strings"
 )
 
+const (
+	Profile = "locale"
+)
+
 type configuration struct {
 	app.Configuration
 	Properties         properties `mapstructure:"locale"`
