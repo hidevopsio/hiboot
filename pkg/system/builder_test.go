@@ -140,7 +140,7 @@ func TestWrongFileFormat(t *testing.T) {
 
 func TestProfileIsEmpty(t *testing.T) {
 
-	b := NewBuilder(&Configuration{},
+	b := NewBuilder(Configuration{},
 		filepath.Join(io.GetWorkDir(), "config"),
 		"application",
 		"yaml",

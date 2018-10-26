@@ -110,20 +110,19 @@ func (b *Builder) BuildWithProfile() (interface{}, error) {
 
 // Read single file
 func (b *Builder) Read(name string) (interface{}, error) {
-	// create new instance
 	b.New(name)
-	// read config
-	err := b.ReadInConfig()
-	if err != nil {
-		return b.ConfigType, fmt.Errorf("error on config file: %s", err)
-	}
+	// create new instance
 	st := b.ConfigType
-
 	val := reflect.ValueOf(st)
 	//log.Debugf("value of configuration: %v, kind: %v", val, val.Kind())
 	cp := b.ConfigType
 	if val.Kind() == reflect.Struct {
 		cp = reflector.NewReflectType(st)
+	}
+	// read config
+	err := b.ReadInConfig()
+	if err != nil {
+		return cp, fmt.Errorf("error on config file: %s", err)
 	}
 
 	err = b.Unmarshal(cp)
