@@ -23,6 +23,7 @@ import (
 )
 
 const (
+	// Profile is the profile of jwt, it should be as same as the package name
 	Profile = "jwt"
 )
 
