@@ -5,6 +5,9 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 )
 
+// Profile is the configuration name
+const Profile = "config"
+
 type configuration struct {
 	app.Configuration
 }

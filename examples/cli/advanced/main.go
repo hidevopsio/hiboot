@@ -16,8 +16,7 @@ package main
 
 import (
 	"github.com/hidevopsio/hiboot/examples/cli/advanced/cmd"
-	_ "github.com/hidevopsio/hiboot/examples/cli/advanced/cmd"
-	_ "github.com/hidevopsio/hiboot/examples/cli/advanced/config"
+	"github.com/hidevopsio/hiboot/examples/cli/advanced/config"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 )
@@ -25,6 +24,6 @@ import (
 func main() {
 	// create new cli application and run it
 	cli.NewApplication(cmd.NewRootCommand).
-		SetProperty(app.PropertyAppProfilesInclude, "config").
+		SetProperty(app.PropertyAppProfilesInclude, config.Profile).
 		Run()
 }
