@@ -21,6 +21,7 @@ import (
 )
 
 const (
+	// Profile is the profile of actuator, it should be as same as the package name
 	Profile = "actuator"
 )
 

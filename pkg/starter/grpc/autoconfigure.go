@@ -24,6 +24,7 @@ import (
 )
 
 const (
+	// Profile is the profile of grpc, it should be as same as the package name
 	Profile = "grpc"
 )
 

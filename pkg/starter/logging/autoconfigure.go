@@ -22,6 +22,7 @@ import (
 )
 
 const (
+	// Profile is the profile of logging, it should be as same as the package name
 	Profile = "logging"
 )
 
