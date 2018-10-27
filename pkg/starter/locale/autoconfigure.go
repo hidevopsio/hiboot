@@ -26,6 +26,7 @@ import (
 )
 
 const (
+	// Profile is the profile of locale, it should be as same as the package name
 	Profile = "locale"
 )
 
