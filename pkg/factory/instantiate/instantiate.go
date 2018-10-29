@@ -77,6 +77,7 @@ func (f *instantiateFactory) BuildComponents() (err error) {
 		case types.Func:
 			obj, err = inject.IntoFunc(item.Object)
 			name = item.Name
+			// TODO: should report error when err is not nil
 			if err == nil {
 				log.Debugf("%d: inject into func: %v %v", i, item.ShortName, item.Type)
 			}
