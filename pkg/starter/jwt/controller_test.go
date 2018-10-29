@@ -223,4 +223,9 @@ func TestParseToken(t *testing.T) {
 		assert.Equal(t, "", nonExist)
 	})
 
+	t.Run("should get empty string from jwt token by JwtProperty", func(t *testing.T) {
+		nonExist := jc.JwtProperty("non-exist-prop")
+		assert.Equal(t, "", nonExist)
+	})
+
 }
