@@ -57,7 +57,7 @@ func (s *holaServiceServerImpl) SayHola(ctx context.Context, request *protobuf.H
 
 func init() {
 	// must: register grpc server
-	// please note that greeterService must implement protobuf.GreeterServer, or it won't be registered.
+	// please note that holaServiceServerImpl must implement protobuf.HelloServiceServer, or it won't be registered.
 	grpc.Server(protobuf.RegisterHelloServiceServer, newHelloServiceServer)
 	grpc.Server(protobuf.RegisterHolaServiceServer, newHolaServiceServer)
 }

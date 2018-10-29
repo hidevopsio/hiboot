@@ -40,7 +40,7 @@ func (c *Controller) ParseToken(claims jwt.MapClaims, prop string) (retVal strin
 func (c *Controller) JwtProperty(propName string) (propVal string) {
 	claims, ok := c.JwtProperties()
 	if ok {
-		propVal = fmt.Sprintf("%v", claims[propName])
+		propVal = c.ParseToken(claims, propName)
 	}
 	return
 }
