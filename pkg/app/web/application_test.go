@@ -29,6 +29,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/stretchr/testify/assert"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 )
@@ -278,8 +279,7 @@ func (c *FoobarController) Get(request *FoobarRequestParams) (response model.Res
 // context mapping can be overwritten by FooController.ContextMapping
 type HelloController struct {
 	web.Controller
-	ContextMapping string `value:"/"`
-	fooBar         *FooBar
+	fooBar *FooBar
 }
 
 func newHelloController(fooBar *FooBar) *HelloController {
@@ -295,7 +295,7 @@ func (c *HelloController) Get() string {
 	return "hello"
 }
 
-func (c *HelloController) GetHelloWorld() {
+func (c *HelloController) GetWorld() {
 	c.Ctx.HTML("<h1>Hello World</h1>")
 }
 
@@ -319,31 +319,73 @@ func (c *HelloController) GetAll() {
 	c.Ctx.ResponseBody("success", data)
 }
 
-func TestWebApplication(t *testing.T) {
-	testApp := web.NewTestApplication(t, newHelloController, newFooController, newBarController, newFoobarController)
+// Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
+// the lower cased foo will be the context mapping of the controller
+// context mapping can be overwritten by FooController.ContextMapping
+type HelloViewController struct {
+	web.Controller
+	ContextMapping string `value:"/"`
+	fooBar         *FooBar
+}
 
-	t.Run("should response 200 when GET /all", func(t *testing.T) {
-		testApp.
-			Request(http.MethodGet, "/all").
-			Expect().Status(http.StatusOK).
-			Body().Contains("Success").Contains("John Doe").Contains("Zhang San")
-	})
+func newHelloViewController(fooBar *FooBar) *HelloViewController {
+	return &HelloViewController{
+		fooBar: fooBar,
+	}
+}
 
+// Get hello
+// The first word of method is the http method GET, the rest is the context mapping hello
+// in this method, the name Get means that the method context mapping is '/'
+func (c *HelloViewController) Get() {
+	c.Ctx.View("index.html")
+}
+
+func TestWebViewApplicationWithProperties(t *testing.T) {
+	os.Args = append(os.Args, "--web.view.enabled=true")
+	testApp := web.NewTestApp(t, newHelloViewController).SetProperty("").Run(t)
 	t.Run("should response 200 when GET /", func(t *testing.T) {
 		testApp.
 			Get("/").
 			Expect().Status(http.StatusOK)
 	})
+}
 
+func TestWebViewApplicationWithArgs(t *testing.T) {
+	os.Args = append(os.Args, "--web.view.enabled=true")
+	testApp := web.NewTestApplication(t, newHelloViewController)
 	t.Run("should response 200 when GET /", func(t *testing.T) {
 		testApp.
-			Get("/helloWorld").
+			Get("/").
+			Expect().Status(http.StatusOK)
+	})
+}
+
+func TestWebApplication(t *testing.T) {
+	testApp := web.NewTestApplication(t, newHelloController, newFooController, newBarController, newFoobarController)
+
+	t.Run("should response 200 when GET /hello/all", func(t *testing.T) {
+		testApp.
+			Request(http.MethodGet, "/hello/all").
+			Expect().Status(http.StatusOK).
+			Body().Contains("Success").Contains("John Doe").Contains("Zhang San")
+	})
+
+	t.Run("should response 200 when GET /hello", func(t *testing.T) {
+		testApp.
+			Get("/hello/").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should response 200 when GET /hello/world", func(t *testing.T) {
+		testApp.
+			Get("/hello/world").
 			Expect().Status(http.StatusOK)
 	})
 
 	t.Run("should response 你好, 世界 with language zh-CN", func(t *testing.T) {
 		// test cn-ZH
-		testApp.Get("/").
+		testApp.Get("/hello").
 			WithHeader("Accept-Language", "zh-CN").
 			Expect().Status(http.StatusOK).
 			Body().Contains("你好, 世界")
@@ -351,7 +393,7 @@ func TestWebApplication(t *testing.T) {
 
 	t.Run("should response Success with language en-US", func(t *testing.T) {
 		// test en-US
-		testApp.Get("/").
+		testApp.Get("/hello").
 			WithHeader("Accept-Language", "en-US").
 			Expect().
 			Status(http.StatusOK).

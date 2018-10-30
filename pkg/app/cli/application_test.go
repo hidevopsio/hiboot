@@ -132,49 +132,46 @@ func (c *bazCommand) Run(args []string) (err error) {
 // demo foo bar
 func TestCliApplication(t *testing.T) {
 	app.Register(newFooCommand, newBarCommand, newBazCommand)
-	testApp := cli.NewTestApplication(t, newRootCommand)
-	testApp.SetProperty("foo", "bar")
-	root := testApp.Root()
-	assert.NotEqual(t, nil, root)
+	testApp := cli.NewTestApplication(t, newRootCommand).SetProperty("foo", "bar")
 
 	t.Run("should run root command", func(t *testing.T) {
-		_, err := testApp.RunTest("-p", "test", "-i", "2")
+		_, err := testApp.Run("-p", "test", "-i", "2")
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should run foo command", func(t *testing.T) {
-		_, err := testApp.RunTest("foo")
+		_, err := testApp.Run("foo")
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should run bar command", func(t *testing.T) {
-		_, err := testApp.RunTest("foo", "bar")
+		_, err := testApp.Run("foo", "bar")
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should run baz command", func(t *testing.T) {
-		_, err := testApp.RunTest("foo", "baz")
+		_, err := testApp.Run("foo", "baz")
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should run baz command", func(t *testing.T) {
-		_, err := testApp.RunTest("foo", "daz")
+		_, err := testApp.Run("foo", "daz")
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should run baz command", func(t *testing.T) {
-		_, err := testApp.RunTest("foo", "buzz")
+		_, err := testApp.Run("foo", "buzz")
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should run foo foo command", func(t *testing.T) {
-		out, err := testApp.RunTest("foo", "foo")
+		out, err := testApp.Run("foo", "foo")
 		log.Debugf("%v", out)
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should run foo foo command", func(t *testing.T) {
-		out, err := testApp.RunTest("foo", "fooBar")
+		out, err := testApp.Run("foo", "fooBar")
 		assert.Contains(t, out, "testing on fooBar command")
 		log.Debugf("%v", out)
 		assert.Equal(t, "testing on fooBar command", err.Error())

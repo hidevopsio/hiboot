@@ -26,8 +26,6 @@ import (
 // Application cli application interface
 type Application interface {
 	app.Application
-	Root() Command
-	SetRoot(root Command)
 }
 
 type application struct {
@@ -65,9 +63,10 @@ func (a *application) initialize(cmd ...interface{}) (err error) {
 
 // Init initialize cli application
 func (a *application) build() error {
-	a.PrintStartupMessages()
 
-	a.AppendProfiles(a)
+	a.Build()
+
+	a.PrintStartupMessages()
 
 	basename := filepath.Base(os.Args[0])
 	basename = strings.ToLower(basename)
@@ -85,22 +84,12 @@ func (a *application) build() error {
 	if r != nil {
 		root = r.(Command)
 		Register(root)
-		a.SetRoot(root)
+		a.root = root
 		if !gotest.IsRunning() {
-			a.Root().EmbeddedCommand().Use = basename
+			root.EmbeddedCommand().Use = basename
 		}
 	}
 	return nil
-}
-
-// SetRoot set root command
-func (a *application) SetRoot(root Command) {
-	a.root = root
-}
-
-// Root get the root command
-func (a *application) Root() Command {
-	return a.root
 }
 
 // SetProperty set application property

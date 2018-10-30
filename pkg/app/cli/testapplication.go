@@ -8,8 +8,9 @@ import (
 
 // TestApplication the interface of cli test application
 type TestApplication interface {
-	Application
-	RunTest(args ...string) (output string, err error)
+	Initialize() error
+	SetProperty(name string, value ...interface{}) TestApplication
+	Run(args ...string) (output string, err error)
 }
 
 type testApplication struct {
@@ -26,7 +27,13 @@ func NewTestApplication(t *testing.T, cmd ...interface{}) TestApplication {
 	return a
 }
 
-func (a *testApplication) RunTest(args ...string) (output string, err error) {
+// SetProperty set application property
+func (a *testApplication) SetProperty(name string, value ...interface{}) TestApplication {
+	a.BaseApplication.SetProperty(name, value...)
+	return a
+}
+
+func (a *testApplication) Run(args ...string) (output string, err error) {
 	buf := new(bytes.Buffer)
 	if a.root != nil {
 		a.root.SetOutput(buf)

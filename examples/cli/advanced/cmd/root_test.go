@@ -25,37 +25,37 @@ func TestRootCommands(t *testing.T) {
 	testApp := cli.NewTestApplication(t, NewRootCommand)
 
 	t.Run("should run first command", func(t *testing.T) {
-		_, err := testApp.RunTest("-t", "10")
+		_, err := testApp.Run("-t", "10")
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should run second command", func(t *testing.T) {
-		_, err := testApp.RunTest("second")
+		_, err := testApp.Run("second")
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should run foo command", func(t *testing.T) {
-		_, err := testApp.RunTest("second", "foo")
+		_, err := testApp.Run("second", "foo")
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should run bar command", func(t *testing.T) {
-		_, err := testApp.RunTest("second", "bar")
+		_, err := testApp.Run("second", "bar")
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should run bar command", func(t *testing.T) {
-		_, err := testApp.RunTest("second", "bar", "baz")
+		_, err := testApp.Run("second", "bar", "baz")
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should run bar command", func(t *testing.T) {
-		_, err := testApp.RunTest("second", "bar", "buz")
+		_, err := testApp.Run("second", "bar", "buz")
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should report unknown command", func(t *testing.T) {
-		_, err := testApp.RunTest("not-exist-command")
+		_, err := testApp.Run("not-exist-command")
 		assert.NotEqual(t, nil, err)
 		assert.Contains(t, err.Error(), "unknown command")
 	})
