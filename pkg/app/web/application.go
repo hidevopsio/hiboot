@@ -22,6 +22,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 	"os"
@@ -89,10 +90,15 @@ func (a *application) Run() (err error) {
 
 // Init init web application
 func (a *application) build() (err error) {
+	a.Build()
+
+	// set custom properties
 	a.PrintStartupMessages()
 
-	a.AppendProfiles(a)
 	systemConfig := a.SystemConfig()
+	if !str.InSlice(Profile, systemConfig.App.Profiles.Include) {
+		systemConfig.App.Profiles.Include = append(systemConfig.App.Profiles.Include, Profile)
+	}
 	if systemConfig != nil {
 		log.SetLevel(systemConfig.Logging.Level)
 		log.Infof("Starting Hiboot web application %v on localhost with PID %v", systemConfig.App.Name, os.Getpid())
@@ -103,6 +109,7 @@ func (a *application) build() (err error) {
 	f := a.ConfigurableFactory()
 	f.AppendComponent(app.ApplicationContextName, a)
 	f.SetInstance(app.ApplicationContextName, a)
+	f.AppendComponent(iris.Application{}, a.webApp)
 
 	// fill controllers into component container
 	for _, ctrl := range a.controllers {
@@ -111,16 +118,6 @@ func (a *application) build() (err error) {
 
 	// build auto configurations
 	a.BuildConfigurations()
-
-	// The only one Required:
-	// here is how you define how your own context will
-	// be created and acquired from the iris' generic context pool.
-	a.webApp.ContextPool.Attach(func() context.Context {
-		return &Context{
-			// Optional Part 3:
-			Context: context.NewContext(a.webApp),
-		}
-	})
 
 	// first register anon controllers
 	a.RegisterController(new(at.RestController))

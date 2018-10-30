@@ -42,6 +42,8 @@ const (
 	config      = "config"
 	yaml        = "yaml"
 
+	propAppProfilesActive = "app.profiles.active"
+
 	// EnvAppProfilesActive is the environment variable name APP_PROFILES_ACTIVE
 	EnvAppProfilesActive = "APP_PROFILES_ACTIVE"
 
@@ -124,7 +126,12 @@ func (f *configurableFactory) Configuration(name string) interface{} {
 func (f *configurableFactory) BuildSystemConfig() (systemConfig *system.Configuration, err error) {
 	workDir := io.GetWorkDir()
 	systemConfig = new(system.Configuration)
+	customProps := f.CustomProperties()
 	profile := os.Getenv(EnvAppProfilesActive)
+	pf, ok := customProps[propAppProfilesActive]
+	if ok {
+		profile = pf.(string)
+	}
 	if profile == "" {
 		os.Setenv(EnvAppProfilesActive, "default")
 	}
@@ -133,6 +140,7 @@ func (f *configurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 		application,
 		yaml,
 		profile,
+		customProps,
 	)
 
 	f.SetInstance("systemConfiguration", systemConfig)

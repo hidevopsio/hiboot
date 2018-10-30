@@ -40,6 +40,7 @@ type InstantiateFactory interface {
 	Items() map[string]interface{}
 	AppendComponent(c ...interface{})
 	BuildComponents() (err error)
+	CustomProperties() map[string]interface{}
 }
 
 // ConfigurableFactory configurable factory interface

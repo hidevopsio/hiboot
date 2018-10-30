@@ -12,33 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package app
+// Package at provides annotations for jwt controller
+package at
 
-import (
-	"github.com/stretchr/testify/assert"
-	"testing"
-)
-
-func TestDependencies(t *testing.T) {
-	type foo struct{}
-
-	Component(new(foo))
-
-	type config struct {
-		Configuration
-	}
-
-	// should show deprecated message on Component
-	AutoConfiguration(new(config))
-
-	c := new(config)
-	deps := []string{"world"}
-	c.RuntimeDeps.Set("hello", deps)
-
-	assert.Equal(t, deps, c.RuntimeDeps.Get("hello"))
-
-	t.Run("should report error if we pass nil to appendParams", func(t *testing.T) {
-		_, err := appendParams("", nil)
-		assert.Equal(t, ErrInvalidObjectType, err)
-	})
+// JwtRestController is the annotation for JWT REST Controller
+type WebSocketRestController interface {
 }

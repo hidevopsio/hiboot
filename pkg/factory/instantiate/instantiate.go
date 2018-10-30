@@ -37,17 +37,19 @@ var (
 
 // InstantiateFactory is the factory that responsible for object instantiation
 type instantiateFactory struct {
-	instanceMap cmap.ConcurrentMap
-	components  []*factory.MetaData
-	categorized map[string][]interface{}
+	instanceMap      cmap.ConcurrentMap
+	components       []*factory.MetaData
+	categorized      map[string][]interface{}
+	customProperties cmap.ConcurrentMap
 }
 
 // NewInstantiateFactory the constructor of instantiateFactory
-func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory.MetaData) factory.InstantiateFactory {
+func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory.MetaData, customProperties cmap.ConcurrentMap) factory.InstantiateFactory {
 	return &instantiateFactory{
-		instanceMap: instanceMap,
-		components:  components,
-		categorized: make(map[string][]interface{}),
+		instanceMap:      instanceMap,
+		components:       components,
+		categorized:      make(map[string][]interface{}),
+		customProperties: customProperties,
 	}
 }
 
@@ -167,4 +169,9 @@ func (f *instantiateFactory) Items() map[string]interface{} {
 		return nil
 	}
 	return f.instanceMap.Items()
+}
+
+// Items return instance map
+func (f *instantiateFactory) CustomProperties() map[string]interface{} {
+	return f.customProperties.Items()
 }
