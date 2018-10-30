@@ -45,7 +45,7 @@ type testApplication struct {
 }
 
 // RunTestApplication returns the new test application
-func NewTestApplication(t *testing.T, controllers ...interface{}) TestApplication {
+func RunTestApplication(t *testing.T, controllers ...interface{}) TestApplication {
 	log.SetLevel(log.DebugLevel)
 	a := new(testApplication)
 	err := a.initialize(controllers...)
@@ -54,7 +54,11 @@ func NewTestApplication(t *testing.T, controllers ...interface{}) TestApplicatio
 	return a
 }
 
-// NewTestApplicationEx returns the new test application
+// NewTestApplication is the alias of RunTestApplication
+// Deprecated, you should use RunTestApplication instead
+var NewTestApplication = RunTestApplication
+
+// NewTestApp returns the new test application
 func NewTestApp(controllers ...interface{}) TestApplication {
 	log.SetLevel(log.DebugLevel)
 	a := new(testApplication)
@@ -72,7 +76,7 @@ func (a *testApplication) SetProperty(name string, value ...interface{}) TestApp
 func (a *testApplication) Run(t *testing.T) TestApplication {
 	err := a.build()
 	assert.Equal(t, nil, err)
-	a.expect = httptest.New(t, a.webApp)
+	a.expect = httptest.New(t, a.webApp.Application)
 	return a
 }
 

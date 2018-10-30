@@ -68,7 +68,9 @@ func (f *instantiateFactory) AppendComponent(c ...interface{}) {
 func (f *instantiateFactory) BuildComponents() (err error) {
 	// first resolve the dependency graph
 	var resolved []*factory.MetaData
+	log.Infof("Resolving dependencies")
 	resolved, err = depends.Resolve(f.components)
+	log.Infof("Injecting dependencies")
 	// then build components
 	var obj interface{}
 	var name string
@@ -105,6 +107,9 @@ func (f *instantiateFactory) BuildComponents() (err error) {
 				err = f.SetInstance(name, obj)
 			}
 		}
+	}
+	if err == nil {
+		log.Infof("Injected dependencies")
 	}
 	return
 }

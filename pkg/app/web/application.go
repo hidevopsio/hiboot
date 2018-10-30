@@ -27,6 +27,7 @@ import (
 	"github.com/kataras/iris/context"
 	"os"
 	"regexp"
+	"time"
 )
 
 const (
@@ -37,16 +38,27 @@ const (
 	applicationContext = "app.applicationContext"
 )
 
+type webApp struct {
+	*iris.Application
+}
+
+func newWebApplication() *webApp {
+	return &webApp{
+		Application: iris.New(),
+	}
+}
+
 // Application is the struct of web Application
 type application struct {
 	app.BaseApplication
-	webApp     *iris.Application
+	webApp     *webApp
 	jwtEnabled bool
 	//anonControllers []interface{}
 	//jwtControllers  []interface{}
 	controllers []interface{}
 	dispatcher  dispatcher
 	//controllerMap map[string][]interface{}
+	startUpTime time.Time
 }
 
 var (
@@ -75,13 +87,15 @@ func (a *application) Initialize() error {
 // Run run web application
 func (a *application) Run() (err error) {
 	serverPort := ":8080"
+	err = a.build()
 	conf := a.SystemConfig()
 	if conf != nil && conf.Server.Port != "" {
 		serverPort = fmt.Sprintf(":%v", conf.Server.Port)
 	}
-
-	err = a.build()
 	if err == nil {
+		log.Infof("Hiboot started on port(s) http://localhost%v", serverPort)
+		timeDiff := time.Since(a.startUpTime)
+		log.Infof("Started %v in %f seconds", conf.App.Name, timeDiff.Seconds())
 		err = a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(defaultConfiguration()))
 	}
 
@@ -90,6 +104,7 @@ func (a *application) Run() (err error) {
 
 // Init init web application
 func (a *application) build() (err error) {
+
 	a.Build()
 
 	// set custom properties
@@ -105,11 +120,11 @@ func (a *application) build() (err error) {
 		log.Infof("Working directory: %v", a.WorkDir)
 		log.Infof("The following profiles are active: %v, %v", systemConfig.App.Profiles.Active, systemConfig.App.Profiles.Include)
 	}
-
+	log.Infof("Initializing Hiboot Application")
 	f := a.ConfigurableFactory()
 	f.AppendComponent(app.ApplicationContextName, a)
 	f.SetInstance(app.ApplicationContextName, a)
-	f.AppendComponent(iris.Application{}, a.webApp)
+	f.AppendComponent(webApp{}, a.webApp)
 
 	// fill controllers into component container
 	for _, ctrl := range a.controllers {
@@ -134,7 +149,7 @@ func (a *application) RegisterController(controller interface{}) error {
 	controllerInterfaceName := reflector.GetName(controller)
 	controllers := a.ConfigurableFactory().GetInstances(controllerInterfaceName)
 	if controllers != nil {
-		return a.dispatcher.register(a.webApp, controllers)
+		return a.dispatcher.register(a.webApp.Application, controllers)
 	}
 	return nil
 }
@@ -151,7 +166,7 @@ func (a *application) initialize(controllers ...interface{}) (err error) {
 	io.EnsureWorkDir(3, "config/application.yml")
 
 	// new iris app
-	a.webApp = iris.New()
+	a.webApp = newWebApplication()
 
 	err = a.Initialize()
 
@@ -173,6 +188,7 @@ var RestController = app.Register
 func NewApplication(controllers ...interface{}) app.Application {
 	log.SetLevel("error") // set debug level to error first
 	a := new(application)
+	a.startUpTime = time.Now()
 	err := a.initialize(controllers...)
 	if err != nil {
 		os.Exit(1)

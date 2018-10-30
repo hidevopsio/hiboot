@@ -21,3 +21,4 @@ application-fake.yml
 vendor/
 
 .vscode/
+!/pkg/app/web/application.go

@@ -179,7 +179,7 @@ func TestCliApplication(t *testing.T) {
 }
 
 func TestNewApplication(t *testing.T) {
-	go cli.NewApplication().Run()
+	go cli.NewApplication().SetProperty("app.project", "cli-test-app").Run()
 	time.Sleep(2 * time.Second)
 }
 

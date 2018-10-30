@@ -151,6 +151,9 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 		h.responses[i].typeName = typ.Name()
 		//log.Debug(h.responses[i])
 	}
+	if path != "" {
+		log.Infof("Mapped \"%v\" onto %v.%v()", path, idv.Type(), method.Name)
+	}
 }
 
 func (h *handler) responseData(ctx *Context, numOut int, results []reflect.Value) {

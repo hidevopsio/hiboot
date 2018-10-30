@@ -8,7 +8,7 @@ import (
 
 func TestFooLogin(t *testing.T) {
 
-	testApp := web.NewTestApplication(t, newLoginController)
+	testApp := web.RunTestApplication(t, newLoginController)
 
 	testApp.Post("/login").
 		WithJSON(userRequest{Username: "mike", Password: "daDg83t"}).

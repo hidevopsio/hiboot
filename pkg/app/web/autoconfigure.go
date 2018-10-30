@@ -25,7 +25,7 @@ func init() {
 }
 
 // Context is the instance of context.Context
-func (c *configuration) Context(app *iris.Application) context.Context {
+func (c *configuration) Context(app *webApp) context.Context {
 	ctx := &Context{
 		Context: irsctx.NewContext(app),
 	}

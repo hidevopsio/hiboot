@@ -106,7 +106,7 @@ func (c *barController) Options() {
 }
 
 func TestJwtController(t *testing.T) {
-	testApp := web.NewTestApplication(t, newFooController, newBarController)
+	testApp := web.RunTestApplication(t, newFooController, newBarController)
 	ctx := testApp.(app.ApplicationContext)
 
 	fc := ctx.GetInstance(fooController{})
@@ -203,7 +203,7 @@ func TestJwtController(t *testing.T) {
 
 func TestAppWithoutJwtController(t *testing.T) {
 	fooCtrl := new(fooController)
-	testApp := web.NewTestApplication(t, fooCtrl)
+	testApp := web.RunTestApplication(t, fooCtrl)
 	t.Run("should return http.StatusUnauthorized after GET /bar", func(t *testing.T) {
 		testApp.Get("/foo").
 			Expect().Status(http.StatusOK)

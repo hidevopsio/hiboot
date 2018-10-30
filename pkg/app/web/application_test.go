@@ -29,7 +29,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/stretchr/testify/assert"
 	"net/http"
-	"os"
 	"testing"
 	"time"
 )
@@ -342,8 +341,9 @@ func (c *HelloViewController) Get() {
 }
 
 func TestWebViewApplicationWithProperties(t *testing.T) {
-	os.Args = append(os.Args, "--web.view.enabled=true")
-	testApp := web.NewTestApp(t, newHelloViewController).SetProperty("").Run(t)
+	testApp := web.NewTestApp(newHelloViewController).
+		SetProperty("web.view.enabled", true).
+		Run(t)
 	t.Run("should response 200 when GET /", func(t *testing.T) {
 		testApp.
 			Get("/").
@@ -352,8 +352,10 @@ func TestWebViewApplicationWithProperties(t *testing.T) {
 }
 
 func TestWebViewApplicationWithArgs(t *testing.T) {
-	os.Args = append(os.Args, "--web.view.enabled=true")
-	testApp := web.NewTestApplication(t, newHelloViewController)
+	testApp := web.NewTestApp(newHelloViewController).
+		SetProperty("server.port", 8080).
+		SetProperty("web.view.enabled", true).
+		Run(t)
 	t.Run("should response 200 when GET /", func(t *testing.T) {
 		testApp.
 			Get("/").
@@ -362,7 +364,7 @@ func TestWebViewApplicationWithArgs(t *testing.T) {
 }
 
 func TestWebApplication(t *testing.T) {
-	testApp := web.NewTestApplication(t, newHelloController, newFooController, newBarController, newFoobarController)
+	testApp := web.RunTestApplication(t, newHelloController, newFooController, newBarController, newFoobarController)
 
 	t.Run("should response 200 when GET /hello/all", func(t *testing.T) {
 		testApp.
@@ -609,7 +611,9 @@ func TestNewApplication(t *testing.T) {
 
 	app.Register(new(ExampleController))
 
-	testApp := web.NewApplication()
+	testApp := web.NewApplication().
+		SetProperty("server.port", 8080).
+		SetProperty(app.PropertyBannerDisabled, true)
 	t.Run("should init web application", func(t *testing.T) {
 		assert.NotEqual(t, nil, testApp)
 	})
@@ -625,18 +629,18 @@ func TestNewApplication(t *testing.T) {
 		assert.Equal(t, "myInterface", typ.Name())
 	})
 
-	go testApp.SetProperty(app.PropertyBannerDisabled, true).Run()
+	go testApp.Run()
 	time.Sleep(time.Second)
 }
 
 func TestAnonymousController(t *testing.T) {
 	t.Run("should failed to register anonymous controller", func(t *testing.T) {
-		testApp := web.NewTestApplication(t, (*Bar)(nil))
+		testApp := web.RunTestApplication(t, (*Bar)(nil))
 		assert.NotEqual(t, nil, testApp)
 	})
 
 	t.Run("should failed to register anonymous controller", func(t *testing.T) {
-		testApp := web.NewTestApplication(t, newBar)
+		testApp := web.RunTestApplication(t, newBar)
 		assert.NotEqual(t, nil, testApp)
 	})
 }

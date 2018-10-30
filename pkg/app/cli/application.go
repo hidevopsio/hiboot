@@ -17,7 +17,6 @@ package cli
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -85,9 +84,7 @@ func (a *application) build() error {
 		root = r.(Command)
 		Register(root)
 		a.root = root
-		if !gotest.IsRunning() {
-			root.EmbeddedCommand().Use = basename
-		}
+		root.EmbeddedCommand().Use = basename
 	}
 	return nil
 }
