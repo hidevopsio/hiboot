@@ -18,7 +18,7 @@ func TestHelloClient(t *testing.T) {
 	mockHelloClient := mock.NewMockHelloServiceClient(ctrl)
 	app.Register("protobuf.helloServiceClient", mockHelloClient)
 
-	testApp := web.NewTestApplication(t, newHelloController)
+	testApp := web.RunTestApplication(t, newHelloController)
 
 	req := &protobuf.HelloRequest{Name: "Steve"}
 

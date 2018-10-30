@@ -27,7 +27,7 @@ import (
 )
 
 func TestBarWithToken(t *testing.T) {
-	app := web.NewTestApplication(t, newBarController)
+	app := web.RunTestApplication(t, newBarController)
 	log.Println(io.GetWorkDir())
 	jwtToken := jwt.NewJwtToken(&jwt.Properties{
 		PrivateKeyPath: "config/ssl/app.rsa",

@@ -28,7 +28,7 @@ func TestRunMain(t *testing.T) {
 
 func TestController(t *testing.T) {
 	time.Sleep(time.Second)
-	web.NewTestApplication(t, new(Controller)).
+	web.RunTestApplication(t, new(Controller)).
 		Get("/").
 		Expect().Status(http.StatusOK)
 }

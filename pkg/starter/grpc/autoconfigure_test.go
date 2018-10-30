@@ -66,7 +66,7 @@ func TestGrpcServerAndClient(t *testing.T) {
 	grpc.Server(helloworld.RegisterGreeterServer, newGreeterServerService)
 	grpc.Client("greeter-service", helloworld.NewGreeterClient)
 
-	testApp := web.NewTestApplication(t)
+	testApp := web.RunTestApplication(t)
 	assert.NotEqual(t, nil, testApp)
 
 	applicationContext := testApp.(app.ApplicationContext)
