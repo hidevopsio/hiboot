@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/at"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/kataras/iris"
 	irsctx "github.com/kataras/iris/context"
 )
@@ -38,6 +39,7 @@ func (c *configuration) Context(app *webApp) *Context {
 			ctx.View(v.DefaultPage)
 		})
 		route.MainHandlerName = fmt.Sprintf("%s%s ", v.ContextPath, v.DefaultPage)
+		log.Infof("Mapped \"%v\" onto %v", v.ContextPath, v.DefaultPage)
 	}
 
 	app.ContextPool.Attach(func() irsctx.Context {

@@ -98,7 +98,6 @@ func (a *application) Run() (err error) {
 		log.Infof("Started %v in %f seconds", conf.App.Name, timeDiff.Seconds())
 		err = a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(defaultConfiguration()))
 	}
-
 	return
 }
 
