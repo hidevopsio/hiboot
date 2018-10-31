@@ -21,7 +21,7 @@ func NewCountHandlerConstructor() CountHandlerConstructor {
 }
 
 func init() {
-	app.Register(new(CountHandlerConstructor), NewCountHandlerConstructor)
+	app.Register(NewCountHandlerConstructor)
 }
 
 func (h *countHandler) OnMessage(data []byte) {

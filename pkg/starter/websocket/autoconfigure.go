@@ -19,6 +19,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/at"
+	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/websocket"
 )
 
@@ -42,8 +43,10 @@ type Connection interface {
 	websocket.Connection
 }
 
+type ConnectionFunc func(ctx context.Context) websocket.Connection
+
 // ConnectionFunc is the websocket connection function
-type ConnectionFunc func(ctx *web.Context, constructor HandlerConstructor) websocket.Connection
+type HandlerFunc func(ctx *web.Context, constructor HandlerConstructor) Connection
 
 // ConnectionFunc is the websocket connection function
 type HandlerConstructor func(conn Connection) Handler
@@ -72,18 +75,16 @@ func (c *configuration) Server() *Server {
 	}
 }
 
-//func (c *configuration) Connection(server *Server, ctx *web.Context) websocket.Connection {
-//	return server.Upgrade(ctx)
-//}
-
-// ConnectionFunc websocket connection for runtime dependency injection
+// ConnectionFunc is func that websocket connection created from
 func (c *configuration) ConnectionFunc(server *Server) ConnectionFunc {
-	return func(ctx *web.Context, constructor HandlerConstructor) websocket.Connection {
-		conn := server.Upgrade(ctx)
-		handler := constructor(conn)
-		conn.OnMessage(handler.OnMessage)
-		conn.OnDisconnect(handler.OnDisconnect)
-		conn.Wait()
+	return server.Upgrade
+}
+
+// HandlerFunc websocket connection for runtime dependency injection
+func (c *configuration) HandlerFunc(connectionFunc ConnectionFunc) HandlerFunc {
+	return func(ctx *web.Context, constructor HandlerConstructor) Connection {
+		conn := connectionFunc(ctx)
+		HandleConnection(constructor, conn)
 		return conn
 	}
 }

@@ -10,16 +10,16 @@ import (
 
 type websocketController struct {
 	at.RestController
-	connectionFunc           websocket.ConnectionFunc
+	handlerFunc              websocket.HandlerFunc
 	countHandlerConstructor  service.CountHandlerConstructor
 	statusHandlerConstructor service.StatusHandlerConstructor
 }
 
-func newWebsocketController(connectionFunc websocket.ConnectionFunc,
+func newWebsocketController(handlerFunc websocket.HandlerFunc,
 	countHandlerConstructor service.CountHandlerConstructor,
 	statusHandlerConstructor service.StatusHandlerConstructor) *websocketController {
 	c := &websocketController{
-		connectionFunc:           connectionFunc,
+		handlerFunc:              handlerFunc,
 		countHandlerConstructor:  countHandlerConstructor,
 		statusHandlerConstructor: statusHandlerConstructor,
 	}
@@ -31,9 +31,9 @@ func init() {
 }
 
 func (c *websocketController) Get(ctx *web.Context) {
-	c.connectionFunc(ctx, c.countHandlerConstructor.(func(websocket.Connection) websocket.Handler))
+	c.handlerFunc(ctx, c.countHandlerConstructor.(func(websocket.Connection) websocket.Handler))
 }
 
 func (c *websocketController) GetStatus(ctx *web.Context) {
-	c.connectionFunc(ctx, c.statusHandlerConstructor.(func(websocket.Connection) websocket.Handler))
+	c.handlerFunc(ctx, c.statusHandlerConstructor.(func(websocket.Connection) websocket.Handler))
 }
