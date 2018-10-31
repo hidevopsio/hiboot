@@ -340,6 +340,10 @@ func (c *HelloViewController) Get() {
 	c.Ctx.View("index.html")
 }
 
+func (c *HelloViewController) AnyTest() string {
+	return "Greeting from any method"
+}
+
 func TestWebViewApplicationWithProperties(t *testing.T) {
 	testApp := web.NewTestApp(newHelloViewController).
 		SetProperty("web.view.enabled", true).
@@ -359,6 +363,12 @@ func TestWebViewApplicationWithArgs(t *testing.T) {
 	t.Run("should response 200 when GET /", func(t *testing.T) {
 		testApp.
 			Get("/").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should response 200 when GET /test", func(t *testing.T) {
+		testApp.
+			Get("/test").
 			Expect().Status(http.StatusOK)
 	})
 }
@@ -613,7 +623,7 @@ func TestNewApplication(t *testing.T) {
 
 	testApp := web.NewApplication().
 		SetProperty("server.port", 8080).
-		SetProperty(app.PropertyBannerDisabled, true)
+		SetProperty(app.BannerDisabled, true)
 	t.Run("should init web application", func(t *testing.T) {
 		assert.NotEqual(t, nil, testApp)
 	})

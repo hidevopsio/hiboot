@@ -38,7 +38,7 @@ var httpMethods = []string{
 	http.MethodTrace,
 }
 
-const Any = "Any"
+const Any = "ANY"
 
 type Dispatcher struct {
 	webApp *webApp
@@ -52,17 +52,6 @@ func newDispatcher(webApp *webApp) *Dispatcher {
 
 func init() {
 	app.Register(newDispatcher)
-}
-
-func (d *Dispatcher) RegisterAnyHandler(path string, hdl context.Handler) {
-	routes := d.webApp.Any(path, hdl)
-	for _, r := range routes {
-		r.MainHandlerName = "context.Handler"
-	}
-}
-
-func (d *Dispatcher) RegisterHandler(method, path string, hdl context.Handler) {
-	d.webApp.Handle(method, path, hdl)
 }
 
 func (d *Dispatcher) register(controllers []interface{}) (err error) {

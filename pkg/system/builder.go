@@ -135,10 +135,7 @@ func (b *Builder) Read(name string) (interface{}, error) {
 		cp = reflector.NewReflectType(st)
 	}
 	// read config
-	err := b.ReadInConfig()
-	if err != nil {
-		return cp, fmt.Errorf("error on config file: %s", err)
-	}
+	b.ReadInConfig()
 
 	// set custom properties
 	for key, value := range b.customProperties {
@@ -147,7 +144,7 @@ func (b *Builder) Read(name string) (interface{}, error) {
 			b.Set(key, value)
 		}
 	}
-	err = b.Unmarshal(cp)
+	err := b.Unmarshal(cp)
 	return cp, err
 }
 
