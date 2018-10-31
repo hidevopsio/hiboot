@@ -27,6 +27,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/kataras/iris/context"
+	"os"
 	"reflect"
 	"strings"
 	"sync"
@@ -62,7 +63,7 @@ type BaseApplication struct {
 	configurableFactory factory.ConfigurableFactory
 	systemConfig        *system.Configuration
 	postProcessor       postProcessor
-	propertyMap         cmap.ConcurrentMap
+	properties          cmap.ConcurrentMap
 	mu                  sync.Mutex
 }
 
@@ -85,8 +86,7 @@ _  __  / _  / _  /_/ / /_/ / /_/ / /_     Hiboot Application Framework
 
 // PrintStartupMessages prints startup messages
 func (a *BaseApplication) PrintStartupMessages() {
-	prop, ok := a.GetProperty(PropertyBannerDisabled)
-	if !(ok && prop.(bool)) {
+	if !a.systemConfig.App.Banner.Disabled {
 		fmt.Print(banner)
 	}
 }
@@ -94,33 +94,47 @@ func (a *BaseApplication) PrintStartupMessages() {
 // SetProperty set application property
 // TODO: should set property from source by SetProperty or accept from program argument, e.g. myapp --app.profiles.active=dev
 func (a *BaseApplication) SetProperty(name string, value ...interface{}) Application {
+	var val interface{}
 	if len(value) == 1 {
-		a.propertyMap.Set(name, value[0])
+		val = value[0]
 	} else {
-		a.propertyMap.Set(name, value)
+		val = value
 	}
+
+	kind := reflect.TypeOf(val).Kind()
+	if kind == reflect.String && strings.Contains(val.(string), ",") {
+		val = strings.SplitN(val.(string), ",", -1)
+	}
+	a.properties.Set(name, val)
+
 	return a
 }
 
 // GetProperty get application property
 func (a *BaseApplication) GetProperty(name string) (value interface{}, ok bool) {
-	value, ok = a.propertyMap.Get(name)
+	value, ok = a.properties.Get(name)
 	return
 }
 
 // Initialize init application
 func (a *BaseApplication) Initialize() (err error) {
+	a.properties = cmap.New()
+	a.configurations = cmap.New()
+	a.instances = cmap.New()
+	return nil
+}
+
+// Initialize init application
+func (a *BaseApplication) Build() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
 	a.WorkDir = io.GetWorkDir()
 
-	a.propertyMap = cmap.New()
+	// set custom properties from args
+	a.setCustomPropertiesFromArgs()
 
-	a.configurations = cmap.New()
-	a.instances = cmap.New()
-
-	instantiateFactory := instantiate.NewInstantiateFactory(a.instances, componentContainer)
+	instantiateFactory := instantiate.NewInstantiateFactory(a.instances, componentContainer, a.properties)
 	// TODO: should set or get instance by passing object instantiateFactory
 	a.instances.Set(factory.InstantiateFactoryName, instantiateFactory)
 
@@ -130,7 +144,19 @@ func (a *BaseApplication) Initialize() (err error) {
 	a.configurableFactory = configurableFactory
 
 	a.systemConfig, _ = configurableFactory.BuildSystemConfig()
-	return nil
+}
+
+// SystemConfig returns application config
+func (a *BaseApplication) setCustomPropertiesFromArgs() {
+	//log.Println(os.Args)
+
+	for _, val := range os.Args {
+		if strings.Contains(val, "--") {
+			kv := strings.Replace(val, "--", "", -1)
+			kvPair := strings.Split(kv, "=")
+			a.SetProperty(kvPair[0], kvPair[1])
+		}
+	}
 }
 
 // SystemConfig returns application config
@@ -144,6 +170,7 @@ func (a *BaseApplication) BuildConfigurations() {
 	a.configurableFactory.Build(configContainer)
 	// build components
 	a.configurableFactory.BuildComponents()
+
 }
 
 // ConfigurableFactory get ConfigurableFactory
@@ -179,32 +206,4 @@ func (a *BaseApplication) GetInstance(params ...interface{}) (instance interface
 		instance = a.configurableFactory.GetInstance(params...)
 	}
 	return
-}
-
-// AppendProfiles Run run the application
-// TODO: should set property from source by SetProperty or accept from program argument, e.g. myapp --app.profiles.active=dev
-func (a *BaseApplication) AppendProfiles(app Application) error {
-	profiles, ok := app.GetProperty(PropertyAppProfilesInclude)
-	if ok {
-		var appProfilesInclude []string
-		kind := reflect.TypeOf(profiles).Kind()
-		if kind == reflect.String {
-			appProfilesInclude = strings.SplitN(profiles.(string), ",", -1)
-		} else if kind == reflect.Slice {
-			for _, p := range profiles.([]interface{}) {
-				if reflect.TypeOf(p).Kind() == reflect.String {
-					appProfilesInclude = append(appProfilesInclude, p.(string))
-				} else {
-					return fmt.Errorf("[app] property %v must be string or []string", PropertyAppProfilesInclude)
-				}
-			}
-		} else {
-			return fmt.Errorf("[app] property %v must be string or []string", PropertyAppProfilesInclude)
-		}
-		if a.systemConfig != nil {
-			a.systemConfig.App.Profiles.Include =
-				append(a.systemConfig.App.Profiles.Include, appProfilesInclude...)
-		}
-	}
-	return nil
 }

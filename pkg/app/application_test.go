@@ -18,6 +18,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 )
 
@@ -33,6 +34,7 @@ func TestApp(t *testing.T) {
 		app.Configuration
 		Properties fakeProperties `mapstructure:"fake"`
 	}
+
 	t.Run("should add configuration", func(t *testing.T) {
 		err := app.Register(new(fakeConfiguration))
 		assert.Equal(t, nil, err)
@@ -135,10 +137,14 @@ func TestApp(t *testing.T) {
 }
 
 func TestBaseApplication(t *testing.T) {
+	os.Args = append(os.Args, "--app.profiles.active=local")
+
 	ba := new(app.BaseApplication)
 
 	err := ba.Initialize()
 	assert.Equal(t, nil, err)
+
+	ba.Build()
 
 	sc := ba.SystemConfig()
 	assert.NotEqual(t, nil, sc)
@@ -158,34 +164,32 @@ func TestBaseApplication(t *testing.T) {
 	ba.RegisterController(nil)
 
 	t.Run("should set PropertyBannerDisabled", func(t *testing.T) {
-		ba.SetProperty(app.PropertyBannerDisabled, false)
-		err := ba.AppendProfiles(ba)
-		assert.Equal(t, nil, err)
+		ba.SetProperty(app.BannerDisabled, false)
+		prop, ok := ba.GetProperty(app.BannerDisabled)
+		assert.Equal(t, true, ok)
+		assert.Equal(t, false, prop)
+	})
+	t.Run("should set PropertyBannerDisabled to true", func(t *testing.T) {
+		ba.SetProperty(app.BannerDisabled, true)
+		prop, ok := ba.GetProperty(app.BannerDisabled)
+		assert.Equal(t, true, ok)
+		assert.Equal(t, true, prop)
 	})
 
 	t.Run("should set profiles", func(t *testing.T) {
-		ba.SetProperty(app.PropertyBannerDisabled, false).
-			SetProperty(app.PropertyAppProfilesInclude, "foo,bar")
-		err := ba.AppendProfiles(ba)
-		assert.Equal(t, nil, err)
+		ba.SetProperty(app.BannerDisabled, false).
+			SetProperty(app.ProfilesInclude, "foo,bar")
+		prop, ok := ba.GetProperty(app.ProfilesInclude)
+		assert.Equal(t, true, ok)
+		assert.Equal(t, []string{"foo", "bar"}, prop)
 	})
 
-	t.Run("should set profiles with slice", func(t *testing.T) {
-		ba.SetProperty(app.PropertyAppProfilesInclude, "foo", "bar")
-		err := ba.AppendProfiles(ba)
-		assert.Equal(t, nil, err)
-	})
-
-	t.Run("should failed set profiles wrong slice format", func(t *testing.T) {
-		ba.SetProperty(app.PropertyAppProfilesInclude, 123, 456)
-		err := ba.AppendProfiles(ba)
-		assert.NotEqual(t, nil, err)
-	})
-
-	t.Run("should failed set profiles wrong format int", func(t *testing.T) {
-		ba.SetProperty(app.PropertyAppProfilesInclude, 123)
-		err := ba.AppendProfiles(ba)
-		assert.NotEqual(t, nil, err)
+	t.Run("should set profiles", func(t *testing.T) {
+		ba.SetProperty(app.BannerDisabled, false).
+			SetProperty(app.ProfilesInclude, "baz", "buz")
+		prop, ok := ba.GetProperty(app.ProfilesInclude)
+		assert.Equal(t, true, ok)
+		assert.Equal(t, []interface{}{"baz", "buz"}, prop)
 	})
 
 	ba.PrintStartupMessages()

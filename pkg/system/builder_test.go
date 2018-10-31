@@ -46,21 +46,27 @@ type logging struct {
 func init() {
 	io.EnsureWorkDir(1, "config/application.yml")
 	log.SetLevel(log.DebugLevel)
+	customProps["app.project"] = "system-test"
 }
 
-func TestBuilderBuild(t *testing.T) {
+var customProps = make(map[string]interface{})
 
+func TestBuilderBuild(t *testing.T) {
+	testProj := "system-configuration-test"
+	customProps["app.project"] = testProj
 	b := NewBuilder(&Configuration{},
 		filepath.Join(io.GetWorkDir(), "config"),
 		"application",
 		"yaml",
-		"local")
+		"local",
+		customProps)
 
 	t.Run("should build configuration properly", func(t *testing.T) {
 		cp, err := b.Build()
 		assert.Equal(t, nil, err)
 		c := cp.(*Configuration)
 		assert.Equal(t, "hiboot", c.App.Name)
+		assert.Equal(t, testProj, c.App.Project)
 	})
 
 	t.Run("should build configuration properly", func(t *testing.T) {
@@ -85,12 +91,13 @@ func TestBuilderBuildWithError(t *testing.T) {
 }
 
 func TestBuilderBuildWithProfile(t *testing.T) {
-
+	customProps["app.project"] = "local-test"
 	b := NewBuilder(&Configuration{},
 		filepath.Join(io.GetWorkDir(), "config"),
 		"application",
 		"yaml",
-		"local")
+		"local",
+		customProps)
 
 	cp, err := b.BuildWithProfile()
 	assert.Equal(t, nil, err)
@@ -111,7 +118,8 @@ func TestFileDoesNotExist(t *testing.T) {
 		filepath.Join(io.GetWorkDir(), "config"),
 		"application",
 		"yaml",
-		"does-not-exist")
+		"does-not-exist",
+		customProps)
 	t.Run("use default profile if custom profile does not exist", func(t *testing.T) {
 		_, err := b.Build()
 		assert.Equal(t, nil, err)
@@ -124,7 +132,8 @@ func TestWrongFileFormat(t *testing.T) {
 		filepath.Join(os.TempDir(), "config"),
 		"test",
 		"yaml",
-		"abc")
+		"abc",
+		customProps)
 	io.CreateFile(os.TempDir(), "test-abc.yml")
 	io.WriterFile(os.TempDir(), "test-abc.yml", []byte(": 1234"))
 	t.Run("should report error: did not find expected key", func(t *testing.T) {
@@ -144,7 +153,8 @@ func TestProfileIsEmpty(t *testing.T) {
 		filepath.Join(io.GetWorkDir(), "config"),
 		"application",
 		"yaml",
-		"")
+		"",
+		customProps)
 
 	t.Run("use default profile if custom profile does not exist", func(t *testing.T) {
 		_, err := b.Build()
@@ -162,7 +172,8 @@ func TestWithoutReplacer(t *testing.T) {
 		path,
 		"application",
 		"yaml",
-		"xxx")
+		"xxx",
+		customProps)
 	io.CreateFile(path, testFile)
 	_, err := b.Build()
 	os.Remove(filepath.Join(path, testFile))
@@ -175,7 +186,8 @@ func TestBuilderInit(t *testing.T) {
 		filepath.Join(os.TempDir(), "config"),
 		"foo",
 		"yaml",
-		"")
+		"",
+		customProps)
 
 	err := b.Init()
 	assert.Equal(t, nil, err)
@@ -186,7 +198,8 @@ func TestBuilderSave(t *testing.T) {
 		filepath.Join(os.TempDir(), "config"),
 		"foo",
 		"yaml",
-		"")
+		"",
+		customProps)
 
 	err := b.Init()
 	assert.Equal(t, nil, err)

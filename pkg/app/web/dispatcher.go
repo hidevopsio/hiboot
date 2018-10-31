@@ -17,6 +17,7 @@ package web
 import (
 	"fmt"
 	"github.com/fatih/camelcase"
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
@@ -37,10 +38,23 @@ var httpMethods = []string{
 	http.MethodTrace,
 }
 
-type dispatcher struct {
+const Any = "ANY"
+
+type Dispatcher struct {
+	webApp *webApp
 }
 
-func (d *dispatcher) register(app *iris.Application, controllers []interface{}) (err error) {
+func newDispatcher(webApp *webApp) *Dispatcher {
+	return &Dispatcher{
+		webApp: webApp,
+	}
+}
+
+func init() {
+	app.Register(newDispatcher)
+}
+
+func (d *Dispatcher) register(controllers []interface{}) (err error) {
 	for _, c := range controllers {
 		field := reflect.ValueOf(c)
 
@@ -86,11 +100,11 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 			//log.Debug("beforeMethod.Name: ", beforeMethod.Name)
 			hdl := new(handler)
 			hdl.parse(beforeMethod, controller, "")
-			party = app.Party(contextMapping, func(ctx context.Context) {
+			party = d.webApp.Party(contextMapping, func(ctx context.Context) {
 				hdl.call(ctx.(*Context))
 			})
 		} else {
-			party = app.Party(contextMapping)
+			party = d.webApp.Party(contextMapping)
 		}
 
 		afterMethod, ok := fieldType.MethodByName(afterMethod)
@@ -113,7 +127,10 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 			// apiContextMapping should add arguments
 			//log.Debug("contextMapping: ", apiContextMapping)
 			// check if it's valid http method
-			if str.InSlice(httpMethod, httpMethods) {
+			hasAnyMethod := httpMethod == Any
+			hasGenericMethod := str.InSlice(httpMethod, httpMethods)
+			foundMethod := hasAnyMethod || hasGenericMethod
+			if foundMethod {
 				var apiContextMapping string
 				if len(ctxMap) > 2 && ctxMap[1] == "By" {
 					for _, pathParam := range ctxMap[2:] {
@@ -130,11 +147,18 @@ func (d *dispatcher) register(app *iris.Application, controllers []interface{}) 
 				hdl := new(handler)
 				hdl.parse(method, controller, contextMapping+apiContextMapping)
 
-				route := party.Handle(httpMethod, apiContextMapping, func(ctx context.Context) {
-					hdl.call(ctx.(*Context))
-					ctx.Next()
-				})
-				route.MainHandlerName = fmt.Sprintf("%s/%s.%s", pkgPath, fieldName, methodName)
+				if hasAnyMethod {
+					party.Any(apiContextMapping, func(ctx context.Context) {
+						hdl.call(ctx.(*Context))
+						ctx.Next()
+					})
+				} else if hasGenericMethod {
+					route := party.Handle(httpMethod, apiContextMapping, func(ctx context.Context) {
+						hdl.call(ctx.(*Context))
+						ctx.Next()
+					})
+					route.MainHandlerName = fmt.Sprintf("%s/%s.%s", pkgPath, fieldName, methodName)
+				}
 			}
 		}
 	}

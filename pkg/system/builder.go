@@ -21,29 +21,34 @@ import (
 	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 	"path/filepath"
 	"reflect"
+	"strings"
 )
 
 // Builder is the config file (yaml, json) builder
 type Builder struct {
 	*viper.Viper
-	Path       string
-	Name       string
-	FileType   string
-	Profile    string
-	ConfigType interface{}
+	Path             string
+	Name             string
+	FileType         string
+	Profile          string
+	ConfigType       interface{}
+	customProperties map[string]interface{}
+	profiles         []string
 }
 
-func NewBuilder(configType interface{}, path, name, fileType, profile string) *Builder {
+func NewBuilder(configType interface{}, path, name, fileType, profile string, customProperties map[string]interface{}) *Builder {
 	return &Builder{
-		Path:       path,
-		Name:       name,
-		FileType:   fileType,
-		Profile:    profile,
-		ConfigType: configType,
+		Path:             path,
+		Name:             name,
+		FileType:         fileType,
+		Profile:          profile,
+		ConfigType:       configType,
+		customProperties: customProperties,
 	}
 }
 
@@ -71,7 +76,17 @@ func (b *Builder) isFileNotExist(path string) bool {
 
 // Build config file
 func (b *Builder) Build(profiles ...string) (interface{}, error) {
+	var pfs []string
 
+	if b.ConfigType != nil {
+		for _, field := range reflector.DeepFields(reflect.TypeOf(b.ConfigType)) {
+			t, ok := field.Tag.Lookup("mapstructure")
+			if ok {
+				pfs = append(pfs, t)
+			}
+		}
+	}
+	b.profiles = pfs
 	conf, err := b.Read(b.Name)
 	if err != nil {
 		//log.Errorf("failed to read: %v", b.Name)
@@ -120,12 +135,16 @@ func (b *Builder) Read(name string) (interface{}, error) {
 		cp = reflector.NewReflectType(st)
 	}
 	// read config
-	err := b.ReadInConfig()
-	if err != nil {
-		return cp, fmt.Errorf("error on config file: %s", err)
-	}
+	b.ReadInConfig()
 
-	err = b.Unmarshal(cp)
+	// set custom properties
+	for key, value := range b.customProperties {
+		keyPath := strings.Split(key, ".")
+		if str.InSlice(keyPath[0], b.profiles) {
+			b.Set(key, value)
+		}
+	}
+	err := b.Unmarshal(cp)
 	return cp, err
 }
 

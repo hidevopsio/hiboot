@@ -40,5 +40,5 @@ func (c *Controller) Get() string {
 // main function
 func main() {
 	// create new web application and run it
-	web.NewApplication(new(Controller)).Run()
+	web.NewApplication(new(Controller)).SetProperty("app.name", "hello-world").Run()
 }

@@ -153,6 +153,14 @@
   revision = "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
 
 [[projects]]
+  digest = "1:09aa5dd1332b93c96bde671bafb053249dc813febf7d5ca84e8f382ba255d67d"
+  name = "github.com/gorilla/websocket"
+  packages = ["."]
+  pruneopts = ""
+  revision = "66b9c49e59c6c48f0ffce28c2d8b8a5678502c6d"
+  version = "v1.4.0"
+
+[[projects]]
   branch = "master"
   digest = "1:94158926759c3333201f81eee5a21112f7ae9d000b4d6926455008c7ab3fb7fc"
   name = "github.com/hashicorp/go-version"
@@ -291,6 +299,7 @@
     "middleware/logger",
     "middleware/recover",
     "view",
+    "websocket",
   ]
   pruneopts = ""
   revision = "217d9feadc0fc5b317826a901065e0c4c27d3cad"
@@ -521,15 +530,32 @@
   version = "v1.2.1"
 
 [[projects]]
+  digest = "1:711eebe744c0151a9d09af2315f0bb729b2ec7637ef4c410fa90a18ef74b65b6"
+  name = "github.com/stretchr/objx"
+  packages = ["."]
+  pruneopts = ""
+  revision = "477a77ecc69700c7cdeb1fa9e129548e1c1c393c"
+  version = "v0.1.1"
+
+[[projects]]
   digest = "1:a30066593578732a356dc7e5d7f78d69184ca65aeeff5939241a3ab10559bb06"
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
+    "mock",
     "require",
   ]
   pruneopts = ""
   revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
   version = "v1.2.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:d672360021f8f81b6d76c6db6ca792a616b774a7bd0df1b2df5a63c27900f718"
+  name = "github.com/valyala/bytebufferpool"
+  packages = ["."]
+  pruneopts = ""
+  revision = "cdfbe9377474227bb42120c1e22fd4433e7f69bf"
 
 [[projects]]
   branch = "master"
@@ -739,6 +765,7 @@
     "github.com/kataras/iris/httptest",
     "github.com/kataras/iris/middleware/i18n",
     "github.com/kataras/iris/middleware/logger",
+    "github.com/kataras/iris/websocket",
     "github.com/kataras/pio",
     "github.com/magiconair/properties/assert",
     "github.com/mitchellh/mapstructure",
@@ -747,6 +774,7 @@
     "github.com/spf13/pflag",
     "github.com/spf13/viper",
     "github.com/stretchr/testify/assert",
+    "github.com/stretchr/testify/mock",
     "golang.org/x/net/context",
     "google.golang.org/grpc",
     "google.golang.org/grpc/examples/helloworld/helloworld",

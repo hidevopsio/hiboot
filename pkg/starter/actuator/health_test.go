@@ -21,7 +21,7 @@ import (
 )
 
 func TestHealthController(t *testing.T) {
-	web.NewTestApplication(t).
+	web.RunTestApplication(t).
 		Get("/health").
 		Expect().Status(http.StatusOK)
 }

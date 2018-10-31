@@ -82,7 +82,7 @@ func TestInstantiateFactory(t *testing.T) {
 	type foo struct{ Name string }
 	f := new(foo)
 
-	appFactory := instantiate.NewInstantiateFactory(nil, nil)
+	appFactory := instantiate.NewInstantiateFactory(nil, nil, nil)
 	testName := "foobar"
 	t.Run("should failed to set/get instance when factory is not initialized", func(t *testing.T) {
 		inst := appFactory.GetInstance("not-exist-instance")
@@ -116,9 +116,16 @@ func TestInstantiateFactory(t *testing.T) {
 	appFactory.AppendComponent(new(testService))
 
 	ic := cmap.New()
-	appFactory = instantiate.NewInstantiateFactory(ic, testComponents)
+	customProps := cmap.New()
+	customProps.Set("app.project", "instantiate-test")
+	appFactory = instantiate.NewInstantiateFactory(ic, testComponents, customProps)
 	t.Run("should initialize factory", func(t *testing.T) {
 		assert.Equal(t, true, appFactory.Initialized())
+	})
+
+	t.Run("should initialize factory", func(t *testing.T) {
+		cstProp := appFactory.CustomProperties()
+		assert.NotEqual(t, 0, len(cstProp))
 	})
 
 	t.Run("should build components", func(t *testing.T) {

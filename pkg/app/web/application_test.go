@@ -278,8 +278,7 @@ func (c *FoobarController) Get(request *FoobarRequestParams) (response model.Res
 // context mapping can be overwritten by FooController.ContextMapping
 type HelloController struct {
 	web.Controller
-	ContextMapping string `value:"/"`
-	fooBar         *FooBar
+	fooBar *FooBar
 }
 
 func newHelloController(fooBar *FooBar) *HelloController {
@@ -295,7 +294,7 @@ func (c *HelloController) Get() string {
 	return "hello"
 }
 
-func (c *HelloController) GetHelloWorld() {
+func (c *HelloController) GetWorld() {
 	c.Ctx.HTML("<h1>Hello World</h1>")
 }
 
@@ -319,31 +318,86 @@ func (c *HelloController) GetAll() {
 	c.Ctx.ResponseBody("success", data)
 }
 
-func TestWebApplication(t *testing.T) {
-	testApp := web.NewTestApplication(t, newHelloController, newFooController, newBarController, newFoobarController)
+// Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
+// the lower cased foo will be the context mapping of the controller
+// context mapping can be overwritten by FooController.ContextMapping
+type HelloViewController struct {
+	web.Controller
+	ContextMapping string `value:"/"`
+	fooBar         *FooBar
+}
 
-	t.Run("should response 200 when GET /all", func(t *testing.T) {
+func newHelloViewController(fooBar *FooBar) *HelloViewController {
+	return &HelloViewController{
+		fooBar: fooBar,
+	}
+}
+
+// Get hello
+// The first word of method is the http method GET, the rest is the context mapping hello
+// in this method, the name Get means that the method context mapping is '/'
+func (c *HelloViewController) Get() {
+	c.Ctx.View("index.html")
+}
+
+func (c *HelloViewController) AnyTest() string {
+	return "Greeting from any method"
+}
+
+func TestWebViewApplicationWithProperties(t *testing.T) {
+	testApp := web.NewTestApp(newHelloViewController).
+		SetProperty("web.view.enabled", true).
+		Run(t)
+	t.Run("should response 200 when GET /", func(t *testing.T) {
 		testApp.
-			Request(http.MethodGet, "/all").
-			Expect().Status(http.StatusOK).
-			Body().Contains("Success").Contains("John Doe").Contains("Zhang San")
+			Get("/").
+			Expect().Status(http.StatusOK)
 	})
+}
 
+func TestWebViewApplicationWithArgs(t *testing.T) {
+	testApp := web.NewTestApp(newHelloViewController).
+		SetProperty("server.port", 8080).
+		SetProperty("web.view.enabled", true).
+		Run(t)
 	t.Run("should response 200 when GET /", func(t *testing.T) {
 		testApp.
 			Get("/").
 			Expect().Status(http.StatusOK)
 	})
 
-	t.Run("should response 200 when GET /", func(t *testing.T) {
+	t.Run("should response 200 when GET /test", func(t *testing.T) {
 		testApp.
-			Get("/helloWorld").
+			Get("/test").
+			Expect().Status(http.StatusOK)
+	})
+}
+
+func TestWebApplication(t *testing.T) {
+	testApp := web.RunTestApplication(t, newHelloController, newFooController, newBarController, newFoobarController)
+
+	t.Run("should response 200 when GET /hello/all", func(t *testing.T) {
+		testApp.
+			Request(http.MethodGet, "/hello/all").
+			Expect().Status(http.StatusOK).
+			Body().Contains("Success").Contains("John Doe").Contains("Zhang San")
+	})
+
+	t.Run("should response 200 when GET /hello", func(t *testing.T) {
+		testApp.
+			Get("/hello/").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should response 200 when GET /hello/world", func(t *testing.T) {
+		testApp.
+			Get("/hello/world").
 			Expect().Status(http.StatusOK)
 	})
 
 	t.Run("should response 你好, 世界 with language zh-CN", func(t *testing.T) {
 		// test cn-ZH
-		testApp.Get("/").
+		testApp.Get("/hello").
 			WithHeader("Accept-Language", "zh-CN").
 			Expect().Status(http.StatusOK).
 			Body().Contains("你好, 世界")
@@ -351,7 +405,7 @@ func TestWebApplication(t *testing.T) {
 
 	t.Run("should response Success with language en-US", func(t *testing.T) {
 		// test en-US
-		testApp.Get("/").
+		testApp.Get("/hello").
 			WithHeader("Accept-Language", "en-US").
 			Expect().
 			Status(http.StatusOK).
@@ -567,7 +621,9 @@ func TestNewApplication(t *testing.T) {
 
 	app.Register(new(ExampleController))
 
-	testApp := web.NewApplication()
+	testApp := web.NewApplication().
+		SetProperty("server.port", 8080).
+		SetProperty(app.BannerDisabled, true)
 	t.Run("should init web application", func(t *testing.T) {
 		assert.NotEqual(t, nil, testApp)
 	})
@@ -583,18 +639,18 @@ func TestNewApplication(t *testing.T) {
 		assert.Equal(t, "myInterface", typ.Name())
 	})
 
-	go testApp.SetProperty(app.PropertyBannerDisabled, true).Run()
+	go testApp.Run()
 	time.Sleep(time.Second)
 }
 
 func TestAnonymousController(t *testing.T) {
 	t.Run("should failed to register anonymous controller", func(t *testing.T) {
-		testApp := web.NewTestApplication(t, (*Bar)(nil))
+		testApp := web.RunTestApplication(t, (*Bar)(nil))
 		assert.NotEqual(t, nil, testApp)
 	})
 
 	t.Run("should failed to register anonymous controller", func(t *testing.T) {
-		testApp := web.NewTestApplication(t, newBar)
+		testApp := web.RunTestApplication(t, newBar)
 		assert.NotEqual(t, nil, testApp)
 	})
 }

@@ -5,7 +5,7 @@ import "github.com/kataras/iris"
 // DefaultConfiguration returns the default configuration for an iris station, fills the main Configuration
 func defaultConfiguration() iris.Configuration {
 	return iris.Configuration{
-		DisableStartupLog:                 false,
+		DisableStartupLog:                 true,
 		DisableInterruptHandler:           false,
 		DisableVersionChecker:             true,
 		DisablePathCorrection:             false,

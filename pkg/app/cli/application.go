@@ -17,7 +17,6 @@ package cli
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/utils/gotest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,8 +25,6 @@ import (
 // Application cli application interface
 type Application interface {
 	app.Application
-	Root() Command
-	SetRoot(root Command)
 }
 
 type application struct {
@@ -65,9 +62,10 @@ func (a *application) initialize(cmd ...interface{}) (err error) {
 
 // Init initialize cli application
 func (a *application) build() error {
-	a.PrintStartupMessages()
 
-	a.AppendProfiles(a)
+	a.Build()
+
+	a.PrintStartupMessages()
 
 	basename := filepath.Base(os.Args[0])
 	basename = strings.ToLower(basename)
@@ -85,22 +83,10 @@ func (a *application) build() error {
 	if r != nil {
 		root = r.(Command)
 		Register(root)
-		a.SetRoot(root)
-		if !gotest.IsRunning() {
-			a.Root().EmbeddedCommand().Use = basename
-		}
+		a.root = root
+		root.EmbeddedCommand().Use = basename
 	}
 	return nil
-}
-
-// SetRoot set root command
-func (a *application) SetRoot(root Command) {
-	a.root = root
-}
-
-// Root get the root command
-func (a *application) Root() Command {
-	return a.root
 }
 
 // SetProperty set application property

@@ -24,6 +24,20 @@ import (
 const (
 	// Profile is the profile of logging, it should be as same as the package name
 	Profile = "logging"
+	// Level is the property for setting logging level
+	Level = "logging.level"
+	// LevelDebug is the logging level options
+	LevelDebug = "debug"
+	// LevelInfo is the logging level options
+	LevelInfo = "info"
+	// LevelWarn is the logging level options
+	LevelWarn = "warn"
+	// LevelError is the logging level options
+	LevelError = "error"
+	// LevelFatal is the logging level options
+	LevelFatal = "fatal"
+	// LevelDebug is the logging level options
+	LevelDisable = "disable"
 )
 
 type configuration struct {
