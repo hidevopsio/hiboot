@@ -17,18 +17,32 @@ package websocket
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/app/web/context"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/kataras/iris/websocket"
 )
 
-// Profile websocket profile name
-const Profile = "websocket"
+const (
+	// Profile websocket profile name
+	Profile = "websocket"
+	// All is the string which the Emitter use to send a message to all.
+	All = ""
+	// Broadcast is the string which the Emitter use to send a message to all except this connection.
+	Broadcast = ";to;all;except;me;"
+)
 
 type configuration struct {
 	at.AutoConfiguration
 
 	Properties properties `mapstructure:"websocket"`
+}
+
+type Connection interface {
+	websocket.Connection
+}
+
+type Server struct {
+	*websocket.Server
 }
 
 func newConfiguration() *configuration {
@@ -40,15 +54,20 @@ func init() {
 }
 
 // Server websocket server
-func (c *configuration) Server() *websocket.Server {
-	ws := websocket.New(websocket.Config{
+func (c *configuration) Server(dispatcher *web.Dispatcher) *Server {
+	s := websocket.New(websocket.Config{
 		ReadBufferSize:  c.Properties.ReadBufferSize,
 		WriteBufferSize: c.Properties.WriteBufferSize,
 	})
-	return ws
+
+	dispatcher.RegisterAnyHandler(c.Properties.Javascript, websocket.ClientHandler())
+
+	return &Server{
+		Server: s,
+	}
 }
 
-// Upgrade websocket connection
-func (c *configuration) Connection(ctx context.Context, server *websocket.Server) websocket.Connection {
-	return server.Upgrade(ctx)
-}
+//// Server websocket server
+//func (c *configuration) Connection(server *Server, ctx *web.Context) Connection {
+//	return server.Upgrade(ctx.Context)
+//}

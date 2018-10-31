@@ -213,7 +213,6 @@ func (f *configurableFactory) Instantiate(configuration interface{}) (err error)
 		} else {
 			f.AppendComponent(configuration, method)
 		}
-
 	}
 	return
 }
@@ -287,6 +286,5 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 			log.Fatalf("[factory] configuration name %v is already taken", name)
 		}
 		f.configurations.Set(name, cf)
-
 	}
 }

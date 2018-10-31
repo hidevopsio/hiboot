@@ -56,7 +56,7 @@ type application struct {
 	//anonControllers []interface{}
 	//jwtControllers  []interface{}
 	controllers []interface{}
-	dispatcher  dispatcher
+	dispatcher  *Dispatcher
 	//controllerMap map[string][]interface{}
 	startUpTime time.Time
 }
@@ -124,7 +124,6 @@ func (a *application) build() (err error) {
 	f := a.ConfigurableFactory()
 	f.AppendComponent(app.ApplicationContextName, a)
 	f.SetInstance(app.ApplicationContextName, a)
-	f.AppendComponent(webApp{}, a.webApp)
 
 	// fill controllers into component container
 	for _, ctrl := range a.controllers {
@@ -133,6 +132,9 @@ func (a *application) build() (err error) {
 
 	// build auto configurations
 	a.BuildConfigurations()
+
+	// create dispatcher
+	a.dispatcher = a.GetInstance(Dispatcher{}).(*Dispatcher)
 
 	// first register anon controllers
 	a.RegisterController(new(at.RestController))
@@ -149,7 +151,7 @@ func (a *application) RegisterController(controller interface{}) error {
 	controllerInterfaceName := reflector.GetName(controller)
 	controllers := a.ConfigurableFactory().GetInstances(controllerInterfaceName)
 	if controllers != nil {
-		return a.dispatcher.register(a.webApp.Application, controllers)
+		return a.dispatcher.register(controllers)
 	}
 	return nil
 }
@@ -167,6 +169,7 @@ func (a *application) initialize(controllers ...interface{}) (err error) {
 
 	// new iris app
 	a.webApp = newWebApplication()
+	app.Register(a.webApp)
 
 	err = a.Initialize()
 
@@ -188,6 +191,7 @@ var RestController = app.Register
 func NewApplication(controllers ...interface{}) app.Application {
 	log.SetLevel("error") // set debug level to error first
 	a := new(application)
+	app.Register(a)
 	a.startUpTime = time.Now()
 	err := a.initialize(controllers...)
 	if err != nil {

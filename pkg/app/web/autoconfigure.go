@@ -1,8 +1,8 @@
 package web
 
 import (
+	"fmt"
 	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/kataras/iris"
 	irsctx "github.com/kataras/iris/context"
@@ -25,7 +25,7 @@ func init() {
 }
 
 // Context is the instance of context.Context
-func (c *configuration) Context(app *webApp) context.Context {
+func (c *configuration) Context(app *webApp) *Context {
 	ctx := &Context{
 		Context: irsctx.NewContext(app),
 	}
@@ -34,9 +34,10 @@ func (c *configuration) Context(app *webApp) context.Context {
 		v := c.Properties.View
 		app.RegisterView(iris.HTML(v.ResourcePath, v.Extension))
 
-		app.Get(v.ContextPath, func(ctx iris.Context) {
+		route := app.Get(v.ContextPath, func(ctx iris.Context) {
 			ctx.View(v.DefaultPage)
 		})
+		route.MainHandlerName = fmt.Sprintf("%s%s ", v.ContextPath, v.DefaultPage)
 	}
 
 	app.ContextPool.Attach(func() irsctx.Context {

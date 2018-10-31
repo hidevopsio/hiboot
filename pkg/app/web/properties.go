@@ -4,7 +4,7 @@ type view struct {
 	Enabled      bool
 	ContextPath  string `default:"/"`
 	DefaultPage  string `default:"index.html"`
-	ResourcePath string `default:"static"`
+	ResourcePath string `default:"./static"`
 	Extension    string `default:".html"`
 }
 

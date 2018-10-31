@@ -17,12 +17,11 @@ package websocket
 import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/starter/websocket/at"
-	"github.com/kataras/iris/websocket"
 )
 
 type postProcessor struct {
 	applicationContext app.ApplicationContext
-	server             *websocket.Server
+	server             *Server
 }
 
 func init() {
@@ -30,10 +29,9 @@ func init() {
 	app.RegisterPostProcessor(newPostProcessor)
 }
 
-func newPostProcessor(applicationContext app.ApplicationContext, server *websocket.Server) *postProcessor {
+func newPostProcessor(applicationContext app.ApplicationContext) *postProcessor {
 	return &postProcessor{
 		applicationContext: applicationContext,
-		server:             server,
 	}
 }
 
