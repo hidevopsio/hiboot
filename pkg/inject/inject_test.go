@@ -311,8 +311,10 @@ func TestInject(t *testing.T) {
 
 	instances := cmap.New()
 	configurations := cmap.New()
+	customProps := cmap.New()
+	customProps.Set("app.project", "inject-test")
 	cf = autoconfigure.NewConfigurableFactory(
-		instantiate.NewInstantiateFactory(instances, []*factory.MetaData{}),
+		instantiate.NewInstantiateFactory(instances, []*factory.MetaData{}, customProps),
 		configurations)
 	cf.BuildSystemConfig()
 

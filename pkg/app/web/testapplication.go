@@ -18,7 +18,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/iris-contrib/httpexpect"
 	"github.com/kataras/iris/httptest"
@@ -27,8 +26,9 @@ import (
 
 // TestApplication the test web application interface for unit test only
 type TestApplication interface {
-	app.Application
-	RunTestServer(t *testing.T) (expect *httpexpect.Expect, err error)
+	Initialize() error
+	SetProperty(name string, value ...interface{}) TestApplication
+	Run(t *testing.T) TestApplication
 	Request(method, path string, pathargs ...interface{}) *httpexpect.Request
 	Post(path string, pathargs ...interface{}) *httpexpect.Request
 	Get(path string, pathargs ...interface{}) *httpexpect.Request
@@ -44,22 +44,40 @@ type testApplication struct {
 	expect *httpexpect.Expect
 }
 
-// NewTestApplication returns the new test application
-func NewTestApplication(t *testing.T, controllers ...interface{}) TestApplication {
+// RunTestApplication returns the new test application
+func RunTestApplication(t *testing.T, controllers ...interface{}) TestApplication {
 	log.SetLevel(log.DebugLevel)
 	a := new(testApplication)
 	err := a.initialize(controllers...)
 	assert.Equal(t, nil, err)
-	a.expect, err = a.RunTestServer(t)
-	assert.Equal(t, nil, err)
+	a.Run(t)
+	return a
+}
+
+// NewTestApplication is the alias of RunTestApplication
+// Deprecated, you should use RunTestApplication instead
+var NewTestApplication = RunTestApplication
+
+// NewTestApp returns the new test application
+func NewTestApp(controllers ...interface{}) TestApplication {
+	log.SetLevel(log.DebugLevel)
+	a := new(testApplication)
+	a.initialize(controllers...)
+	return a
+}
+
+// SetProperty set application property
+func (a *testApplication) SetProperty(name string, value ...interface{}) TestApplication {
+	a.BaseApplication.SetProperty(name, value...)
 	return a
 }
 
 // RunTestServer run the test server
-func (a *testApplication) RunTestServer(t *testing.T) (expect *httpexpect.Expect, err error) {
-	err = a.build()
+func (a *testApplication) Run(t *testing.T) TestApplication {
+	err := a.build()
 	assert.Equal(t, nil, err)
-	return httptest.New(t, a.webApp), nil
+	a.expect = httptest.New(t, a.webApp.Application)
+	return a
 }
 
 // Request request for unit test

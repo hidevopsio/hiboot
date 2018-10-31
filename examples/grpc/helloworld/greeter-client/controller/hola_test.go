@@ -18,7 +18,7 @@ func TestHolaClient(t *testing.T) {
 	mockHolaClient := mock.NewMockHolaServiceClient(ctrl)
 	app.Register("protobuf.holaServiceClient", mockHolaClient)
 
-	testApp := web.NewTestApplication(t, newHolaController)
+	testApp := web.RunTestApplication(t, newHolaController)
 
 	req := &protobuf.HolaRequest{Name: "Steve"}
 

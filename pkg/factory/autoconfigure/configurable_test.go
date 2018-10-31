@@ -295,9 +295,10 @@ func TestConfigurableFactory(t *testing.T) {
 	assert.Equal(t, n, len(fakeContent))
 
 	configContainers := cmap.New()
+	customProperties := cmap.New()
 
 	f := autoconfigure.NewConfigurableFactory(
-		instantiate.NewInstantiateFactory(cmap.New(), []*factory.MetaData{}),
+		instantiate.NewInstantiateFactory(cmap.New(), []*factory.MetaData{}, customProperties),
 		configContainers,
 	)
 
@@ -318,6 +319,19 @@ func TestConfigurableFactory(t *testing.T) {
 		sc, err := f.BuildSystemConfig()
 		assert.Equal(t, nil, err)
 		assert.Equal(t, "default", sc.App.Profiles.Active)
+		// restore profile
+		os.Setenv(autoconfigure.EnvAppProfilesActive, profile)
+	})
+
+	t.Run("should build app config", func(t *testing.T) {
+		// backup profile
+		customProperties.Set("app.profiles.active", "dev")
+		customProperties.Set("logging.level", "debug")
+		profile := os.Getenv(autoconfigure.EnvAppProfilesActive)
+		os.Setenv(autoconfigure.EnvAppProfilesActive, "")
+		sc, err := f.BuildSystemConfig()
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "dev", sc.App.Profiles.Active)
 		// restore profile
 		os.Setenv(autoconfigure.EnvAppProfilesActive, profile)
 	})

@@ -22,11 +22,16 @@ type Profiles struct {
 	Active  string   `json:"active" default:"${APP_PROFILES_ACTIVE:default}"`
 }
 
+type banner struct {
+	Disabled bool `default:"false"`
+}
+
 // App is the properties of the application, it hold the base info of the application
 type App struct {
 	Project  string   `json:"project" default:"hidevopsio"`
 	Name     string   `json:"name" default:"hiboot-app"`
 	Profiles Profiles `json:"profiles"`
+	Banner   banner
 	// TODO: should defined in application-version.yml
 	//Version        string   `json:"version" default:"0.0.1"`
 }

@@ -54,6 +54,6 @@ func (c *rootCommand) Run(args []string) error {
 func main() {
 	// create new cli application and run it
 	cli.NewApplication(newRootCommand).
-		SetProperty(app.PropertyBannerDisabled, true).
+		SetProperty(app.BannerDisabled, true).
 		Run()
 }

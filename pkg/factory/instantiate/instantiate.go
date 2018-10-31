@@ -37,17 +37,19 @@ var (
 
 // InstantiateFactory is the factory that responsible for object instantiation
 type instantiateFactory struct {
-	instanceMap cmap.ConcurrentMap
-	components  []*factory.MetaData
-	categorized map[string][]interface{}
+	instanceMap      cmap.ConcurrentMap
+	components       []*factory.MetaData
+	categorized      map[string][]interface{}
+	customProperties cmap.ConcurrentMap
 }
 
 // NewInstantiateFactory the constructor of instantiateFactory
-func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory.MetaData) factory.InstantiateFactory {
+func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory.MetaData, customProperties cmap.ConcurrentMap) factory.InstantiateFactory {
 	return &instantiateFactory{
-		instanceMap: instanceMap,
-		components:  components,
-		categorized: make(map[string][]interface{}),
+		instanceMap:      instanceMap,
+		components:       components,
+		categorized:      make(map[string][]interface{}),
+		customProperties: customProperties,
 	}
 }
 
@@ -66,7 +68,9 @@ func (f *instantiateFactory) AppendComponent(c ...interface{}) {
 func (f *instantiateFactory) BuildComponents() (err error) {
 	// first resolve the dependency graph
 	var resolved []*factory.MetaData
+	log.Infof("Resolving dependencies")
 	resolved, err = depends.Resolve(f.components)
+	log.Infof("Injecting dependencies")
 	// then build components
 	var obj interface{}
 	var name string
@@ -77,6 +81,7 @@ func (f *instantiateFactory) BuildComponents() (err error) {
 		case types.Func:
 			obj, err = inject.IntoFunc(item.Object)
 			name = item.Name
+			// TODO: should report error when err is not nil
 			if err == nil {
 				log.Debugf("%d: inject into func: %v %v", i, item.ShortName, item.Type)
 			}
@@ -102,6 +107,9 @@ func (f *instantiateFactory) BuildComponents() (err error) {
 				err = f.SetInstance(name, obj)
 			}
 		}
+	}
+	if err == nil {
+		log.Infof("Injected dependencies")
 	}
 	return
 }
@@ -166,4 +174,9 @@ func (f *instantiateFactory) Items() map[string]interface{} {
 		return nil
 	}
 	return f.instanceMap.Items()
+}
+
+// Items return instance map
+func (f *instantiateFactory) CustomProperties() map[string]interface{} {
+	return f.customProperties.Items()
 }
