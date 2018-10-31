@@ -29,7 +29,7 @@
         <span id="online_visitors">1 online visitor</span>
     </div>
 
-    <script src="/websocket/iris-ws.js"></script>
+    <script src="/websocket/websocket.js"></script>
 
     <script type="text/javascript">
         (function () {
@@ -39,7 +39,7 @@
                 // update the rest of connected clients, including "myself" when "my" connection is 100% ready.
                 socket.Emit("visit");
             });
-        
+
 
             socket.On("visit", function (newCount) {
                 console.log("visit websocket event with newCount of: ", newCount);
