@@ -25,13 +25,8 @@ func TestWebSocketController(t *testing.T) {
 	}
 	mockController := newWebsocketController(handlerFunc, countHandler, statusHandler)
 
-	testApp := web.NewTestApp(mockController).
-		SetProperty("web.view.enabled", true).
-		SetProperty("server.port", 12768).
-		Run(t)
+	testApp := web.NewTestApp(mockController).Run(t)
 	assert.NotEqual(t, nil, testApp)
-
-	testApp.Get("/").Expect().Status(http.StatusOK)
 
 	testWebsocket("/websocket", mockConn, testApp)
 	testWebsocket("/websocket/status", mockConn, testApp)
