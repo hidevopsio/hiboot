@@ -20,7 +20,7 @@ func NewStatusHandlerConstructor() StatusHandlerConstructor {
 }
 
 func init() {
-	app.Register(new(StatusHandlerConstructor), NewStatusHandlerConstructor)
+	app.Register(NewStatusHandlerConstructor)
 }
 
 func (h *statusHandler) OnMessage(data []byte) {
