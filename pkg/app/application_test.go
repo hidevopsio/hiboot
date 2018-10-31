@@ -164,30 +164,30 @@ func TestBaseApplication(t *testing.T) {
 	ba.RegisterController(nil)
 
 	t.Run("should set PropertyBannerDisabled", func(t *testing.T) {
-		ba.SetProperty(app.PropertyBannerDisabled, false)
-		prop, ok := ba.GetProperty(app.PropertyBannerDisabled)
+		ba.SetProperty(app.BannerDisabled, false)
+		prop, ok := ba.GetProperty(app.BannerDisabled)
 		assert.Equal(t, true, ok)
 		assert.Equal(t, false, prop)
 	})
 	t.Run("should set PropertyBannerDisabled to true", func(t *testing.T) {
-		ba.SetProperty(app.PropertyBannerDisabled, true)
-		prop, ok := ba.GetProperty(app.PropertyBannerDisabled)
+		ba.SetProperty(app.BannerDisabled, true)
+		prop, ok := ba.GetProperty(app.BannerDisabled)
 		assert.Equal(t, true, ok)
 		assert.Equal(t, true, prop)
 	})
 
 	t.Run("should set profiles", func(t *testing.T) {
-		ba.SetProperty(app.PropertyBannerDisabled, false).
-			SetProperty(app.PropertyAppProfilesInclude, "foo,bar")
-		prop, ok := ba.GetProperty(app.PropertyAppProfilesInclude)
+		ba.SetProperty(app.BannerDisabled, false).
+			SetProperty(app.ProfilesInclude, "foo,bar")
+		prop, ok := ba.GetProperty(app.ProfilesInclude)
 		assert.Equal(t, true, ok)
 		assert.Equal(t, []string{"foo", "bar"}, prop)
 	})
 
 	t.Run("should set profiles", func(t *testing.T) {
-		ba.SetProperty(app.PropertyBannerDisabled, false).
-			SetProperty(app.PropertyAppProfilesInclude, "baz", "buz")
-		prop, ok := ba.GetProperty(app.PropertyAppProfilesInclude)
+		ba.SetProperty(app.BannerDisabled, false).
+			SetProperty(app.ProfilesInclude, "baz", "buz")
+		prop, ok := ba.GetProperty(app.ProfilesInclude)
 		assert.Equal(t, true, ok)
 		assert.Equal(t, []interface{}{"baz", "buz"}, prop)
 	})
