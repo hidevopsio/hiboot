@@ -123,6 +123,11 @@ func TestInstantiateFactory(t *testing.T) {
 		assert.Equal(t, true, appFactory.Initialized())
 	})
 
+	t.Run("should initialize factory", func(t *testing.T) {
+		cstProp := appFactory.CustomProperties()
+		assert.NotEqual(t, 0, len(cstProp))
+	})
+
 	t.Run("should build components", func(t *testing.T) {
 		appFactory.BuildComponents()
 	})
