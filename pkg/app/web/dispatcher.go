@@ -139,9 +139,7 @@ func (d *Dispatcher) register(controllers []interface{}) (err error) {
 					}
 				} else {
 					apiContextMapping = strings.Replace(methodName, ctxMap[0], "", 1)
-					if apiContextMapping != "" {
-						apiContextMapping = pathSep + str.LowerFirst(apiContextMapping)
-					}
+					apiContextMapping = pathSep + str.LowerFirst(apiContextMapping)
 				}
 
 				// parse all necessary requests and responses

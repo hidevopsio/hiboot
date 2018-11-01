@@ -63,6 +63,11 @@ func clean(in string) (out string) {
 	if strings.Contains(out, "//") {
 		out = clean(out)
 	}
+	lenOfOut := len(out) - 1
+	if lenOfOut > 1 && out[lenOfOut:] == "/" {
+		//log.Debug(out[:lenOfOut])
+		out = out[:lenOfOut]
+	}
 	return
 }
 
