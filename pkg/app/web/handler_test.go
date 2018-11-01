@@ -56,6 +56,16 @@ func TestParse(t *testing.T) {
 
 	t.Run("should clean path", func(t *testing.T) {
 		p := clean("///a///b//c/d//e/////f/")
-		assert.Equal(t, "/a/b/c/d/e/f/", p)
+		assert.Equal(t, "/a/b/c/d/e/f", p)
+	})
+
+	t.Run("should clean path", func(t *testing.T) {
+		p := clean("//abc/")
+		assert.Equal(t, "/abc", p)
+	})
+
+	t.Run("should clean path", func(t *testing.T) {
+		p := clean("//")
+		assert.Equal(t, "/", p)
 	})
 }
