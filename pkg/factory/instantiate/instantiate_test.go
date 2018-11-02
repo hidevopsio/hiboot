@@ -17,11 +17,11 @@ package instantiate_test
 import (
 	"fmt"
 	"github.com/deckarep/golang-set"
-	"github.com/hidevopsio/hiboot/pkg/at"
-	"github.com/hidevopsio/hiboot/pkg/factory"
-	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
-	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/factory/instantiate"
+	"hidevops.io/hiboot/pkg/utils/cmap"
 	"reflect"
 	"testing"
 )

@@ -1,12 +1,12 @@
 package controller
 
 import (
-	"github.com/hidevopsio/hiboot/examples/web/websocket/service"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"github.com/hidevopsio/hiboot/pkg/starter/websocket"
-	"github.com/hidevopsio/hiboot/pkg/starter/websocket/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"hidevops.io/hiboot/examples/web/websocket/service"
+	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/starter/websocket"
+	"hidevops.io/hiboot/pkg/starter/websocket/mocks"
 	"net/http"
 	"testing"
 )

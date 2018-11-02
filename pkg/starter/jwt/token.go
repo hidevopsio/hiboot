@@ -20,7 +20,7 @@ import (
 
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"hidevops.io/hiboot/pkg/utils/io"
 	"io/ioutil"
 )
 

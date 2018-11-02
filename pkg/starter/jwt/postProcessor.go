@@ -15,8 +15,8 @@
 package jwt
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/starter/jwt/at"
+	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/starter/jwt/at"
 )
 
 type postProcessor struct {

@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"github.com/hidevopsio/hiboot/examples/web/websocket/service"
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"github.com/hidevopsio/hiboot/pkg/at"
-	"github.com/hidevopsio/hiboot/pkg/starter/websocket"
+	"hidevops.io/hiboot/examples/web/websocket/service"
+	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/starter/websocket"
 )
 
 type websocketController struct {

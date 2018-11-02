@@ -16,14 +16,14 @@ package grpc_test
 
 import (
 	"github.com/golang/mock/gomock"
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"github.com/hidevopsio/hiboot/pkg/inject"
-	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
-	mockproto "github.com/hidevopsio/hiboot/pkg/starter/grpc/mock"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/examples/helloworld/helloworld"
+	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/inject"
+	"hidevops.io/hiboot/pkg/starter/grpc"
+	mockproto "hidevops.io/hiboot/pkg/starter/grpc/mock"
 	"testing"
 )
 

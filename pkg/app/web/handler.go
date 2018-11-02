@@ -16,11 +16,11 @@ package web
 
 import (
 	"fmt"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/model"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/model"
+	"hidevops.io/hiboot/pkg/utils/reflector"
+	"hidevops.io/hiboot/pkg/utils/replacer"
+	"hidevops.io/hiboot/pkg/utils/str"
 	"net/http"
 	"reflect"
 	"strings"

@@ -2,9 +2,9 @@ package service
 
 import (
 	"fmt"
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/starter/websocket"
+	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/starter/websocket"
 )
 
 type statusHandler struct {

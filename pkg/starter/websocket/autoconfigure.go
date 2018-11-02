@@ -16,11 +16,11 @@
 package websocket
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/websocket"
+	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/at"
 )
 
 const (

@@ -31,7 +31,7 @@ import (
 	"fmt"
 
 	"github.com/deckarep/golang-set"
-	"github.com/hidevopsio/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/factory"
 	"reflect"
 )
 

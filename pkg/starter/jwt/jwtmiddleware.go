@@ -19,10 +19,10 @@ import (
 	"net/http"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	mwjwt "github.com/iris-contrib/middleware/jwt"
 	"github.com/kataras/iris/context"
+	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/log"
 )
 
 // Middleware derived from github.com/iris-contrib/middleware/jwt/Middleware

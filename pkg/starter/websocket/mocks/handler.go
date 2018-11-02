@@ -1,8 +1,8 @@
 package mocks
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"github.com/hidevopsio/hiboot/pkg/starter/websocket"
+	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/starter/websocket"
 )
 
 func HandlerFunc(ctx *web.Context, constructor websocket.HandlerConstructor) websocket.Connection {
