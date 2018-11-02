@@ -16,7 +16,7 @@
 package controller
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/app/web"
 	"net/http"
 	"testing"
 )

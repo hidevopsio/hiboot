@@ -16,10 +16,10 @@
 package locale
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/i18n"
+	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/utils/io"
 	"os"
 	"path/filepath"
 	"strings"

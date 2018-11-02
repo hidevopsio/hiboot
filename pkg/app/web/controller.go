@@ -14,7 +14,7 @@
 
 package web
 
-import "github.com/hidevopsio/hiboot/pkg/at"
+import "hidevops.io/hiboot/pkg/at"
 
 // Controller is the web base controller
 type Controller struct {

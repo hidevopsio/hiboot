@@ -20,11 +20,11 @@
 package main
 
 import (
-	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
-	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
 	"golang.org/x/net/context"
+	"hidevops.io/hiboot/examples/grpc/helloworld/protobuf"
+	"hidevops.io/hiboot/pkg/app/web"
+	_ "hidevops.io/hiboot/pkg/starter/actuator"
+	"hidevops.io/hiboot/pkg/starter/grpc"
 )
 
 // server is used to implement protobuf.GreeterServer.

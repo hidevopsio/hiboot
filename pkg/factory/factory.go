@@ -16,8 +16,8 @@
 package factory
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/system"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"hidevops.io/hiboot/pkg/system"
+	"hidevops.io/hiboot/pkg/utils/reflector"
 	"reflect"
 )
 

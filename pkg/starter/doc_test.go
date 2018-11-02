@@ -15,12 +15,12 @@
 package starter_test
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/app"
 	"os"
 )
 
 //This example shows the guide to make customized auto configuration
-//for more details, see https://github.com/hidevopsio/hiboot-data/blob/master/starter/bolt/autoconfigure.go
+//for more details, see https://hidevops.io/hiboot-data/blob/master/starter/bolt/autoconfigure.go
 func Example() {
 }
 

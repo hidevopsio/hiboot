@@ -16,10 +16,10 @@
 package grpc
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/factory"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"google.golang.org/grpc"
+	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/utils/reflector"
 	"reflect"
 )
 

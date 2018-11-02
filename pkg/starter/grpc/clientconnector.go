@@ -1,10 +1,10 @@
 package grpc
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/factory"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"google.golang.org/grpc"
+	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/utils/reflector"
 )
 
 // ClientConnector interface is response for creating grpc client connection

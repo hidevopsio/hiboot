@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf"
 	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/examples/grpc/helloworld/protobuf"
 	"testing"
 	"time"
 )

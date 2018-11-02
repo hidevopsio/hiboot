@@ -16,9 +16,9 @@
 package logging
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/logger"
+	"hidevops.io/hiboot/pkg/app"
 )
 
 const (

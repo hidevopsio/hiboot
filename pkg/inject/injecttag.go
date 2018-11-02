@@ -15,10 +15,10 @@
 package inject
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/factory"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/utils/io"
+	"hidevops.io/hiboot/pkg/utils/mapstruct"
+	"hidevops.io/hiboot/pkg/utils/str"
 	"reflect"
 )
 

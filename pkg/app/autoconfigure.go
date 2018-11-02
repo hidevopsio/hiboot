@@ -15,10 +15,10 @@
 package app
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/at"
-	"github.com/hidevopsio/hiboot/pkg/factory"
-	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/factory/autoconfigure"
+	"hidevops.io/hiboot/pkg/utils/reflector"
 	"reflect"
 )
 

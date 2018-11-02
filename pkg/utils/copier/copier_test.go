@@ -18,8 +18,8 @@ package copier_test
 
 import (
 	"errors"
-	"github.com/hidevopsio/hiboot/pkg/utils/copier"
 	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/pkg/utils/copier"
 	"reflect"
 	"testing"
 	"time"

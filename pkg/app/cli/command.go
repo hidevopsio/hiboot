@@ -16,11 +16,11 @@ package cli
 
 import (
 	"errors"
-	"github.com/hidevopsio/hiboot/pkg/at"
-	"github.com/hidevopsio/hiboot/pkg/system/types"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
+	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/system/types"
+	"hidevops.io/hiboot/pkg/utils/reflector"
 	"io"
 	"reflect"
 	"strings"

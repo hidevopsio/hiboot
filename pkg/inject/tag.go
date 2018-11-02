@@ -15,10 +15,10 @@
 package inject
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/factory"
-	"github.com/hidevopsio/hiboot/pkg/system"
-	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
-	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
+	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/system"
+	"hidevops.io/hiboot/pkg/utils/cmap"
+	"hidevops.io/hiboot/pkg/utils/replacer"
 	"reflect"
 	"strings"
 )
