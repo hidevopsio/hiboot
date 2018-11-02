@@ -14,7 +14,7 @@
 
 package hiboot_test
 
-import "github.com/hidevopsio/hiboot/pkg/app/web"
+import "hidevops.io/hiboot/pkg/app/web"
 
 // This is a simple hello world example
 func Example() {

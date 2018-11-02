@@ -17,11 +17,11 @@ package web
 import (
 	"net/http"
 
-	"github.com/hidevopsio/hiboot/pkg/model"
-	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
-	"github.com/hidevopsio/hiboot/pkg/utils/validator"
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/i18n"
+	"hidevops.io/hiboot/pkg/model"
+	"hidevops.io/hiboot/pkg/utils/mapstruct"
+	"hidevops.io/hiboot/pkg/utils/validator"
 )
 
 // ExtendedContext extended context

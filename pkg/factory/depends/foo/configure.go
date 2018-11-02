@@ -15,7 +15,7 @@
 // Package foo is the test package for package depends
 package foo
 
-import "github.com/hidevopsio/hiboot/pkg/app"
+import "hidevops.io/hiboot/pkg/app"
 
 // Configuration foo.Configuration for test only
 type Configuration struct {

@@ -17,9 +17,9 @@ package jwt
 
 import (
 	"github.com/dgrijalva/jwt-go"
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/at"
 	mw "github.com/iris-contrib/middleware/jwt"
+	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/at"
 )
 
 const (

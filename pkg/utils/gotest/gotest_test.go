@@ -16,8 +16,8 @@ package gotest
 
 import (
 	"flag"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/pkg/log"
 	"testing"
 )
 

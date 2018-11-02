@@ -14,7 +14,7 @@
 
 package app
 
-import "github.com/hidevopsio/hiboot/pkg/inject"
+import "hidevops.io/hiboot/pkg/inject"
 
 // PostProcessor is the post processor
 type PostProcessor interface {

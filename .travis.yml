@@ -10,6 +10,8 @@ branches:
   only:
   - master
 
+go_import_path: hidevops.io/hiboot
+
 before_install:
   - go get -u github.com/golang/dep/cmd/dep
   - dep ensure -v

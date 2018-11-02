@@ -18,13 +18,13 @@ package instantiate
 import (
 	"errors"
 	"fmt"
-	"github.com/hidevopsio/hiboot/pkg/factory"
-	"github.com/hidevopsio/hiboot/pkg/factory/depends"
-	"github.com/hidevopsio/hiboot/pkg/inject"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/system/types"
-	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/factory/depends"
+	"hidevops.io/hiboot/pkg/inject"
+	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/system/types"
+	"hidevops.io/hiboot/pkg/utils/cmap"
+	"hidevops.io/hiboot/pkg/utils/reflector"
 )
 
 var (

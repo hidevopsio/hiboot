@@ -17,8 +17,8 @@ package reflector
 
 import (
 	"errors"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"hidevops.io/hiboot/pkg/utils/io"
+	"hidevops.io/hiboot/pkg/utils/str"
 	"reflect"
 	"runtime"
 	"strings"

@@ -21,7 +21,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"github.com/hidevopsio/hiboot/pkg/utils/crypto"
+	"hidevops.io/hiboot/pkg/utils/crypto"
 	"io"
 )
 

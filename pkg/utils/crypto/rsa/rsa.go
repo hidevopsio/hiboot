@@ -20,8 +20,8 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"github.com/hidevopsio/hiboot/pkg/utils/crypto"
-	"github.com/hidevopsio/hiboot/pkg/utils/crypto/base64"
+	"hidevops.io/hiboot/pkg/utils/crypto"
+	"hidevops.io/hiboot/pkg/utils/crypto/base64"
 )
 
 //openssl genrsa -out private.pem 1024

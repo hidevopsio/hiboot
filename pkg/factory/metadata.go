@@ -1,10 +1,10 @@
 package factory
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/system/types"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"hidevops.io/hiboot/pkg/system/types"
+	"hidevops.io/hiboot/pkg/utils/io"
+	"hidevops.io/hiboot/pkg/utils/reflector"
+	"hidevops.io/hiboot/pkg/utils/str"
 	"reflect"
 	"strings"
 )

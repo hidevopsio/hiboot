@@ -16,9 +16,9 @@ package reflector
 
 import (
 	"fmt"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector/tester"
 	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/utils/reflector/tester"
 	"reflect"
 	"testing"
 )
@@ -436,7 +436,7 @@ func TestParseObjectName(t *testing.T) {
 func TestGetPkgPath(t *testing.T) {
 	t.Run("should get object pkg path", func(t *testing.T) {
 		pkgPath := GetPkgPath(Foo{})
-		assert.Contains(t, "github.com/hidevopsio/hiboot/pkg/utils/reflector", pkgPath)
+		assert.Contains(t, "hidevops.io/hiboot/pkg/utils/reflector", pkgPath)
 	})
 }
 
