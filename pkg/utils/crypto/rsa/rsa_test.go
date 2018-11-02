@@ -1,9 +1,9 @@
 package rsa
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/utils/crypto"
 	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/utils/crypto"
 	"testing"
 )
 

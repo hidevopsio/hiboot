@@ -17,8 +17,8 @@ package jwt
 import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"github.com/hidevopsio/hiboot/pkg/starter/jwt/at"
+	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/starter/jwt/at"
 )
 
 // Controller is the base web controller that enabled JWT

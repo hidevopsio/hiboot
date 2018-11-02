@@ -40,7 +40,7 @@ package copier
 import (
 	"database/sql"
 	"errors"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"hidevops.io/hiboot/pkg/utils/reflector"
 	"reflect"
 )
 

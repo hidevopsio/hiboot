@@ -15,15 +15,15 @@
 package inject_test
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/factory"
-	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
-	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
-	"github.com/hidevopsio/hiboot/pkg/inject"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/factory/autoconfigure"
+	"hidevops.io/hiboot/pkg/factory/instantiate"
+	"hidevops.io/hiboot/pkg/inject"
+	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/utils/cmap"
+	"hidevops.io/hiboot/pkg/utils/io"
 	"os"
 	"path/filepath"
 	"reflect"

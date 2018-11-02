@@ -3,8 +3,8 @@ package aes
 import (
 	"crypto/aes"
 	"fmt"
-	"github.com/hidevopsio/hiboot/pkg/utils/crypto"
 	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/pkg/utils/crypto"
 	"testing"
 )
 

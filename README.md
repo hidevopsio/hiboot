@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://hiboot.hidevops.io">
-    <img src="https://github.com/hidevopsio/hiboot/blob/master/hiboot.png?raw=true" alt="hiboot">
+    <img src="https://hidevops.io/hiboot/blob/master/hiboot.png?raw=true" alt="hiboot">
   </a>
 </p>
 
@@ -17,10 +17,10 @@
   <a href="https://opensource.org/licenses/Apache-2.0">
       <img src="https://img.shields.io/badge/License-Apache%202.0-green.svg" />
   </a>
-  <a href="https://goreportcard.com/report/github.com/hidevopsio/hiboot">
-      <img src="https://goreportcard.com/badge/github.com/hidevopsio/hiboot" />
+  <a href="https://goreportcard.com/report/hidevops.io/hiboot">
+      <img src="https://goreportcard.com/badge/hidevops.io/hiboot" />
   </a>
-  <a href="https://godoc.org/github.com/hidevopsio/hiboot">
+  <a href="https://godoc.org/hidevops.io/hiboot">
       <img src="https://godoc.org/github.com/golang/gddo?status.svg" />
   </a>
   <a href="https://gitter.im/hidevopsio/hiboot">
@@ -55,4 +55,4 @@ Thank you for considering contributing to the Hiboot framework, The contribution
 
 © John Deng, 2017 ~ time.Now
 
-Released under the [Apache License 2.0](https://github.com/hidevopsio/hiboot/blob/master/LICENSE)
+Released under the [Apache License 2.0](https://hidevops.io/hiboot/blob/master/LICENSE)

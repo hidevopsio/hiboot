@@ -2,11 +2,11 @@ package controller
 
 import (
 	"github.com/golang/mock/gomock"
-	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/mock"
-	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf"
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	grpcmock "github.com/hidevopsio/hiboot/pkg/starter/grpc/mock"
+	"hidevops.io/hiboot/examples/grpc/helloworld/mock"
+	"hidevops.io/hiboot/examples/grpc/helloworld/protobuf"
+	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/app/web"
+	grpcmock "hidevops.io/hiboot/pkg/starter/grpc/mock"
 	"net/http"
 	"testing"
 )

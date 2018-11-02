@@ -15,7 +15,7 @@
 package inject
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"hidevops.io/hiboot/pkg/utils/str"
 	"reflect"
 )
 

@@ -16,11 +16,11 @@ package mock
 
 import (
 	"github.com/golang/mock/gomock"
-	"github.com/hidevopsio/hiboot/examples/grpc/helloworld/protobuf"
-	mockproto "github.com/hidevopsio/hiboot/pkg/starter/grpc/mock"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"hidevops.io/hiboot/examples/grpc/helloworld/protobuf"
+	mockproto "hidevops.io/hiboot/pkg/starter/grpc/mock"
 	"testing"
 	"time"
 )

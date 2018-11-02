@@ -15,10 +15,10 @@
 package controller
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"github.com/hidevopsio/hiboot/pkg/model"
-	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
+	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/model"
+	"hidevops.io/hiboot/pkg/starter/jwt"
 	"time"
 )
 

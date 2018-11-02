@@ -17,11 +17,11 @@ package inject
 import (
 	"errors"
 	"fmt"
-	"github.com/hidevopsio/hiboot/pkg/factory"
-	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/utils/io"
+	"hidevops.io/hiboot/pkg/utils/reflector"
+	"hidevops.io/hiboot/pkg/utils/str"
 	"reflect"
 )
 

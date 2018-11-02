@@ -15,9 +15,9 @@
 package controller
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/app/web"
-	"github.com/hidevopsio/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/log"
 )
 
 type fooRequest struct {

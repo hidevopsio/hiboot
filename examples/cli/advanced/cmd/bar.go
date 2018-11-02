@@ -15,9 +15,9 @@
 package cmd
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/app/cli"
-	"github.com/hidevopsio/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/app/cli"
+	"hidevops.io/hiboot/pkg/log"
 )
 
 type barCommand struct {

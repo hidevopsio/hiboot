@@ -17,10 +17,10 @@ package web
 import (
 	"fmt"
 	"github.com/fatih/camelcase"
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
+	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/utils/str"
 	"net/http"
 	"reflect"
 	"strings"
