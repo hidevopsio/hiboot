@@ -37,8 +37,8 @@ The commands below require that you have $GOPATH set ($GOPATH docs). We highly r
 
 ```bash
 export GITHUB_USER=your-github-username
-mkdir -p $GOPATH/src/github.com/hidevopsio
-cd $GOPATH/src/github.com/hidevopsio
+mkdir -p $GOPATH/src/hidevops.io
+cd $GOPATH/src/hidevops.io
 git clone https://github.com/$GITHUB_USER/hiboot
 cd hiboot
 git remote add upstream 'https://hidevops.io/hiboot'
