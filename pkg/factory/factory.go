@@ -36,7 +36,7 @@ type InstantiateFactory interface {
 	Initialized() bool
 	SetInstance(params ...interface{}) (err error)
 	GetInstance(params ...interface{}) (retVal interface{})
-	GetInstances(name string) (retVal []interface{})
+	GetInstances(params ...interface{}) (retVal []interface{})
 	Items() map[string]interface{}
 	AppendComponent(c ...interface{})
 	BuildComponents() (err error)

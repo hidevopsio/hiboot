@@ -23,7 +23,6 @@ import (
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/io"
-	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"os"
 	"regexp"
@@ -147,8 +146,7 @@ func (a *application) build() (err error) {
 func (a *application) RegisterController(controller interface{}) error {
 	// get from controller map
 	// parse controller type
-	controllerInterfaceName := reflector.GetName(controller)
-	controllers := a.ConfigurableFactory().GetInstances(controllerInterfaceName)
+	controllers := a.ConfigurableFactory().GetInstances(controller)
 	if controllers != nil {
 		return a.dispatcher.register(controllers)
 	}

@@ -20,9 +20,9 @@ import (
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
-	"hidevops.io/hiboot/pkg/utils/reflector"
 )
 
+// HealthService is the interface for health check
 type HealthService interface {
 	Name() string
 	Status() bool
@@ -49,8 +49,7 @@ func newHealthController(configurableFactory factory.ConfigurableFactory) *healt
 
 // GET /health
 func (c *healthController) Get(ctx *web.Context) {
-	name := reflector.GetName(new(at.HealthCheckService))
-	healthServices := c.configurableFactory.GetInstances(name)
+	healthServices := c.configurableFactory.GetInstances(new(at.HealthCheckService))
 	healthCheckProfiles := make(map[string]interface{})
 
 	healthCheckProfiles["status"] = "Up"
