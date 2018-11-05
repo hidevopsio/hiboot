@@ -18,7 +18,15 @@ package actuator
 import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/utils/reflector"
 )
+
+type HealthService interface {
+	Name() string
+	Status() bool
+}
 
 // Health is the health check struct
 type Health struct {
@@ -26,22 +34,39 @@ type Health struct {
 }
 
 type healthController struct {
-	web.Controller
+	at.RestController
+
+	configurableFactory factory.ConfigurableFactory
 }
 
 func init() {
 	app.Register(newHealthController)
 }
 
-func newHealthController() *healthController {
-	return &healthController{}
+func newHealthController(configurableFactory factory.ConfigurableFactory) *healthController {
+	return &healthController{configurableFactory: configurableFactory}
 }
 
 // GET /health
-func (c *healthController) Get() {
+func (c *healthController) Get(ctx *web.Context) {
+	name := reflector.GetName(new(at.HealthCheckService))
+	healthServices := c.configurableFactory.GetInstances(name)
+	healthCheckProfiles := make(map[string]interface{})
 
-	health := Health{
-		Status: "UP",
+	healthCheckProfiles["status"] = "Up"
+
+	if healthServices != nil {
+		for _, svc := range healthServices {
+			healthService := svc.(HealthService)
+			status := "Down"
+			if healthService.Status() {
+				status = "Up"
+			}
+			healthCheckProfiles[healthService.Name()] = Health{
+				Status: status,
+			}
+		}
 	}
-	c.Ctx.JSON(health)
+
+	ctx.JSON(healthCheckProfiles)
 }

@@ -137,9 +137,11 @@ func (a *BaseApplication) Build() {
 	instantiateFactory := instantiate.NewInstantiateFactory(a.instances, componentContainer, a.properties)
 	// TODO: should set or get instance by passing object instantiateFactory
 	a.instances.Set(factory.InstantiateFactoryName, instantiateFactory)
+	instantiateFactory.AppendComponent(factory.InstantiateFactoryName, instantiateFactory)
 
 	configurableFactory := autoconfigure.NewConfigurableFactory(instantiateFactory, a.configurations)
 	a.instances.Set(factory.ConfigurableFactoryName, configurableFactory)
+	instantiateFactory.AppendComponent(factory.ConfigurableFactoryName, configurableFactory)
 	inject.SetFactory(configurableFactory)
 	a.configurableFactory = configurableFactory
 

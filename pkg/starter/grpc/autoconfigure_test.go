@@ -22,6 +22,7 @@ import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/inject"
+	"hidevops.io/hiboot/pkg/starter/actuator"
 	"hidevops.io/hiboot/pkg/starter/grpc"
 	mockproto "hidevops.io/hiboot/pkg/starter/grpc/mock"
 	"testing"
@@ -107,5 +108,11 @@ func TestGrpcServerAndClient(t *testing.T) {
 			assert.Equal(t, nil, err)
 			assert.Equal(t, "Hello "+req.Name, resp.Message)
 		}
+	})
+
+	t.Run("should get health status from client", func(t *testing.T) {
+		healthCheckService := applicationContext.GetInstance("grpc.healthCheckService").(actuator.HealthService)
+		assert.Equal(t, grpc.Profile, healthCheckService.Name())
+		assert.Equal(t, true, healthCheckService.Status())
 	})
 }
