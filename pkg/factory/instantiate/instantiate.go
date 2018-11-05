@@ -130,7 +130,8 @@ func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 
 	ifcField := reflector.GetEmbeddedField(instance, "")
 	if ifcField.Anonymous {
-		typeName := ifcField.Name
+		typeName := reflector.GetLowerCamelFullNameByType(ifcField.Type)
+		//typeName := ifcField.Name
 		categorised, ok := f.categorized[typeName]
 		if !ok {
 			categorised = make([]interface{}, 0)
@@ -159,10 +160,11 @@ func (f *instantiateFactory) GetInstance(params ...interface{}) (retVal interfac
 }
 
 // GetInstances get instance by name
-func (f *instantiateFactory) GetInstances(name string) (retVal []interface{}) {
+func (f *instantiateFactory) GetInstances(params ...interface{}) (retVal []interface{}) {
 	//items := f.Items()
 	//log.Debug(items)
 	if f.Initialized() {
+		name, _ := factory.ParseParams(params...)
 		retVal = f.categorized[name]
 	}
 	return
