@@ -17,8 +17,11 @@ package grpc
 
 import (
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	pb "google.golang.org/grpc/health/grpc_health_v1"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/utils/cmap"
 	"hidevops.io/hiboot/pkg/utils/reflector"
 	"reflect"
 )
@@ -44,6 +47,10 @@ type grpcService struct {
 var (
 	grpcServers []*grpcService
 	grpcClients []*grpcService
+
+	clientMap cmap.ConcurrentMap
+
+	registerHealthCheckService = false
 )
 
 // RegisterServer register server from application
@@ -61,8 +68,8 @@ func RegisterServer(register interface{}, server interface{}) {
 // Server alias to RegisterServer
 var Server = RegisterServer
 
-// RegisterClient register client from application
-func RegisterClient(name string, clientConstructors ...interface{}) {
+// registerClient register client from application
+func registerClient(name string, clientConstructors ...interface{}) {
 	for _, clientConstructor := range clientConstructors {
 		svr := &grpcService{
 			name: name,
@@ -87,10 +94,28 @@ func RegisterClient(name string, clientConstructors ...interface{}) {
 	app.Register(new(grpc.ClientConn))
 }
 
+// RegisterClient register client from application
+func RegisterClient(name string, clientConstructors ...interface{}) {
+	// register newHealthCheckService if grpc client is enabled
+	if !registerHealthCheckService {
+		registerHealthCheckService = true
+		app.Register(newHealthCheckService)
+	}
+
+	_, ok := clientMap.Get(name)
+	if !ok {
+		clientMap.Set(name, true)
+		clientConstructors = append(clientConstructors, pb.NewHealthClient)
+	}
+	registerClient(name, clientConstructors...)
+}
+
 // Client register client from application, it is a alias to RegisterClient
 var Client = RegisterClient
 
 func init() {
+	clientMap = cmap.New()
+	Server(pb.RegisterHealthServer, health.NewServer)
 	app.Register(newConfiguration)
 }
 
