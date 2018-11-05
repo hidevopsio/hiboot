@@ -15,10 +15,32 @@
 package actuator
 
 import (
+	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/at"
 	"net/http"
 	"testing"
 )
+
+type fakeHealthCheckService struct {
+	at.HealthCheckService
+}
+
+func (s *fakeHealthCheckService) Name() string {
+	return "fake"
+}
+
+func (s *fakeHealthCheckService) Status() bool {
+	return true
+}
+
+func newFakeHealthCheckService() HealthService {
+	return &fakeHealthCheckService{}
+}
+
+func init() {
+	app.Register(newFakeHealthCheckService)
+}
 
 func TestHealthController(t *testing.T) {
 	web.RunTestApplication(t).
