@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://hiboot.hidevops.io">
-    <img src="https://hidevops.io/hiboot/blob/master/hiboot.png?raw=true" alt="hiboot">
+    <img src="https://hiboot.hidevops.io/images/logo.png" alt="hiboot">
   </a>
 </p>
 
