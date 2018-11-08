@@ -153,8 +153,9 @@ func (a *BaseApplication) setCustomPropertiesFromArgs() {
 	//log.Println(os.Args)
 
 	for _, val := range os.Args {
-		if strings.Contains(val, "--") {
-			kv := strings.Replace(val, "--", "", -1)
+		prefix := val[:2]
+		if prefix == "--" {
+			kv := val[2:]
 			kvPair := strings.Split(kv, "=")
 			a.SetProperty(kvPair[0], kvPair[1])
 		}

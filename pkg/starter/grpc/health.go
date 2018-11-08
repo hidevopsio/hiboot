@@ -4,30 +4,34 @@ import (
 	"context"
 	pb "google.golang.org/grpc/health/grpc_health_v1"
 	"hidevops.io/hiboot/pkg/at"
+	"time"
 )
 
 // controller
-type healthCheckService struct {
+type HealthCheckService struct {
 	at.HealthCheckService
 	// declare HelloServiceClient
 	healthClient pb.HealthClient
 }
 
-// Init inject helloServiceClient
-func newHealthCheckService(healthClient pb.HealthClient) *healthCheckService {
-	return &healthCheckService{
+// NewHealthCheckService is the constructor of healthCheckService
+func NewHealthCheckService(healthClient pb.HealthClient) *HealthCheckService {
+	return &HealthCheckService{
 		healthClient: healthClient,
 	}
 }
 
 // Status return health check display name grpc
-func (c *healthCheckService) Name() (name string) {
+func (c *HealthCheckService) Name() (name string) {
 	return Profile
 }
 
 // Status return grpc health check status as bool
-func (c *healthCheckService) Status() (up bool) {
-	resp, err := c.healthClient.Check(context.TODO(), &pb.HealthCheckRequest{})
+func (c *HealthCheckService) Status() (up bool) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	resp, err := c.healthClient.Check(ctx, &pb.HealthCheckRequest{})
 	if err == nil {
 		up = resp.Status == pb.HealthCheckResponse_SERVING
 	}

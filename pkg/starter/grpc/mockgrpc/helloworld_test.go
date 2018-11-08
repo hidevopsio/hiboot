@@ -12,35 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mock
+package mockgrpc
 
 import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	"hidevops.io/hiboot/examples/grpc/helloworld/protobuf"
-	mockproto "hidevops.io/hiboot/pkg/starter/grpc/mockgrpc"
+	"google.golang.org/grpc/examples/helloworld/helloworld"
 	"testing"
 	"time"
 )
 
-func TestMockHola(t *testing.T) {
+func TestMockHelloWorld(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockHolaClient := NewMockHolaServiceClient(ctrl)
+	mockGreeterClient := NewMockGreeterClient(ctrl)
 	t.Run("should get message from mock gRpc client directly", func(t *testing.T) {
-		req := &protobuf.HolaRequest{Name: "unit_test"}
+		req := &helloworld.HelloRequest{Name: "unit_test"}
 		opt := &grpc.HeaderCallOption{}
-		mockHolaClient.EXPECT().SayHola(
+		mockGreeterClient.EXPECT().SayHello(
 			gomock.Any(),
-			&mockproto.RPCMsg{Message: req},
+			&RPCMsg{Message: req},
 			opt,
-		).Return(&protobuf.HolaReply{Message: "Mocked Interface"}, nil)
+		).Return(&helloworld.HelloReply{Message: "Mocked Interface"}, nil)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		r, err := mockHolaClient.SayHola(ctx, req, opt)
+		r, err := mockGreeterClient.SayHello(ctx, &helloworld.HelloRequest{Name: "unit_test"}, opt)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, "Mocked Interface", r.Message)
 	})
