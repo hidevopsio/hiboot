@@ -246,7 +246,7 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 		if !isTestRunning && f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
 			continue
 		}
-		log.Infof("Auto configure %v starter", name)
+		log.Debugf("Auto configure %v starter", name)
 
 		// inject into func
 		if item.Kind == types.Func {
