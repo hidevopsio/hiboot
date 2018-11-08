@@ -99,7 +99,7 @@ func RegisterClient(name string, clientConstructors ...interface{}) {
 	// register newHealthCheckService if grpc client is enabled
 	if !registerHealthCheckService {
 		registerHealthCheckService = true
-		app.Register(newHealthCheckService)
+		app.Register(NewHealthCheckService)
 	}
 
 	_, ok := clientMap.Get(name)
