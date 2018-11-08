@@ -4,6 +4,8 @@ import (
 	"context"
 	pb "google.golang.org/grpc/health/grpc_health_v1"
 	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/log"
+	"time"
 )
 
 // controller
@@ -14,7 +16,7 @@ type healthCheckService struct {
 }
 
 // Init inject helloServiceClient
-func newHealthCheckService(healthClient pb.HealthClient) *healthCheckService {
+func NewHealthCheckService(healthClient pb.HealthClient) *healthCheckService {
 	return &healthCheckService{
 		healthClient: healthClient,
 	}
@@ -27,7 +29,11 @@ func (c *healthCheckService) Name() (name string) {
 
 // Status return grpc health check status as bool
 func (c *healthCheckService) Status() (up bool) {
-	resp, err := c.healthClient.Check(context.TODO(), &pb.HealthCheckRequest{})
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	resp, err := c.healthClient.Check(ctx, &pb.HealthCheckRequest{})
+	log.Debug(err)
 	if err == nil {
 		up = resp.Status == pb.HealthCheckResponse_SERVING
 	}
