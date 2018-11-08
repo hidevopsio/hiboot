@@ -8,26 +8,26 @@ import (
 )
 
 // controller
-type healthCheckService struct {
+type HealthCheckService struct {
 	at.HealthCheckService
 	// declare HelloServiceClient
 	healthClient pb.HealthClient
 }
 
-// Init inject helloServiceClient
-func NewHealthCheckService(healthClient pb.HealthClient) *healthCheckService {
-	return &healthCheckService{
+// NewHealthCheckService is the constructor of healthCheckService
+func NewHealthCheckService(healthClient pb.HealthClient) *HealthCheckService {
+	return &HealthCheckService{
 		healthClient: healthClient,
 	}
 }
 
 // Status return health check display name grpc
-func (c *healthCheckService) Name() (name string) {
+func (c *HealthCheckService) Name() (name string) {
 	return Profile
 }
 
 // Status return grpc health check status as bool
-func (c *healthCheckService) Status() (up bool) {
+func (c *HealthCheckService) Status() (up bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 

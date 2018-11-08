@@ -24,7 +24,7 @@ import (
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/inject"
 	"hidevops.io/hiboot/pkg/starter/grpc"
-	mockproto "hidevops.io/hiboot/pkg/starter/grpc/mock"
+	"hidevops.io/hiboot/pkg/starter/grpc/mockgrpc"
 	"testing"
 )
 
@@ -93,7 +93,7 @@ func TestGrpcServerAndClient(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockGreeterClient := mockproto.NewMockGreeterClient(ctrl)
+	mockGreeterClient := mockgrpc.NewMockGreeterClient(ctrl)
 
 	t.Run("should get message from mock gRpc client indirectly", func(t *testing.T) {
 		cliSvc := newGreeterClientService(mockGreeterClient)
@@ -102,7 +102,7 @@ func TestGrpcServerAndClient(t *testing.T) {
 			req := &helloworld.HelloRequest{Name: "Steve"}
 			mockGreeterClient.EXPECT().SayHello(
 				gomock.Any(),
-				&mockproto.RPCMsg{Message: req},
+				&mockgrpc.RPCMsg{Message: req},
 			).Return(&helloworld.HelloReply{Message: "Hello " + req.Name}, nil)
 			resp, err := cliSvc.SayHello("Steve")
 			assert.Equal(t, nil, err)
@@ -110,7 +110,7 @@ func TestGrpcServerAndClient(t *testing.T) {
 		}
 	})
 
-	mockHealthClient := mockproto.NewMockHealthClient(ctrl)
+	mockHealthClient := mockgrpc.NewMockHealthClient(ctrl)
 	t.Run("should get health status from client", func(t *testing.T) {
 		mockHealthClient.EXPECT().Check(
 			gomock.Any(),
