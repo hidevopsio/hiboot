@@ -19,10 +19,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/examples/helloworld/helloworld"
+	"google.golang.org/grpc/health/grpc_health_v1"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/inject"
-	"hidevops.io/hiboot/pkg/starter/actuator"
 	"hidevops.io/hiboot/pkg/starter/grpc"
 	mockproto "hidevops.io/hiboot/pkg/starter/grpc/mock"
 	"testing"
@@ -110,8 +110,15 @@ func TestGrpcServerAndClient(t *testing.T) {
 		}
 	})
 
+	mockHealthClient := mockproto.NewMockHealthClient(ctrl)
 	t.Run("should get health status from client", func(t *testing.T) {
-		healthCheckService := applicationContext.GetInstance("grpc.healthCheckService").(actuator.HealthService)
+		mockHealthClient.EXPECT().Check(
+			gomock.Any(),
+			gomock.Any(),
+			gomock.Any(),
+		).Return(&grpc_health_v1.HealthCheckResponse{Status: grpc_health_v1.HealthCheckResponse_SERVING}, nil)
+
+		healthCheckService := grpc.NewHealthCheckService(mockHealthClient)
 		assert.Equal(t, grpc.Profile, healthCheckService.Name())
 		assert.Equal(t, true, healthCheckService.Status())
 	})
