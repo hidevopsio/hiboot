@@ -6,7 +6,7 @@ import (
 	"hidevops.io/hiboot/examples/grpc/helloworld/protobuf"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
-	grpcmock "hidevops.io/hiboot/pkg/starter/grpc/mock"
+	"hidevops.io/hiboot/pkg/starter/grpc/mockgrpc"
 	"net/http"
 	"testing"
 )
@@ -24,7 +24,7 @@ func TestHolaClient(t *testing.T) {
 
 	mockHolaClient.EXPECT().SayHola(
 		gomock.Any(),
-		&grpcmock.RPCMsg{Message: req},
+		&mockgrpc.RPCMsg{Message: req},
 	).Return(&protobuf.HolaReply{Message: "Hola " + req.Name}, nil)
 
 	testApp.Get("/hola/name/{name}").

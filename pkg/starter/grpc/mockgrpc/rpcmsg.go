@@ -1,4 +1,4 @@
-package mock
+package mockgrpc
 
 import (
 	"fmt"
