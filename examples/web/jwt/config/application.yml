@@ -9,6 +9,7 @@ app:
     - locale
     - logging
     - jwt
+    - websocket
 
 logging:
   level: info
