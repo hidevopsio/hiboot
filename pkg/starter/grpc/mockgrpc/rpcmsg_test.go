@@ -1,4 +1,4 @@
-package mock
+package mockgrpc
 
 import (
 	"github.com/stretchr/testify/assert"

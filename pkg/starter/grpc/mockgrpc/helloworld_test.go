@@ -12,35 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package mock
+package mockgrpc
 
 import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/examples/helloworld/helloworld"
 	"testing"
 	"time"
 )
 
-func TestMockHealth(t *testing.T) {
+func TestMockHelloWorld(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockHealthClient := NewMockHealthClient(ctrl)
+	mockGreeterClient := NewMockGreeterClient(ctrl)
 	t.Run("should get message from mock gRpc client directly", func(t *testing.T) {
-		req := &grpc_health_v1.HealthCheckRequest{Service: "unit_test"}
+		req := &helloworld.HelloRequest{Name: "unit_test"}
 		opt := &grpc.HeaderCallOption{}
-		mockHealthClient.EXPECT().Check(
+		mockGreeterClient.EXPECT().SayHello(
 			gomock.Any(),
-			req,
+			&RPCMsg{Message: req},
 			opt,
-		).Return(&grpc_health_v1.HealthCheckResponse{Status: grpc_health_v1.HealthCheckResponse_SERVING}, nil)
+		).Return(&helloworld.HelloReply{Message: "Mocked Interface"}, nil)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		r, err := mockHealthClient.Check(ctx, req, opt)
+		r, err := mockGreeterClient.SayHello(ctx, &helloworld.HelloRequest{Name: "unit_test"}, opt)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, grpc_health_v1.HealthCheckResponse_SERVING, r.Status)
+		assert.Equal(t, "Mocked Interface", r.Message)
 	})
 }

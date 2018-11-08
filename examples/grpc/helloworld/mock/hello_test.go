@@ -20,7 +20,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"hidevops.io/hiboot/examples/grpc/helloworld/protobuf"
-	mockproto "hidevops.io/hiboot/pkg/starter/grpc/mock"
+	mockproto "hidevops.io/hiboot/pkg/starter/grpc/mockgrpc"
 	"testing"
 	"time"
 )
