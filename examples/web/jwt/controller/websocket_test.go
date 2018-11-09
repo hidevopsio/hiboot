@@ -39,8 +39,8 @@ func testWebsocket(path string,
 	mockConn *mocks.Connection,
 	testApp web.TestApplication) {
 
-	mockConn.Mock.On("OnMessage", mock.AnythingOfType("websocket.NativeMessageFunc"))
-	mockConn.Mock.On("OnDisconnect", mock.AnythingOfType("websocket.DisconnectFunc"))
+	mockConn.Mock.On("OnMessage", mock.Anything)
+	mockConn.Mock.On("OnDisconnect", mock.Anything)
 	mockConn.Mock.On("Wait")
 
 	jwtToken := jwt.NewJwtToken(&jwt.Properties{
