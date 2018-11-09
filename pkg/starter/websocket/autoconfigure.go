@@ -21,6 +21,7 @@ import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/log"
 )
 
 const (
@@ -83,8 +84,14 @@ func (c *configuration) ConnectionFunc(server *Server) ConnectionFunc {
 // HandlerFunc websocket connection for runtime dependency injection
 func (c *configuration) HandlerFunc(connectionFunc ConnectionFunc) HandlerFunc {
 	return func(ctx *web.Context, constructor HandlerConstructor) Connection {
-		conn := connectionFunc(ctx)
-		HandleConnection(constructor, conn)
-		return conn
+		headerConnection := ctx.GetHeader("Connection")
+		if headerConnection == "Upgrade" {
+			conn := connectionFunc(ctx)
+			HandleConnection(constructor, conn)
+			return conn
+		} else {
+			log.Errorf("Header connection is: %v", headerConnection)
+		}
+		return nil
 	}
 }
