@@ -50,7 +50,7 @@ func testWebsocket(path string,
 	pt, _ := jwtToken.Generate(jwt.Map{
 		"username": "johndoe",
 		"password": "PA$$W0RD",
-	}, 500, time.Millisecond)
+	}, 60, time.Second)
 	token := fmt.Sprintf("Bearer %v", pt)
 	testApp.Get(path).WithHeader("Authorization", token).Expect().Status(http.StatusOK)
 }
