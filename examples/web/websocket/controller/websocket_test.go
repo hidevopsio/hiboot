@@ -39,5 +39,8 @@ func testWebsocket(path string,
 	mockConn.Mock.On("OnMessage", mock.AnythingOfType("websocket.NativeMessageFunc"))
 	mockConn.Mock.On("OnDisconnect", mock.AnythingOfType("websocket.DisconnectFunc"))
 	mockConn.Mock.On("Wait")
-	testApp.Get(path).Expect().Status(http.StatusOK)
+	testApp.Get(path).
+		WithHeader("Connection", "Upgrade").
+		WithHeader("Upgrade", "websocket").
+		Expect().Status(http.StatusOK)
 }

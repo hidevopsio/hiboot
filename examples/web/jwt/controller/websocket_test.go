@@ -52,5 +52,9 @@ func testWebsocket(path string,
 		"password": "PA$$W0RD",
 	}, 60, time.Second)
 	token := fmt.Sprintf("Bearer %v", pt)
-	testApp.Get(path).WithHeader("Authorization", token).Expect().Status(http.StatusOK)
+	testApp.Get(path).
+		WithHeader("Authorization", token).
+		WithHeader("Connection", "Upgrade").
+		WithHeader("Upgrade", "websocket").
+		Expect().Status(http.StatusOK)
 }
