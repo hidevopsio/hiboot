@@ -75,7 +75,7 @@ type configurableFactory struct {
 	factory.InstantiateFactory
 	configurations cmap.ConcurrentMap
 	systemConfig   *system.Configuration
-	builder        *system.Builder
+	builder        system.Builder
 
 	preConfigureContainer  []*factory.MetaData
 	configureContainer     []*factory.MetaData
@@ -139,13 +139,12 @@ func (f *configurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 		filepath.Join(workDir, config),
 		application,
 		yaml,
-		profile,
 		customProps,
 	)
 
 	f.SetInstance("systemConfiguration", systemConfig)
 	inject.DefaultValue(systemConfig)
-	_, err = f.builder.Build()
+	_, err = f.builder.Build("default", f.appProfilesActive())
 	if err == nil {
 		// TODO: should separate instance to system and app
 		inject.IntoObject(systemConfig)
@@ -156,8 +155,6 @@ func (f *configurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 		f.systemConfig = systemConfig
 	}
 
-	appName := f.builder.Get("app")
-	log.Debugf("app.name: %v", appName)
 	return
 }
 
@@ -219,9 +216,9 @@ func (f *configurableFactory) Instantiate(configuration interface{}) (err error)
 
 // appProfilesActive getter
 func (f *configurableFactory) appProfilesActive() string {
-	//if f.systemConfig == nil {
-	//	return os.Getenv(EnvAppProfilesActive)
-	//}
+	if f.systemConfig == nil {
+		return os.Getenv(EnvAppProfilesActive)
+	}
 	return f.systemConfig.App.Profiles.Active
 }
 
@@ -254,13 +251,13 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 		}
 
 		// inject properties
-		f.builder.ConfigType = config
+		f.builder.SetConfiguration(config)
 
 		// inject default value
 		inject.DefaultValue(config)
 
 		// build properties, inject settings
-		cf, _ := f.builder.Build(name, f.appProfilesActive())
+		cf, _ := f.builder.Build(name)
 		// No properties needs to build, use default config
 		//if cf == nil {
 		//	confTyp := reflect.TypeOf(config)
@@ -282,9 +279,9 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 		// instantiation
 		f.Instantiate(cf)
 		// save configuration
-		if _, ok := f.configurations.Get(name); ok {
-			log.Fatalf("[factory] configuration name %v is already taken", name)
+		if _, ok := f.configurations.Get(name); !ok {
+			f.configurations.Set(name, cf)
 		}
-		f.configurations.Set(name, cf)
+		//log.Fatalf("[factory] configuration name %v is already taken", name)
 	}
 }
