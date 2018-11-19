@@ -18,6 +18,7 @@ package system
 // .include auto configuration starter should be included inside this slide
 // .active active profile
 type Profiles struct {
+	Filter  bool     `json:"filter" default:"false"`
 	Include []string `json:"include"`
 	Active  string   `json:"active" default:"${APP_PROFILES_ACTIVE:default}"`
 }
