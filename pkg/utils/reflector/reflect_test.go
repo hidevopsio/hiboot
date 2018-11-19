@@ -605,6 +605,95 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 	t.Run("should append component", func(t *testing.T) {
 		assert.Equal(t, false, IsValidObjectType(1))
 	})
+
+	t.Run("should get specific embedded type", func(t *testing.T) {
+		type EmbeddedInterfaceA interface {
+		}
+
+		type EmbeddedInterfaceB interface {
+		}
+
+		type embeddedTypeA struct {
+			EmbeddedInterfaceA
+			EmbeddedInterfaceB
+		}
+
+		type embeddedTypeB struct {
+			embeddedTypeA
+		}
+		yes := HasEmbeddedFieldType(new(embeddedTypeA), new(EmbeddedInterfaceA))
+		assert.Equal(t, true, yes)
+
+		yes = HasEmbeddedFieldType(new(embeddedTypeA), new(EmbeddedInterfaceB))
+		assert.Equal(t, true, yes)
+
+		yes = HasEmbeddedFieldType(new(embeddedTypeB), new(EmbeddedInterfaceA))
+		assert.Equal(t, true, yes)
+
+		yes = HasEmbeddedFieldType(new(embeddedTypeB), new(EmbeddedInterfaceB))
+		assert.Equal(t, true, yes)
+	})
+
+	t.Run("should return false if input nil on HasEmbeddedFieldType", func(t *testing.T) {
+		yes := HasEmbeddedFieldType(newGreeter, new(EmbeddedAnnotation))
+		assert.Equal(t, true, yes)
+	})
+
+	t.Run("should return false if input nil on HasEmbeddedFieldType", func(t *testing.T) {
+		yes := HasEmbeddedFieldType(nil, nil)
+		assert.Equal(t, false, yes)
+	})
+
+	t.Run("should get embedded types", func(t *testing.T) {
+		type EmbedInterfaceA interface{}
+		type EmbedInterfaceB interface{}
+		type EmbedInterfaceC interface{}
+
+		type EmbedStruct struct {
+			EmbedInterfaceC
+		}
+
+		type MyType struct {
+			EmbedInterfaceA
+			EmbedInterfaceB
+			EmbedStruct
+		}
+
+		embeddedTypes := GetEmbeddedFields(new(MyType))
+		assert.Equal(t, 3, len(embeddedTypes))
+
+		embeddedStructTypes := GetEmbeddedFields(new(MyType), reflect.Struct)
+		assert.Equal(t, 1, len(embeddedStructTypes))
+	})
+
+	t.Run("should return false if input nil on HasEmbeddedFieldType", func(t *testing.T) {
+		embeddedTypes := GetEmbeddedFields(nil)
+		assert.Equal(t, 0, len(embeddedTypes))
+	})
+
+	t.Run("should return false if input nil on GetEmbeddedFieldsByType", func(t *testing.T) {
+		embeddedTypes := GetEmbeddedFieldsByType(nil)
+		assert.Equal(t, 0, len(embeddedTypes))
+	})
+}
+
+type EmbeddedAnnotation interface {
+}
+
+type Greeter interface {
+	Hello(name string) string
+}
+
+type greeter struct {
+	EmbeddedAnnotation
+}
+
+func (g greeter) Hello(name string) string {
+	return "Hello world"
+}
+
+func newGreeter() *greeter {
+	return &greeter{}
 }
 
 func TestTypeSwitch(t *testing.T) {
