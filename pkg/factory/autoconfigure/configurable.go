@@ -232,56 +232,58 @@ func (f *configurableFactory) parseName(item *factory.MetaData) string {
 	return name
 }
 
+func (f *configurableFactory) isProfileIncluded(name string) bool {
+	isTestRunning := gotest.IsRunning()
+	return isTestRunning || (f.systemConfig != nil && str.InSlice(name, f.systemConfig.App.Profiles.Include))
+}
+
 func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 
-	isTestRunning := gotest.IsRunning()
 	for _, item := range cfgContainer {
 		name := f.parseName(item)
 		config := item.Object
 
-		// TODO: should check if profiles is enabled str.InSlice(name, sysconf.App.Profiles.Include)
-		if !isTestRunning && f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
-			continue
-		}
-		log.Debugf("Auto configure %v starter", name)
+		if f.isProfileIncluded(name) {
+			log.Debugf("Auto configure %v starter", name)
 
-		// inject into func
-		if item.Kind == types.Func {
-			config, _ = inject.IntoFunc(config)
-		}
+			// inject into func
+			if item.Kind == types.Func {
+				config, _ = inject.IntoFunc(config)
+			}
 
-		// inject properties
-		f.builder.SetConfiguration(config)
+			// inject properties
+			f.builder.SetConfiguration(config)
 
-		// inject default value
-		inject.DefaultValue(config)
+			// inject default value
+			inject.DefaultValue(config)
 
-		// build properties, inject settings
-		cf, _ := f.builder.Build(name)
-		// No properties needs to build, use default config
-		//if cf == nil {
-		//	confTyp := reflect.TypeOf(config)
-		//	if confTyp != nil && confTyp.Kind() == reflect.Ptr {
-		//		cf = config
-		//	} else {
-		//		log.Fatalf("Unsupported configuration type: %v", confTyp)
-		//		continue
-		//	}
-		//}
+			// build properties, inject settings
+			cf, _ := f.builder.Build(name)
+			// No properties needs to build, use default config
+			//if cf == nil {
+			//	confTyp := reflect.TypeOf(config)
+			//	if confTyp != nil && confTyp.Kind() == reflect.Ptr {
+			//		cf = config
+			//	} else {
+			//		log.Fatalf("Unsupported configuration type: %v", confTyp)
+			//		continue
+			//	}
+			//}
 
-		// replace references and environment variables
-		if f.systemConfig != nil {
-			replacer.Replace(cf, f.systemConfig)
-		}
-		inject.IntoObject(cf)
-		replacer.Replace(cf, cf)
+			// replace references and environment variables
+			if f.systemConfig != nil {
+				replacer.Replace(cf, f.systemConfig)
+			}
+			inject.IntoObject(cf)
+			replacer.Replace(cf, cf)
 
-		// instantiation
-		f.Instantiate(cf)
-		// save configuration
-		if _, ok := f.configurations.Get(name); !ok {
+			// instantiation
+			f.Instantiate(cf)
+			// save configuration
+			if _, ok := f.configurations.Get(name); ok {
+				log.Warnf("[factory] configuration name %v is already taken", name)
+			}
 			f.configurations.Set(name, cf)
 		}
-		//log.Fatalf("[factory] configuration name %v is already taken", name)
 	}
 }

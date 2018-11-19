@@ -358,6 +358,7 @@ func TestConfigurableFactory(t *testing.T) {
 		factory.NewMetaData(new(emptyConfiguration)),
 		factory.NewMetaData("foo", fooConfig),
 		factory.NewMetaData(fakeCfg),
+		factory.NewMetaData(fakeCfg),
 		factory.NewMetaData(new(Configuration)),
 		factory.NewMetaData(new(BarConfiguration)),
 		factory.NewMetaData(new(marsConfiguration)),
