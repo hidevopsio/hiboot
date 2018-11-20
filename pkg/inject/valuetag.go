@@ -27,11 +27,6 @@ func init() {
 	AddTag(new(valueTag))
 }
 
-//
-//func (t *valueTag) IsSingleton() bool {
-//	return false
-//}
-
 func (t *valueTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{}) {
 	if tag != "" {
 		//log.Debug(valueTag)
@@ -41,12 +36,12 @@ func (t *valueTag) Decode(object reflect.Value, field reflect.StructField, tag s
 		needConvert := true
 		switch kind {
 		case reflect.Slice:
-			retVal = t.replaceReferences(tag)
+			retVal = t.instantiateFactory.Replace(tag)
 			if retVal != tag {
 				needConvert = false
 			}
 		case reflect.String:
-			retVal = t.replaceReferences(tag)
+			retVal = t.instantiateFactory.Replace(tag)
 			needConvert = false
 		}
 

@@ -84,8 +84,8 @@ func registerClient(name string, clientConstructors ...interface{}) {
 			// To register grpc client and grpc.ClientConn in advance.
 			// client should depends on grpc.clientFactory
 			metaData := &factory.MetaData{
-				Object:  reflect.New(typ).Interface(),
-				Depends: []string{"grpc.clientFactory"},
+				MetaObject: reflect.New(typ).Interface(),
+				DepNames:   []string{"grpc.clientFactory"},
 			}
 			app.Register(metaData)
 		}

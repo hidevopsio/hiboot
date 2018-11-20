@@ -1,6 +1,7 @@
 package factory
 
 import (
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/system/types"
 	"hidevops.io/hiboot/pkg/utils/io"
 	"hidevops.io/hiboot/pkg/utils/reflector"
@@ -11,16 +12,18 @@ import (
 
 // MetaData is the injectable object meta data
 type MetaData struct {
-	Kind      string
-	Name      string
-	ShortName string
-	TypeName  string
-	PkgName   string
-	Context   interface{}
-	Object    interface{}
-	Type      reflect.Type
-	Depends   []string
-	ExtDep    []*MetaData
+	Kind         string
+	Name         string
+	ShortName    string
+	TypeName     string
+	PkgName      string
+	ObjectOwner  interface{}
+	MetaObject   interface{}
+	Type         reflect.Type
+	DepNames     []string
+	DepMetaData  []*MetaData
+	ContextAware bool
+	Instance     interface{}
 }
 
 func appendDep(deps, dep string) (retVal string) {
@@ -98,6 +101,21 @@ func parseDependencies(object interface{}, kind string, typ reflect.Type) (deps 
 	return
 }
 
+func getFullName(object interface{}, n string) (name string) {
+	name = n
+	if object != nil {
+		pkgName, typeName := reflector.GetPkgAndName(object)
+		if pkgName != "" {
+			if n == "" {
+				name = pkgName + "." + str.ToLowerCamel(typeName)
+			} else if !strings.Contains(n, ".") {
+				name = pkgName + "." + name
+			}
+		}
+	}
+	return
+}
+
 // ParseParams parse parameters
 func ParseParams(params ...interface{}) (name string, object interface{}) {
 	numParams := len(params)
@@ -114,17 +132,23 @@ func ParseParams(params ...interface{}) (name string, object interface{}) {
 				name = str.LowerFirst(params[0].(string))
 				object = params[1]
 			} else {
+				t := params[0]
+				switch t.(type) {
+				case reflect.Type:
+					name = reflector.GetLowerCamelFullNameByType(t.(reflect.Type))
+				default:
+					name = reflector.GetLowerCamelFullName(t)
+				}
 				object = params[1]
+				return
 			}
 		}
 
-		pkgName, typeName := reflector.GetPkgAndName(object)
-		if pkgName != "" {
-			if name == "" {
-				name = pkgName + "." + str.ToLowerCamel(typeName)
-			} else if !strings.Contains(name, ".") {
-				name = pkgName + "." + name
-			}
+		md := CastMetaData(object)
+		if md != nil {
+			name = md.Name
+		} else {
+			name = getFullName(object, name)
 		}
 	}
 
@@ -135,8 +159,8 @@ func ParseParams(params ...interface{}) (name string, object interface{}) {
 func NewMetaData(params ...interface{}) (metaData *MetaData) {
 	var name string
 	var shortName string
-	var object interface{}
-	var context interface{}
+	var metaObject interface{}
+	var owner interface{}
 	var deps []string
 
 	numParams := len(params)
@@ -144,25 +168,25 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 		if len(params) == 2 {
 			if reflect.TypeOf(params[0]).Kind() == reflect.String {
 				name = params[0].(string)
-				object = params[1]
+				metaObject = params[1]
 			} else {
-				context = params[0]
-				object = params[1]
+				owner = params[0]
+				metaObject = params[1]
 			}
 		} else {
-			object = params[0]
+			metaObject = params[0]
 		}
 
-		switch object.(type) {
+		switch metaObject.(type) {
 		case *MetaData:
-			md := object.(*MetaData)
-			deps = append(deps, md.Depends...)
-			object = md.Object
+			md := metaObject.(*MetaData)
+			deps = append(deps, md.DepNames...)
+			metaObject = md.MetaObject
 			name = md.Name
 		}
 
-		pkgName, typeName := reflector.GetPkgAndName(object)
-		typ := reflect.TypeOf(object)
+		pkgName, typeName := reflector.GetPkgAndName(metaObject)
+		typ := reflect.TypeOf(metaObject)
 		kind := typ.Kind()
 		kindName := kind.String()
 
@@ -177,27 +201,51 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 		if kind == reflect.Struct && typ.Name() == types.Method {
 			kindName = types.Method
 		}
+		var instance interface{}
 		if kindName == types.Method || kindName == types.Func {
-			t, ok := reflector.GetObjectType(object)
+			t, ok := reflector.GetObjectType(metaObject)
 			if ok {
 				typ = t
 			}
+		} else {
+			instance = metaObject
 		}
 
-		deps = append(deps, parseDependencies(object, kindName, typ)...)
+		deps = append(deps, parseDependencies(metaObject, kindName, typ)...)
+
+		// check if it is contextAware
+		contextAware := reflector.HasEmbeddedFieldType(owner, new(at.ContextAware)) || reflector.HasEmbeddedFieldType(metaObject, new(at.ContextAware))
 
 		metaData = &MetaData{
-			Kind:      kindName,
-			PkgName:   pkgName,
-			TypeName:  typeName,
-			Name:      name,
-			ShortName: shortName,
-			Context:   context,
-			Object:    object,
-			Type:      typ,
-			Depends:   deps,
+			Kind:         kindName,
+			PkgName:      pkgName,
+			TypeName:     typeName,
+			Name:         name,
+			ShortName:    shortName,
+			ObjectOwner:  owner,
+			MetaObject:   metaObject,
+			Type:         typ,
+			DepNames:     deps,
+			ContextAware: contextAware,
+			Instance:     instance,
 		}
 	}
 
 	return metaData
+}
+
+func CloneMetaData(src *MetaData) (dst *MetaData) {
+	dst = &MetaData{
+		Kind:         src.Kind,
+		PkgName:      src.PkgName,
+		TypeName:     src.TypeName,
+		Name:         src.Name,
+		ShortName:    src.ShortName,
+		ObjectOwner:  src.ObjectOwner,
+		MetaObject:   src.MetaObject,
+		Type:         src.Type,
+		DepNames:     src.DepNames,
+		ContextAware: src.ContextAware,
+	}
+	return dst
 }

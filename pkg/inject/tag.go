@@ -18,7 +18,6 @@ import (
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/system"
 	"hidevops.io/hiboot/pkg/utils/cmap"
-	"hidevops.io/hiboot/pkg/utils/replacer"
 	"reflect"
 	"strings"
 )
@@ -26,7 +25,7 @@ import (
 // Tag the interface of Tag
 type Tag interface {
 	// Init init tag
-	Init(configurableFactory factory.ConfigurableFactory)
+	Init(configurableFactory factory.InstantiateFactory)
 	// Decode parse tag and do dependency injection
 	Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{})
 	// Properties get properties
@@ -37,9 +36,9 @@ type Tag interface {
 
 // BaseTag is the base struct of tag
 type BaseTag struct {
-	ConfigurableFactory factory.ConfigurableFactory
-	properties          cmap.ConcurrentMap
-	systemConfig        *system.Configuration
+	instantiateFactory factory.InstantiateFactory
+	properties         cmap.ConcurrentMap
+	systemConfig       *system.Configuration
 }
 
 // IsSingleton check if it is Singleton
@@ -48,39 +47,8 @@ func (t *BaseTag) IsSingleton() bool {
 }
 
 // Init init the tag
-func (t *BaseTag) Init(configurableFactory factory.ConfigurableFactory) {
-	t.ConfigurableFactory = configurableFactory
-	t.systemConfig = configurableFactory.SystemConfiguration()
-}
-
-// TODO move to replacer ?
-func (t *BaseTag) replaceReferences(val string) interface{} {
-	var retVal interface{}
-	retVal = val
-
-	matches := replacer.GetMatches(val)
-	if len(matches) != 0 {
-		for _, m := range matches {
-			//log.Debug(m[1])
-			// default value
-
-			vars := strings.SplitN(m[1], ".", -1)
-			configName := vars[0]
-			// trying to find config
-			config := t.ConfigurableFactory.Configuration(configName)
-			sysConf, err := replacer.GetReferenceValue(t.systemConfig, configName)
-			if config == nil && err == nil && sysConf.IsValid() {
-				config = t.systemConfig
-			}
-			if config != nil {
-				retVal = replacer.ReplaceStringVariables(val, config)
-				if retVal != val {
-					break
-				}
-			}
-		}
-	}
-	return retVal
+func (t *BaseTag) Init(configurableFactory factory.InstantiateFactory) {
+	t.instantiateFactory = configurableFactory
 }
 
 // ParseProperties parse properties
@@ -97,7 +65,7 @@ func (t *BaseTag) ParseProperties(tag string) cmap.ConcurrentMap {
 			if key != "" && val != "" {
 				// check if val contains reference or env
 				// TODO: should lookup certain config instead of for loop
-				replacedVal := t.replaceReferences(val)
+				replacedVal := t.instantiateFactory.Replace(val)
 				t.properties.Set(key, replacedVal)
 			}
 		}

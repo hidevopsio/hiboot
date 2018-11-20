@@ -14,19 +14,24 @@
 
 package app
 
-import "hidevops.io/hiboot/pkg/inject"
+import (
+	"hidevops.io/hiboot/pkg/factory"
+)
 
 // PostProcessor is the post processor
 type PostProcessor interface {
-	AfterInitialization(factory interface{})
+	AfterInitialization()
 }
 
 type postProcessor struct {
+	factory    factory.InstantiateFactory
 	subscribes []PostProcessor
 }
 
-func newPostProcessor() *postProcessor {
-	return new(postProcessor)
+func newPostProcessor(factory factory.InstantiateFactory) *postProcessor {
+	return &postProcessor{
+		factory: factory,
+	}
 }
 
 var (
@@ -45,7 +50,7 @@ func RegisterPostProcessor(p ...interface{}) {
 // Init init the post processor
 func (p *postProcessor) Init() {
 	for _, processor := range postProcessors {
-		ss, err := inject.IntoFunc(processor)
+		ss, err := p.factory.InjectIntoFunc(processor)
 		if err == nil {
 			p.subscribes = append(p.subscribes, ss.(PostProcessor))
 		}
@@ -53,9 +58,9 @@ func (p *postProcessor) Init() {
 }
 
 // AfterInitialization post processor after initialization
-func (p *postProcessor) AfterInitialization(factory interface{}) {
+func (p *postProcessor) AfterInitialization() {
 	for _, processor := range p.subscribes {
-		inject.IntoFunc(processor)
-		processor.AfterInitialization(factory)
+		p.factory.InjectIntoFunc(processor)
+		processor.AfterInitialization()
 	}
 }

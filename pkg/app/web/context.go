@@ -15,120 +15,84 @@
 package web
 
 import (
-	"net/http"
-
-	"github.com/kataras/iris/context"
+	ctx "github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/i18n"
+	"hidevops.io/hiboot/pkg/app/web/context"
+	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
 	"hidevops.io/hiboot/pkg/utils/mapstruct"
 	"hidevops.io/hiboot/pkg/utils/validator"
+	"net/http"
 )
-
-// ExtendedContext extended context
-type ExtendedContext interface {
-	RequestEx(data interface{}, cb func() error) error
-	RequestBody(data interface{}) error
-	RequestForm(data interface{}) error
-	ResponseBody(message string, data interface{})
-	ResponseError(message string, code int)
-}
-
-// ApplicationContext is interface of application
-//type ApplicationContext interface {
-//	context.Context
-//	ExtendedContext
-//}
 
 // Context Create your own custom Context, put any fields you wanna need.
 type Context struct {
 	// Optional Part 1: embed (optional but required if you don't want to override all context's methods)
 	// it's the context/context.go#context struct but you don't need to know it.
-	context.Context
-	ExtendedContext
+	ctx.Context
+	//context.ExtendedContext
 }
 
-var _ context.Context = &Context{} // optionally: validate on compile-time if Context implements context.Context.
+var _ ctx.Context = &Context{} // optionally: validate on compile-time if Context implements context.Context.
+
+// NewContext constructor of context.Context
+func NewContext(app ctx.Application) context.Context {
+	return &Context{
+		Context: ctx.NewContext(app),
+	}
+}
 
 // Do The only one important if you will override the Context
 // with an embedded context.Context inside it.
 // Required in order to run the handlers via this "*Context".
-func (ctx *Context) Do(handlers context.Handlers) {
-	context.Do(ctx, handlers)
+func (c *Context) Do(handlers ctx.Handlers) {
+	log.Debug("Context.Do()")
+	ctx.Do(c, handlers)
 }
 
 // Next The second one important if you will override the Context
 // with an embedded context.Context inside it.
 // Required in order to run the chain of handlers via this "*Context".
-func (ctx *Context) Next() {
-	context.Next(ctx)
+func (c *Context) Next() {
+	ctx.Next(c)
 }
 
 // HTML Override any context's method you want...
 // [...]
-func (ctx *Context) HTML(htmlContents string) (int, error) {
-	ctx.Application().Logger().Infof("Executing .HTML function from Context")
+func (c *Context) HTML(htmlContents string) (int, error) {
+	c.Application().Logger().Infof("Executing .HTML function from Context")
 
-	ctx.ContentType("text/html")
-	return ctx.WriteString(htmlContents)
-}
-
-// RequestEx get RequestBody
-func (ctx *Context) requestEx(data interface{}, cb func() error) error {
-	err := cb()
-	if err != nil {
-		ctx.ResponseError(err.Error(), http.StatusInternalServerError)
-		return err
-	}
-
-	err = validator.Validate.Struct(data)
-	if err != nil {
-		ctx.ResponseError(err.Error(), http.StatusBadRequest)
-		return err
-	}
-	return nil
+	c.ContentType("text/html")
+	return c.WriteString(htmlContents)
 }
 
 // RequestBody get RequestBody
-func (ctx *Context) RequestBody(data interface{}) error {
-
-	return ctx.requestEx(data, func() error {
-		return ctx.ReadJSON(data)
-	})
+func (c *Context) RequestBody(data interface{}) error {
+	return RequestBody(c, data)
 }
 
 // RequestForm get RequestFrom
-func (ctx *Context) RequestForm(data interface{}) error {
-
-	return ctx.requestEx(data, func() error {
-		return ctx.ReadForm(data)
-	})
+func (c *Context) RequestForm(data interface{}) error {
+	return RequestForm(c, data)
 }
 
 // RequestParams get RequestParams
-func (ctx *Context) RequestParams(data interface{}) error {
-
-	return ctx.requestEx(data, func() error {
-
-		values := ctx.URLParams()
-		if len(values) != 0 {
-			return mapstruct.Decode(data, values)
-		}
-		return nil
-	})
+func (c *Context) RequestParams(data interface{}) error {
+	return RequestParams(c, data)
 }
 
 // handle i18n
-func (ctx *Context) translate(message string) string {
+func (c *Context) translate(message string) string {
 
-	message = i18n.Translate(ctx, message)
+	message = i18n.Translate(c, message)
 
 	return message
 }
 
 // Translate override base context method Translate to return format if i18n is not enabled
-func (ctx *Context) Translate(format string, args ...interface{}) string {
+func (c *Context) Translate(format string, args ...interface{}) string {
 
-	msg := ctx.Context.Translate(format, args...)
+	msg := c.Context.Translate(format, args...)
 
 	if msg == "" {
 		msg = format
@@ -138,29 +102,76 @@ func (ctx *Context) Translate(format string, args ...interface{}) string {
 }
 
 // ResponseString set response
-func (ctx *Context) ResponseString(data string) {
-	ctx.WriteString(ctx.translate(data))
+func (c *Context) ResponseString(data string) {
+	c.WriteString(c.translate(data))
 }
 
 // ResponseBody set response
-func (ctx *Context) ResponseBody(message string, data interface{}) {
+func (c *Context) ResponseBody(message string, data interface{}) {
 
 	// TODO: check if data is a string, should we translate it?
 	response := new(model.BaseResponse)
-	response.SetCode(ctx.GetStatusCode())
-	response.SetMessage(ctx.translate(message))
+	response.SetCode(c.GetStatusCode())
+	response.SetMessage(c.translate(message))
 	response.SetData(data)
 
-	ctx.JSON(response)
+	c.JSON(response)
 }
 
 // ResponseError response with error
-func (ctx *Context) ResponseError(message string, code int) {
+func (c *Context) ResponseError(message string, code int) {
 
 	response := new(model.BaseResponse)
 	response.SetCode(code)
-	response.SetMessage(ctx.translate(message))
+	response.SetMessage(c.translate(message))
 
-	ctx.StatusCode(code)
-	ctx.JSON(response)
+	c.StatusCode(code)
+	c.JSON(response)
+}
+
+// RequestEx get RequestBody
+func requestEx(c context.Context, data interface{}, cb func() error) error {
+	if cb != nil {
+		err := cb()
+		if err != nil {
+			c.ResponseError(err.Error(), http.StatusInternalServerError)
+			return err
+		}
+
+		err = validator.Validate.Struct(data)
+		if err != nil {
+			c.ResponseError(err.Error(), http.StatusBadRequest)
+			return err
+		}
+	}
+	return nil
+}
+
+// RequestBody get RequestBody
+func RequestBody(c context.Context, data interface{}) error {
+
+	return requestEx(c, data, func() error {
+		return c.ReadJSON(data)
+	})
+}
+
+// RequestForm get RequestFrom
+func RequestForm(c context.Context, data interface{}) error {
+
+	return requestEx(c, data, func() error {
+		return c.ReadForm(data)
+	})
+}
+
+// RequestParams get RequestParams
+func RequestParams(c context.Context, data interface{}) error {
+
+	return requestEx(c, data, func() error {
+
+		values := c.URLParams()
+		if len(values) != 0 {
+			return mapstruct.Decode(data, values)
+		}
+		return nil
+	})
 }

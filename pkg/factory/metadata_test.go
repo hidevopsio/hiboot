@@ -57,21 +57,21 @@ func TestUtils(t *testing.T) {
 		md := NewMetaData("", new(fooBarService))
 		assert.Equal(t, "fooBarService", md.TypeName)
 		assert.Equal(t, "factory", md.PkgName)
-		assert.NotEqual(t, nil, md.Object)
+		assert.NotEqual(t, nil, md.MetaObject)
 	})
 
 	t.Run("should parse instance name via object", func(t *testing.T) {
 		md := NewMetaData("", new(fooBarService))
 		assert.Equal(t, "fooBarService", md.TypeName)
 		assert.Equal(t, "factory", md.PkgName)
-		assert.NotEqual(t, nil, md.Object)
+		assert.NotEqual(t, nil, md.MetaObject)
 	})
 
 	t.Run("should parse instance name via object with eliminator", func(t *testing.T) {
 		md := NewMetaData(new(fooBarService))
 		assert.Equal(t, "fooBarService", md.TypeName)
 		assert.Equal(t, "factory.fooBarService", md.Name)
-		assert.NotEqual(t, nil, md.Object)
+		assert.NotEqual(t, nil, md.MetaObject)
 	})
 
 	t.Run("should parse object instance name via constructor", func(t *testing.T) {
@@ -85,7 +85,7 @@ func TestUtils(t *testing.T) {
 		svc := new(service)
 		md := NewMetaData(svc)
 		assert.Equal(t, "factory.service", md.Name)
-		assert.Equal(t, svc, md.Object)
+		assert.Equal(t, svc, md.MetaObject)
 	})
 
 	t.Run("should parse object instance name", func(t *testing.T) {
@@ -94,15 +94,15 @@ func TestUtils(t *testing.T) {
 		md := NewMetaData("foo", svc)
 		assert.Equal(t, "service", md.TypeName)
 		assert.Equal(t, "factory.foo", md.Name)
-		assert.Equal(t, svc, md.Object)
+		assert.Equal(t, svc, md.MetaObject)
 	})
 
 	t.Run("should parse object pkg name", func(t *testing.T) {
 		type service struct{}
 		svc := new(service)
-		md := NewMetaData(&MetaData{Object: new(service)})
+		md := NewMetaData(&MetaData{MetaObject: new(service)})
 		assert.Equal(t, "factory.service", md.Name)
-		assert.Equal(t, svc, md.Object)
+		assert.Equal(t, svc, md.MetaObject)
 	})
 
 	t.Run("should parse object pkg name", func(t *testing.T) {
@@ -139,5 +139,11 @@ func TestUtils(t *testing.T) {
 		dep := appendDep("", "a.b")
 		dep = appendDep(dep, "c.d")
 		assert.Equal(t, "a.b,c.d", dep)
+	})
+
+	t.Run("should clone meta data", func(t *testing.T) {
+		src := NewMetaData(new(foo))
+		dst := CloneMetaData(src)
+		assert.Equal(t, dst.Type, src.Type)
 	})
 }

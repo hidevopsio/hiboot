@@ -13,8 +13,8 @@
 // limitations under the License.
 
 // Package at provides annotations for jwt controller
-package at
+package jwt
 
-// JwtRestController is the annotation for JWT REST Controller
-type JwtRestController interface {
+// RestController is the annotation for JWT REST Controller
+type JwtController interface {
 }

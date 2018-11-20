@@ -15,6 +15,9 @@
 package app
 
 import (
+	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/factory/instantiate"
+	"hidevops.io/hiboot/pkg/utils/cmap"
 	"testing"
 )
 
@@ -25,18 +28,18 @@ func newFakePostPrecessor() *fakePostProcessor {
 	return new(fakePostProcessor)
 }
 
-func (p *fakePostProcessor) BeforeInitialization(factory interface{}) {
+func (p *fakePostProcessor) BeforeInitialization() {
 }
 
-func (p *fakePostProcessor) AfterInitialization(factory interface{}) {
+func (p *fakePostProcessor) AfterInitialization() {
 
 }
 
 func TestRegisterPostProcessor(t *testing.T) {
 
 	RegisterPostProcessor(newFakePostPrecessor)
-	pp := newPostProcessor()
+	pp := newPostProcessor(instantiate.NewInstantiateFactory(cmap.New(), []*factory.MetaData{}, cmap.New()))
 	pp.Init()
-	pp.AfterInitialization(nil)
+	pp.AfterInitialization()
 
 }

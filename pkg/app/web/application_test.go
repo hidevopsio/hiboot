@@ -20,6 +20,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/app/web/context"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
 	_ "hidevops.io/hiboot/pkg/starter/actuator"
@@ -40,22 +42,22 @@ type UserRequest struct {
 }
 
 type FooRequest struct {
-	model.RequestBody
+	at.RequestBody
 	Name string
 }
 
 type BarRequest struct {
-	model.RequestParams
+	at.RequestParams
 	Name string
 }
 
 type FoobarRequestForm struct {
-	model.RequestForm
+	at.RequestForm
 	Name string
 }
 
 type FoobarRequestParams struct {
-	model.RequestParams
+	at.RequestParams
 	Name string
 }
 
@@ -81,7 +83,7 @@ func newFooController(token jwt.Token) *FooController {
 }
 
 type ExampleController struct {
-	web.Controller
+	at.RestController
 }
 
 type InvalidController struct{}
@@ -110,10 +112,10 @@ func init() {
 	app.Register(newFooBarService)
 }
 
-func (c *FooController) Before() {
+func (c *FooController) Before(ctx context.Context) {
 	log.Debug("FooController.Before")
 
-	c.Ctx.Next()
+	ctx.Next()
 }
 
 func (c *FooController) PostLogin(request *UserRequest) (response model.Response, err error) {
@@ -173,7 +175,7 @@ func (c *FooController) GetById(id int) string {
 }
 
 // GET /hello
-func (c *FooController) GetHello(ctx *web.Context) string {
+func (c *FooController) GetHello(ctx context.Context) string {
 	log.Debug("FooController.GetHello")
 	return "hello"
 }
@@ -236,7 +238,7 @@ func (c *FooController) After() {
 
 // BarController
 type BarController struct {
-	jwt.Controller
+	at.JwtRestController
 }
 
 func newBarController() *BarController {
@@ -252,7 +254,7 @@ func (c *BarController) Get(request *BarRequest) (response model.Response, err e
 }
 
 type FoobarController struct {
-	web.Controller
+	at.RestController
 }
 
 func newFoobarController() *FoobarController {
@@ -294,12 +296,12 @@ func (c *HelloController) Get() string {
 	return "hello"
 }
 
-func (c *HelloController) GetWorld() {
-	c.Ctx.HTML("<h1>Hello World</h1>")
+func (c *HelloController) GetWorld(ctx context.Context) {
+	ctx.HTML("<h1>Hello World</h1>")
 }
 
 // Get /all
-func (c *HelloController) GetAll() {
+func (c *HelloController) GetAll(ctx context.Context) {
 
 	data := []struct {
 		Name string
@@ -315,7 +317,7 @@ func (c *HelloController) GetAll() {
 		},
 	}
 
-	c.Ctx.ResponseBody("success", data)
+	ctx.ResponseBody("success", data)
 }
 
 // Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
@@ -336,8 +338,8 @@ func newHelloViewController(fooBar *FooBar) *HelloViewController {
 // Get hello
 // The first word of method is the http method GET, the rest is the context mapping hello
 // in this method, the name Get means that the method context mapping is '/'
-func (c *HelloViewController) Get() {
-	c.Ctx.View("index.html")
+func (c *HelloViewController) Get(ctx context.Context) {
+	ctx.View("index.html")
 }
 
 func (c *HelloViewController) AnyTest() string {

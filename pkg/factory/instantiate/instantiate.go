@@ -17,14 +17,17 @@ package instantiate
 
 import (
 	"errors"
-	"fmt"
+	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/factory/depends"
 	"hidevops.io/hiboot/pkg/inject"
 	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/system"
 	"hidevops.io/hiboot/pkg/system/types"
 	"hidevops.io/hiboot/pkg/utils/cmap"
+	"hidevops.io/hiboot/pkg/utils/io"
 	"hidevops.io/hiboot/pkg/utils/reflector"
+	"path/filepath"
 )
 
 var (
@@ -35,27 +38,72 @@ var (
 	ErrInvalidObjectType = errors.New("[factory] invalid object type")
 )
 
+const (
+	System      = "system"
+	application = "application"
+	config      = "config"
+	yaml        = "yaml"
+)
+
 // InstantiateFactory is the factory that responsible for object instantiation
 type instantiateFactory struct {
-	instanceMap      cmap.ConcurrentMap
-	components       []*factory.MetaData
-	categorized      map[string][]interface{}
-	customProperties cmap.ConcurrentMap
+	instance             factory.Instance
+	contextAwareInstance factory.Instance
+	components           []*factory.MetaData
+	resolved             []*factory.MetaData
+	customProperties     cmap.ConcurrentMap
+	categorized          map[string][]*factory.MetaData
+	inject               inject.Inject
+	builder              system.Builder
 }
 
 // NewInstantiateFactory the constructor of instantiateFactory
 func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory.MetaData, customProperties cmap.ConcurrentMap) factory.InstantiateFactory {
-	return &instantiateFactory{
-		instanceMap:      instanceMap,
-		components:       components,
-		categorized:      make(map[string][]interface{}),
-		customProperties: customProperties,
+	if customProperties == nil {
+		customProperties = cmap.New()
 	}
+	f := &instantiateFactory{
+		instance:         newInstance(instanceMap),
+		components:       components,
+		customProperties: customProperties,
+		categorized:      make(map[string][]*factory.MetaData),
+	}
+	f.inject = inject.NewInject(f)
+
+	// create new builder
+	workDir := io.GetWorkDir()
+	systemConfig := new(system.Configuration)
+	f.SetInstance(systemConfig)
+	customProps := customProperties.Items()
+	f.builder = system.NewBuilder(systemConfig,
+		filepath.Join(workDir, config),
+		application,
+		yaml,
+		customProps,
+	)
+	return f
 }
 
 // Initialized check if factory is initialized
 func (f *instantiateFactory) Initialized() bool {
-	return f.instanceMap != nil
+	return f.instance != nil
+}
+
+// Builder get builder
+func (f *instantiateFactory) Builder() (builder system.Builder) {
+	return f.builder
+}
+
+// GetProperty get property
+func (f *instantiateFactory) GetProperty(name string) (retVal interface{}) {
+	retVal = f.builder.GetProperty(name)
+	return
+}
+
+// SetProperty get property
+func (f *instantiateFactory) SetProperty(name string, value interface{}) factory.InstantiateFactory {
+	f.builder.SetProperty(name, value)
+	return f
 }
 
 // AppendComponent append component
@@ -64,48 +112,69 @@ func (f *instantiateFactory) AppendComponent(c ...interface{}) {
 	f.components = append(f.components, metaData)
 }
 
+// injectDependency inject dependency
+func (f *instantiateFactory) injectDependency(item *factory.MetaData) (err error) {
+	var name string
+	var inst interface{}
+	switch item.Kind {
+	case types.Func:
+		inst, err = f.inject.IntoFunc(item.MetaObject)
+		name = item.Name
+		// TODO: should report error when err is not nil
+		if err == nil {
+			log.Debugf("inject into func: %v %v", item.ShortName, item.Type)
+		}
+	case types.Method:
+		inst, err = f.inject.IntoMethod(item.ObjectOwner, item.MetaObject)
+		name = item.Name
+		if err == nil {
+			log.Debugf("inject into method: %v %v", item.ShortName, item.Type)
+		}
+	default:
+		name, inst = item.Name, item.MetaObject
+	}
+	if inst != nil {
+		// inject into object
+		err = f.inject.IntoObject(inst)
+		tagName, ok := reflector.FindEmbeddedFieldTag(inst, "Qualifier", "name")
+		if ok {
+			name = tagName
+			log.Debugf("name: %v, Qualifier: %v, ok: %v", item.Name, name, ok)
+		}
+
+		if name != "" {
+			// save object
+			item.Instance = inst
+			// set item
+			err = f.SetInstance(name, item)
+		}
+	}
+	return
+}
+
+// InjectDependency inject dependency
+func (f *instantiateFactory) InjectDependency(object interface{}) (err error) {
+	return f.injectDependency(factory.CastMetaData(object))
+}
+
 // BuildComponents build all registered components
 func (f *instantiateFactory) BuildComponents() (err error) {
 	// first resolve the dependency graph
 	var resolved []*factory.MetaData
 	log.Debugf("Resolving dependencies")
 	resolved, err = depends.Resolve(f.components)
+	f.resolved = resolved
 	log.Debugf("Injecting dependencies")
 	// then build components
-	var obj interface{}
-	var name string
-	for i, item := range resolved {
-		// inject dependencies into function
-		// components, controllers
-		switch item.Kind {
-		case types.Func:
-			obj, err = inject.IntoFunc(item.Object)
-			name = item.Name
-			// TODO: should report error when err is not nil
-			if err == nil {
-				log.Debugf("%d: inject into func: %v %v", i, item.ShortName, item.Type)
-			}
-		case types.Method:
-			obj, err = inject.IntoMethod(item.Context, item.Object)
-			name = item.Name
-			if err == nil {
-				log.Debugf("%d: inject into method: %v %v", i, item.ShortName, item.Type)
-			}
-		default:
-			name, obj = item.Name, item.Object
-		}
-		if obj != nil {
-			// inject into object
-			err = inject.IntoObject(obj)
-			tagName, ok := reflector.FindEmbeddedFieldTag(obj, "Qualifier", "name")
-			if ok {
-				name = tagName
-				log.Debugf("name: %v, Qualifier: %v, ok: %v", item.Name, name, ok)
-			}
-
-			if name != "" {
-				err = f.SetInstance(name, obj)
-			}
+	for _, item := range resolved {
+		log.Debugf("build component: %v", item.Type)
+		if item.ContextAware {
+			//log.Debugf("at.ContextAware: %v", item.MetaObject)
+			f.SetInstance(item)
+		} else {
+			// inject dependencies into function
+			// components, controllers
+			f.injectDependency(item)
 		}
 	}
 	if err == nil {
@@ -116,53 +185,54 @@ func (f *instantiateFactory) BuildComponents() (err error) {
 
 // SetInstance save instance
 func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
-	if !f.Initialized() {
+	name, inst := factory.ParseParams(params...)
+
+	if inst == nil {
 		return ErrNotInitialized
 	}
 
-	name, instance := factory.ParseParams(params...)
-
-	if _, ok := f.instanceMap.Get(name); ok {
-		return fmt.Errorf("instance name %v is already taken", name)
+	metaData := factory.CastMetaData(inst)
+	if metaData == nil {
+		metaData = factory.NewMetaData(inst)
 	}
 
-	f.instanceMap.Set(name, instance)
-
-	ifcField := reflector.GetEmbeddedField(instance, "")
-	if ifcField.Anonymous {
-		typeName := reflector.GetLowerCamelFullNameByType(ifcField.Type)
-		//typeName := ifcField.Name
-		categorised, ok := f.categorized[typeName]
-		if !ok {
-			categorised = make([]interface{}, 0)
+	if metaData != nil {
+		if metaData.ContextAware && f.contextAwareInstance != nil {
+			f.contextAwareInstance.Set(name, inst)
+		} else {
+			err = f.instance.Set(name, inst)
+			// categorize instances
+			if metaData != nil {
+				fields := reflector.GetEmbeddedFields(metaData.MetaObject)
+				for _, field := range fields {
+					typeName := reflector.GetLowerCamelFullNameByType(field.Type)
+					categorised, ok := f.categorized[typeName]
+					if !ok {
+						categorised = make([]*factory.MetaData, 0)
+					}
+					f.categorized[typeName] = append(categorised, metaData)
+				}
+			}
 		}
-		f.categorized[typeName] = append(categorised, instance)
 	}
+
 	return
 }
 
 // GetInstance get instance by name
 func (f *instantiateFactory) GetInstance(params ...interface{}) (retVal interface{}) {
-	if !f.Initialized() {
-		return nil
+	if f.contextAwareInstance != nil {
+		retVal = f.contextAwareInstance.Get(params...)
 	}
 
-	name, _ := factory.ParseParams(params...)
-
-	//items := f.Items()
-	//log.Debug(items)
-
-	var ok bool
-	if retVal, ok = f.instanceMap.Get(name); !ok {
-		return nil
+	if retVal == nil {
+		retVal = f.instance.Get(params...)
 	}
 	return
 }
 
 // GetInstances get instance by name
-func (f *instantiateFactory) GetInstances(params ...interface{}) (retVal []interface{}) {
-	//items := f.Items()
-	//log.Debug(items)
+func (f *instantiateFactory) GetInstances(params ...interface{}) (retVal []*factory.MetaData) {
 	if f.Initialized() {
 		name, _ := factory.ParseParams(params...)
 		retVal = f.categorized[name]
@@ -172,13 +242,68 @@ func (f *instantiateFactory) GetInstances(params ...interface{}) (retVal []inter
 
 // Items return instance map
 func (f *instantiateFactory) Items() map[string]interface{} {
-	if !f.Initialized() {
-		return nil
-	}
-	return f.instanceMap.Items()
+	return f.instance.Items()
 }
 
 // Items return instance map
 func (f *instantiateFactory) CustomProperties() map[string]interface{} {
 	return f.customProperties.Items()
+}
+
+// InjectIntoObject inject into object
+func (f *instantiateFactory) InjectIntoObject(object interface{}) error {
+	return f.inject.IntoObject(object)
+}
+
+// InjectDefaultValue inject default value
+func (f *instantiateFactory) InjectDefaultValue(object interface{}) error {
+	return f.inject.DefaultValue(object)
+}
+
+// InjectIntoFunc inject into func
+func (f *instantiateFactory) InjectIntoFunc(object interface{}) (retVal interface{}, err error) {
+	return f.inject.IntoFunc(object)
+}
+
+// InjectIntoMethod inject into method
+func (f *instantiateFactory) InjectIntoMethod(owner, object interface{}) (retVal interface{}, err error) {
+	return f.inject.IntoMethod(owner, object)
+}
+
+func (f *instantiateFactory) Replace(source string) (retVal interface{}) {
+	retVal = f.builder.Replace(source)
+	return
+}
+
+// InjectContextAwareObject inject context aware objects
+func (f *instantiateFactory) injectContextAwareDependencies(dps []*factory.MetaData) (err error) {
+	for _, d := range dps {
+		if len(d.DepMetaData) > 0 {
+			f.injectContextAwareDependencies(d.DepMetaData)
+		}
+		if d.ContextAware {
+			if f.contextAwareInstance.Get(d.Name) == nil {
+				newItem := factory.CloneMetaData(d)
+				err = f.InjectDependency(newItem)
+				f.contextAwareInstance.Set(newItem)
+			}
+		}
+	}
+	return
+}
+
+// InjectContextAwareObject inject context aware objects
+func (f *instantiateFactory) InjectContextAwareObjects(ctx context.Context, dps []*factory.MetaData) (contextAwareInstance factory.Instance, err error) {
+	log.Debugf(">>> InjectContextAwareObjects(%x) ...", &ctx)
+
+	// create new runtime instance
+	f.contextAwareInstance = newInstance(nil)
+
+	// update context
+	f.contextAwareInstance.Set(reflector.GetLowerCamelFullName(new(context.Context)), ctx)
+
+	err = f.injectContextAwareDependencies(dps)
+
+	contextAwareInstance = f.contextAwareInstance
+	return
 }

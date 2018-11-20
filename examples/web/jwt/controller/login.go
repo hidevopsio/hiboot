@@ -16,7 +16,7 @@ package controller
 
 import (
 	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/model"
 	"hidevops.io/hiboot/pkg/starter/jwt"
 	"time"
@@ -24,14 +24,15 @@ import (
 
 // PATH: /login
 type loginController struct {
-	web.Controller
+	at.RestController
 
 	token jwt.Token
 }
 
 type userRequest struct {
-	// embedded field model.RequestBody mark that userRequest is request body
-	model.RequestBody
+	// embedded field at.RequestBody mark that userRequest is request body
+	at.RequestBody
+
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
 }

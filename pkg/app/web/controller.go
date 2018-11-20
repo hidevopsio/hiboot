@@ -14,11 +14,12 @@
 
 package web
 
-import "hidevops.io/hiboot/pkg/at"
+import (
+	"hidevops.io/hiboot/pkg/at"
+)
 
 // Controller is the web base controller
+// please use at.RestController instead
 type Controller struct {
 	at.RestController
-	ContextMapping string
-	Ctx            *Context
 }
