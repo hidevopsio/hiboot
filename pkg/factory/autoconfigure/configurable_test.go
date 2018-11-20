@@ -17,11 +17,12 @@ package autoconfigure_test
 import (
 	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/factory/autoconfigure"
 	"hidevops.io/hiboot/pkg/factory/instantiate"
-	"hidevops.io/hiboot/pkg/inject"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/cmap"
 	"hidevops.io/hiboot/pkg/utils/io"
@@ -38,6 +39,23 @@ type FakeProperties struct {
 	Profile  string `default:"${APP_PROFILES_ACTIVE:dev}"`
 }
 
+type Connection struct {
+	context context.Context
+}
+
+type ContextAwareConfiguration struct {
+	at.AutoConfiguration
+	at.ContextAware
+}
+
+func newContextAwareConfiguration() *ContextAwareConfiguration {
+	return &ContextAwareConfiguration{}
+}
+
+func (c *ContextAwareConfiguration) Connection(context context.Context) *Connection {
+	return &Connection{context: context}
+}
+
 type unknownConfiguration struct {
 	FakeProperties FakeProperties `mapstructure:"fake"`
 }
@@ -50,7 +68,7 @@ type unsupportedConfiguration struct {
 	FakeProperties FakeProperties `mapstructure:"fake"`
 }
 
-type FooProperties struct {
+type Properties struct {
 	Name     string `default:"${fake.name}"`
 	Nickname string `default:"foobar"`
 	Username string `default:"fb"`
@@ -65,17 +83,17 @@ type emptyConfiguration struct {
 
 type FooConfiguration struct {
 	at.AutoConfiguration
-	FakeProperties FooProperties `mapstructure:"foo"`
+	FakeProperties Properties `mapstructure:"foo"`
 }
 
 type BarConfiguration struct {
 	app.Configuration
-	FakeProperties FooProperties `mapstructure:"bar"`
+	FakeProperties Properties `mapstructure:"bar"`
 }
 
 type FooBarConfiguration struct {
 	app.Configuration
-	FakeProperties FooProperties `mapstructure:"foobar"`
+	FakeProperties Properties `mapstructure:"foobar"`
 	foobar         *FooBar
 }
 
@@ -145,7 +163,7 @@ type FooBar struct {
 }
 
 type barConfiguration struct {
-	FakeProperties FooProperties `mapstructure:"bar"`
+	FakeProperties Properties `mapstructure:"bar"`
 }
 
 func (c *barConfiguration) BarBar() *Bar {
@@ -160,6 +178,10 @@ func init() {
 type fakeConfiguration struct {
 	app.Configuration
 	FakeProperties FakeProperties `mapstructure:"fake"`
+}
+
+func newFakeConfiguration() *fakeConfiguration {
+	return &fakeConfiguration{}
 }
 
 type foobarConfiguration struct {
@@ -279,7 +301,8 @@ func newHelloService(foo *Foo) *helloService {
 	return &helloService{foo: foo}
 }
 
-func TestConfigurableFactory(t *testing.T) {
+func setFactory(t *testing.T, customProperties cmap.ConcurrentMap) factory.ConfigurableFactory {
+	io.ChangeWorkDir(os.TempDir())
 
 	configPath := filepath.Join(os.TempDir(), "config")
 
@@ -294,14 +317,31 @@ func TestConfigurableFactory(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, n, len(fakeContent))
 
-	configContainers := cmap.New()
-	customProperties := cmap.New()
+	fooFile := "application-foo.yml"
+	os.Remove(filepath.Join(configPath, fooFile))
+	fooContent :=
+		"foo:\n" +
+			"  name: foo\n" +
+			"  nickname: ${app.name} ${foo.name}\n" +
+			"  username: ${unknown.name:bar}\n"
+	_, err = io.WriterFile(configPath, fooFile, []byte(fooContent))
+	assert.Equal(t, nil, err)
 
+	configContainers := cmap.New()
+	customProperties.Set("logging.level", "debug")
 	f := autoconfigure.NewConfigurableFactory(
 		instantiate.NewInstantiateFactory(cmap.New(), []*factory.MetaData{}, customProperties),
 		configContainers,
 	)
 
+	return f
+}
+
+func TestConfigurableFactory(t *testing.T) {
+	customProperties := cmap.New()
+	f := setFactory(t, customProperties)
+
+	var err error
 	t.Run("should set factory instance", func(t *testing.T) {
 		err = f.SetInstance(factory.InstantiateFactoryName, f)
 		assert.Equal(t, nil, err)
@@ -309,12 +349,10 @@ func TestConfigurableFactory(t *testing.T) {
 		f.SetInstance(factory.ConfigurableFactoryName, f)
 		assert.Equal(t, nil, err)
 	})
-	inject.SetFactory(f)
-
-	io.ChangeWorkDir(os.TempDir())
+	//inject.SetFactory(f)
+	// backup profile
+	profile := os.Getenv(autoconfigure.EnvAppProfilesActive)
 	t.Run("should build app config", func(t *testing.T) {
-		// backup profile
-		profile := os.Getenv(autoconfigure.EnvAppProfilesActive)
 		os.Setenv(autoconfigure.EnvAppProfilesActive, "")
 		sc, err := f.BuildSystemConfig()
 		assert.Equal(t, nil, err)
@@ -323,12 +361,9 @@ func TestConfigurableFactory(t *testing.T) {
 		os.Setenv(autoconfigure.EnvAppProfilesActive, profile)
 	})
 
+	os.Setenv(autoconfigure.EnvAppProfilesActive, profile)
+	customProperties.Set(autoconfigure.PropAppProfilesActive, "dev")
 	t.Run("should build app config", func(t *testing.T) {
-		// backup profile
-		customProperties.Set("app.profiles.active", "dev")
-		customProperties.Set("logging.level", "debug")
-		profile := os.Getenv(autoconfigure.EnvAppProfilesActive)
-		os.Setenv(autoconfigure.EnvAppProfilesActive, "")
 		sc, err := f.BuildSystemConfig()
 		assert.Equal(t, nil, err)
 		assert.Equal(t, "dev", sc.App.Profiles.Active)
@@ -341,24 +376,12 @@ func TestConfigurableFactory(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 
-	fooFile := "application-foo.yml"
-	os.Remove(filepath.Join(configPath, fooFile))
-	fooContent :=
-		"foo:\n" +
-			"  name: foo\n" +
-			"  nickname: ${app.name} ${foo.name}\n" +
-			"  username: ${unknown.name:bar}\n"
-	_, err = io.WriterFile(configPath, fooFile, []byte(fooContent))
-	assert.Equal(t, nil, err)
-
 	fooConfig := new(FooConfiguration)
-	fakeCfg := new(fakeConfiguration)
 
 	f.Build([]*factory.MetaData{
 		factory.NewMetaData(new(emptyConfiguration)),
+		factory.NewMetaData(newFakeConfiguration),
 		factory.NewMetaData("foo", fooConfig),
-		factory.NewMetaData(fakeCfg),
-		factory.NewMetaData(fakeCfg),
 		factory.NewMetaData(new(Configuration)),
 		factory.NewMetaData(new(BarConfiguration)),
 		factory.NewMetaData(new(marsConfiguration)),
@@ -368,9 +391,12 @@ func TestConfigurableFactory(t *testing.T) {
 		factory.NewMetaData(new(unsupportedConfiguration)),
 		factory.NewMetaData(newFoobarConfiguration),
 		factory.NewMetaData(newEarthConfiguration),
+		factory.NewMetaData(newContextAwareConfiguration),
 	})
 
 	f.AppendComponent(newHelloService)
+	ctx := web.NewContext(nil)
+	f.AppendComponent("context.context", ctx)
 
 	f.BuildComponents()
 
@@ -380,13 +406,13 @@ func TestConfigurableFactory(t *testing.T) {
 	})
 
 	t.Run("should get fake configuration", func(t *testing.T) {
-		fakeCfg := f.Configuration("fake")
-		assert.NotEqual(t, nil, fakeCfg)
+		fake := f.Configuration("fake")
+		assert.NotEqual(t, nil, fake)
 	})
 
 	t.Run("should not get non-existence configuration", func(t *testing.T) {
-		fakeCfg := f.Configuration("non-existence")
-		assert.Equal(t, nil, fakeCfg)
+		nonExist := f.Configuration("non-existence")
+		assert.Equal(t, nil, nonExist)
 	})
 
 	t.Run("should add instance to factory at runtime", func(t *testing.T) {
@@ -400,10 +426,6 @@ func TestConfigurableFactory(t *testing.T) {
 		helloWorld := f.GetInstance("autoconfigure_test.helloWorld")
 		assert.NotEqual(t, nil, helloWorld)
 		assert.Equal(t, HelloWorld("Hello world"), helloWorld)
-
-		assert.Equal(t, "hiboot foo", fooConfig.FakeProperties.Nickname)
-		assert.Equal(t, "bar", fooConfig.FakeProperties.Username)
-		assert.Equal(t, "foo", fooConfig.FakeProperties.Name)
 	})
 
 	t.Run("should get runtime created instances", func(t *testing.T) {
@@ -414,5 +436,40 @@ func TestConfigurableFactory(t *testing.T) {
 		rt := runtimeTree.(*RuntimeTree)
 		assert.Equal(t, branch, rt.branch)
 		assert.Equal(t, leaf, rt.leaf)
+	})
+
+	t.Run("should report error on nil configuration", func(t *testing.T) {
+
+	})
+}
+
+func TestReplacer(t *testing.T) {
+	customProperties := cmap.New()
+	customProperties.Set("app.profiles.filter", true)
+	customProperties.Set("app.profiles.include", []string{"foo", "fake"})
+	f := setFactory(t, customProperties)
+	var err error
+
+	t.Run("should build app config", func(t *testing.T) {
+		_, err = f.BuildSystemConfig()
+		assert.Equal(t, nil, err)
+	})
+	fooConfig := new(FooConfiguration)
+
+	type outConfiguration struct {
+		at.AutoConfiguration
+		Properties Properties `mapstructure:"out"`
+	}
+
+	f.Build([]*factory.MetaData{
+		factory.NewMetaData(new(outConfiguration)),
+		factory.NewMetaData(newFakeConfiguration),
+		factory.NewMetaData("foo", fooConfig),
+	})
+
+	t.Run("should get foo configuration", func(t *testing.T) {
+		assert.Equal(t, "hiboot foo", fooConfig.FakeProperties.Nickname)
+		assert.Equal(t, "bar", fooConfig.FakeProperties.Username)
+		assert.Equal(t, "foo", fooConfig.FakeProperties.Name)
 	})
 }

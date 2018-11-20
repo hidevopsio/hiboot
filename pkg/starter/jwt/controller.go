@@ -17,18 +17,27 @@ package jwt
 import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"hidevops.io/hiboot/pkg/app/web"
-	"hidevops.io/hiboot/pkg/starter/jwt/at"
+	"hidevops.io/hiboot/pkg/app/web/context"
+	"hidevops.io/hiboot/pkg/at"
 )
 
-// Controller is the base web controller that enabled JWT
+// Controller is the base controller for jwt.RestController
 type Controller struct {
 	at.JwtRestController
-	web.Controller
 }
 
-// ParseToken is an util that parsing JWT token from jwt.MapClaims
-func (c *Controller) ParseToken(claims jwt.MapClaims, prop string) (retVal string) {
+// TokenProperties is the struct for parse jwt token properties
+type TokenProperties struct {
+	at.ContextAware
+	context context.Context
+}
+
+func NewJwtProperties(context context.Context) *TokenProperties {
+	return &TokenProperties{context: context}
+}
+
+// Parse is an util that parsing JWT token from jwt.MapClaims
+func (p *TokenProperties) Parse(claims jwt.MapClaims, prop string) (retVal string) {
 	val, ok := claims[prop]
 	if ok {
 		retVal = fmt.Sprintf("%v", val)
@@ -36,20 +45,20 @@ func (c *Controller) ParseToken(claims jwt.MapClaims, prop string) (retVal strin
 	return
 }
 
-// JwtProperty is an util that parsing JWT token and return single property from jwt.MapClaims
-func (c *Controller) JwtProperty(propName string) (propVal string) {
-	claims, ok := c.JwtProperties()
+// Get is an util that parsing JWT token and return single property from jwt.MapClaims
+func (p *TokenProperties) Get(propName string) (propVal string) {
+	claims, ok := p.GetAll()
 	if ok {
-		propVal = c.ParseToken(claims, propName)
+		propVal = p.Parse(claims, propName)
 	}
 	return
 }
 
-// JwtProperties is an util that parsing JWT token and return all properties from jwt.MapClaims
-func (c *Controller) JwtProperties() (propMap map[string]interface{}, ok bool) {
+// GetAll is an util that parsing JWT token and return all properties from jwt.MapClaims
+func (p *TokenProperties) GetAll() (propMap map[string]interface{}, ok bool) {
 	var token *jwt.Token
-	if c.Ctx != nil {
-		jwtVal := c.Ctx.Values().Get("jwt")
+	if p.context != nil {
+		jwtVal := p.context.Values().Get("jwt")
 		if jwtVal != nil {
 			token = jwtVal.(*jwt.Token)
 			if token.Claims != nil {
@@ -63,11 +72,11 @@ func (c *Controller) JwtProperties() (propMap map[string]interface{}, ok bool) {
 	return
 }
 
-// JwtPropertiesString is an util that parsing JWT token and return all properties in string from jwt.MapClaims
-func (c *Controller) JwtPropertiesString() (propMap map[string]string, ok bool) {
+// Items is an util that parsing JWT token and return all properties in map from jwt.MapClaims
+func (p *TokenProperties) Items() (propMap map[string]string, ok bool) {
 	propMap = make(map[string]string)
 
-	claims, ok := c.JwtProperties()
+	claims, ok := p.GetAll()
 	if ok {
 		for name, value := range claims {
 			propMap[name] = fmt.Sprintf("%v", value)

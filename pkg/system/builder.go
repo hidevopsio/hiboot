@@ -238,7 +238,7 @@ func (b *builder) Replace(source string) (retVal interface{}) {
 			if envValue == "" && newVal == "" && defaultValue != "" {
 				result = strings.Replace(result, varFullName, defaultValue, -1)
 			}
-			log.Debugf("replace => %v: %v", varName, result)
+			log.Debugf("replaced %v to %v", varName, result)
 		}
 	}
 	retVal = result

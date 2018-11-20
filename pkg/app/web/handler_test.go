@@ -16,6 +16,7 @@ package web
 
 import (
 	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/log"
 	"reflect"
 	"testing"
@@ -35,9 +36,17 @@ func (c *fooController) PutByIdentityNameAge(id int, name string, age int) error
 	return nil
 }
 
+type fakeFactory struct {
+	factory.ConfigurableFactory
+}
+
+func (f *fakeFactory) GetInstance(params ...interface{}) (retVal interface{}) {
+	return nil
+}
+
 func TestParse(t *testing.T) {
 
-	hdl := new(handler)
+	hdl := newHandler(new(fakeFactory))
 
 	controller := new(fooController)
 	ctrlVal := reflect.ValueOf(controller)

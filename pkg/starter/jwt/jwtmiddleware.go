@@ -20,8 +20,8 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	mwjwt "github.com/iris-contrib/middleware/jwt"
-	"github.com/kataras/iris/context"
-	"hidevops.io/hiboot/pkg/app/web"
+	ictx "github.com/kataras/iris/context"
+	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/log"
 )
 
@@ -31,9 +31,10 @@ type Middleware struct {
 }
 
 // Serve the middleware's action
-func (m *Middleware) Serve(ctx context.Context) {
+func (m *Middleware) Serve(ctx ictx.Context) {
+	log.Debug("Serve()")
 	if err := m.CheckJWT(ctx); err != nil {
-		c := ctx.(*web.Context)
+		c := ctx.(context.Context)
 		c.ResponseError(err.Error(), http.StatusUnauthorized)
 		c.StopExecution()
 		return
@@ -43,7 +44,8 @@ func (m *Middleware) Serve(ctx context.Context) {
 }
 
 // CheckJWT the main functionality, checks for token
-func (m *Middleware) CheckJWT(ctx context.Context) error {
+func (m *Middleware) CheckJWT(ctx ictx.Context) error {
+	log.Debug("CheckJWT()")
 	if !m.Config.EnableAuthOnOptions {
 		if ctx.Method() == http.MethodOptions {
 			return nil

@@ -18,13 +18,35 @@ import (
 	"fmt"
 	"github.com/deckarep/golang-set"
 	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/factory/autoconfigure"
 	"hidevops.io/hiboot/pkg/factory/instantiate"
+	"hidevops.io/hiboot/pkg/inject"
+	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/cmap"
+	"hidevops.io/hiboot/pkg/utils/reflector"
+	"os"
 	"reflect"
 	"testing"
 )
+
+const (
+	helloWorld = "Hello world"
+	hiboot     = "Hiboot"
+)
+
+type ContextAwareFooBar struct {
+	at.ContextAware
+	Name    string
+	context context.Context
+}
+
+func newContextAwareFooBar(context context.Context) *ContextAwareFooBar {
+	return &ContextAwareFooBar{context: context}
+}
 
 type FooBar struct {
 	Name string
@@ -72,30 +94,33 @@ func newHelloNilService() *helloService {
 	return nil
 }
 
-type HelloWorld string
+type HelloWorld struct {
+	Message string
+}
 
-func (s *helloService) HelloWorld() HelloWorld {
-	return HelloWorld("Hello world")
+func (s *helloService) HelloWorld() *HelloWorld {
+	return &HelloWorld{Message: helloWorld}
 }
 
 func TestInstantiateFactory(t *testing.T) {
 	type foo struct{ Name string }
 	f := new(foo)
 
-	appFactory := instantiate.NewInstantiateFactory(nil, nil, nil)
+	instFactory := instantiate.NewInstantiateFactory(nil, nil, nil)
 	testName := "foobar"
 	t.Run("should failed to set/get instance when factory is not initialized", func(t *testing.T) {
-		inst := appFactory.GetInstance("not-exist-instance")
+		inst := instFactory.GetInstance("not-exist-instance")
 		assert.Equal(t, nil, inst)
 
-		err := appFactory.SetInstance("foo", nil)
+		err := instFactory.SetInstance("foo", nil)
 		assert.Equal(t, instantiate.ErrNotInitialized, err)
 
-		item := appFactory.Items()
-		assert.Equal(t, 0, len(item))
+		item := instFactory.Items()
+		// should have 1 instance (of system.Configuration)
+		assert.Equal(t, 1, len(item))
 	})
 
-	hello := new(helloService)
+	hello := newHelloService()
 	helloTyp := reflect.TypeOf(hello)
 	numOfMethod := helloTyp.NumMethod()
 	//log.Debug("methods: ", numOfMethod)
@@ -107,71 +132,175 @@ func TestInstantiateFactory(t *testing.T) {
 	}
 
 	testComponents = append(testComponents, factory.NewMetaData(f),
+		factory.NewMetaData(web.NewContext(nil)),
+		factory.NewMetaData(newContextAwareFooBar),
 		factory.NewMetaData(&FooBar{Name: testName}),
 		factory.NewMetaData(&BarServiceImpl{}),
 		factory.NewMetaData(newFooBarService),
 		factory.NewMetaData(new(qualifierService)),
 		factory.NewMetaData(newHelloNilService),
 	)
-	appFactory.AppendComponent(new(testService))
 
 	ic := cmap.New()
 	customProps := cmap.New()
 	customProps.Set("app.project", "instantiate-test")
-	appFactory = instantiate.NewInstantiateFactory(ic, testComponents, customProps)
+	t.Run("should create new instantiate factory", func(t *testing.T) {
+		os.Setenv(autoconfigure.EnvAppProfilesActive, "")
+		f := instantiate.NewInstantiateFactory(ic, testComponents, customProps)
+		assert.Equal(t, nil, f.GetProperty("app.profiles.active"))
+
+		f.SetProperty("foo.bar", "foo bar")
+		assert.Equal(t, "foo bar", f.GetProperty("foo.bar"))
+	})
+
+	customProps.Set("app.profiles.active", "local")
+	instFactory = instantiate.NewInstantiateFactory(ic, testComponents, customProps)
+	instFactory.AppendComponent(new(testService))
+	instFactory.AppendComponent("context.context", web.NewContext(nil))
 	t.Run("should initialize factory", func(t *testing.T) {
-		assert.Equal(t, true, appFactory.Initialized())
+		assert.Equal(t, true, instFactory.Initialized())
 	})
 
 	t.Run("should initialize factory", func(t *testing.T) {
-		cstProp := appFactory.CustomProperties()
+		cstProp := instFactory.CustomProperties()
 		assert.NotEqual(t, 0, len(cstProp))
 	})
 
 	t.Run("should build components", func(t *testing.T) {
-		appFactory.BuildComponents()
+		instFactory.BuildComponents()
 	})
 
 	t.Run("should get built instance", func(t *testing.T) {
-		inst := appFactory.GetInstance("instantiate_test.helloWorld")
-		assert.Equal(t, HelloWorld("Hello world"), inst)
+		inst := instFactory.GetInstance(HelloWorld{})
+		assert.NotEqual(t, nil, inst)
+		assert.Equal(t, "Hello world", inst.(*HelloWorld).Message)
+	})
+
+	t.Run("should get built instance in specific type", func(t *testing.T) {
+		hmd := instFactory.GetInstance(HelloWorld{}, factory.MetaData{})
+		assert.NotEqual(t, nil, hmd)
+		inst := hmd.(*factory.MetaData).Instance
+		assert.Equal(t, "Hello world", inst.(*HelloWorld).Message)
 	})
 
 	t.Run("should set and get instance from factory", func(t *testing.T) {
-		appFactory.SetInstance(f)
-		inst := appFactory.GetInstance(foo{})
+		instFactory.SetInstance(f)
+		inst := instFactory.GetInstance(foo{})
 		assert.Equal(t, f, inst)
 	})
 
 	t.Run("should failed to get instance that does not exist", func(t *testing.T) {
-		inst := appFactory.GetInstance("not-exist-instance")
+		inst := instFactory.GetInstance("not-exist-instance")
 		assert.Equal(t, nil, inst)
 	})
 
 	t.Run("should failed to get instances that does not exist", func(t *testing.T) {
-		inst := appFactory.GetInstances("not-exist-instances")
+		inst := instFactory.GetInstances("not-exist-instances")
 		assert.Equal(t, 0, len(inst))
 	})
 
-	t.Run("should failed to set instance that it already exists in test mode", func(t *testing.T) {
-		nf := new(foo)
-		err := appFactory.SetInstance("foo", nf)
+	t.Run("should set instance", func(t *testing.T) {
+		err := instFactory.SetInstance(new(foo))
 		assert.NotEqual(t, nil, err)
 	})
 
 	t.Run("should get factory items", func(t *testing.T) {
-		items := appFactory.Items()
+		items := instFactory.Items()
 		assert.NotEqual(t, 0, len(items))
 	})
 
 	t.Run("should get qualifierService with qualifier name hibootService", func(t *testing.T) {
-		svc := appFactory.GetInstance("instantiate_test.hibootService")
+		svc := instFactory.GetInstance("instantiate_test.hibootService")
 		assert.NotEqual(t, 0, svc)
 	})
 
 	t.Run("should get appended testService", func(t *testing.T) {
-		svc := appFactory.GetInstance(testService{})
+		svc := instFactory.GetInstance(testService{})
 		assert.NotEqual(t, 0, svc)
+	})
+
+	t.Run("should inject dependency by method InjectDependency", func(t *testing.T) {
+		instFactory.InjectDependency(factory.NewMetaData(newFooBarService))
+	})
+
+	builder := instFactory.Builder()
+	builder.Build()
+	t.Run("should replace property", func(t *testing.T) {
+		builder.SetProperty("app.name", "foo")
+		builder.SetProperty("app.profiles.include", []string{"foo", "bar"})
+
+		res := instFactory.Replace("this is ${app.name} property")
+		assert.Equal(t, "this is foo property", res)
+
+		res = instFactory.Replace("${app.profiles.include}")
+		assert.Equal(t, []string{"foo", "bar"}, res)
+	})
+
+	t.Run("should replace with default property", func(t *testing.T) {
+		res := instFactory.Replace("this is ${default.value:default} property")
+		assert.Equal(t, "this is default property", res)
+	})
+
+	t.Run("should replace with environment variable", func(t *testing.T) {
+		res := instFactory.Replace("this is ${HOME}")
+		home := os.Getenv("HOME")
+		assert.Equal(t, "this is "+home, res)
+	})
+
+	t.Run("should get property", func(t *testing.T) {
+		res := instFactory.GetProperty("app.name")
+		assert.Equal(t, "foo", res)
+	})
+
+	type Greeter struct {
+		Name string `default:"Hiboot"`
+	}
+	greeter := new(Greeter)
+	t.Run("should inject default value", func(t *testing.T) {
+		err := instFactory.InjectDefaultValue(greeter)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, hiboot, greeter.Name)
+	})
+
+	type DevTester struct {
+		Greeter *Greeter `inject:""`
+		Home    string   `value:"${HOME}"`
+	}
+	devTester := new(DevTester)
+	instFactory.SetInstance(greeter)
+	t.Run("should inject into object", func(t *testing.T) {
+		err := instFactory.InjectIntoObject(devTester)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, hiboot, devTester.Greeter.Name)
+		assert.Equal(t, os.Getenv("HOME"), devTester.Home)
+	})
+
+	devTesterConstructor := func(g *Greeter) *DevTester {
+		return &DevTester{
+			Greeter: g,
+		}
+	}
+
+	t.Run("should inject into func", func(t *testing.T) {
+		obj, err := instFactory.InjectIntoFunc(devTesterConstructor)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, hiboot, obj.(*DevTester).Greeter.Name)
+	})
+
+	t.Run("should inject into method", func(t *testing.T) {
+		obj, err := instFactory.InjectIntoMethod(nil, nil)
+		assert.Equal(t, inject.ErrInvalidMethod, err)
+		assert.Equal(t, nil, obj)
+	})
+
+	svc := newHelloService()
+	t.Run("should inject into method", func(t *testing.T) {
+		typ := reflect.TypeOf(svc)
+		method, ok := typ.MethodByName("HelloWorld")
+		assert.Equal(t, true, ok)
+		obj, err := instFactory.InjectIntoMethod(svc, method)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, helloWorld, obj.(*HelloWorld).Message)
 	})
 }
 
@@ -212,4 +341,45 @@ func TestMapSet(t *testing.T) {
 
 	//Do you have the following classes? Welding, Automotive and English?
 	fmt.Println(allClasses.IsSuperset(mapset.NewSetFromSlice([]interface{}{"Welding", "Automotive", "English"}))) //true
+}
+
+type contextAwareObject struct {
+	at.ContextAware
+
+	context context.Context
+}
+
+func newContextAwareObject(ctx context.Context) *contextAwareObject {
+	//log.Infof("context: %v", ctx)
+	return &contextAwareObject{context: ctx}
+}
+
+func TestRuntimeInstance(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
+	//log.Debug("methods: ", numOfMethod)
+	testComponents := make([]*factory.MetaData, 0)
+
+	ctx := web.NewContext(nil)
+	ctxMd := factory.NewMetaData(reflector.GetLowerCamelFullName(new(context.Context)), ctx)
+	testComponents = append(testComponents,
+		ctxMd,
+		factory.NewMetaData(newContextAwareObject),
+	)
+
+	ic := cmap.New()
+	customProps := cmap.New()
+	customProps.Set("app.project", "runtime-test")
+	instFactory := instantiate.NewInstantiateFactory(ic, testComponents, customProps)
+	instFactory.AppendComponent(new(testService))
+	instFactory.BuildComponents()
+	dps := instFactory.GetInstances(new(at.ContextAware))
+	if len(dps) > 0 {
+		for i := 0; i < 3; i++ {
+			ri, err := instFactory.InjectContextAwareObjects(web.NewContext(nil), dps)
+			assert.Equal(t, nil, err)
+			log.Debug(ri.Items())
+			assert.Equal(t, ctx, ri.Get("context.context"))
+		}
+	}
+
 }

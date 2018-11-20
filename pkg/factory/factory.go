@@ -16,6 +16,7 @@
 package factory
 
 import (
+	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/system"
 	"hidevops.io/hiboot/pkg/utils/reflector"
 	"reflect"
@@ -31,16 +32,32 @@ const (
 // Factory interface
 type Factory interface{}
 
+type Instance interface {
+	Get(params ...interface{}) (retVal interface{})
+	Set(params ...interface{}) (err error)
+	Items() map[string]interface{}
+}
+
 // InstantiateFactory instantiate factory interface
 type InstantiateFactory interface {
 	Initialized() bool
 	SetInstance(params ...interface{}) (err error)
 	GetInstance(params ...interface{}) (retVal interface{})
-	GetInstances(params ...interface{}) (retVal []interface{})
+	GetInstances(params ...interface{}) (retVal []*MetaData)
 	Items() map[string]interface{}
 	AppendComponent(c ...interface{})
 	BuildComponents() (err error)
+	Builder() (builder system.Builder)
+	GetProperty(name string) interface{}
+	SetProperty(name string, value interface{}) InstantiateFactory
 	CustomProperties() map[string]interface{}
+	InjectIntoFunc(object interface{}) (retVal interface{}, err error)
+	InjectIntoMethod(owner, object interface{}) (retVal interface{}, err error)
+	InjectDefaultValue(object interface{}) error
+	InjectIntoObject(object interface{}) error
+	InjectDependency(object interface{}) (err error)
+	Replace(name string) interface{}
+	InjectContextAwareObjects(ctx context.Context, dps []*MetaData) (runtimeInstance Instance, err error)
 }
 
 // ConfigurableFactory configurable factory interface
@@ -48,7 +65,6 @@ type ConfigurableFactory interface {
 	InstantiateFactory
 	SystemConfiguration() *system.Configuration
 	Configuration(name string) interface{}
-	//Initialize(configurations cmap.ConcurrentMap) (err error)
 	BuildSystemConfig() (systemConfig *system.Configuration, err error)
 	Build(configs []*MetaData)
 }
@@ -95,5 +111,14 @@ func (c *Deps) Set(dep interface{}, value []string) {
 	}
 	c.deps[name] = value
 
+	return
+}
+
+// CastMetaData cast object to *factory.MetaData
+func CastMetaData(object interface{}) (metaData *MetaData) {
+	switch object.(type) {
+	case *MetaData:
+		metaData = object.(*MetaData)
+	}
 	return
 }
