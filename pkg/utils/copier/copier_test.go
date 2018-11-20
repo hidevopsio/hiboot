@@ -200,6 +200,12 @@ func TestCopyStruct(t *testing.T) {
 	copier.Copy(&employee, &user)
 	checkEmployee(employee, user, t, "Copy From Ptr To Ptr")
 
+	copier.Copy(employee, &user)
+	checkEmployee(employee, user, t, "Copy From Ptr To Struct")
+
+	copier.Copy(employee, user)
+	checkEmployee(employee, user, t, "Copy From Struct To Struct")
+
 	employee2 := Employee{}
 	copier.Copy(&employee2, user)
 	checkEmployee(employee2, user, t, "Copy From Struct To Ptr")

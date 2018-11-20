@@ -140,12 +140,24 @@ func TestDirName(t *testing.T) {
 func TestEnsureWorkDir(t *testing.T) {
 	wd := GetWorkDir()
 
-	res := EnsureWorkDir(1, "dir-does-not-exist")
-	assert.Equal(t, false, res)
+	t.Run("should return false on EnsureWorkDir when dir does not exist", func(t *testing.T) {
+		res := EnsureWorkDir(1, "dir-does-not-exist")
+		assert.Equal(t, false, res)
+	})
 
-	res = EnsureWorkDir(1, filepath.Join("config", "application.yml"))
-	assert.Equal(t, true, res)
-	assert.NotEqual(t, wd, GetWorkDir())
+	t.Run("should ensure work dir", func(t *testing.T) {
+		res := EnsureWorkDir(1, filepath.Join("config", "application.yml"))
+		assert.Equal(t, true, res)
+		assert.NotEqual(t, wd, GetWorkDir())
+	})
+
+	t.Run("should ensure work dir on go build and run", func(t *testing.T) {
+		os.Args[0] = "/private/var/folders/zw/ynx11jnx6j5gwbhkqqdqf0wm0000gn/T/___TestEnsureWorkDir_should_ensure_work_dir_on_go_build_and_run_in_hidevops_io_hiboot_pkg_utils_io"
+		os.Args = append(os.Args, "go_build_")
+		res := EnsureWorkDir(1, filepath.Join("config", "application.yml"))
+		assert.Equal(t, true, res)
+		assert.NotEqual(t, wd, GetWorkDir())
+	})
 }
 
 func TestCallerInfo(t *testing.T) {
