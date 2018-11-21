@@ -22,6 +22,7 @@ import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"net/http"
 	"reflect"
@@ -77,14 +78,10 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 		controller := field.Interface()
 		//log.Debug("controller: ", controller)
 
-		fieldValue := field.Elem()
+		//fieldValue := field.Elem()
 
 		// get context mapping
-		var contextMapping string
-		cp := fieldValue.FieldByName("ContextMapping")
-		if cp.IsValid() {
-			contextMapping = fmt.Sprintf("%v", cp.Interface())
-		}
+		contextMapping, ok := reflector.FindEmbeddedFieldTag(controller, "ContextPath", "value")
 
 		// parse method
 		fieldNames := camelcase.Split(fieldName)

@@ -203,7 +203,11 @@ func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 			err = f.instance.Set(name, inst)
 			// categorize instances
 			if metaData != nil {
-				fields := reflector.GetEmbeddedFields(metaData.MetaObject)
+				obj := metaData.MetaObject
+				if metaData.Instance != nil {
+					obj = metaData.Instance
+				}
+				fields := reflector.GetEmbeddedFields(obj)
 				for _, field := range fields {
 					typeName := reflector.GetLowerCamelFullNameByType(field.Type)
 					categorised, ok := f.categorized[typeName]
@@ -282,10 +286,10 @@ func (f *instantiateFactory) injectContextAwareDependencies(dps []*factory.MetaD
 			f.injectContextAwareDependencies(d.DepMetaData)
 		}
 		if d.ContextAware {
+			// making sure that the context aware instance does not exist before the dependency injection
 			if f.contextAwareInstance.Get(d.Name) == nil {
 				newItem := factory.CloneMetaData(d)
 				err = f.InjectDependency(newItem)
-				f.contextAwareInstance.Set(newItem)
 			}
 		}
 	}

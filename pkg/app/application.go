@@ -42,7 +42,7 @@ type Application interface {
 	Initialize() error
 	SetProperty(name string, value ...interface{}) Application
 	GetProperty(name string) (value interface{}, ok bool)
-	Run() error
+	Run()
 }
 
 // ApplicationContext is the alias interface of Application
@@ -199,9 +199,8 @@ func (a *BaseApplication) Use(handlers ...context.Handler) {
 }
 
 // Run run the application
-func (a *BaseApplication) Run() error {
+func (a *BaseApplication) Run() {
 	log.Warn("application is not implemented!")
-	return nil
 }
 
 // GetInstance get application instance by name
