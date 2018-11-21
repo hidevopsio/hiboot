@@ -18,23 +18,29 @@ package system
 // .include auto configuration starter should be included inside this slide
 // .active active profile
 type Profiles struct {
-	Filter  bool     `json:"filter" default:"false"`
+	// set to true or false to filter in included profiles or not
+	Filter bool `json:"filter" default:"false"`
+	// included profiles
 	Include []string `json:"include"`
-	Active  string   `json:"active" default:"${APP_PROFILES_ACTIVE:default}"`
+	// active profile
+	Active string `json:"active" default:"${APP_PROFILES_ACTIVE:default}"`
 }
 
 type banner struct {
+	// disable banner
 	Disabled bool `default:"false"`
 }
 
 // App is the properties of the application, it hold the base info of the application
 type App struct {
-	Project  string   `json:"project" default:"hidevopsio"`
-	Name     string   `json:"name" default:"hiboot-app"`
+	// project name
+	Project string `json:"project" default:"hidevopsio"`
+	// app name
+	Name string `json:"name" default:"hiboot-app"`
+	// profiles
 	Profiles Profiles `json:"profiles"`
-	Banner   banner
-	// TODO: should defined in application-version.yml
-	//Version        string   `json:"version" default:"0.0.1"`
+	// banner
+	Banner banner
 }
 
 // Server is the properties of http server
@@ -49,6 +55,8 @@ type Logging struct {
 
 // Env is the name value pair of environment variable
 type Env struct {
-	Name  string
+	// env name
+	Name string
+	// env value
 	Value string
 }

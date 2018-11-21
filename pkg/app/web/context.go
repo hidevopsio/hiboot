@@ -30,7 +30,6 @@ type Context struct {
 	// Optional Part 1: embed (optional but required if you don't want to override all context's methods)
 	// it's the context/context.go#context struct but you don't need to know it.
 	ctx.Context
-	//context.ExtendedContext
 }
 
 var _ ctx.Context = &Context{} // optionally: validate on compile-time if Context implements context.Context.
@@ -66,20 +65,20 @@ func (c *Context) HTML(htmlContents string) (int, error) {
 	return c.WriteString(htmlContents)
 }
 
-// RequestBody get RequestBody
-func (c *Context) RequestBody(data interface{}) error {
-	return RequestBody(c, data)
-}
-
-// RequestForm get RequestFrom
-func (c *Context) RequestForm(data interface{}) error {
-	return RequestForm(c, data)
-}
-
-// RequestParams get RequestParams
-func (c *Context) RequestParams(data interface{}) error {
-	return RequestParams(c, data)
-}
+//// RequestBody get RequestBody
+//func (c *Context) RequestBody(data interface{}) error {
+//	return RequestBody(c, data)
+//}
+//
+//// RequestForm get RequestFrom
+//func (c *Context) RequestForm(data interface{}) error {
+//	return RequestForm(c, data)
+//}
+//
+//// RequestParams get RequestParams
+//func (c *Context) RequestParams(data interface{}) error {
+//	return RequestParams(c, data)
+//}
 
 // handle i18n
 func (c *Context) translate(message string) string {

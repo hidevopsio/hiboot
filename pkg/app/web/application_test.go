@@ -110,6 +110,7 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 	app.Register(&FooBar{Name: "fooBar"})
 	app.Register(newFooBarService)
+	app.Register(newHelloContextAware)
 }
 
 func (c *FooController) Before(ctx context.Context) {
@@ -232,6 +233,51 @@ func (c *FooController) GetError() error {
 	return fmt.Errorf("buildconfigs.mio.io \"hello-world\" not found")
 }
 
+type FooRequestBody struct {
+	at.RequestBody
+	Name string `json:"name"`
+}
+
+func (c *FooController) GetRequestBody(request *FooRequestBody) string {
+	return request.Name
+}
+
+type FooRequestForm struct {
+	at.RequestForm
+	Name string `json:"name"`
+}
+
+func (c *FooController) GetRequestForm(request *FooRequestForm) string {
+	return request.Name
+}
+
+type FooRequestParams struct {
+	at.RequestParams
+	Name string `json:"name"`
+}
+
+func (c *FooController) GetRequestParams(request *FooRequestParams) string {
+	return request.Name
+}
+
+type HelloContextAware struct {
+	at.ContextAware
+
+	context context.Context
+}
+
+func newHelloContextAware(context context.Context) *HelloContextAware {
+	return &HelloContextAware{context: context}
+}
+
+func (c *FooController) GetContext(hca *HelloContextAware) string {
+	return "testing context aware dependency injection"
+}
+
+func (c *FooController) GetErr() float32 {
+	return 0.01
+}
+
 func (c *FooController) After() {
 	log.Debug("FooController.After")
 }
@@ -279,7 +325,7 @@ func (c *FoobarController) Get(request *FoobarRequestParams) (response model.Res
 // the lower cased foo will be the context mapping of the controller
 // context mapping can be overwritten by FooController.ContextMapping
 type HelloController struct {
-	web.Controller
+	at.RestController
 	fooBar *FooBar
 }
 
@@ -322,10 +368,10 @@ func (c *HelloController) GetAll(ctx context.Context) {
 
 // Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
 // the lower cased foo will be the context mapping of the controller
-// context mapping can be overwritten by FooController.ContextMapping
+// context path can be overwritten by the tag value of annotation at.ContextPath
 type HelloViewController struct {
-	web.Controller
-	ContextMapping string `value:"/"`
+	at.RestController
+	at.ContextPath `value:"/"`
 	fooBar         *FooBar
 }
 
@@ -449,6 +495,37 @@ func TestWebApplication(t *testing.T) {
 			WithJSON(&FooRequest{Name: "John"}).
 			Expect().Status(http.StatusOK).
 			Body().Equal("Hello, World")
+	})
+
+	t.Run("should parse request body GET /foo/requestBody", func(t *testing.T) {
+		testApp.Get("/foo/requestBody").
+			WithJSON(&FooRequestBody{Name: "foo"}).
+			Expect().Status(http.StatusOK).
+			Body().Equal("foo")
+	})
+
+	t.Run("should parse request body GET /foo/context", func(t *testing.T) {
+		testApp.Get("/foo/context").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should parse request body GET /foo/err", func(t *testing.T) {
+		testApp.Get("/foo/err").
+			Expect().Status(http.StatusInternalServerError)
+	})
+
+	//t.Run("should parse request body GET /foo/requestForm", func(t *testing.T) {
+	//	testApp.Get("/foo/requestForm").
+	//		WithFormField("name", "foo").
+	//		Expect().Status(http.StatusOK).
+	//		Body().Equal("foo")
+	//})
+
+	t.Run("should parse request body GET /foo/requestParams", func(t *testing.T) {
+		testApp.Get("/foo/requestParams").
+			WithQuery("name", "foo").
+			Expect().Status(http.StatusOK).
+			Body().Equal("foo")
 	})
 
 	t.Run("should return http.StatusUnauthorized after GET /bar", func(t *testing.T) {
