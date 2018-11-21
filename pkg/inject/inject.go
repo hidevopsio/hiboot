@@ -55,6 +55,7 @@ var (
 	//appFactory factory.ConfigurableFactory
 )
 
+// Inject is the interface for inject tag
 type Inject interface {
 	DefaultValue(object interface{}) error
 	IntoObject(object interface{}) error
@@ -67,6 +68,7 @@ type inject struct {
 	factory factory.InstantiateFactory
 }
 
+// NewInject is the constructor of inject
 func NewInject(factory factory.InstantiateFactory) Inject {
 	return &inject{factory: factory}
 }

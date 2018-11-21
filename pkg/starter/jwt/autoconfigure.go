@@ -66,5 +66,5 @@ func (c *configuration) Token() Token {
 
 // TokenProperties is the token properties parser
 func (c *configuration) TokenProperties(context context.Context) *TokenProperties {
-	return NewJwtProperties(context)
+	return newTokenProperties(context)
 }

@@ -234,6 +234,7 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 	return metaData
 }
 
+// CloneMetaData is the func for cloning meta data
 func CloneMetaData(src *MetaData) (dst *MetaData) {
 	dst = &MetaData{
 		Kind:         src.Kind,

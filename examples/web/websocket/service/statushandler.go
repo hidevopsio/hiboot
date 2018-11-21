@@ -8,12 +8,11 @@ import (
 	"hidevops.io/hiboot/pkg/starter/websocket"
 )
 
+// StatusHandler is the websocket handler
 type StatusHandler struct {
 	at.ContextAware
 	connection *websocket.Connection
 }
-
-type StatusHandlerConstructor interface{}
 
 func newStatusHandler(connection *websocket.Connection) *StatusHandler {
 	h := &StatusHandler{connection: connection}

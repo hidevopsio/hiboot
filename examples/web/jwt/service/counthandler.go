@@ -9,12 +9,11 @@ import (
 	"time"
 )
 
+// CountHandler is the websocket handler
 type CountHandler struct {
 	at.ContextAware
 	connection *websocket.Connection
 }
-
-type CountHandlerConstructor interface{}
 
 func newCountHandler(connection *websocket.Connection) *CountHandler {
 	h := &CountHandler{connection: connection}
