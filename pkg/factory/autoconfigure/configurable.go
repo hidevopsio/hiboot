@@ -123,7 +123,6 @@ func (f *configurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 
 	_, err = f.builder.Build(defaultProfileName, profile)
 	if err == nil {
-		// TODO: should separate instance to system and app
 		f.InjectIntoObject(systemConfig)
 		//replacer.Replace(systemConfig, systemConfig)
 
@@ -232,7 +231,7 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 		f.InjectDefaultValue(config)
 
 		// build properties, inject settings
-		cf, _ := f.builder.Build(name)
+		cf, _ := f.builder.Build(name, f.systemConfig.App.Profiles.Active)
 		// No properties needs to build, use default config
 		//if cf == nil {
 		//	confTyp := reflect.TypeOf(config)
