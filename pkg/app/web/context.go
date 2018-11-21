@@ -18,7 +18,6 @@ import (
 	ctx "github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/i18n"
 	"hidevops.io/hiboot/pkg/app/web/context"
-	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
 	"hidevops.io/hiboot/pkg/utils/mapstruct"
 	"hidevops.io/hiboot/pkg/utils/validator"
@@ -45,7 +44,7 @@ func NewContext(app ctx.Application) context.Context {
 // with an embedded context.Context inside it.
 // Required in order to run the handlers via this "*Context".
 func (c *Context) Do(handlers ctx.Handlers) {
-	log.Debug("Context.Do()")
+	//log.Debug("Context.Do()")
 	ctx.Do(c, handlers)
 }
 
