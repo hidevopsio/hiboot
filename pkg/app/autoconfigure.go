@@ -37,7 +37,7 @@ func appendParam(eliminator string, container []*factory.MetaData, params ...int
 	metaData := factory.NewMetaData(params...)
 
 	// append meta data
-	if metaData.Object != nil {
+	if metaData.MetaObject != nil {
 		retVal = append(retVal, metaData)
 		//return
 	}

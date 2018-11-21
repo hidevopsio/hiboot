@@ -21,20 +21,17 @@ import (
 	"testing"
 )
 
-func GetTestApplication(t *testing.T) web.TestApplication {
-	return web.RunTestApplication(t, newFooController)
-}
+func TestFooController(t *testing.T) {
 
-func TestFooGet(t *testing.T) {
-	GetTestApplication(t).
+	testApp := web.RunTestApplication(t, newFooController)
+
+	testApp.
 		Get("/foo").
-		WithQueryObject(fooRequest{Name: "Peter", Age: 18}).
+		WithQueryObject(fooRequestParam{Name: "Peter", Age: 18}).
 		Expect().Status(http.StatusOK)
-}
 
-func TestFooPost(t *testing.T) {
-	GetTestApplication(t).
+	testApp.
 		Post("/foo").
-		WithJSON(fooRequest{Name: "Mike", Age: 18}).
+		WithJSON(fooRequestBody{Name: "Mike", Age: 18}).
 		Expect().Status(http.StatusOK)
 }

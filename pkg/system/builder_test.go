@@ -28,19 +28,12 @@ type profiles struct {
 	Active  string   `json:"active"`
 }
 
-type app struct {
-	Project        string   `json:"project"`
-	Name           string   `json:"name"`
-	Profiles       profiles `json:"profiles"`
-	DataSourceType string   `json:"data_source_type"`
+type properties struct {
+	Name string `json:"name"`
 }
 
-type server struct {
-	Port int32 `json:"port"`
-}
-
-type logging struct {
-	Level string `json:"level"`
+type fakeConfiguration struct {
+	Properties properties `mapstructure:"fake"`
 }
 
 func init() {
@@ -52,38 +45,80 @@ func init() {
 var customProps = make(map[string]interface{})
 
 func TestBuilderBuild(t *testing.T) {
-	testProj := "system-configuration-test"
-	customProps["app.project"] = testProj
+	testProject := "system-configuration-test"
+	customProps["app.project"] = testProject
 	b := NewBuilder(&Configuration{},
 		filepath.Join(io.GetWorkDir(), "config"),
 		"application",
 		"yaml",
-		"local",
 		customProps)
 
+	cp, err := b.Build("default", "local")
 	t.Run("should build configuration properly", func(t *testing.T) {
-		cp, err := b.Build()
 		assert.Equal(t, nil, err)
 		c := cp.(*Configuration)
 		assert.Equal(t, "hiboot", c.App.Name)
-		assert.Equal(t, testProj, c.App.Project)
+		assert.Equal(t, testProject, c.App.Project)
 	})
 
 	t.Run("should build configuration properly", func(t *testing.T) {
-		cp, err := b.Build()
 		assert.Equal(t, nil, err)
 		c := cp.(*Configuration)
 		assert.Equal(t, "hiboot", c.App.Name)
-		log.Debugf("app: %v", b.Get("app"))
-		log.Debugf("app.name: %v", b.Get("app.name"))
-		log.Debugf("server: %v", b.Get("server"))
+		log.Debugf("app: %v", b.GetProperty("app"))
+		log.Debugf("app.name: %v", b.GetProperty("app.name"))
+		log.Debugf("server: %v", b.GetProperty("server"))
 	})
 
+	t.Run("should build fake configuration", func(t *testing.T) {
+		/*
+				# config/application.yml
+			    # fake.name is a reference of app.name
+				app:
+				  project: hidevopsio
+				  name: hiboot
+				  profiles:
+					include:
+					- foo
+
+				logging:
+				  level: debug
+
+				# added for test only
+				fake:
+				  name: ${app.name}
+		*/
+		b.SetConfiguration(new(fakeConfiguration))
+		b.Build("fake")
+		assert.Equal(t, b.GetProperty("app.name"), b.GetProperty("fake.name"))
+	})
+
+	t.Run("should replace property", func(t *testing.T) {
+		b.SetProperty("app.name", "foo").
+			SetProperty("app.profiles.include", []string{"foo", "bar"})
+
+		res := b.Replace("this is ${app.name} property")
+		assert.Equal(t, "this is foo property", res)
+
+		res = b.Replace("${app.profiles.include}")
+		assert.Equal(t, []string{"foo", "bar"}, res)
+	})
+
+	t.Run("should replace with default property", func(t *testing.T) {
+		res := b.Replace("this is ${default.value:default} property")
+		assert.Equal(t, "this is default property", res)
+	})
+
+	t.Run("should replace with environment variable", func(t *testing.T) {
+		res := b.Replace("this is ${HOME}")
+		home := os.Getenv("HOME")
+		assert.Equal(t, "this is "+home, res)
+	})
 }
 
 func TestBuilderBuildWithError(t *testing.T) {
 
-	b := &Builder{}
+	b := NewBuilder(nil, "", "", "", nil)
 
 	_, err := b.Build()
 	assert.Equal(t, nil, err)
@@ -96,18 +131,16 @@ func TestBuilderBuildWithProfile(t *testing.T) {
 		filepath.Join(io.GetWorkDir(), "config"),
 		"application",
 		"yaml",
-		"local",
 		customProps)
 
-	cp, err := b.BuildWithProfile()
+	cp, err := b.BuildWithProfile("local")
 	assert.Equal(t, nil, err)
 
 	c := cp.(*Configuration)
 	assert.Equal(t, "8080", c.Server.Port)
 	log.Print(c)
 
-	b.Profile = ""
-	_, err = b.BuildWithProfile()
+	_, err = b.BuildWithProfile("")
 	assert.Equal(t, nil, err)
 
 }
@@ -118,10 +151,9 @@ func TestFileDoesNotExist(t *testing.T) {
 		filepath.Join(io.GetWorkDir(), "config"),
 		"application",
 		"yaml",
-		"does-not-exist",
 		customProps)
 	t.Run("use default profile if custom profile does not exist", func(t *testing.T) {
-		_, err := b.Build()
+		_, err := b.Build("does-not-exist")
 		assert.Equal(t, nil, err)
 	})
 }
@@ -132,32 +164,31 @@ func TestWrongFileFormat(t *testing.T) {
 		filepath.Join(os.TempDir(), "config"),
 		"test",
 		"yaml",
-		"abc",
 		customProps)
 	io.CreateFile(os.TempDir(), "test-abc.yml")
 	io.WriterFile(os.TempDir(), "test-abc.yml", []byte(": 1234"))
 	t.Run("should report error: did not find expected key", func(t *testing.T) {
-		_, err := b.Build()
+		_, err := b.Build("abc")
 		assert.Equal(t, nil, err)
 	})
 	io.WriterFile(os.TempDir(), "test-abc.yml", []byte("abc:"))
 	t.Run("use default profile if custom profile does not exist", func(t *testing.T) {
-		_, err := b.Build()
+		_, err := b.Build("default")
 		assert.Equal(t, nil, err)
 	})
 }
 
-func TestProfileIsEmpty(t *testing.T) {
-
-	b := NewBuilder(Configuration{},
+func TestDefaultProfileOnly(t *testing.T) {
+	type emptyConfig struct {
+	}
+	b := NewBuilder(emptyConfig{},
 		filepath.Join(io.GetWorkDir(), "config"),
 		"application",
 		"yaml",
-		"",
 		customProps)
 
 	t.Run("use default profile if custom profile does not exist", func(t *testing.T) {
-		_, err := b.Build()
+		_, err := b.Build("default")
 		assert.Equal(t, nil, err)
 	})
 }
@@ -172,10 +203,9 @@ func TestWithoutReplacer(t *testing.T) {
 		path,
 		"application",
 		"yaml",
-		"xxx",
 		customProps)
 	io.CreateFile(path, testFile)
-	_, err := b.Build()
+	_, err := b.Build("xxx")
 	os.Remove(filepath.Join(path, testFile))
 	assert.Equal(t, nil, err)
 
@@ -186,7 +216,6 @@ func TestBuilderInit(t *testing.T) {
 		filepath.Join(os.TempDir(), "config"),
 		"foo",
 		"yaml",
-		"",
 		customProps)
 
 	err := b.Init()
@@ -194,14 +223,14 @@ func TestBuilderInit(t *testing.T) {
 }
 
 func TestBuilderSave(t *testing.T) {
-	b := NewBuilder(&Configuration{},
+	b := NewBuilder(nil,
 		filepath.Join(os.TempDir(), "config"),
 		"foo",
 		"yaml",
-		"",
 		customProps)
 
 	err := b.Init()
+	b.SetConfiguration(&Configuration{})
 	assert.Equal(t, nil, err)
 
 	c := &Configuration{

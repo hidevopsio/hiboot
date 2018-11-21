@@ -21,51 +21,68 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
+	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/io"
 	"hidevops.io/hiboot/pkg/utils/reflector"
+	"hidevops.io/hiboot/pkg/utils/replacer"
 	"hidevops.io/hiboot/pkg/utils/str"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 )
 
 // Builder is the config file (yaml, json) builder
-type Builder struct {
+type Builder interface {
+	Init() error
+	Build(profiles ...string) (interface{}, error)
+	BuildWithProfile(profile string) (interface{}, error)
+	Save(p interface{}) error
+	Replace(source string) (retVal interface{})
+	GetProperty(name string) (retVal interface{})
+	SetProperty(name string, val interface{}) Builder
+	SetConfiguration(in interface{})
+}
+
+type builder struct {
 	*viper.Viper
-	Path             string
-	Name             string
-	FileType         string
-	Profile          string
-	ConfigType       interface{}
+	path             string
+	name             string
+	fileType         string
+	configuration    interface{}
 	customProperties map[string]interface{}
 	profiles         []string
 }
 
-func NewBuilder(configType interface{}, path, name, fileType, profile string, customProperties map[string]interface{}) *Builder {
-	return &Builder{
-		Path:             path,
-		Name:             name,
-		FileType:         fileType,
-		Profile:          profile,
-		ConfigType:       configType,
+// NewBuilder is the constructor of system.Builder
+func NewBuilder(configuration interface{}, path, name, fileType string, customProperties map[string]interface{}) Builder {
+	return &builder{
+		Viper:            viper.New(),
+		path:             path,
+		name:             name,
+		fileType:         fileType,
+		configuration:    configuration,
 		customProperties: customProperties,
 	}
 }
 
 // New create new viper instance
-func (b *Builder) New(name string) {
-	b.Viper = viper.New()
-	b.AddConfigPath(b.Path)
+func (b *builder) config(name string) {
+	b.AddConfigPath(b.path)
 	b.SetConfigName(name)
-	b.SetConfigType(b.FileType)
+	b.SetConfigType(b.fileType)
+}
+
+func (b *builder) SetConfiguration(in interface{}) {
+	b.configuration = in
 }
 
 // Init create file if it's not exist
-func (b *Builder) Init() error {
-	return io.CreateFile(b.Path, b.Name+"."+b.FileType)
+func (b *builder) Init() error {
+	return io.CreateFile(b.path, b.name+"."+b.fileType)
 }
 
-func (b *Builder) isFileNotExist(path string) bool {
+func (b *builder) isFileNotExist(path string) bool {
 	for _, ext := range viper.SupportedExts {
 		if !io.IsPathNotExist(path + ext) {
 			return false
@@ -75,67 +92,74 @@ func (b *Builder) isFileNotExist(path string) bool {
 }
 
 // Build config file
-func (b *Builder) Build(profiles ...string) (interface{}, error) {
-	var pfs []string
-
-	if b.ConfigType != nil {
-		for _, field := range reflector.DeepFields(reflect.TypeOf(b.ConfigType)) {
-			t, ok := field.Tag.Lookup("mapstructure")
-			if ok {
-				pfs = append(pfs, t)
+func (b *builder) Build(profiles ...string) (conf interface{}, err error) {
+	// parse profiles
+	if b.configuration != nil {
+		for _, field := range reflector.DeepFields(reflect.TypeOf(b.configuration)) {
+			p, ok := field.Tag.Lookup("mapstructure")
+			if ok && !str.InSlice(p, profiles) {
+				profiles = append(profiles, p)
 			}
 		}
 	}
-	b.profiles = pfs
-	conf, err := b.Read(b.Name)
-	if err != nil {
-		//log.Errorf("failed to read: %v", b.Name)
-		return conf, nil
-	}
+	// save profiles
+	b.profiles = append(b.profiles, profiles...)
 
-	if len(profiles) == 0 && b.Profile != "" {
-		profiles = append(profiles, b.Profile)
+	if str.InSlice("default", profiles) {
+		b.read(b.name, false)
+		b.load(b.name, "")
 	}
 
 	for _, profile := range profiles {
-		name := b.Name + "-" + profile
+		name := b.name + "-" + profile
 		// allow the empty of the profile
-		configFile := filepath.Join(b.Path, name)
-		if profile == "" || b.isFileNotExist(configFile+".") {
-			//log.Debugf("config file: %v does not exist", configFile)
-			return conf, nil
+		configFile := filepath.Join(b.path, name)
+		if profile != "" && !b.isFileNotExist(configFile+".") {
+			b.read(name, true)
 		}
-
-		_, err = b.Read(name)
+		b.load(name, profile)
 	}
-
-	return conf, err
+	return b.configuration, err
 }
 
 // BuildWithProfile build config file
-func (b *Builder) BuildWithProfile() (interface{}, error) {
-	name := b.Name + "-" + b.Profile
-	// allow the empty of the profile
-	if b.Profile == "" || b.isFileNotExist(filepath.Join(b.Path, name)+".") {
-		return reflector.NewReflectType(b.ConfigType), nil
+func (b *builder) BuildWithProfile(profile string) (interface{}, error) {
+	name := b.name
+	if profile != "" {
+		name = name + "-" + profile
 	}
-
-	return b.Read(name)
+	// allow the empty of the profile
+	if profile == "" || b.isFileNotExist(filepath.Join(b.path, name)+".") {
+		return reflector.NewReflectType(b.configuration), nil
+	}
+	b.read(name, true)
+	return b.load(name, profile)
 }
 
 // Read single file
-func (b *Builder) Read(name string) (interface{}, error) {
-	b.New(name)
-	// create new instance
-	st := b.ConfigType
-	val := reflect.ValueOf(st)
-	//log.Debugf("value of configuration: %v, kind: %v", val, val.Kind())
-	cp := b.ConfigType
-	if val.Kind() == reflect.Struct {
-		cp = reflector.NewReflectType(st)
-	}
+func (b *builder) read(fullName string, merge bool) {
+
+	// config
+	b.config(fullName)
+
 	// read config
-	b.ReadInConfig()
+	if merge {
+		b.MergeInConfig()
+	} else {
+		b.ReadInConfig()
+	}
+}
+
+// Read single file
+func (b *builder) load(fullName, profile string) (interface{}, error) {
+
+	// create new instance
+	conf := b.configuration
+	val := reflect.ValueOf(conf)
+	//log.Debugf("value of configuration: %v, kind: %v", val, val.Kind())
+	if val.Kind() == reflect.Struct {
+		conf = reflector.NewReflectType(conf)
+	}
 
 	// set custom properties
 	for key, value := range b.customProperties {
@@ -144,14 +168,26 @@ func (b *Builder) Read(name string) (interface{}, error) {
 			b.Set(key, value)
 		}
 	}
-	err := b.Unmarshal(cp)
-	return cp, err
+
+	// iterate all and replace reference values or env
+	allKeys := b.AllKeys()
+	for _, key := range allKeys {
+		val := b.GetString(key)
+		if strings.Contains(val, "${") {
+			newVal := b.Replace(val)
+			b.Set(key, newVal)
+			log.Debugf(">>> replaced key: %v, value: %v, newVal: %v", key, val, newVal)
+		}
+	}
+
+	err := b.Unmarshal(conf)
+	return conf, err
 }
 
 // Save configurations to file
-func (b *Builder) Save(p interface{}) error {
+func (b *builder) Save(p interface{}) error {
 
-	b.New(b.Name)
+	b.config(b.name)
 
 	y, err := yaml.Marshal(p)
 	if err == nil {
@@ -163,4 +199,59 @@ func (b *Builder) Save(p interface{}) error {
 	}
 
 	return b.WriteConfig()
+}
+
+// Replace replace reference and
+func (b *builder) Replace(source string) (retVal interface{}) {
+	result := source
+	matches := replacer.GetMatches(source)
+	if len(matches) != 0 {
+		for _, m := range matches {
+			varFullName, varName := m[0], m[1]
+			// check if it contains default value
+			var defaultValue string
+			n := strings.Index(varName, ":")
+			if n > 0 {
+				defaultValue = varName[n+1:]
+				varName = varName[:n]
+				//log.Debugf("name: %v, default value: %v", varName, defaultValue)
+			}
+			prop := b.Get(varName)
+
+			var newVal string
+			if prop != nil {
+				switch prop.(type) {
+				case string:
+					newVal = prop.(string)
+					result = strings.Replace(result, varFullName, newVal, -1)
+				default:
+					retVal = prop
+					return
+				}
+			}
+
+			envValue := os.Getenv(varName)
+			// check if  varName == strings.ToUpper(varName), the assume that varName is environment variable
+			if envValue != "" || varName == strings.ToUpper(varName) {
+				result = strings.Replace(result, varFullName, envValue, -1)
+			}
+
+			if envValue == "" && newVal == "" && defaultValue != "" {
+				result = strings.Replace(result, varFullName, defaultValue, -1)
+			}
+			log.Debugf("replaced %v to %v", varName, result)
+		}
+	}
+	retVal = result
+	return
+}
+
+func (b *builder) GetProperty(name string) (retVal interface{}) {
+	retVal = b.Get(name)
+	return
+}
+
+func (b *builder) SetProperty(name string, val interface{}) Builder {
+	b.Set(name, val)
+	return b
 }

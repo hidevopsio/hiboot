@@ -16,7 +16,6 @@ package cli
 
 import (
 	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -46,9 +45,7 @@ const (
 // NewApplication create new cli application
 func NewApplication(cmd ...interface{}) Application {
 	a := new(application)
-	if err := a.initialize(cmd...); err != nil {
-		log.Fatal("failed to init cli application, err: %v", err)
-	}
+	a.initialize(cmd...)
 	return a
 }
 
@@ -101,11 +98,10 @@ func (a *application) Initialize() error {
 }
 
 // Run run the cli application
-func (a *application) Run() (err error) {
+func (a *application) Run() {
 	a.build()
 	//log.Debug(commandContainer)
 	if a.root != nil {
-		err = a.root.Exec()
+		a.root.Exec()
 	}
-	return
 }

@@ -139,18 +139,15 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 				if toField := dest.FieldByName(name); toField.IsValid() {
 					if toField.CanSet() {
 						if !set(toField, fromField) {
-							if err := Copy(toField.Addr().Interface(), fromField.Interface()); err != nil {
-								return err
-							}
+							err = Copy(toField.Addr().Interface(), fromField.Interface())
 						}
 					}
 				} else {
 					// try to set to method
 					var toMethod reflect.Value
+					toMethod = dest.MethodByName(name)
 					if dest.CanAddr() {
 						toMethod = dest.Addr().MethodByName(name)
-					} else {
-						toMethod = dest.MethodByName(name)
 					}
 
 					if toMethod.IsValid() && toMethod.Type().NumIn() == 1 && fromField.Type().AssignableTo(toMethod.Type().In(0)) {

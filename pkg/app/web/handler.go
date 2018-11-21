@@ -16,6 +16,9 @@ package web
 
 import (
 	"fmt"
+	"hidevops.io/hiboot/pkg/app/web/context"
+	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
 	"hidevops.io/hiboot/pkg/utils/reflector"
@@ -26,9 +29,15 @@ import (
 	"strings"
 )
 
+const (
+	success = "success"
+	failed  = "failed"
+)
+
 type request struct {
 	typeName string
 	name     string
+	fullName string
 	kind     reflect.Kind
 	genKind  reflect.Kind // e.g. convert int16 to int
 	typ      reflect.Type
@@ -36,6 +45,7 @@ type request struct {
 	val      reflect.Value
 	iVal     reflect.Value
 	pathIdx  int
+	callback func(ctx context.Context, data interface{}) error
 }
 
 type response struct {
@@ -56,6 +66,36 @@ type handler struct {
 	responses       []response
 	lenOfPathParams int
 	hasCtxField     bool
+	factory         factory.ConfigurableFactory
+	runtimeInstance factory.Instance
+	contextName     string
+	dependencies    []*factory.MetaData
+}
+
+type requestSet struct {
+	name     string
+	callback func(ctx context.Context, data interface{}) error
+}
+
+var requestSets []requestSet
+
+func newRequestTypeName(in interface{}) string {
+	return reflector.GetName(in)
+}
+
+func init() {
+	requestSets = []requestSet{
+		{newRequestTypeName(new(at.RequestForm)), RequestForm},
+		{newRequestTypeName(new(at.RequestParams)), RequestParams},
+		{newRequestTypeName(new(at.RequestBody)), RequestBody},
+	}
+}
+
+func newHandler(factory factory.ConfigurableFactory) *handler {
+	return &handler{
+		contextName: reflector.GetLowerCamelFullName(new(context.Context)),
+		factory:     factory,
+	}
 }
 
 func clean(in string) (out string) {
@@ -94,13 +134,6 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 		h.pathParams[i] = pathParam[1]
 	}
 
-	typeNames := []string{
-		model.RequestTypeForm,
-		model.RequestTypeParams,
-		model.RequestTypeBody,
-		model.Context,
-	}
-
 	h.requests = make([]request, h.numIn)
 	objVal := reflect.ValueOf(object)
 	idv := reflect.Indirect(objVal)
@@ -114,6 +147,17 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 	for i := 1; i < h.numIn; i++ {
 		typ := method.Type.In(i)
 		iTyp := reflector.IndirectType(typ)
+
+		// parse embedded annotation at.ContextAware
+		// append at.ContextAware dependencies
+		dp := h.factory.GetInstance(iTyp, factory.MetaData{})
+		if dp != nil {
+			cdp := dp.(*factory.MetaData)
+			if cdp.ContextAware {
+				h.dependencies = append(h.dependencies, dp.(*factory.MetaData))
+			}
+		}
+
 		h.requests[i].typ = typ
 		h.requests[i].iTyp = iTyp
 		if typ.Kind() == reflect.Slice {
@@ -137,13 +181,15 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 		}
 		h.requests[i].typeName = iTyp.Name()
 		if iTyp.Kind() == reflect.Struct {
-			for _, tn := range typeNames {
-				if field, ok := iTyp.FieldByName(tn); ok && field.Anonymous {
-					h.requests[i].typeName = tn
+			for _, tn := range requestSets {
+				if field, ok := iTyp.FieldByName(tn.name); ok && field.Anonymous {
+					h.requests[i].typeName = tn.name
+					h.requests[i].callback = tn.callback
 					break
 				}
 			}
 		}
+		h.requests[i].fullName = reflector.GetLowerCamelFullNameByType(iTyp)
 	}
 	h.lenOfPathParams = lenOfPathParams
 
@@ -161,8 +207,9 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 	}
 }
 
-func (h *handler) responseData(ctx *Context, numOut int, results []reflect.Value) {
+func (h *handler) responseData(ctx context.Context, numOut int, results []reflect.Value) {
 	if numOut == 0 {
+		ctx.StatusCode(http.StatusOK)
 		return
 	}
 
@@ -197,13 +244,13 @@ func (h *handler) responseData(ctx *Context, numOut int, results []reflect.Value
 
 			if respErr == nil {
 				response.SetCode(http.StatusOK)
-				response.SetMessage(ctx.translate("success"))
+				response.SetMessage(ctx.Translate(success))
 			} else {
 				if response.GetCode() == 0 {
 					response.SetCode(http.StatusInternalServerError)
 				}
 				// TODO: output error message directly? how about i18n
-				response.SetMessage(ctx.translate(respErr.Error()))
+				response.SetMessage(ctx.Translate(respErr.Error()))
 
 				// TODO: configurable status code in application.yml
 				ctx.StatusCode(response.GetCode())
@@ -215,12 +262,14 @@ func (h *handler) responseData(ctx *Context, numOut int, results []reflect.Value
 	}
 }
 
-func (h *handler) call(ctx *Context) {
+func (h *handler) call(ctx context.Context) {
 
 	var request interface{}
 	var reqErr error
 	var path string
 	var pvs []string
+	var runtimeInstance factory.Instance
+	//var err error
 
 	if h.lenOfPathParams != 0 {
 		path = ctx.Path()
@@ -228,37 +277,40 @@ func (h *handler) call(ctx *Context) {
 		pvs = strings.SplitN(path, "/", -1)
 	}
 
+	if len(h.dependencies) > 0 {
+		runtimeInstance, _ = h.factory.InjectContextAwareObjects(ctx, h.dependencies)
+	}
+
 	for i := 1; i < h.numIn; i++ {
 		req := h.requests[i]
 		request = req.iVal.Interface()
-		if req.kind == reflect.Struct {
-			switch req.typeName {
-			case model.RequestTypeForm:
-				reqErr = ctx.RequestForm(request)
-			case model.RequestTypeParams:
-				reqErr = ctx.RequestParams(request)
-			case model.RequestTypeBody:
-				reqErr = ctx.RequestBody(request)
-			case model.Context:
-				request = ctx
-			}
 
-			if reqErr != nil {
-				e := reqErr.Error()
-				log.Error(e)
-				return
-			}
-
+		if req.callback != nil {
+			reqErr = req.callback(ctx, request)
 			h.inputs[i] = reflect.ValueOf(request)
-			break
+		} else if req.kind == reflect.Interface && model.Context == req.typeName {
+			request = ctx
+			h.inputs[i] = reflect.ValueOf(request)
 		} else if h.lenOfPathParams != 0 {
 			strVal := pvs[req.pathIdx]
 			val := str.Convert(strVal, req.kind)
 			h.inputs[i] = reflect.ValueOf(val)
 		} else {
-			msg := fmt.Sprintf("input type: %v is not supported!", req.typ)
-			ctx.ResponseError(msg, http.StatusInternalServerError)
-			return
+			// inject instances
+			var inst interface{}
+			if runtimeInstance != nil {
+				inst = runtimeInstance.Get(req.fullName)
+			}
+			if inst == nil {
+				inst = h.factory.GetInstance(req.fullName)
+			}
+			if inst != nil {
+				h.inputs[i] = reflect.ValueOf(inst)
+			} else {
+				msg := fmt.Sprintf("input type: %v is not supported!", req.typ)
+				ctx.ResponseError(msg, http.StatusInternalServerError)
+				return
+			}
 		}
 	}
 

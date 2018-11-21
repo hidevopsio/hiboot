@@ -3,27 +3,28 @@ package service
 import (
 	"fmt"
 	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/starter/websocket"
 )
 
-type statusHandler struct {
-	connection websocket.Connection
+// StatusHandler is the websocket handler
+type StatusHandler struct {
+	at.ContextAware
+	connection *websocket.Connection
 }
 
-type StatusHandlerConstructor interface{}
-
-func NewStatusHandlerConstructor() StatusHandlerConstructor {
-	return func(connection websocket.Connection) websocket.Handler {
-		return &statusHandler{connection: connection}
-	}
+func newStatusHandler(connection *websocket.Connection) *StatusHandler {
+	h := &StatusHandler{connection: connection}
+	return h
 }
 
 func init() {
-	app.Register(NewStatusHandlerConstructor)
+	app.Register(newStatusHandler)
 }
 
-func (h *statusHandler) OnMessage(data []byte) {
+// OnMessage is the websocket message handler
+func (h *StatusHandler) OnMessage(data []byte) {
 	message := string(data)
 	log.Debugf("client: %v", message)
 
@@ -31,6 +32,7 @@ func (h *statusHandler) OnMessage(data []byte) {
 
 }
 
-func (h *statusHandler) OnDisconnect() {
+// OnDisconnect is the websocket disconnection handler
+func (h *StatusHandler) OnDisconnect() {
 	log.Debugf("Connection with ID: %v has been disconnected!", h.connection.ID())
 }

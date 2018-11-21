@@ -84,9 +84,9 @@ func (a *application) Initialize() error {
 }
 
 // Run run web application
-func (a *application) Run() (err error) {
+func (a *application) Run() {
 	serverPort := ":8080"
-	err = a.build()
+	err := a.build()
 	conf := a.SystemConfig()
 	if conf != nil && conf.Server.Port != "" {
 		serverPort = fmt.Sprintf(":%v", conf.Server.Port)
@@ -97,7 +97,6 @@ func (a *application) Run() (err error) {
 		log.Infof("Started %v in %f seconds", conf.App.Name, timeDiff.Seconds())
 		err = a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(defaultConfiguration()))
 	}
-	return
 }
 
 // Init init web application
@@ -190,9 +189,6 @@ func NewApplication(controllers ...interface{}) app.Application {
 	a := new(application)
 	app.Register(a)
 	a.startUpTime = time.Now()
-	err := a.initialize(controllers...)
-	if err != nil {
-		os.Exit(1)
-	}
+	a.initialize(controllers...)
 	return a
 }

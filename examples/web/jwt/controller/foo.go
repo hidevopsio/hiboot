@@ -16,22 +16,35 @@ package controller
 
 import (
 	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/app/web/context"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/model"
 )
 
-type fooRequest struct {
+type fooRequestBody struct {
+	at.RequestBody
+
+	Name string `json:"name" validate:"required"`
+	Age  int    `json:"age"`
+}
+
+type fooRequestParam struct {
+	at.RequestParams
+
 	Name string `json:"name" validate:"required"`
 	Age  int    `json:"age"`
 }
 
 type fooResponse struct {
+	at.ResponseBody
+
 	Greeting string `json:"greeting"`
 	Age      int    `json:"age"`
 }
 
 type fooController struct {
-	web.Controller
+	at.RestController
 }
 
 // init - add &FooController{} to web application
@@ -44,36 +57,34 @@ func newFooController() *fooController {
 }
 
 // Before intercept all requests that coming into this controller
-func (c *fooController) Before(ctx *web.Context) {
+func (c *fooController) Before(ctx context.Context) {
 	log.Debug("FooController.Before")
 	ctx.Next()
 }
 
 // Post endpoint POST /foo
-func (c *fooController) Post(ctx *web.Context) {
+func (c *fooController) Post(request *fooRequestBody) (response model.Response, err error) {
 	log.Debug("FooController.Post")
+	response = new(model.BaseResponse)
+	response.SetData(&fooResponse{
+		Greeting: "Hello, " + request.Name,
+		Age:      request.Age})
 
-	foo := &fooRequest{}
-	if ctx.RequestBody(foo) == nil {
-		ctx.ResponseBody("success", &fooResponse{Greeting: "Hello, " + foo.Name})
-	}
-
+	return
 }
 
 // Get endpoint GET /foo
-func (c *fooController) Get(ctx *web.Context) {
+func (c *fooController) Get(request *fooRequestParam) (response model.Response, err error) {
 	log.Debug("FooController.Get")
+	response = new(model.BaseResponse)
+	response.SetData(&fooResponse{
+		Greeting: "Hello, " + request.Name,
+		Age:      request.Age})
 
-	foo := &fooRequest{}
-
-	if ctx.RequestParams(foo) == nil {
-		ctx.ResponseBody("success", &fooResponse{
-			Greeting: "Hello, " + foo.Name,
-			Age:      foo.Age})
-	}
+	return
 }
 
 // After interceptor of the controller
-func (c *fooController) After(ctx *web.Context) {
+func (c *fooController) After(ctx context.Context) {
 	log.Debug("FooController.After")
 }

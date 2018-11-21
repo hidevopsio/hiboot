@@ -5,6 +5,7 @@ import (
 	"github.com/kataras/iris"
 	irsctx "github.com/kataras/iris/context"
 	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 )
@@ -26,10 +27,8 @@ func init() {
 }
 
 // Context is the instance of context.Context
-func (c *configuration) Context(app *webApp) *Context {
-	ctx := &Context{
-		Context: irsctx.NewContext(app),
-	}
+func (c *configuration) Context(app *webApp) context.Context {
+	ctx := NewContext(app)
 
 	if c.Properties.View.Enabled {
 		v := c.Properties.View
@@ -43,10 +42,7 @@ func (c *configuration) Context(app *webApp) *Context {
 	}
 
 	app.ContextPool.Attach(func() irsctx.Context {
-		return &Context{
-			// Optional Part 3:
-			Context: irsctx.NewContext(app),
-		}
+		return ctx
 	})
 
 	return ctx

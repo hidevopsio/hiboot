@@ -191,8 +191,11 @@ func Replace(to interface{}, root interface{}) error {
 					Replace(child, root)
 				} else {
 					if dv != "" && dstType == "string" && dst.IsValid() && dst.CanSet() {
-						newStr := ReplaceStringVariables(dv, root)
-						dst.SetString(newStr.(string))
+						newVal := ReplaceStringVariables(dv, root)
+						switch newVal.(type) {
+						case string:
+							dst.SetString(newVal.(string))
+						}
 					}
 				}
 			} else {

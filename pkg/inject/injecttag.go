@@ -16,6 +16,7 @@ package inject
 
 import (
 	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/io"
 	"hidevops.io/hiboot/pkg/utils/mapstruct"
 	"hidevops.io/hiboot/pkg/utils/str"
@@ -30,9 +31,9 @@ func init() {
 	AddTag(new(injectTag))
 }
 
-func getInstance(cf factory.ConfigurableFactory, pkgName, name string) (retVal interface{}) {
-	name = str.ToLowerCamel(name)
-	retVal = cf.GetInstance(pkgName + "." + name)
+func getInstance(cf factory.InstantiateFactory, pkgName, name string) (retVal interface{}) {
+	name = pkgName + "." + str.ToLowerCamel(name)
+	retVal = cf.GetInstance(name)
 	return
 }
 
@@ -51,14 +52,16 @@ func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, tag 
 		pkgName := io.DirName(ft.PkgPath())
 
 		// get the user specific instance first
-		retVal = getInstance(t.ConfigurableFactory, pkgName, tag)
+		if tag != "" {
+			retVal = getInstance(t.instantiateFactory, pkgName, tag)
+		}
 		// else to find with the field name if above is not found
 		if retVal == nil {
-			retVal = getInstance(t.ConfigurableFactory, pkgName, field.Name)
+			retVal = getInstance(t.instantiateFactory, pkgName, field.Name)
 		}
 		// else to find with the type name if above is not found
 		if retVal == nil {
-			retVal = getInstance(t.ConfigurableFactory, pkgName, ft.Name())
+			retVal = getInstance(t.instantiateFactory, pkgName, ft.Name())
 		}
 		// else create new instance at runtime
 		if retVal == nil && field.Type.Kind() != reflect.Interface {
@@ -66,11 +69,11 @@ func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, tag 
 			retVal = o.Interface()
 		}
 		// inject field value
+		// TODO: do we need this feature?
 		if properties.Count() != 0 {
 			mapstruct.Decode(retVal, properties.Items())
 		}
-	} else {
-		return
 	}
+	log.Debugf("inject tag: %v ==> %v %v: %v", tag, field.Name, field.Type, retVal)
 	return retVal
 }

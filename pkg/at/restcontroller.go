@@ -16,5 +16,10 @@
 package at
 
 // RestController is the annotation that declare current controller is the RESTful Controller
-type RestController interface {
-}
+type RestController interface{}
+
+// JwtRestController is the annotation that declare current controller is the RESTful Controller with JWT support
+type JwtRestController interface{}
+
+// ContextPath is the annotation that set the context path of a controller
+type ContextPath interface{}
