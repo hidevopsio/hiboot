@@ -34,13 +34,11 @@ import (
 const (
 	// System configuration name
 	System = "system"
-	//application = "application"
-	//config      = "config"
-	//yaml        = "yaml"
-	//
+
+	// PropAppProfilesActive is the property name "app.profiles.active"
 	PropAppProfilesActive = "app.profiles.active"
-	//
-	//// EnvAppProfilesActive is the environment variable name APP_PROFILES_ACTIVE
+
+	// EnvAppProfilesActive is the environment variable name APP_PROFILES_ACTIVE
 	EnvAppProfilesActive = "APP_PROFILES_ACTIVE"
 
 	// PostfixConfiguration is the Configuration postfix

@@ -32,7 +32,8 @@ type TokenProperties struct {
 	context context.Context
 }
 
-func NewJwtProperties(context context.Context) *TokenProperties {
+// newTokenProperties is the constructor of TokenProperties
+func newTokenProperties(context context.Context) *TokenProperties {
 	return &TokenProperties{context: context}
 }
 

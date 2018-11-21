@@ -54,6 +54,7 @@ type builder struct {
 	profiles         []string
 }
 
+// NewBuilder is the constructor of system.Builder
 func NewBuilder(configuration interface{}, path, name, fileType string, customProperties map[string]interface{}) Builder {
 	return &builder{
 		Viper:            viper.New(),

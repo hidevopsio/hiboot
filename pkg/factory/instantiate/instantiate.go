@@ -39,7 +39,6 @@ var (
 )
 
 const (
-	System      = "system"
 	application = "application"
 	config      = "config"
 	yaml        = "yaml"
