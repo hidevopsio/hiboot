@@ -141,7 +141,6 @@ func (a *BaseApplication) Build() {
 	configurableFactory := autoconfigure.NewConfigurableFactory(instantiateFactory, a.configurations)
 	instantiateFactory.SetInstance(factory.ConfigurableFactoryName, configurableFactory)
 	instantiateFactory.AppendComponent(factory.ConfigurableFactoryName, configurableFactory)
-	//inject.SetFactory(configurableFactory)
 	a.configurableFactory = configurableFactory
 
 	a.postProcessor = newPostProcessor(instantiateFactory)
@@ -174,7 +173,6 @@ func (a *BaseApplication) BuildConfigurations() {
 	a.configurableFactory.Build(configContainer)
 	// build components
 	a.configurableFactory.BuildComponents()
-
 }
 
 // ConfigurableFactory get ConfigurableFactory

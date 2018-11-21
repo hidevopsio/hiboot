@@ -68,6 +68,7 @@ func TestBuilderBuild(t *testing.T) {
 		log.Debugf("app: %v", b.GetProperty("app"))
 		log.Debugf("app.name: %v", b.GetProperty("app.name"))
 		log.Debugf("server: %v", b.GetProperty("server"))
+		log.Debugf("server port: %v", b.GetProperty("server.port"))
 	})
 
 	t.Run("should build fake configuration", func(t *testing.T) {
@@ -137,7 +138,7 @@ func TestBuilderBuildWithProfile(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	c := cp.(*Configuration)
-	assert.Equal(t, "8080", c.Server.Port)
+	assert.Equal(t, "8081", c.Server.Port)
 	log.Print(c)
 
 	_, err = b.BuildWithProfile("")

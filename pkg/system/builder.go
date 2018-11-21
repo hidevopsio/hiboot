@@ -232,7 +232,7 @@ func (b *builder) Replace(source string) (retVal interface{}) {
 
 			envValue := os.Getenv(varName)
 			// check if  varName == strings.ToUpper(varName), the assume that varName is environment variable
-			if envValue != "" || varName == strings.ToUpper(varName) {
+			if envValue != "" || (varName == strings.ToUpper(varName) && defaultValue == "") {
 				result = strings.Replace(result, varFullName, envValue, -1)
 			}
 
