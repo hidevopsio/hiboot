@@ -112,7 +112,6 @@ func (a *application) build() (err error) {
 		systemConfig.App.Profiles.Include = append(systemConfig.App.Profiles.Include, Profile)
 	}
 	if systemConfig != nil {
-		log.SetLevel(systemConfig.Logging.Level)
 		log.Infof("Starting Hiboot web application %v on localhost with PID %v", systemConfig.App.Name, os.Getpid())
 		log.Infof("Working directory: %v", a.WorkDir)
 		log.Infof("The following profiles are active: %v, %v", systemConfig.App.Profiles.Active, systemConfig.App.Profiles.Include)

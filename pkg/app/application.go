@@ -146,6 +146,9 @@ func (a *BaseApplication) Build() {
 	a.postProcessor = newPostProcessor(instantiateFactory)
 
 	a.systemConfig, _ = configurableFactory.BuildSystemConfig()
+
+	// set logging level
+	log.SetLevel(a.systemConfig.Logging.Level)
 }
 
 // SystemConfig returns application config
