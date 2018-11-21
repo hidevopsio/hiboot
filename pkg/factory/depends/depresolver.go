@@ -48,6 +48,7 @@ func (s depResolver) Resolve() (resolved Graph, err error) {
 
 func (s depResolver) findDependencyIndex(depName string) int {
 	for i, item := range s {
+		// find type name
 		if item.TypeName == depName {
 			return i
 		}

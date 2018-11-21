@@ -147,3 +147,49 @@ func TestUtils(t *testing.T) {
 		assert.Equal(t, dst.Type, src.Type)
 	})
 }
+
+func TestParseParams(t *testing.T) {
+	type service1 struct{}
+	type service2 struct{}
+	type Service3 struct {
+		service2 service2
+	}
+
+	type service4 struct {
+		Service3 `depends:"factory.service2"`
+	}
+
+	svc1 := new(service1)
+	svc2 := new(service2)
+	svc3 := new(Service3)
+	md := NewMetaData(new(service4))
+
+	iTyp := reflector.IndirectType(reflect.TypeOf(svc3))
+
+	testData := []struct {
+		p1   interface{}
+		p2   interface{}
+		name string
+		obj  interface{}
+	}{
+		{md, nil, "factory.service4", md},
+		{svc1, nil, "factory.service1", svc1},
+		{service1{}, svc1, "factory.service1", svc1},
+		{"factory.myService", svc2, "factory.myService", svc2},
+		{"myService", svc2, "factory.myService", svc2},
+		{"factory.service", nil, "factory.service", nil},
+		{iTyp, MetaData{}, "factory.service3", MetaData{}},
+	}
+
+	var name string
+	var obj interface{}
+	for _, d := range testData {
+		if d.p2 == nil {
+			name, obj = ParseParams(d.p1)
+		} else {
+			name, obj = ParseParams(d.p1, d.p2)
+		}
+		assert.Equal(t, name, d.name)
+		assert.Equal(t, obj, d.obj)
+	}
+}
