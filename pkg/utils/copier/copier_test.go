@@ -115,15 +115,19 @@ func TestCopier(t *testing.T) {
 			to:   &NestedFoo{},
 			err:  nil,
 		},
+		{
+			name: "copy source and destination are both invalid",
+			from: nil,
+			to:   nil,
+			err:  errors.New("copy to value is unaddressable"),
+		},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			err := copier.Copy(testCase.to, testCase.from)
 			assert.Equal(t, testCase.err, err)
 		})
-
 	}
-
 }
 
 type User struct {
@@ -199,6 +203,12 @@ func TestCopyStruct(t *testing.T) {
 
 	copier.Copy(&employee, &user)
 	checkEmployee(employee, user, t, "Copy From Ptr To Ptr")
+
+	copier.Copy(employee, &user)
+	checkEmployee(employee, user, t, "Copy From Ptr To Struct")
+
+	copier.Copy(employee, user)
+	checkEmployee(employee, user, t, "Copy From Struct To Struct")
 
 	employee2 := Employee{}
 	copier.Copy(&employee2, user)

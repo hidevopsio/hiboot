@@ -19,36 +19,32 @@ import (
 	"errors"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
-	"hidevops.io/hiboot/pkg/inject"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/system"
 	"hidevops.io/hiboot/pkg/system/types"
 	"hidevops.io/hiboot/pkg/utils/cmap"
-	"hidevops.io/hiboot/pkg/utils/gotest"
 	"hidevops.io/hiboot/pkg/utils/io"
 	"hidevops.io/hiboot/pkg/utils/reflector"
-	"hidevops.io/hiboot/pkg/utils/replacer"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"os"
-	"path/filepath"
 	"reflect"
 	"strings"
 )
 
 const (
 	// System configuration name
-	System      = "system"
-	application = "application"
-	config      = "config"
-	yaml        = "yaml"
+	System = "system"
 
-	propAppProfilesActive = "app.profiles.active"
+	// PropAppProfilesActive is the property name "app.profiles.active"
+	PropAppProfilesActive = "app.profiles.active"
 
 	// EnvAppProfilesActive is the environment variable name APP_PROFILES_ACTIVE
 	EnvAppProfilesActive = "APP_PROFILES_ACTIVE"
 
 	// PostfixConfiguration is the Configuration postfix
 	PostfixConfiguration = "Configuration"
+
+	defaultProfileName = "default"
 )
 
 var (
@@ -75,11 +71,11 @@ type configurableFactory struct {
 	factory.InstantiateFactory
 	configurations cmap.ConcurrentMap
 	systemConfig   *system.Configuration
-	builder        *system.Builder
 
 	preConfigureContainer  []*factory.MetaData
 	configureContainer     []*factory.MetaData
 	postConfigureContainer []*factory.MetaData
+	builder                system.Builder
 }
 
 // NewConfigurableFactory is the constructor of configurableFactory
@@ -91,22 +87,10 @@ func NewConfigurableFactory(instantiateFactory factory.InstantiateFactory, confi
 
 	f.configurations = configurations
 	f.SetInstance("configurations", configurations)
+
+	f.builder = f.Builder()
 	return f
 }
-
-//// Initialize initialize ConfigurableFactory
-//func (f *configurableFactory) Initialize(configurations cmap.ConcurrentMap) (err error) {
-//	if f.InstantiateFactory == nil {
-//		return ErrFactoryCannotBeNil
-//	}
-//	if !f.Initialized() {
-//		return ErrFactoryIsNotInitialized
-//	}
-//	f.configurations = configurations
-//	f.SetInstance("configurations", configurations)
-//
-//	return
-//}
 
 // SystemConfiguration getter
 func (f *configurableFactory) SystemConfiguration() *system.Configuration {
@@ -124,40 +108,30 @@ func (f *configurableFactory) Configuration(name string) interface{} {
 
 // BuildSystemConfig build system configuration
 func (f *configurableFactory) BuildSystemConfig() (systemConfig *system.Configuration, err error) {
-	workDir := io.GetWorkDir()
-	systemConfig = new(system.Configuration)
-	customProps := f.CustomProperties()
+	systemConfig = f.GetInstance(system.Configuration{}).(*system.Configuration)
+	f.InjectDefaultValue(systemConfig)
 	profile := os.Getenv(EnvAppProfilesActive)
-	pf, ok := customProps[propAppProfilesActive]
-	if ok {
-		profile = pf.(string)
-	}
-	if profile == "" {
-		os.Setenv(EnvAppProfilesActive, "default")
-	}
-	f.builder = system.NewBuilder(systemConfig,
-		filepath.Join(workDir, config),
-		application,
-		yaml,
-		profile,
-		customProps,
-	)
 
-	f.SetInstance("systemConfiguration", systemConfig)
-	inject.DefaultValue(systemConfig)
-	_, err = f.builder.Build()
+	if profile == "" {
+		profile = defaultProfileName
+	}
+	f.builder.SetProperty(PropAppProfilesActive, profile)
+
+	for prop, val := range f.CustomProperties() {
+		f.builder.SetProperty(prop, val)
+	}
+
+	_, err = f.builder.Build(defaultProfileName, profile)
 	if err == nil {
 		// TODO: should separate instance to system and app
-		inject.IntoObject(systemConfig)
-		replacer.Replace(systemConfig, systemConfig)
+		f.InjectIntoObject(systemConfig)
+		//replacer.Replace(systemConfig, systemConfig)
 
 		f.configurations.Set(System, systemConfig)
 
 		f.systemConfig = systemConfig
 	}
 
-	appName := f.builder.Get("app")
-	log.Debugf("app.name: %v", appName)
 	return
 }
 
@@ -165,7 +139,7 @@ func (f *configurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 func (f *configurableFactory) Build(configs []*factory.MetaData) {
 	// categorize configurations first, then inject object if necessary
 	for _, item := range configs {
-		if reflector.HasEmbeddedFieldType(item.Object, new(at.AutoConfiguration)) {
+		if reflector.HasEmbeddedFieldType(item.MetaObject, new(at.AutoConfiguration)) {
 			f.configureContainer = append(f.configureContainer, item)
 		} else {
 			err := ErrInvalidObjectType
@@ -181,7 +155,9 @@ func (f *configurableFactory) Instantiate(configuration interface{}) (err error)
 	cv := reflect.ValueOf(configuration)
 	icv := reflector.Indirect(cv)
 
-	// inject configuration before instantiation
+	//if !cv.IsValid() {
+	//	return ErrInvalidObjectType
+	//}
 	configType := cv.Type()
 	//log.Debug("type: ", configType)
 	//name := configType.Elem().Name()
@@ -205,9 +181,9 @@ func (f *configurableFactory) Instantiate(configuration interface{}) (err error)
 			deps := runtimeDeps.Get(method.Name)
 
 			metaData := &factory.MetaData{
-				Name:    pkgName + "." + methodName,
-				Object:  method,
-				Depends: deps,
+				Name:       pkgName + "." + methodName,
+				MetaObject: method,
+				DepNames:   deps,
 			}
 			f.AppendComponent(configuration, metaData)
 		} else {
@@ -217,15 +193,9 @@ func (f *configurableFactory) Instantiate(configuration interface{}) (err error)
 	return
 }
 
-// appProfilesActive getter
-func (f *configurableFactory) appProfilesActive() string {
-	//if f.systemConfig == nil {
-	//	return os.Getenv(EnvAppProfilesActive)
-	//}
-	return f.systemConfig.App.Profiles.Active
-}
-
 func (f *configurableFactory) parseName(item *factory.MetaData) string {
+
+	//return item.PkgName
 	name := strings.Replace(item.TypeName, PostfixConfiguration, "", -1)
 	name = str.ToLowerCamel(name)
 
@@ -237,30 +207,32 @@ func (f *configurableFactory) parseName(item *factory.MetaData) string {
 
 func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 
-	isTestRunning := gotest.IsRunning()
 	for _, item := range cfgContainer {
 		name := f.parseName(item)
-		config := item.Object
+		config := item.MetaObject
 
+		isContextAware := reflector.HasEmbeddedFieldType(item.MetaObject, new(at.ContextAware))
 		// TODO: should check if profiles is enabled str.InSlice(name, sysconf.App.Profiles.Include)
-		if !isTestRunning && f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
+		if f.systemConfig.App.Profiles.Filter &&
+			!isContextAware &&
+			f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
 			continue
 		}
-		log.Debugf("Auto configure %v starter", name)
+		log.Infof("Auto configure %v starter on %v", item.PkgName, item.Type)
 
 		// inject into func
 		if item.Kind == types.Func {
-			config, _ = inject.IntoFunc(config)
+			config, _ = f.InjectIntoFunc(config)
 		}
 
 		// inject properties
-		f.builder.ConfigType = config
+		f.builder.SetConfiguration(config)
 
 		// inject default value
-		inject.DefaultValue(config)
+		f.InjectDefaultValue(config)
 
 		// build properties, inject settings
-		cf, _ := f.builder.Build(name, f.appProfilesActive())
+		cf, _ := f.builder.Build(name)
 		// No properties needs to build, use default config
 		//if cf == nil {
 		//	confTyp := reflect.TypeOf(config)
@@ -273,18 +245,21 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 		//}
 
 		// replace references and environment variables
-		if f.systemConfig != nil {
-			replacer.Replace(cf, f.systemConfig)
-		}
-		inject.IntoObject(cf)
-		replacer.Replace(cf, cf)
+		//if f.systemConfig != nil {
+		//	replacer.Replace(cf, f.systemConfig)
+		//}
+		f.InjectIntoObject(cf)
+		//replacer.Replace(cf, cf)
 
 		// instantiation
 		f.Instantiate(cf)
 		// save configuration
-		if _, ok := f.configurations.Get(name); ok {
-			log.Fatalf("[factory] configuration name %v is already taken", name)
-		}
-		f.configurations.Set(name, cf)
+
+		configName := name
+		//if _, ok := f.configurations.Get(name); ok {
+		//	configName = reflector.GetFullName(cf)
+		//}
+		// TODO: should set full name instead
+		f.configurations.Set(configName, cf)
 	}
 }

@@ -297,31 +297,79 @@ func HasEmbeddedField(object interface{}, name string) bool {
 
 // HasEmbeddedFieldType check if has embedded fieled
 func HasEmbeddedFieldType(object interface{}, expected interface{}) (found bool) {
+	if object == nil {
+		return false
+	}
 	typ, _ := GetObjectType(object)
 	expectedTyp, _ := GetObjectType(expected)
 
-	field := GetEmbeddedFieldByType(typ, expectedTyp.Name(), expectedTyp.Kind())
+	_, ok := GetEmbeddedFieldByType(typ, expectedTyp.Name(), expectedTyp.Kind())
 
-	return field.Anonymous
+	return ok
 }
 
 // GetEmbeddedFieldByType get embedded interface field by type
-func GetEmbeddedFieldByType(typ reflect.Type, name string, kind ...reflect.Kind) (field reflect.StructField) {
+func GetEmbeddedFieldByType(typ reflect.Type, name string, kind ...reflect.Kind) (field reflect.StructField, ok bool) {
 	expectedKind := reflect.Interface
 	if len(kind) > 0 {
 		expectedKind = kind[0]
 	}
-	if typ.Kind() == reflect.Struct {
-		for i := 0; i < typ.NumField(); i++ {
+	k := typ.Kind()
+	if k == reflect.Struct {
+		numField := typ.NumField()
+		for i := 0; i < numField; i++ {
 			v := typ.Field(i)
 			if v.Anonymous {
 				if v.Type.Kind() == expectedKind && (name == "" || v.Name == name) {
-					return v
+					field = v
+					ok = true
+					break
+				} else {
+					field, ok = GetEmbeddedFieldByType(v.Type, name)
+					if ok {
+						break
+					}
 				}
-				return GetEmbeddedFieldByType(v.Type, name)
 			}
 		}
 	}
+	return
+}
+
+// GetEmbeddedFieldsByType get embedded interface fields by type
+func GetEmbeddedFieldsByType(typ reflect.Type, kind ...reflect.Kind) (fields []reflect.StructField) {
+	expectedKind := reflect.Interface
+	if len(kind) > 0 {
+		expectedKind = kind[0]
+	}
+	if typ == nil {
+		return
+	}
+	k := typ.Kind()
+	if k == reflect.Struct {
+		numField := typ.NumField()
+		for i := 0; i < numField; i++ {
+			v := typ.Field(i)
+			if v.Anonymous {
+				if v.Type.Kind() == expectedKind {
+					fields = append(fields, v)
+				} else {
+					f := GetEmbeddedFieldsByType(v.Type)
+					fields = append(fields, f...)
+				}
+			}
+		}
+	}
+	return
+}
+
+// GetEmbeddedFields get embedded interface fields
+func GetEmbeddedFields(object interface{}, kind ...reflect.Kind) (fields []reflect.StructField) {
+	if object == nil {
+		return
+	}
+	typ, _ := GetObjectType(object)
+	fields = GetEmbeddedFieldsByType(typ, kind...)
 	return
 }
 
@@ -333,7 +381,10 @@ func GetEmbeddedField(object interface{}, name string, dataTypes ...reflect.Kind
 
 	typ, ok := GetObjectType(object)
 	if ok {
-		field = GetEmbeddedFieldByType(typ, name, dataTypes...)
+		f, ok := GetEmbeddedFieldByType(typ, name, dataTypes...)
+		if ok {
+			field = f
+		}
 	}
 	return
 }

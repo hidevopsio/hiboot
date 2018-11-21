@@ -43,12 +43,18 @@ func (c *helloConfiguration) HelloWorld(h Hello) HelloWorld {
 	return HelloWorld(h + "World")
 }
 
+func (c *helloConfiguration) HelloHibootWorld(h Hello) HelloWorld {
+	return HelloWorld(h + "Hiboot world")
+}
+
 func (c *helloConfiguration) HelloHiboot(h Hello) HelloHiboot {
 	return HelloHiboot(h + "Hello Hiboot")
 }
 
 type helloService struct {
-	HelloWorld HelloWorld `inject:""`
+	HelloWorld  HelloWorld  `inject:""`
+	HibootWorld HelloWorld  `inject:"helloHibootWorld"`
+	HelloHiboot HelloHiboot `inject:""`
 }
 
 type fooConfiguration struct {

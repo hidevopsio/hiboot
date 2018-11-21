@@ -22,7 +22,7 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
-	"hidevops.io/hiboot/pkg/inject"
+	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/starter/grpc"
 	"hidevops.io/hiboot/pkg/starter/grpc/mockgrpc"
 	"testing"
@@ -82,10 +82,11 @@ func TestGrpcServerAndClient(t *testing.T) {
 	})
 
 	t.Run("should connect to gRpc service at runtime", func(t *testing.T) {
-		cc := applicationContext.GetInstance("grpc.clientConnector").(grpc.ClientConnector)
+		cc := applicationContext.GetInstance(new(grpc.ClientConnector)).(grpc.ClientConnector)
+		f := applicationContext.GetInstance(new(factory.InstantiateFactory)).(factory.InstantiateFactory)
 		assert.NotEqual(t, nil, cc)
 		prop := new(grpc.ClientProperties)
-		inject.DefaultValue(prop)
+		f.InjectDefaultValue(prop)
 		grpcCli, err := cc.Connect("", helloworld.NewGreeterClient, prop)
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, nil, grpcCli)

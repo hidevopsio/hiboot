@@ -62,6 +62,10 @@ type fakeProperties struct {
 	DefSlice      []string `default:"jupiter,mercury,mars,earth,moon"`
 }
 
+type fooProperties struct {
+	Name string `default:"foo"`
+}
+
 type fakeConfiguration struct {
 	app.Configuration
 	Properties fakeProperties `mapstructure:"fake"`
@@ -79,6 +83,10 @@ type FooUser struct {
 
 type fakeTag struct {
 	inject.BaseTag
+}
+
+func newFakeTag() inject.Tag {
+	return &fakeTag{}
 }
 
 type Tag struct {
@@ -106,6 +114,7 @@ func (c *fakeConfiguration) User() *User {
 
 type fooConfiguration struct {
 	app.Configuration
+	Properties fooProperties `mapstructure:"foo"`
 }
 
 type fooService struct {
@@ -147,6 +156,20 @@ type userService struct {
 	DefFloatVal32  float32        `value:"0.1"`
 	DefBool        bool           `value:"true"`
 	DefSlice       []string       `value:"jupiter,mercury,mars,earth,moon"`
+}
+
+type PropTestUser struct {
+	Name string
+	App  string
+}
+
+type PropFooUser struct {
+	Name string
+}
+
+type propTestService struct {
+	PropFooUser  *PropFooUser  `inject:"name=foo"`
+	PropTestUser *PropTestUser `inject:"name=${fake.name},app=${app.name}"`
 }
 
 func (s *userService) Get() string {
@@ -216,19 +239,17 @@ type dependencyInjectionTestService struct {
 	name       string
 }
 
-type buzz struct {
+type buzzObj struct {
 	Name string
 }
 
 type buzzService struct {
-	bz *buzz
-	bs *buzzService
+	bz *buzzObj
 }
 
-func newBuzzService(bs *buzzService, bz *buzz) *buzzService {
+func newBuzzService(bz *buzzObj) *buzzService {
 	return &buzzService{
 		bz: bz,
-		bs: bs,
 	}
 }
 
@@ -255,6 +276,8 @@ var (
 
 type Hello string
 type HelloWorld string
+type Foo struct{}
+type Bar struct{}
 
 type helloConfiguration struct {
 	app.Configuration
@@ -262,6 +285,45 @@ type helloConfiguration struct {
 
 func (c *helloConfiguration) HelloWorld(h Hello) HelloWorld {
 	return HelloWorld(h + "World")
+}
+
+func (c *helloConfiguration) Bar(f *Foo) *Bar {
+	return &Bar{}
+}
+
+type emptyInterface interface {
+}
+
+type nilConfiguration struct {
+	app.Configuration
+}
+
+func (c *nilConfiguration) Bar(i emptyInterface) *Bar {
+	return &Bar{}
+}
+
+type Member interface {
+	SetRole(name string)
+}
+
+type member struct {
+	role string
+}
+
+func newMember() Member {
+	return &member{role: "admin"}
+}
+
+func (m *member) SetRole(name string) {
+	m.role = name
+}
+
+type greeter struct {
+	member Member
+}
+
+func newGreeter(m Member) *greeter {
+	return &greeter{member: m}
 }
 
 func init() {
@@ -281,7 +343,7 @@ func TestNotInject(t *testing.T) {
 	assert.Equal(t, (*User)(nil), baz.User)
 }
 
-func TestInject(t *testing.T) {
+func setUp(t *testing.T) factory.ConfigurableFactory {
 	io.ChangeWorkDir(os.TempDir())
 	configPath := filepath.Join(os.TempDir(), "config")
 
@@ -317,18 +379,22 @@ func TestInject(t *testing.T) {
 		instantiate.NewInstantiateFactory(instances, []*factory.MetaData{}, customProps),
 		configurations)
 	cf.BuildSystemConfig()
-
-	cf.SetInstance("inject_test.hello", Hello("Hello"))
-
-	inject.SetFactory(cf)
-
-	fakeConfig := new(fakeConfiguration)
 	configs := []*factory.MetaData{
-		factory.NewMetaData(fakeConfig),
+		factory.NewMetaData(new(fakeConfiguration)),
 		factory.NewMetaData(new(fooConfiguration)),
 	}
 	cf.Build(configs)
 	cf.BuildComponents()
+
+	return cf
+}
+
+func TestInject(t *testing.T) {
+
+	cf := setUp(t)
+	fakeConfig := cf.Configuration("fake").(*fakeConfiguration)
+
+	cf.SetInstance("inject_test.hello", Hello("Hello"))
 
 	t.Run("should inject default string", func(t *testing.T) {
 		assert.Equal(t, "this is default value", fakeConfig.Properties.DefStrVal)
@@ -351,6 +417,14 @@ func TestInject(t *testing.T) {
 		assert.NotEqual(t, nil, fr)
 	})
 
+	injecting := inject.NewInject(cf)
+	t.Run("should inject properties into sub struct", func(t *testing.T) {
+		testObj := new(propTestService)
+		err := injecting.IntoObject(testObj)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "foo", testObj.PropFooUser.Name)
+	})
+
 	t.Run("should inject through method", func(t *testing.T) {
 		fu := cf.GetInstance("inject_test.fooUser")
 		bu := cf.GetInstance("inject_test.user")
@@ -359,7 +433,7 @@ func TestInject(t *testing.T) {
 
 		cf.SetInstance("inject_test.barUser", u)
 
-		svc, err := inject.IntoFunc(newMethodInjectionService)
+		svc, err := injecting.IntoFunc(newMethodInjectionService)
 		assert.Equal(t, nil, err)
 		s := svc.(*MethodInjectionService)
 		assert.Equal(t, fu, s.fooUser)
@@ -369,12 +443,12 @@ func TestInject(t *testing.T) {
 
 	t.Run("should inject repository", func(t *testing.T) {
 		us := new(userService)
-		err := inject.IntoObject(us)
+		err := injecting.IntoObject(us)
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, (*User)(nil), us.User)
 		assert.Equal(t, fooName, us.FooUser.Name)
-		assert.Equal(t, fakeName, us.FakeUser.Name)
-		assert.Equal(t, appName, us.FakeUser.App)
+		//assert.Equal(t, fakeName, us.FakeUser.Name)
+		//assert.Equal(t, appName, us.FakeUser.App)
 		assert.Equal(t, fakeUrl, us.Url)
 		assert.Equal(t, defaultUrl, us.DefaultUrl)
 		assert.NotEqual(t, (*fakeRepository)(nil), us.FakeRepository)
@@ -382,33 +456,33 @@ func TestInject(t *testing.T) {
 
 	t.Run("should not inject unimplemented interface into FooBarRepository", func(t *testing.T) {
 		fb := new(foobarRecursiveInject)
-		err := inject.IntoObject(fb)
+		err := injecting.IntoObject(fb)
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should not inject unimplemented interface into FooRepository", func(t *testing.T) {
 		fs := new(fooService)
-		err := inject.IntoObject(fs)
+		err := injecting.IntoObject(fs)
 		assert.Equal(t, "foo", fs.FooUser.Name)
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should not inject system property into object", func(t *testing.T) {
 		fs := new(hibootService)
-		err := inject.IntoObject(fs)
+		err := injecting.IntoObject(fs)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, appName, fs.HibootUser.Name)
+		//assert.Equal(t, appName, fs.HibootUser.Name)
 	})
 
 	t.Run("should not inject unimplemented interface into BarRepository", func(t *testing.T) {
 		bs := new(barService)
-		err := inject.IntoObject(bs)
+		err := injecting.IntoObject(bs)
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should inject recursively", func(t *testing.T) {
 		ps := &recursiveInject{UserService: new(userService)}
-		err := inject.IntoObject(ps)
+		err := injecting.IntoObject(ps)
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, (*User)(nil), ps.UserService.User)
 		assert.NotEqual(t, (*fakeRepository)(nil), ps.UserService.FakeRepository)
@@ -418,13 +492,13 @@ func TestInject(t *testing.T) {
 		testSvc := struct {
 			Users []FooUser `inject:""`
 		}{}
-		err := inject.IntoObject(testSvc)
+		err := injecting.IntoObject(testSvc)
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should inject slice value", func(t *testing.T) {
 		testSvc := new(sliceInjectionTestService)
-		err := inject.IntoObject(testSvc)
+		err := injecting.IntoObject(testSvc)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, []string{"foo", "fake"}, testSvc.Profiles)
 		assert.Equal(t, []string{"a", "b", "c", "d"}, testSvc.Options)
@@ -432,30 +506,30 @@ func TestInject(t *testing.T) {
 	})
 
 	t.Run("should inject slice value", func(t *testing.T) {
-		err := inject.IntoObject((*MethodInjectionService)(nil))
+		err := injecting.IntoObject((*MethodInjectionService)(nil))
 		assert.Equal(t, inject.ErrInvalidObject, err)
 	})
 
 	t.Run("should inject slice value", func(t *testing.T) {
-		err := inject.IntoObject((*string)(nil))
+		err := injecting.IntoObject((*string)(nil))
 		assert.Equal(t, inject.ErrInvalidObject, err)
 	})
 
 	t.Run("should ignore to inject with invalid struct type BazService", func(t *testing.T) {
 		ts := new(dependencyInjectionTestService)
-		err := inject.IntoObject(ts)
+		err := injecting.IntoObject(ts)
 		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should failed to inject if the type of param and receiver are the same", func(t *testing.T) {
-		buzz, err := inject.IntoFunc(newBuzzService)
+		buzz, err := injecting.IntoFunc(newBuzzService)
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, nil, buzz)
 	})
 
 	t.Run("should skip inject if the type of param is an unimplemented interface", func(t *testing.T) {
 		catSvc := new(animalService)
-		err := inject.IntoObject(catSvc)
+		err := injecting.IntoObject(catSvc)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, nil, catSvc.Cat)
 	})
@@ -465,9 +539,9 @@ func TestInject(t *testing.T) {
 			TestName string `value:"test-data-from-a"`
 		}{}
 		b := &struct{ TestName string }{}
-		err := inject.IntoObject(a)
+		err := injecting.IntoObject(a)
 		assert.Equal(t, nil, err)
-		inject.IntoObject(b)
+		injecting.IntoObject(b)
 		assert.Equal(t, nil, err)
 
 		assert.NotEqual(t, a.TestName, b.TestName)
@@ -483,7 +557,7 @@ func TestInject(t *testing.T) {
 			TestObj *int `inject:""`
 		}
 		a := new(testObjTyp)
-		err := inject.IntoObject(a)
+		err := injecting.IntoObject(a)
 		assert.Equal(t, nil, err)
 	})
 
@@ -491,14 +565,14 @@ func TestInject(t *testing.T) {
 		a := struct {
 			TestObj *int `inject:""`
 		}{}
-		err := inject.IntoObject(&a)
+		err := injecting.IntoObject(&a)
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, nil, a.TestObj)
 	})
 
 	t.Run("should inject object through func", func(t *testing.T) {
 
-		obj, err := inject.IntoFunc(func(user *FooUser) *fooService {
+		obj, err := injecting.IntoFunc(func(user *FooUser) *fooService {
 			assert.NotEqual(t, nil, user)
 			return &fooService{
 				FooUser: user,
@@ -510,7 +584,7 @@ func TestInject(t *testing.T) {
 
 	t.Run("should inject object through func", func(t *testing.T) {
 
-		obj, err := inject.IntoFunc(func(user *FooUser) {
+		obj, err := injecting.IntoFunc(func(user *FooUser) {
 			assert.NotEqual(t, nil, user)
 		})
 		assert.Equal(t, nil, err)
@@ -519,7 +593,7 @@ func TestInject(t *testing.T) {
 
 	t.Run("should failed to inject object through func with empty interface", func(t *testing.T) {
 
-		obj, err := inject.IntoFunc(func(user interface{}) *fooService {
+		obj, err := injecting.IntoFunc(func(user interface{}) *fooService {
 			return &fooService{}
 		})
 		assert.NotEqual(t, nil, err)
@@ -527,28 +601,53 @@ func TestInject(t *testing.T) {
 	})
 
 	t.Run("should failed to inject object through nil func", func(t *testing.T) {
-		obj, err := inject.IntoFunc(nil)
+		obj, err := injecting.IntoFunc(nil)
 		assert.NotEqual(t, nil, err)
 		assert.Equal(t, nil, obj)
 	})
 
+	t.Run("should failed to inject unmatched object type through func", func(t *testing.T) {
+		res, err := injecting.IntoFunc(newGreeter)
+		assert.NotEqual(t, nil, err)
+		assert.Equal(t, nil, res)
+	})
+
 	t.Run("should inject into object by inject tag", func(t *testing.T) {
-		cf.SetInstance("inject_test.bazService", new(bazService))
-		cf.SetInstance("inject_test.buzService", new(buzService))
-		cf.SetInstance("inject_test.bxzService", new(bxzServiceImpl))
+		cf.SetInstance(new(bazService))
+		cf.SetInstance(new(buzService))
+		cf.SetInstance(new(bxzServiceImpl))
 
 		svc := new(dependencyInjectionTestService)
-		err := inject.IntoObject(svc)
+		err := injecting.IntoObject(svc)
 
-		bazSvc := cf.GetInstance("inject_test.bazService")
-		buzSvc := cf.GetInstance("inject_test.buzService")
-		bxzSvc := cf.GetInstance("inject_test.bxzService")
+		bazSvc := cf.GetInstance(bazService{})
+		buzSvc := cf.GetInstance(buzService{})
+		bxzSvc := cf.GetInstance(new(BxzService))
 
 		assert.Equal(t, nil, err)
 		assert.Equal(t, bazSvc, svc.BazService)
 		assert.Equal(t, buzSvc, svc.BozService)
 		assert.Equal(t, buzSvc, svc.BuzService)
 		assert.Equal(t, bxzSvc, svc.BxzSvc)
+	})
+
+	t.Run("should report error when the dependency of the method is not found", func(t *testing.T) {
+		conf := new(nilConfiguration)
+		helloTyp := reflect.TypeOf(conf)
+		numOfMethod := helloTyp.NumMethod()
+		//log.Debug("methods: ", numOfMethod)
+		for mi := 0; mi < numOfMethod; mi++ {
+			method := helloTyp.Method(mi)
+			_, err := injecting.IntoMethod(conf, method)
+			assert.NotEqual(t, nil, err)
+		}
+	})
+
+	t.Run("should report error when pass nil to injector that inject into method", func(t *testing.T) {
+
+		_, err := injecting.IntoMethod(nil, nil)
+		assert.NotEqual(t, nil, err)
+
 	})
 
 	t.Run("should inject into method", func(t *testing.T) {
@@ -558,7 +657,23 @@ func TestInject(t *testing.T) {
 		//log.Debug("methods: ", numOfMethod)
 		for mi := 0; mi < numOfMethod; mi++ {
 			method := helloTyp.Method(mi)
-			inject.IntoMethod(helloConfig, method)
+			res, err := injecting.IntoMethod(helloConfig, method)
+			assert.Equal(t, nil, err)
+			assert.NotEqual(t, nil, res)
 		}
+	})
+
+}
+
+func TestInjectIntoFunc(t *testing.T) {
+	cf := setUp(t)
+	injecting := inject.NewInject(cf)
+	m, err := injecting.IntoFunc(newMember)
+	assert.Equal(t, nil, err)
+	cf.SetInstance(m)
+	t.Run("should failed to inject unmatched object type through func", func(t *testing.T) {
+		res, err := injecting.IntoFunc(newGreeter)
+		assert.Equal(t, nil, err)
+		assert.NotEqual(t, nil, res)
 	})
 }

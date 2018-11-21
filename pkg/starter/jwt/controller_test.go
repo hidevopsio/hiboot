@@ -20,6 +20,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/app/web/context"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
 	"hidevops.io/hiboot/pkg/starter/jwt"
@@ -36,7 +38,7 @@ type userRequest struct {
 }
 
 type fooController struct {
-	web.Controller
+	at.RestController
 	token    jwt.Token
 	tokenStr string
 }
@@ -75,24 +77,34 @@ func (c *fooController) PostLogin(request *userRequest) (response model.Response
 	return
 }
 
-// BarController
+// barController
 type barController struct {
-	jwt.Controller
+	at.JwtRestController
 }
 
 func newBarController() *barController {
 	return &barController{}
 }
 
-func (c *barController) Before() {
+func (c *barController) Before(ctx context.Context, tokenProperties *jwt.TokenProperties) {
 	log.Debug("barController.Before")
 
-	_, ok := c.JwtProperties()
-	// intercept all requests that not contain jwt token
+	_, ok := tokenProperties.GetAll()
 	if !ok {
 		return
 	}
-	c.Ctx.Next()
+
+	_, ok = tokenProperties.Items()
+	if !ok {
+		return
+	}
+
+	username := tokenProperties.Get("username")
+	if username == "" {
+		return
+	}
+
+	ctx.Next()
 }
 
 func (c *barController) Get() string {
@@ -107,23 +119,14 @@ func (c *barController) Options() {
 
 func TestJwtController(t *testing.T) {
 	testApp := web.RunTestApplication(t, newFooController, newBarController)
-	ctx := testApp.(app.ApplicationContext)
+	appContext := testApp.(app.ApplicationContext)
 
-	fc := ctx.GetInstance(fooController{})
+	fc := appContext.GetInstance(fooController{})
 	assert.NotEqual(t, nil, fc)
 	fooCtrl := fc.(*fooController)
 
-	bc := ctx.GetInstance(barController{})
+	bc := appContext.GetInstance(barController{})
 	assert.NotEqual(t, nil, bc)
-	barCtrl := bc.(*barController)
-
-	t.Run("should failed to get jwt properties when app is not run", func(t *testing.T) {
-		_, ok := barCtrl.JwtProperties()
-		assert.Equal(t, false, ok)
-
-		_, ok = barCtrl.JwtPropertiesString()
-		assert.Equal(t, false, ok)
-	})
 
 	t.Run("should login with POST /foo/login", func(t *testing.T) {
 		testApp.
@@ -148,15 +151,6 @@ func TestJwtController(t *testing.T) {
 		testApp.Get("/bar").
 			WithHeader("Authorization", token).
 			Expect().Status(http.StatusOK)
-
-		_, ok := barCtrl.JwtProperties()
-		assert.Equal(t, true, ok)
-
-		_, ok = barCtrl.JwtPropertiesString()
-		assert.Equal(t, true, ok)
-
-		username := barCtrl.JwtProperty("username")
-		assert.Equal(t, "johndoe", username)
 
 		testApp.Get("/bar").
 			WithHeader("Authorization", "1df%^!"+token).
@@ -208,24 +202,4 @@ func TestAppWithoutJwtController(t *testing.T) {
 		testApp.Get("/foo").
 			Expect().Status(http.StatusOK)
 	})
-}
-
-func TestParseToken(t *testing.T) {
-	claims := jwtgo.MapClaims{"username": "john"}
-	jc := &jwt.Controller{}
-	t.Run("should get username from jwt token", func(t *testing.T) {
-		username := jc.ParseToken(claims, "username")
-		assert.Equal(t, "john", username)
-	})
-
-	t.Run("should get empty string from jwt token", func(t *testing.T) {
-		nonExist := jc.ParseToken(claims, "non-exist")
-		assert.Equal(t, "", nonExist)
-	})
-
-	t.Run("should get empty string from jwt token by JwtProperty", func(t *testing.T) {
-		nonExist := jc.JwtProperty("non-exist-prop")
-		assert.Equal(t, "", nonExist)
-	})
-
 }

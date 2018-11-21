@@ -16,10 +16,9 @@
 package websocket
 
 import (
-	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/websocket"
 	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 )
 
@@ -33,23 +32,11 @@ const (
 )
 
 type configuration struct {
+	// embedded annotation at.AutoConfiguration
 	at.AutoConfiguration
 
 	Properties properties `mapstructure:"websocket"`
 }
-
-// Connection is the websocket connection
-type Connection interface {
-	websocket.Connection
-}
-
-type ConnectionFunc func(ctx context.Context) websocket.Connection
-
-// ConnectionFunc is the websocket connection function
-type HandlerFunc func(ctx *web.Context, constructor HandlerConstructor) Connection
-
-// ConnectionFunc is the websocket connection function
-type HandlerConstructor func(conn Connection) Handler
 
 type Server struct {
 	*websocket.Server
@@ -75,16 +62,13 @@ func (c *configuration) Server() *Server {
 	}
 }
 
-// ConnectionFunc is func that websocket connection created from
-func (c *configuration) ConnectionFunc(server *Server) ConnectionFunc {
-	return server.Upgrade
+// Connection websocket connection for runtime dependency injection
+func (c *configuration) Connection(ctx context.Context, server *Server) *Connection {
+	conn := newConnection(server.Upgrade(ctx))
+	return conn
 }
 
-// HandlerFunc websocket connection for runtime dependency injection
-func (c *configuration) HandlerFunc(connectionFunc ConnectionFunc) HandlerFunc {
-	return func(ctx *web.Context, constructor HandlerConstructor) Connection {
-		conn := connectionFunc(ctx)
-		HandleConnection(constructor, conn)
-		return conn
-	}
+// RegisterHandler is function that register handler
+func (c *configuration) RegisterHandler() Register {
+	return registerHandler
 }

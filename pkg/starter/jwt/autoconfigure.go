@@ -19,6 +19,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	mw "github.com/iris-contrib/middleware/jwt"
 	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 )
 
@@ -57,9 +58,13 @@ func (c *configuration) Middleware(jwtToken Token) *Middleware {
 }
 
 // JwtToken
-// TODO: token or jwtToken
 func (c *configuration) Token() Token {
 	t := new(jwtToken)
 	t.Initialize(&c.Properties)
 	return t
+}
+
+// TokenProperties is the token properties parser
+func (c *configuration) TokenProperties(context context.Context) *TokenProperties {
+	return newTokenProperties(context)
 }

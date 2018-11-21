@@ -16,10 +16,10 @@ package controller
 
 import (
 	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
 	"hidevops.io/hiboot/pkg/starter/jwt"
-	"net/http"
 	"strings"
 )
 
@@ -28,7 +28,7 @@ type bar struct {
 }
 
 type barController struct {
-	jwt.Controller
+	at.JwtRestController
 }
 
 func init() {
@@ -40,16 +40,13 @@ func newBarController() *barController {
 }
 
 // Get method GET /bar
-func (c *barController) Get() (response model.Response) {
-	username := c.JwtProperty("username")
-	password := c.JwtProperty("password")
+func (c *barController) Get(properties *jwt.TokenProperties) (response model.Response, err error) {
+	username := properties.Get("username")
+	password := properties.Get("password")
 	log.Debugf("username: %v, password: %v", username, strings.Repeat("*", len(password)))
-
 	log.Debug("BarController.SayHello")
 
 	response = new(model.BaseResponse)
-	response.SetCode(http.StatusOK)
-	response.SetMessage("success")
 	response.SetData(&bar{greeting: "Hello " + username})
 	return
 }

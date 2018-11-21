@@ -34,9 +34,6 @@ func (s depResolver) Resolve() (resolved Graph, err error) {
 		// find the index of its dependency
 		dep, ok := s.findDependencies(item)
 		// for debug only
-		//for _, extDep := range item.ExtDep {
-		//	workingGraph = append(workingGraph, NewNode(-1, extDep))
-		//}
 		if ok {
 			node = NewNode(i, item, dep...)
 		} else {
@@ -51,6 +48,7 @@ func (s depResolver) Resolve() (resolved Graph, err error) {
 
 func (s depResolver) findDependencyIndex(depName string) int {
 	for i, item := range s {
+		// find type name
 		if item.TypeName == depName {
 			return i
 		}
@@ -62,7 +60,7 @@ func (s depResolver) findDependencyIndex(depName string) int {
 
 		// else find method name
 		if item.Kind == types.Method {
-			method := item.Object.(reflect.Method)
+			method := item.MetaObject.(reflect.Method)
 			methodName := str.ToLowerCamel(method.Name)
 			if depName == methodName || depName == item.PkgName+"."+methodName {
 				return i
@@ -74,16 +72,17 @@ func (s depResolver) findDependencyIndex(depName string) int {
 
 func (s depResolver) findDependencies(item *factory.MetaData) (dep []*Node, ok bool) {
 	// iterate dependencies
-	if len(item.Depends) > 0 {
-		for _, dp := range item.Depends {
+	if len(item.DepNames) > 0 {
+		for _, dp := range item.DepNames {
 			depIdx := s.findDependencyIndex(dp)
 			if depIdx >= 0 {
-				depInst := s[depIdx]
-				dep = append(dep, NewNode(depIdx, depInst))
+				depMetaData := s[depIdx]
+				item.DepMetaData = append(item.DepMetaData, depMetaData)
+				dep = append(dep, NewNode(depIdx, depMetaData))
 			} else {
 				// found external dependency
 				extData := &factory.MetaData{Name: dp}
-				item.ExtDep = append(item.ExtDep, extData)
+				item.DepMetaData = append(item.DepMetaData, extData)
 				dep = append(dep, NewNode(depIdx, extData))
 				log.Warnf("dependency %v is not found", dp)
 			}

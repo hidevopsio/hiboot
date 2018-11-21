@@ -22,7 +22,6 @@ import (
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/factory/autoconfigure"
 	"hidevops.io/hiboot/pkg/factory/instantiate"
-	"hidevops.io/hiboot/pkg/inject"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/system"
 	"hidevops.io/hiboot/pkg/utils/cmap"
@@ -43,7 +42,7 @@ type Application interface {
 	Initialize() error
 	SetProperty(name string, value ...interface{}) Application
 	GetProperty(name string) (value interface{}, ok bool)
-	Run() error
+	Run()
 }
 
 // ApplicationContext is the alias interface of Application
@@ -62,7 +61,7 @@ type BaseApplication struct {
 	potatoes            cmap.ConcurrentMap
 	configurableFactory factory.ConfigurableFactory
 	systemConfig        *system.Configuration
-	postProcessor       postProcessor
+	postProcessor       *postProcessor
 	properties          cmap.ConcurrentMap
 	mu                  sync.Mutex
 }
@@ -136,14 +135,16 @@ func (a *BaseApplication) Build() {
 
 	instantiateFactory := instantiate.NewInstantiateFactory(a.instances, componentContainer, a.properties)
 	// TODO: should set or get instance by passing object instantiateFactory
-	a.instances.Set(factory.InstantiateFactoryName, instantiateFactory)
+	instantiateFactory.SetInstance(factory.InstantiateFactoryName, instantiateFactory)
 	instantiateFactory.AppendComponent(factory.InstantiateFactoryName, instantiateFactory)
 
 	configurableFactory := autoconfigure.NewConfigurableFactory(instantiateFactory, a.configurations)
-	a.instances.Set(factory.ConfigurableFactoryName, configurableFactory)
+	instantiateFactory.SetInstance(factory.ConfigurableFactoryName, configurableFactory)
 	instantiateFactory.AppendComponent(factory.ConfigurableFactoryName, configurableFactory)
-	inject.SetFactory(configurableFactory)
+	//inject.SetFactory(configurableFactory)
 	a.configurableFactory = configurableFactory
+
+	a.postProcessor = newPostProcessor(instantiateFactory)
 
 	a.systemConfig, _ = configurableFactory.BuildSystemConfig()
 }
@@ -185,7 +186,7 @@ func (a *BaseApplication) ConfigurableFactory() factory.ConfigurableFactory {
 func (a *BaseApplication) AfterInitialization(configs ...cmap.ConcurrentMap) {
 	// pass user's instances
 	a.postProcessor.Init()
-	a.postProcessor.AfterInitialization(a.configurableFactory)
+	a.postProcessor.AfterInitialization()
 }
 
 // RegisterController register controller by interface
@@ -198,9 +199,8 @@ func (a *BaseApplication) Use(handlers ...context.Handler) {
 }
 
 // Run run the application
-func (a *BaseApplication) Run() error {
+func (a *BaseApplication) Run() {
 	log.Warn("application is not implemented!")
-	return nil
 }
 
 // GetInstance get application instance by name

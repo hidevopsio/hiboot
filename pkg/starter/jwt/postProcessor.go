@@ -16,7 +16,7 @@ package jwt
 
 import (
 	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/starter/jwt/at"
+	"hidevops.io/hiboot/pkg/at"
 )
 
 type postProcessor struct {
@@ -36,7 +36,8 @@ func newPostProcessor(applicationContext app.ApplicationContext, jwtMiddleware *
 	}
 }
 
-func (p *postProcessor) AfterInitialization(factory interface{}) {
+// AfterInitialization jwt post processing
+func (p *postProcessor) AfterInitialization() {
 	//log.Debug("[jwt] AfterInitialization")
 
 	// use jwt

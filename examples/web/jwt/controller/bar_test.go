@@ -26,9 +26,7 @@ import (
 	"time"
 )
 
-func TestBarWithToken(t *testing.T) {
-	app := web.RunTestApplication(t, newBarController)
-	log.Println(io.GetWorkDir())
+func genJwtToken(timeout int64) (token string) {
 	jwtToken := jwt.NewJwtToken(&jwt.Properties{
 		PrivateKeyPath: "config/ssl/app.rsa",
 		PublicKeyPath:  "config/ssl/app.rsa.pub",
@@ -36,10 +34,21 @@ func TestBarWithToken(t *testing.T) {
 	pt, err := jwtToken.Generate(jwt.Map{
 		"username": "johndoe",
 		"password": "PA$$W0RD",
-	}, 500, time.Millisecond)
+	}, timeout, time.Second)
 	if err == nil {
+		token = fmt.Sprintf("Bearer %v", pt)
+	}
+	return
+}
 
-		token := fmt.Sprintf("Bearer %v", pt)
+func TestBarWithToken(t *testing.T) {
+	app := web.NewTestApp(t, newBarController).
+		Run(t)
+
+	log.SetLevel(log.DebugLevel)
+	log.Println(io.GetWorkDir())
+	token := genJwtToken(1)
+	if token != "" {
 		t.Run("should pass with jwt token", func(t *testing.T) {
 			app.Get("/bar").
 				WithHeader("Authorization", token).

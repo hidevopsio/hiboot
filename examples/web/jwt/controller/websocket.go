@@ -3,37 +3,30 @@ package controller
 import (
 	"hidevops.io/hiboot/examples/web/jwt/service"
 	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/web"
-	"hidevops.io/hiboot/pkg/starter/jwt"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/starter/websocket"
 )
 
 type websocketController struct {
-	jwt.Controller
-	handlerFunc              websocket.HandlerFunc
-	countHandlerConstructor  service.CountHandlerConstructor
-	statusHandlerConstructor service.StatusHandlerConstructor
+	at.JwtRestController
+
+	register websocket.Register
 }
 
-func newWebsocketController(handlerFunc websocket.HandlerFunc,
-	countHandlerConstructor service.CountHandlerConstructor,
-	statusHandlerConstructor service.StatusHandlerConstructor) *websocketController {
-	c := &websocketController{
-		handlerFunc:              handlerFunc,
-		countHandlerConstructor:  countHandlerConstructor,
-		statusHandlerConstructor: statusHandlerConstructor,
-	}
-	return c
+func newWebsocketController(register websocket.Register) *websocketController {
+	return &websocketController{register: register}
 }
 
 func init() {
 	app.Register(newWebsocketController)
 }
 
-func (c *websocketController) Get(ctx *web.Context) {
-	c.handlerFunc(ctx, c.countHandlerConstructor.(func(websocket.Connection) websocket.Handler))
+// Get GET /websocket
+func (c *websocketController) Get(handler *service.CountHandler, connection *websocket.Connection) {
+	c.register(handler, connection)
 }
 
-func (c *websocketController) GetStatus(ctx *web.Context) {
-	c.handlerFunc(ctx, c.statusHandlerConstructor.(func(websocket.Connection) websocket.Handler))
+// GetStatus GET /websocket/status
+func (c *websocketController) GetStatus(handler *service.StatusHandler, connection *websocket.Connection) {
+	c.register(handler, connection)
 }

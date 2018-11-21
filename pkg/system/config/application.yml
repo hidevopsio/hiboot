@@ -10,3 +10,7 @@ app:
 
 logging:
   level: debug
+
+# added for test only
+fake:
+  name: ${app.name}

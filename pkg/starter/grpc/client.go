@@ -25,9 +25,9 @@ func newClientFactory(instantiateFactory factory.InstantiateFactory, properties 
 		if err == nil {
 			gRPCCli, err = cc.Connect(cli.name, cli.cb, prop)
 			if err == nil {
-				clientInstanceName := reflector.GetName(gRPCCli)
+				clientInstanceName := reflector.GetLowerCamelFullName(gRPCCli)
 				// register grpc client
-				instantiateFactory.SetInstance(clientInstanceName, gRPCCli)
+				instantiateFactory.SetInstance(gRPCCli)
 
 				log.Infof("Registered gRPC client %v", clientInstanceName)
 			}

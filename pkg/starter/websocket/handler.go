@@ -1,14 +1,16 @@
 package websocket
 
-import "github.com/kataras/iris/websocket"
-
+// Handler is the interface the websocket handler
 type Handler interface {
 	OnMessage(data []byte)
 	OnDisconnect()
 }
 
-func HandleConnection(constructor HandlerConstructor, conn websocket.Connection) {
-	handler := constructor(conn)
+// Register is the handler register
+type Register func(handler Handler, conn *Connection)
+
+// registerHandler is the handler for websocket
+func registerHandler(handler Handler, conn *Connection) {
 	conn.OnMessage(handler.OnMessage)
 	conn.OnDisconnect(handler.OnDisconnect)
 	conn.Wait()

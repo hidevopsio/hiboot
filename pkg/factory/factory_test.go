@@ -27,4 +27,8 @@ func TestDependencies(t *testing.T) {
 	assert.Equal(t, deps, c.Deps.Get("Hello"))
 
 	c.Deps.Set(nil, deps)
+	var md interface{}
+	md = NewMetaData(c)
+	castedMd := CastMetaData(md)
+	assert.Equal(t, md, castedMd)
 }
