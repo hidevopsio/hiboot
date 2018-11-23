@@ -17,7 +17,7 @@ package cli
 import (
 	"errors"
 	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
+	"github.com/spf13/pflag"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/system/types"
 	"hidevops.io/hiboot/pkg/utils/reflector"
@@ -61,7 +61,7 @@ type Command interface {
 	// ExecuteC execute command
 	ExecuteC() (cmd *cobra.Command, err error)
 	// PersistentFlags get persistent flags
-	PersistentFlags() *flag.FlagSet
+	PersistentFlags() *pflag.FlagSet
 }
 
 const (
@@ -142,6 +142,10 @@ func (c *baseCommand) Run(args []string) error {
 
 // Exec exec method
 func (c *baseCommand) Exec() error {
+
+	// UnknownFlags will ignore unknown flags errors and continue parsing rest of the flags
+	c.FParseErrWhitelist.UnknownFlags = true
+
 	return c.Execute()
 }
 
