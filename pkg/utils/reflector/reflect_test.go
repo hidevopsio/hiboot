@@ -20,7 +20,6 @@ import (
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/reflector/tester"
 	"reflect"
-	"runtime"
 	"testing"
 )
 
@@ -728,10 +727,6 @@ type fooService struct{}
 
 func (s *fooService) foobar() {
 
-}
-
-func GetFunctionName(i interface{}) string {
-	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 }
 
 func TestGetFuncName(t *testing.T) {
