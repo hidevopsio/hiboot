@@ -15,6 +15,7 @@
 package web
 
 import (
+	"errors"
 	"fmt"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
@@ -32,6 +33,10 @@ import (
 const (
 	success = "success"
 	failed  = "failed"
+)
+
+var (
+	ErrCanNotInterface = errors.New("response can not interface")
 )
 
 type request struct {
@@ -207,7 +212,7 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 	}
 }
 
-func (h *handler) responseData(ctx context.Context, numOut int, results []reflect.Value) {
+func (h *handler) responseData(ctx context.Context, numOut int, results []reflect.Value) (err error) {
 	if numOut == 0 {
 		ctx.StatusCode(http.StatusOK)
 		return
@@ -215,13 +220,15 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 
 	result := results[0]
 	if !result.CanInterface() {
-		ctx.ResponseError("response is invalid", http.StatusInternalServerError)
+		err = ErrCanNotInterface
+		ctx.ResponseError(err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	respVal := result.Interface()
 	if respVal == nil {
 		log.Warn("response is nil")
+		err = fmt.Errorf("response is nil")
 		return
 	}
 
@@ -260,6 +267,7 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 	default:
 		ctx.ResponseError("response type is not implemented!", http.StatusInternalServerError)
 	}
+	return
 }
 
 func (h *handler) call(ctx context.Context) {

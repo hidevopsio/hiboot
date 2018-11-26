@@ -172,11 +172,14 @@ func (b *builder) load(fullName, profile string) (interface{}, error) {
 	// iterate all and replace reference values or env
 	allKeys := b.AllKeys()
 	for _, key := range allKeys {
-		val := b.GetString(key)
-		if strings.Contains(val, "${") {
-			newVal := b.Replace(val)
-			b.Set(key, newVal)
-			log.Debugf(">>> replaced key: %v, value: %v, newVal: %v", key, val, newVal)
+		ks := strings.Split(key, ".")
+		if ks[0] == profile || profile == "" {
+			val := b.GetString(key)
+			if strings.Contains(val, "${") {
+				newVal := b.Replace(val)
+				b.Set(key, newVal)
+				log.Debugf(">>> replaced key: %v, value: %v, newVal: %v", key, val, newVal)
+			}
 		}
 	}
 

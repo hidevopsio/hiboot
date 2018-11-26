@@ -122,9 +122,10 @@ func (c *Context) ResponseError(message string, code int) {
 	response := new(model.BaseResponse)
 	response.SetCode(code)
 	response.SetMessage(c.translate(message))
-
-	c.StatusCode(code)
-	c.JSON(response)
+	if c.ResponseWriter() != nil {
+		c.StatusCode(code)
+		c.JSON(response)
+	}
 }
 
 // RequestEx get RequestBody
