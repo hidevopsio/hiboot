@@ -199,24 +199,29 @@ func GetType(data interface{}) (typ reflect.Type, err error) {
 	return
 }
 
+func parseFuncName(name string) string {
+	n := strings.LastIndexByte(name, byte('.'))
+	if n > 0 {
+		name = name[n+1:]
+		n = strings.LastIndexByte(name, byte('-'))
+		if n > 0 {
+			name = name[:n]
+		}
+		n = strings.LastIndexByte(name, byte(')'))
+		if n > 0 {
+			name = name[:n]
+		}
+	}
+	return name
+}
+
 // GetFuncName get func name
 func GetFuncName(fn interface{}) (name string) {
 	val := reflect.ValueOf(fn)
 	kind := val.Kind()
 	if kind == reflect.Func {
 		name = runtime.FuncForPC(val.Pointer()).Name()
-		n := strings.LastIndexByte(name, byte('.'))
-		if n > 0 {
-			name = name[n+1:]
-			n = strings.LastIndexByte(name, byte('-'))
-			if n > 0 {
-				name = name[:n]
-			}
-			n = strings.LastIndexByte(name, byte(')'))
-			if n > 0 {
-				name = name[:n]
-			}
-		}
+		name = parseFuncName(name)
 	}
 	return
 }
