@@ -15,6 +15,7 @@
 package web
 
 import (
+	"github.com/kataras/iris"
 	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/log"
@@ -76,5 +77,13 @@ func TestParse(t *testing.T) {
 	t.Run("should clean path", func(t *testing.T) {
 		p := clean("//")
 		assert.Equal(t, "/", p)
+	})
+
+	t.Run("should return ErrCanNotInterface for private field", func(t *testing.T) {
+		type hello struct {
+			world string
+		}
+		err := hdl.responseData(NewContext(iris.New()), 1, []reflect.Value{reflect.ValueOf(&hello{}).Elem().Field(0)})
+		assert.Equal(t, ErrCanNotInterface, err)
 	})
 }

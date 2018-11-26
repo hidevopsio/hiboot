@@ -50,7 +50,7 @@ func callerInfo(skip int) (file string, line int, fn string) {
 	return
 }
 
-func withCaller(fn func(v ...interface{}), v ...interface{}) {
+var withCaller = func(fn func(v ...interface{}), v ...interface{}) {
 	argv := make([]interface{}, 1)
 	_, line, fnName := callerInfo(3)
 	argv[0] = fmt.Sprintf("[%v:%v] ", fnName, line)
@@ -59,7 +59,7 @@ func withCaller(fn func(v ...interface{}), v ...interface{}) {
 	fn(argv...)
 }
 
-func withCallerf(fn func(format string, v ...interface{}), format string, v ...interface{}) {
+var withCallerf = func(fn func(format string, v ...interface{}), format string, v ...interface{}) {
 	_, line, fnName := callerInfo(3)
 	f := fmt.Sprintf("[%v:%v] %v", fnName, line, format)
 

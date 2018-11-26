@@ -42,6 +42,7 @@ type Application interface {
 	Initialize() error
 	SetProperty(name string, value ...interface{}) Application
 	GetProperty(name string) (value interface{}, ok bool)
+	SetAddCommandLineProperties(enabled bool) Application
 	Run()
 }
 
@@ -64,6 +65,8 @@ type BaseApplication struct {
 	postProcessor       *postProcessor
 	properties          cmap.ConcurrentMap
 	mu                  sync.Mutex
+	// SetAddCommandLineProperties
+	addCommandLineProperties bool
 }
 
 var (
@@ -117,9 +120,12 @@ func (a *BaseApplication) GetProperty(name string) (value interface{}, ok bool) 
 
 // Initialize init application
 func (a *BaseApplication) Initialize() (err error) {
+	log.SetLevel(log.InfoLevel)
 	a.properties = cmap.New()
 	a.configurations = cmap.New()
 	a.instances = cmap.New()
+	// set add command line properties to true as default
+	a.SetAddCommandLineProperties(true)
 	return nil
 }
 
@@ -154,13 +160,14 @@ func (a *BaseApplication) Build() {
 // SystemConfig returns application config
 func (a *BaseApplication) setCustomPropertiesFromArgs() {
 	//log.Println(os.Args)
-
-	for _, val := range os.Args {
-		prefix := val[:2]
-		if prefix == "--" {
-			kv := val[2:]
-			kvPair := strings.Split(kv, "=")
-			a.SetProperty(kvPair[0], kvPair[1])
+	if a.addCommandLineProperties {
+		for _, val := range os.Args {
+			prefix := val[:2]
+			if prefix == "--" {
+				kv := val[2:]
+				kvPair := strings.Split(kv, "=")
+				a.SetProperty(kvPair[0], kvPair[1])
+			}
 		}
 	}
 }
@@ -188,6 +195,12 @@ func (a *BaseApplication) AfterInitialization(configs ...cmap.ConcurrentMap) {
 	// pass user's instances
 	a.postProcessor.Init()
 	a.postProcessor.AfterInitialization()
+
+	if a.addCommandLineProperties {
+		log.Info("Add command line properties is enabled")
+	} else {
+		log.Info("Add command line properties is disabled")
+	}
 }
 
 // RegisterController register controller by interface
@@ -197,6 +210,12 @@ func (a *BaseApplication) RegisterController(controller interface{}) error {
 
 // Use use middleware handlers
 func (a *BaseApplication) Use(handlers ...context.Handler) {
+}
+
+// SetAddCommandLineProperties set add command line properties to be enabled or disabled
+func (a *BaseApplication) SetAddCommandLineProperties(enabled bool) Application {
+	a.addCommandLineProperties = enabled
+	return a
 }
 
 // Run run the application

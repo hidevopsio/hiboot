@@ -701,6 +701,7 @@ func TestNewApplication(t *testing.T) {
 	app.Register(new(ExampleController))
 
 	testApp := web.NewApplication().
+		SetAddCommandLineProperties(true).
 		SetProperty("server.port", 8080).
 		SetProperty(app.BannerDisabled, true)
 	t.Run("should init web application", func(t *testing.T) {
