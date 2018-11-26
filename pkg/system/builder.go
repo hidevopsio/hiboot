@@ -98,7 +98,7 @@ func (b *builder) Build(profiles ...string) (conf interface{}, err error) {
 		for _, field := range reflector.DeepFields(reflect.TypeOf(b.configuration)) {
 			p, ok := field.Tag.Lookup("mapstructure")
 			if ok && !str.InSlice(p, profiles) {
-				profiles = append(profiles, p)
+				profiles = append([]string{p}, profiles...)
 			}
 		}
 	}

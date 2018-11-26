@@ -15,6 +15,7 @@
 package log
 
 import (
+	"fmt"
 	"github.com/kataras/golog"
 	"github.com/kataras/pio"
 	"os"
@@ -24,33 +25,6 @@ import (
 
 func init() {
 
-}
-
-func TestScan(t *testing.T) {
-	f := newLogFile("foo.log")
-	defer f.Close()
-
-	SetOutput(f)
-
-	b := newLogFile("bar.log")
-	defer f.Close()
-	AddOutput(b)
-
-	_ = Scan(os.Stdin)
-	// type and enter one or more sentences to your console,
-	// wait 10 seconds and open the .txt file.
-	<-time.After(1 * time.Second)
-
-	os.Remove("foo.log")
-	os.Remove("bar.log")
-}
-
-func TestNewLine(t *testing.T) {
-	NewLine("\n")
-}
-
-func TestReset(t *testing.T) {
-	Reset()
 }
 
 //func TestSetOutput(t *testing.T) {
@@ -63,99 +37,128 @@ func TestReset(t *testing.T) {
 //	AddOutput(w)
 //}
 
-func TestSetPrefix(t *testing.T) {
-	SetPrefix("[TEST]")
-}
+func TestLogging(t *testing.T) {
+	t.Run("should pass scan test", func(t *testing.T) {
+		f := newLogFile("foo.log")
+		defer f.Close()
 
-func TestLogPrint(t *testing.T) {
-	Print("testing ...")
-}
+		SetOutput(f)
 
-func TestSetTimeFormat(t *testing.T) {
-	SetTimeFormat("[2006-01-02 15:04]")
-	Info("TestSetTimeFormat")
-}
+		b := newLogFile("bar.log")
+		defer f.Close()
+		AddOutput(b)
 
-func TestLogPrintln(t *testing.T) {
-	Println("testing ...")
-}
+		_ = Scan(os.Stdin)
+		// type and enter one or more sentences to your console,
+		// wait 10 seconds and open the .txt file.
+		<-time.After(1 * time.Second)
 
-func TestLogf(t *testing.T) {
-	Logf(golog.DebugLevel, "testing %v", "...")
-}
-
-func TestLogDebug(t *testing.T) {
-	SetLevel(DebugLevel)
-	Debug("testing ...")
-}
-
-func TestLogDebugf(t *testing.T) {
-	SetLevel(DebugLevel)
-	Debugf("testing %v", "...")
-}
-
-func TestLogInfo(t *testing.T) {
-	SetLevel(DebugLevel)
-	Info("testing ...")
-}
-
-func TestLogInfof(t *testing.T) {
-	SetLevel(DebugLevel)
-	Infof("testing %v", "...")
-}
-
-func TestWarnInfo(t *testing.T) {
-	SetLevel(DebugLevel)
-	Warn("testing ...")
-}
-
-func TestLogWarnf(t *testing.T) {
-	SetLevel(DebugLevel)
-	Warnf("testing %v", "...")
-}
-
-func TestLogErrorInfo(t *testing.T) {
-	SetLevel(DebugLevel)
-	Error("testing ...")
-}
-
-func TestLogErrorf(t *testing.T) {
-	SetLevel(DebugLevel)
-	Errorf("testing %v", "...")
-}
-
-func TestInstall(t *testing.T) {
-	var l golog.ExternalLogger
-	Install(l)
-}
-
-func TestInstallStd(t *testing.T) {
-	var l golog.StdLogger
-	InstallStd(l)
-}
-
-func TestHandle(t *testing.T) {
-	Handle(func(value *golog.Log) (handled bool) {
-		return true
+		os.Remove("foo.log")
+		os.Remove("bar.log")
 	})
-}
 
-func TestHijack(t *testing.T) {
-	Hijack(func(ctx *pio.Ctx) {
-		Info("Hijack")
+	t.Run("should pass new line test", func(t *testing.T) {
+		NewLine("\n")
 	})
-}
 
-func TestChild(t *testing.T) {
-	Child("TestChild")
-}
+	t.Run("should pass reset test", func(t *testing.T) {
+		Reset()
+	})
 
-func TestFatal(t *testing.T) {
-	go Fatal("test")
-}
+	t.Run("should pass set prefix test", func(t *testing.T) {
+		SetPrefix("[TEST]")
+	})
 
-func TestFatalf(t *testing.T) {
-	go Fatalf("test: %v", "log")
+	t.Run("should pass log.Print() test", func(t *testing.T) {
+		Print("testing ...")
+	})
+
+	t.Run("should pass log.SetTimeFormat() test", func(t *testing.T) {
+		SetTimeFormat("[2006-01-02 15:04]")
+		Info("TestSetTimeFormat")
+	})
+
+	t.Run("should pass log.Println() test", func(t *testing.T) {
+		Println("testing ...")
+	})
+
+	t.Run("should pass log.Logf() test", func(t *testing.T) {
+		Logf(golog.DebugLevel, "testing %v", "...")
+	})
+
+	t.Run("should pass log.Debug() test", func(t *testing.T) {
+		SetLevel(DebugLevel)
+		Debug("testing ...")
+	})
+	t.Run("should pass log.Debugf() test", func(t *testing.T) {
+		SetLevel(DebugLevel)
+		Debugf("testing %v", "...")
+	})
+	t.Run("should pass log.Info() test", func(t *testing.T) {
+		SetLevel(DebugLevel)
+		Info("testing ...")
+	})
+	t.Run("should pass log.Infof() test", func(t *testing.T) {
+		SetLevel(DebugLevel)
+		Infof("testing %v", "...")
+	})
+	t.Run("should pass log.Warn() test", func(t *testing.T) {
+		SetLevel(DebugLevel)
+		Warn("testing ...")
+	})
+	t.Run("should pass log.Warnf() test", func(t *testing.T) {
+		SetLevel(DebugLevel)
+		Warnf("testing %v", "...")
+	})
+
+	t.Run("should pass log.Error() test", func(t *testing.T) {
+		SetLevel(DebugLevel)
+		Error("testing ...")
+	})
+	t.Run("should pass log.Errorf() test", func(t *testing.T) {
+		SetLevel(DebugLevel)
+		Errorf("testing %v", "...")
+	})
+
+	t.Run("should pass log.() test", func(t *testing.T) {
+		var l golog.ExternalLogger
+		Install(l)
+	})
+
+	t.Run("should pass log.InstallStd() test", func(t *testing.T) {
+		var l golog.StdLogger
+		InstallStd(l)
+	})
+
+	t.Run("should pass log.Handle() test", func(t *testing.T) {
+		Handle(func(value *golog.Log) (handled bool) {
+			return true
+		})
+	})
+
+	t.Run("should pass log.Hijack() test", func(t *testing.T) {
+		Hijack(func(ctx *pio.Ctx) {
+			Info("Hijack")
+		})
+	})
+
+	t.Run("should pass log.Child() test", func(t *testing.T) {
+		Child("TestChild")
+	})
+
+	withCaller = func(fn func(v ...interface{}), v ...interface{}) {
+		fmt.Println("fake withCaller()")
+	}
+	t.Run("should pass log.Fatal() test", func(t *testing.T) {
+		Fatal("test")
+	})
+
+	withCallerf = func(fn func(format string, v ...interface{}), format string, v ...interface{}) {
+		fmt.Println("fake withCallerf()")
+	}
+	t.Run("should pass log.Fatalf() test", func(t *testing.T) {
+		Fatalf("test: %v", "log")
+	})
 }
 
 func newLogFile(filename string) *os.File {

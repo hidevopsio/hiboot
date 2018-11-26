@@ -55,10 +55,17 @@ func TestBuilderBuild(t *testing.T) {
 
 	cp, err := b.Build("default", "local")
 	t.Run("should build configuration properly", func(t *testing.T) {
-		assert.Equal(t, nil, err)
 		c := cp.(*Configuration)
+		assert.Equal(t, nil, err)
 		assert.Equal(t, "hiboot", c.App.Name)
 		assert.Equal(t, testProject, c.App.Project)
+	})
+
+	t.Run("should build mock and local configuration properly", func(t *testing.T) {
+		cp, err = b.Build("mock", "local")
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "hiboot-mocking", b.GetProperty("mock.nickname"))
+		assert.Equal(t, "hiboot-mock-local", b.GetProperty("mock.name"))
 	})
 
 	t.Run("should build configuration properly", func(t *testing.T) {

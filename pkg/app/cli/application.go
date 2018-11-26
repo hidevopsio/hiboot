@@ -92,6 +92,12 @@ func (a *application) SetProperty(name string, value ...interface{}) app.Applica
 	return a
 }
 
+// SetAddCommandLineProperties set add command line properties to be enabled or disabled
+func (a *application) SetAddCommandLineProperties(enabled bool) app.Application {
+	a.BaseApplication.SetAddCommandLineProperties(enabled)
+	return a
+}
+
 // Initialize init application
 func (a *application) Initialize() error {
 	return a.BaseApplication.Initialize()

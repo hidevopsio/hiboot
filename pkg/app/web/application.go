@@ -178,6 +178,12 @@ func (a *application) initialize(controllers ...interface{}) (err error) {
 	return
 }
 
+// SetAddCommandLineProperties set add command line properties to be enabled or disabled
+func (a *application) SetAddCommandLineProperties(enabled bool) app.Application {
+	a.BaseApplication.SetAddCommandLineProperties(enabled)
+	return a
+}
+
 // RestController register rest controller to controllers container
 // Deprecated: please use app.Register() instead
 var RestController = app.Register
