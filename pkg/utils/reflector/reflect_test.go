@@ -740,13 +740,18 @@ func TestGetFuncName(t *testing.T) {
 		assert.Equal(t, "foo", name)
 	})
 
-	t.Run("shuold get method name", func(t *testing.T) {
+	t.Run("should get method name", func(t *testing.T) {
 		s := fooService{}
 		name := GetFuncName(s.foobar)
 		assert.Equal(t, "foobar", name)
 	})
 
-	t.Run("shuold get method name by pointer", func(t *testing.T) {
+	t.Run("should get method name directly", func(t *testing.T) {
+		name := GetFuncName((*fooService).foobar)
+		assert.Equal(t, "foobar", name)
+	})
+
+	t.Run("should get method name by pointer", func(t *testing.T) {
 		ps := &fooService{}
 		name := GetFuncName(ps.foobar)
 		assert.Equal(t, "foobar", name)
