@@ -10,3 +10,6 @@ server:
 
 logging:
   level: debug
+
+mock:
+  name: ${app.name}-mock-local

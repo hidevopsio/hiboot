@@ -98,7 +98,7 @@ func (b *builder) Build(profiles ...string) (conf interface{}, err error) {
 		for _, field := range reflector.DeepFields(reflect.TypeOf(b.configuration)) {
 			p, ok := field.Tag.Lookup("mapstructure")
 			if ok && !str.InSlice(p, profiles) {
-				profiles = append(profiles, p)
+				profiles = append([]string{p}, profiles...)
 			}
 		}
 	}
@@ -172,14 +172,11 @@ func (b *builder) load(fullName, profile string) (interface{}, error) {
 	// iterate all and replace reference values or env
 	allKeys := b.AllKeys()
 	for _, key := range allKeys {
-		ks := strings.Split(key, ".")
-		if ks[0] == profile || profile == "" {
-			val := b.GetString(key)
-			if strings.Contains(val, "${") {
-				newVal := b.Replace(val)
-				b.Set(key, newVal)
-				log.Debugf(">>> replaced key: %v, value: %v, newVal: %v", key, val, newVal)
-			}
+		val := b.GetString(key)
+		if strings.Contains(val, "${") {
+			newVal := b.Replace(val)
+			b.Set(key, newVal)
+			log.Debugf(">>> replaced key: %v, value: %v, newVal: %v", key, val, newVal)
 		}
 	}
 
