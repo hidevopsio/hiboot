@@ -33,7 +33,11 @@
       <img src="https://godoc.org/github.com/golang/gddo?status.svg" />
   </a>
 
-  <a href="https://gitter.im/hidevopsio/hiboot">
+  <a href="http://hits.dwyl.io/hidevopsio/hiboot">
+      <img src="http://hits.dwyl.io/hidevopsio/hiboot.svg" />
+  </a>
+
+  <a href="http://hits.dwyl.io/hidevopsio/hiboot">
       <img src="https://img.shields.io/badge/GITTER-join%20chat-green.svg" />
   </a>
 </p>
