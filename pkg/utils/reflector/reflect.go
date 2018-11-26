@@ -17,6 +17,7 @@ package reflector
 
 import (
 	"errors"
+	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/io"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"reflect"
@@ -205,16 +206,20 @@ func GetFuncName(fn interface{}) (name string) {
 	kind := val.Kind()
 	if kind == reflect.Func {
 		name = runtime.FuncForPC(val.Pointer()).Name()
+		log.Debugf("=> %v", name)
 		n := strings.LastIndexByte(name, byte('.'))
 		if n > 0 {
 			name = name[n+1:]
+			log.Debugf("=> %v", name)
 			n = strings.LastIndexByte(name, byte('-'))
 			if n > 0 {
 				name = name[:n]
+				log.Debugf("=> %v", name)
 			}
 			n = strings.LastIndexByte(name, byte(')'))
 			if n > 0 {
 				name = name[:n]
+				log.Debugf("=> %v", name)
 			}
 		}
 	}

@@ -20,6 +20,7 @@ import (
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/reflector/tester"
 	"reflect"
+	"runtime"
 	"testing"
 )
 
@@ -729,6 +730,10 @@ func (s *fooService) foobar() {
 
 }
 
+func GetFunctionName(i interface{}) string {
+	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
+}
+
 func TestGetFuncName(t *testing.T) {
 	name := GetFuncName(foo)
 	assert.Equal(t, "foo", name)
@@ -739,6 +744,9 @@ func TestGetFuncName(t *testing.T) {
 	ps := &fooService{}
 	name = GetFuncName(ps.foobar)
 	assert.Equal(t, "foobar", name)
+
+	log.Debug(GetFunctionName(s.foobar))
+	log.Debug(GetFunctionName(foo))
 }
 
 func TestHasEmbeddedFieldByInterface(t *testing.T) {
