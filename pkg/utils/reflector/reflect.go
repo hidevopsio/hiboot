@@ -17,7 +17,6 @@ package reflector
 
 import (
 	"errors"
-	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/io"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"reflect"
@@ -200,28 +199,29 @@ func GetType(data interface{}) (typ reflect.Type, err error) {
 	return
 }
 
+func parseFuncName(name string) string {
+	n := strings.LastIndexByte(name, byte('.'))
+	if n > 0 {
+		name = name[n+1:]
+		n = strings.LastIndexByte(name, byte('-'))
+		if n > 0 {
+			name = name[:n]
+		}
+		n = strings.LastIndexByte(name, byte(')'))
+		if n > 0 {
+			name = name[:n]
+		}
+	}
+	return name
+}
+
 // GetFuncName get func name
 func GetFuncName(fn interface{}) (name string) {
 	val := reflect.ValueOf(fn)
 	kind := val.Kind()
 	if kind == reflect.Func {
 		name = runtime.FuncForPC(val.Pointer()).Name()
-		log.Debugf("=> %v", name)
-		n := strings.LastIndexByte(name, byte('.'))
-		if n > 0 {
-			name = name[n+1:]
-			log.Debugf("=> %v", name)
-			n = strings.LastIndexByte(name, byte('-'))
-			if n > 0 {
-				name = name[:n]
-				log.Debugf("=> %v", name)
-			}
-			n = strings.LastIndexByte(name, byte(')'))
-			if n > 0 {
-				name = name[:n]
-				log.Debugf("=> %v", name)
-			}
-		}
+		name = parseFuncName(name)
 	}
 	return
 }
