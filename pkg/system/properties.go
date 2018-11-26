@@ -37,6 +37,8 @@ type App struct {
 	Project string `json:"project" default:"hidevopsio"`
 	// app name
 	Name string `json:"name" default:"hiboot-app"`
+	// app description
+	Description string `json:"description" default:"${app.name} is a Hiboot Application"`
 	// profiles
 	Profiles Profiles `json:"profiles"`
 	// banner
