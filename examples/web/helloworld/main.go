@@ -18,10 +18,8 @@ package main
 
 // import web starter from hiboot
 import (
-	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/at"
-	"hidevops.io/hiboot/pkg/starter/actuator"
 )
 
 // Controller Rest Controller with path /
@@ -42,5 +40,7 @@ func (c *Controller) Get() string {
 // main function
 func main() {
 	// create new web application and run it
-	web.NewApplication(new(Controller)).SetProperty(app.ProfilesInclude, actuator.Profile).Run()
+	web.NewApplication(new(Controller)).
+		SetAddCommandLineProperties(false).
+		Run()
 }

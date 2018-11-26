@@ -132,7 +132,8 @@ func (c *bazCommand) Run(args []string) (err error) {
 // demo foo bar
 func TestCliApplication(t *testing.T) {
 	app.Register(newFooCommand, newBarCommand, newBazCommand)
-	testApp := cli.NewTestApplication(t, newRootCommand).SetProperty("foo", "bar")
+	testApp := cli.NewTestApplication(t, newRootCommand).
+		SetProperty("foo", "bar")
 
 	t.Run("should run root command", func(t *testing.T) {
 		_, err := testApp.Run("-p", "test", "-i", "2")
@@ -179,7 +180,10 @@ func TestCliApplication(t *testing.T) {
 }
 
 func TestNewApplication(t *testing.T) {
-	go cli.NewApplication().SetProperty("app.project", "cli-test-app").Run()
+	go cli.NewApplication().
+		SetProperty("app.project", "cli-test-app").
+		SetAddCommandLineProperties(false).
+		Run()
 	time.Sleep(2 * time.Second)
 }
 

@@ -1,0 +1,5 @@
+# config file for testing
+
+mock:
+  name: ${app.name}-mock
+  nickname: ${app.name}-mocking

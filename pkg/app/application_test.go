@@ -159,6 +159,10 @@ func TestBaseApplication(t *testing.T) {
 	cf := ba.ConfigurableFactory()
 	assert.NotEqual(t, nil, cf)
 
+	ba.SetAddCommandLineProperties(false)
+	ba.AfterInitialization()
+
+	ba.SetAddCommandLineProperties(true)
 	ba.AfterInitialization()
 
 	ba.RegisterController(nil)
