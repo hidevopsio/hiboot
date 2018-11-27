@@ -42,8 +42,8 @@
   name = "github.com/kataras/pio"
 
 [[constraint]]
-  name = "github.com/spf13/viper"
-  version = "1.1.0"
+  name = "hidevops.io/viper"
+  version = "v1.3.1"
 
 [[constraint]]
   name = "github.com/stretchr/testify"

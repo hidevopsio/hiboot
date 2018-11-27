@@ -12,4 +12,5 @@ logging:
   level: debug
 
 mock:
-  name: ${app.name}-mock-local
+  name: hiboot-mock-local
+  username: ${app.name}-user-local
