@@ -61,10 +61,11 @@ func TestBuilderBuild(t *testing.T) {
 		assert.Equal(t, testProject, c.App.Project)
 	})
 
-	t.Run("should build mock and local configuration properly", func(t *testing.T) {
+	t.Run("should build mock and local configuration properly and merge them", func(t *testing.T) {
 		cp, err = b.Build("mock", "local")
 		assert.Equal(t, nil, err)
 		assert.Equal(t, "hiboot-mocking", b.GetProperty("mock.nickname"))
+		assert.Equal(t, "hiboot-user-local", b.GetProperty("mock.username"))
 		assert.Equal(t, "hiboot-mock-local", b.GetProperty("mock.name"))
 	})
 

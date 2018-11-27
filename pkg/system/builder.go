@@ -19,13 +19,13 @@ package system
 import (
 	"bytes"
 	"fmt"
-	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/io"
 	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/replacer"
 	"hidevops.io/hiboot/pkg/utils/str"
+	"hidevops.io/viper"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -56,8 +56,10 @@ type builder struct {
 
 // NewBuilder is the constructor of system.Builder
 func NewBuilder(configuration interface{}, path, name, fileType string, customProperties map[string]interface{}) Builder {
+	v := viper.New()
+	v.OverwriteOnMerge = true
 	return &builder{
-		Viper:            viper.New(),
+		Viper:            v,
 		path:             path,
 		name:             name,
 		fileType:         fileType,
@@ -115,9 +117,13 @@ func (b *builder) Build(profiles ...string) (conf interface{}, err error) {
 		// allow the empty of the profile
 		configFile := filepath.Join(b.path, name)
 		if profile != "" && !b.isFileNotExist(configFile+".") {
+			log.Debugf("a profile: %v - mock.name: %v", profile, b.GetProperty("mock.name"))
 			b.read(name, true)
+			log.Debugf("b profile: %v - mock.name: %v", profile, b.GetProperty("mock.name"))
 		}
+		log.Debugf("c profile: %v - mock.name: %v", profile, b.GetProperty("mock.name"))
 		b.load(name, profile)
+		log.Debugf("d profile: %v - mock.name: %v", profile, b.GetProperty("mock.name"))
 	}
 	return b.configuration, err
 }
