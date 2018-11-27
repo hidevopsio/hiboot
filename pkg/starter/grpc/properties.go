@@ -17,7 +17,7 @@ type server struct {
 	// port.
 	// address = host:port
 	// e.g. :7575 means that the address is 127.0.0.1 and port is 7575
-	Host string `json:"host" default:"localhost"`
+	Host string `json:"host"`
 	// server port, default is 7575
 	Port string `json:"port" default:"7575"`
 }
