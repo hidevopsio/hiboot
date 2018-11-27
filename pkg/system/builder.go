@@ -56,10 +56,8 @@ type builder struct {
 
 // NewBuilder is the constructor of system.Builder
 func NewBuilder(configuration interface{}, path, name, fileType string, customProperties map[string]interface{}) Builder {
-	v := viper.New()
-	v.ForceOverride = true
 	return &builder{
-		Viper:            v,
+		Viper:            viper.New(),
 		path:             path,
 		name:             name,
 		fileType:         fileType,
@@ -171,7 +169,7 @@ func (b *builder) load(fullName, profile string) (interface{}, error) {
 	for key, value := range b.customProperties {
 		keyPath := strings.Split(key, ".")
 		if str.InSlice(keyPath[0], b.profiles) {
-			b.Set(key, value)
+			b.SetProperty(key, value)
 		}
 	}
 
@@ -181,7 +179,7 @@ func (b *builder) load(fullName, profile string) (interface{}, error) {
 		val := b.GetString(key)
 		if strings.Contains(val, "${") {
 			newVal := b.Replace(val)
-			b.Set(key, newVal)
+			b.SetConfig(key, newVal)
 			log.Debugf(">>> replaced key: %v, value: %v, newVal: %v", key, val, newVal)
 		}
 	}
