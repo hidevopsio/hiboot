@@ -734,12 +734,12 @@
   version = "v2.2.1"
 
 [[projects]]
-  branch = "hiboot"
-  digest = "1:7cd9927d22110ae814a6132932cbf22fef3179c1e670d3dc962a8cbdfda3bf19"
+  digest = "1:5e882fe16c0da3af39f0a51d5fe5494e61956b9e4518f6d78e433e3062453a8b"
   name = "hidevops.io/viper"
   packages = ["."]
   pruneopts = ""
-  revision = "53568581ce0a72e3b92487fc9f12ab5c0fd10de4"
+  revision = "b44ee7fe246506c275aaf61ea29a0ede7eba54b3"
+  version = "v1.3.0"
 
 [solve-meta]
   analyzer-name = "dep"
