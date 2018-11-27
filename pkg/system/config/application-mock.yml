@@ -3,3 +3,4 @@
 mock:
   name: ${app.name}-mock
   nickname: ${app.name}-mocking
+  username: ${app.name}-user

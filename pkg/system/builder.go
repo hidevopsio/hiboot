@@ -19,13 +19,13 @@ package system
 import (
 	"bytes"
 	"fmt"
-	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/io"
 	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/replacer"
 	"hidevops.io/hiboot/pkg/utils/str"
+	"hidevops.io/viper"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -115,9 +115,13 @@ func (b *builder) Build(profiles ...string) (conf interface{}, err error) {
 		// allow the empty of the profile
 		configFile := filepath.Join(b.path, name)
 		if profile != "" && !b.isFileNotExist(configFile+".") {
+			log.Debugf("a profile: %v - mock.name: %v", profile, b.GetProperty("mock.name"))
 			b.read(name, true)
+			log.Debugf("b profile: %v - mock.name: %v", profile, b.GetProperty("mock.name"))
 		}
+		log.Debugf("c profile: %v - mock.name: %v", profile, b.GetProperty("mock.name"))
 		b.load(name, profile)
+		log.Debugf("d profile: %v - mock.name: %v", profile, b.GetProperty("mock.name"))
 	}
 	return b.configuration, err
 }
@@ -165,7 +169,7 @@ func (b *builder) load(fullName, profile string) (interface{}, error) {
 	for key, value := range b.customProperties {
 		keyPath := strings.Split(key, ".")
 		if str.InSlice(keyPath[0], b.profiles) {
-			b.Set(key, value)
+			b.SetProperty(key, value)
 		}
 	}
 
@@ -175,7 +179,7 @@ func (b *builder) load(fullName, profile string) (interface{}, error) {
 		val := b.GetString(key)
 		if strings.Contains(val, "${") {
 			newVal := b.Replace(val)
-			b.Set(key, newVal)
+			b.SetConfig(key, newVal)
 			log.Debugf(">>> replaced key: %v, value: %v, newVal: %v", key, val, newVal)
 		}
 	}
