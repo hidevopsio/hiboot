@@ -57,7 +57,7 @@ type builder struct {
 // NewBuilder is the constructor of system.Builder
 func NewBuilder(configuration interface{}, path, name, fileType string, customProperties map[string]interface{}) Builder {
 	v := viper.New()
-	v.OverwriteOnMerge = true
+	v.ForceOverride = true
 	return &builder{
 		Viper:            v,
 		path:             path,

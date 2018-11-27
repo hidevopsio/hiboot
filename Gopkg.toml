@@ -43,7 +43,7 @@
 
 [[constraint]]
   name = "hidevops.io/viper"
-  branch = "hiboot"
+  version = "v1.3.0"
 
 [[constraint]]
   name = "github.com/stretchr/testify"
