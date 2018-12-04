@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// ReadYamlFromFile read yaml from file directly
 func ReadYamlFromFile(file string) (prop map[string]interface{}, err error) {
 	fs := afero.NewOsFs()
 	var fb []byte
