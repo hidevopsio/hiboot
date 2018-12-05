@@ -13,12 +13,14 @@ branches:
 go_import_path: hidevops.io/hiboot
 
 env:
-  - APP_PROFILES_ACTIVE=local
-  - GO111MODULE=on
+- GO111MODULE=on
+- APP_PROFILES_ACTIVE=local
+
+install: true
 
 script:
-  - go test -v ./... -coverprofile=coverage.out -covermode=atomic
+- go test -v ./... -coverprofile=coverage.out -covermode=atomic
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN}
+- bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN}
 
