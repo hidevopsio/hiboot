@@ -43,7 +43,7 @@
 
 [[constraint]]
   name = "hidevops.io/viper"
-  version = "v1.3.1"
+  version = "v1.3.2"
 
 [[constraint]]
   name = "github.com/stretchr/testify"
