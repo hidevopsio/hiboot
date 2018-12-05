@@ -70,6 +70,7 @@ require (
 	golang.org/x/net v0.0.0-20180418062111-d41e8174641f
 	golang.org/x/sys v0.0.0-20180906133057-8cf3aee42992
 	golang.org/x/text v0.3.0
+	golang.org/x/vgo v0.0.0-20180912184537-9d567625acf4 // indirect
 	google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8
 	google.golang.org/grpc v1.14.0
 	gopkg.in/go-playground/validator.v8 v8.18.2
