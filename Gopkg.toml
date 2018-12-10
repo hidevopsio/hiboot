@@ -35,7 +35,7 @@
 
 [[constraint]]
   name = "github.com/kataras/iris"
-  version = "v10.7.0"
+  version = "v11.0.3"
 
 [[constraint]]
   branch = "master"

@@ -7,7 +7,6 @@ func defaultConfiguration() iris.Configuration {
 	return iris.Configuration{
 		DisableStartupLog:                 true,
 		DisableInterruptHandler:           false,
-		DisableVersionChecker:             true,
 		DisablePathCorrection:             false,
 		EnablePathEscape:                  false,
 		FireMethodNotAllowed:              false,

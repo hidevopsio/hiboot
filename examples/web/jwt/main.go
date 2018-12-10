@@ -16,14 +16,18 @@ package main
 
 import (
 	_ "hidevops.io/hiboot/examples/web/jwt/controller"
+	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
-	// starter/actuator is response for health check, etc.
-	_ "hidevops.io/hiboot/pkg/starter/actuator"
-	_ "hidevops.io/hiboot/pkg/starter/locale"
-	_ "hidevops.io/hiboot/pkg/starter/logging"
+	"hidevops.io/hiboot/pkg/starter/actuator"
+	"hidevops.io/hiboot/pkg/starter/jwt"
+	"hidevops.io/hiboot/pkg/starter/logging"
+	"hidevops.io/hiboot/pkg/starter/websocket"
 )
 
 func main() {
 	// create new web application and run it
-	web.NewApplication().Run()
+	web.NewApplication().
+		SetProperty("app.profiles.filter", true).
+		SetProperty(app.ProfilesInclude, actuator.Profile, logging.Profile, websocket.Profile, jwt.Profile).
+		Run()
 }
