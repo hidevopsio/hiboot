@@ -3,7 +3,6 @@ package web
 import (
 	"fmt"
 	"github.com/kataras/iris"
-	irsctx "github.com/kataras/iris/context"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
@@ -28,22 +27,20 @@ func init() {
 
 // Context is the instance of context.Context
 func (c *configuration) Context(app *webApp) context.Context {
-	ctx := NewContext(app)
+	return NewContext(app)
+}
+
+// DefaultView set the default view
+func (c *configuration) DefaultView(app *webApp) {
 
 	if c.Properties.View.Enabled {
 		v := c.Properties.View
 		app.RegisterView(iris.HTML(v.ResourcePath, v.Extension))
 
-		route := app.Get(v.ContextPath, func(ctx iris.Context) {
+		route := app.Get(v.ContextPath, Handler(func(ctx context.Context) {
 			ctx.View(v.DefaultPage)
-		})
+		}))
 		route.MainHandlerName = fmt.Sprintf("%s%s ", v.ContextPath, v.DefaultPage)
 		log.Infof("Mapped \"%v\" onto %v", v.ContextPath, v.DefaultPage)
 	}
-
-	app.ContextPool.Attach(func() irsctx.Context {
-		return ctx
-	})
-
-	return ctx
 }

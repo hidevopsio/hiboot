@@ -31,12 +31,11 @@ type Middleware struct {
 }
 
 // Serve the middleware's action
-func (m *Middleware) Serve(ctx ictx.Context) {
+func (m *Middleware) Serve(ctx context.Context) {
 	log.Debug("Serve()")
 	if err := m.CheckJWT(ctx); err != nil {
-		c := ctx.(context.Context)
-		c.ResponseError(err.Error(), http.StatusUnauthorized)
-		c.StopExecution()
+		ctx.ResponseError(err.Error(), http.StatusUnauthorized)
+		ctx.StopExecution()
 		return
 	}
 	// If everything ok then call next.
