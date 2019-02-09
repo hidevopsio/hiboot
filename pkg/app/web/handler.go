@@ -227,7 +227,7 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 
 	respVal := result.Interface()
 	if respVal == nil {
-		log.Warn("response is nil")
+		//log.Warn("response is nil")
 		err = fmt.Errorf("response is nil")
 		return
 	}

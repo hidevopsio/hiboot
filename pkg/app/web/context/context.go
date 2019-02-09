@@ -1,6 +1,9 @@
 package context
 
-import "github.com/kataras/iris/context"
+import (
+	"github.com/kataras/iris"
+	"github.com/kataras/iris/context"
+)
 
 // ExtendedContext extended context
 type ExtendedContext interface {
@@ -15,4 +18,14 @@ type ExtendedContext interface {
 type Context interface {
 	context.Context
 	ExtendedContext
+}
+
+type Handler func(Context)
+
+// NewHandler will convert iris handler to our handler of func(*Context),
+// in order to be compatible with the HTTP API.
+func NewHandler(h iris.Handler) Handler {
+	return func(ctx Context) {
+		h(ctx.(context.Context))
+	}
 }

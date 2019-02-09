@@ -16,9 +16,9 @@
 package locale
 
 import (
-	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/i18n"
 	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/utils/io"
 	"os"
 	"path/filepath"
@@ -77,11 +77,11 @@ func (c *configuration) Handler() (handler context.Handler) {
 		return err
 	})
 	if err == nil && len(languages) != 0 {
-		handler = i18n.New(i18n.Config{
+		handler = context.NewHandler(i18n.New(i18n.Config{
 			Default:      c.Properties.Default,
 			URLParameter: c.Properties.URLParameter,
 			Languages:    languages,
-		})
+		}))
 
 		c.applicationContext.Use(handler)
 	}
