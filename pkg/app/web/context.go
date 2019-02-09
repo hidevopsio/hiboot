@@ -63,14 +63,6 @@ func Handler(h func(context.Context)) iris.Handler {
 	}
 }
 
-// Do The only one important if you will override the Context
-// with an embedded context.Context inside it.
-// Required in order to run the handlers via this "*Context".
-func (c *Context) Do(handlers ctx.Handlers) {
-	//log.Debug("Context.Do()")
-	ctx.Do(c, handlers)
-}
-
 // Next The second one important if you will override the Context
 // with an embedded context.Context inside it.
 // Required in order to run the chain of handlers via this "*Context".
