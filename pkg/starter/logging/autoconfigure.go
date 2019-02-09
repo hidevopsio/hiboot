@@ -16,9 +16,9 @@
 package logging
 
 import (
-	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/logger"
 	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/app/web/context"
 )
 
 const (
@@ -80,7 +80,9 @@ func (c *configuration) LoggerHandler() context.Handler {
 		MessageHeaderKeys: c.Properties.HeaderKeys,
 	})
 
-	c.applicationContext.Use(loggerHandler)
+	lh := context.NewHandler(loggerHandler)
 
-	return loggerHandler
+	c.applicationContext.Use(lh)
+
+	return lh
 }

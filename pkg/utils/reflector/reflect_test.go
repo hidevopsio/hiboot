@@ -583,7 +583,7 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 		assert.Equal(t, "fooBarService", name)
 	})
 
-	t.Run("should method out type", func(t *testing.T) {
+	t.Run("should get method out type", func(t *testing.T) {
 		foo := new(Foo)
 		expectedTyp := reflect.TypeOf(foo)
 		method, ok := expectedTyp.MethodByName("SetNickname")
@@ -591,7 +591,16 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 		typ, ok := GetObjectType(method)
 		assert.Equal(t, true, ok)
 		assert.Equal(t, "Foo", typ.Name())
+	})
 
+	t.Run("should report empty method out type", func(t *testing.T) {
+		foo := new(Foo)
+		expectedTyp := reflect.TypeOf(foo)
+		method, ok := expectedTyp.MethodByName("Bar")
+		assert.Equal(t, true, ok)
+		typ, ok := GetObjectType(method)
+		assert.Equal(t, false, ok)
+		assert.Equal(t, nil, typ)
 	})
 
 	t.Run("should check valid object", func(t *testing.T) {

@@ -115,13 +115,9 @@ func (b *builder) Build(profiles ...string) (conf interface{}, err error) {
 		// allow the empty of the profile
 		configFile := filepath.Join(b.path, name)
 		if profile != "" && !b.isFileNotExist(configFile+".") {
-			log.Debugf("a profile: %v - mock.name: %v", profile, b.GetProperty("mock.name"))
 			b.read(name, true)
-			log.Debugf("b profile: %v - mock.name: %v", profile, b.GetProperty("mock.name"))
 		}
-		log.Debugf("c profile: %v - mock.name: %v", profile, b.GetProperty("mock.name"))
 		b.load(name, profile)
-		log.Debugf("d profile: %v - mock.name: %v", profile, b.GetProperty("mock.name"))
 	}
 	return b.configuration, err
 }
