@@ -15,11 +15,13 @@ type ExtendedContext interface {
 	ResponseError(message string, code int)
 }
 
+// Context is the interface of web app context
 type Context interface {
 	context.Context
 	ExtendedContext
 }
 
+// Handler is the handler func type (for Middleware)
 type Handler func(Context)
 
 // NewHandler will convert iris handler to our handler of func(*Context),
