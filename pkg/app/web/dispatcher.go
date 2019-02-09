@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"github.com/fatih/camelcase"
 	"github.com/kataras/iris"
-	ctx "github.com/kataras/iris/context"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/factory"
@@ -106,9 +105,9 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 			//log.Debug("beforeMethod.Name: ", beforeMethod.Name)
 			hdl := newHandler(d.configurableFactory)
 			hdl.parse(beforeMethod, controller, "")
-			party = d.webApp.Party(contextMapping, func(c ctx.Context) {
-				hdl.call(c.(context.Context))
-			})
+			party = d.webApp.Party(contextMapping, Handler(func(c context.Context) {
+				hdl.call(c)
+			}))
 		} else {
 			party = d.webApp.Party(contextMapping)
 		}
@@ -117,9 +116,9 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 		if ok {
 			hdl := newHandler(d.configurableFactory)
 			hdl.parse(afterMethod, controller, "")
-			party.Done(func(c ctx.Context) {
-				hdl.call(c.(context.Context))
-			})
+			party.Done(Handler(func(c context.Context) {
+				hdl.call(c)
+			}))
 		}
 
 		for mi := 0; mi < numOfMethod; mi++ {
@@ -152,17 +151,15 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 				// create new method parser here
 				hdl := newHandler(d.configurableFactory)
 				hdl.parse(method, controller, contextMapping+apiContextMapping)
+				methodHandler := Handler(func(c context.Context) {
+					hdl.call(c)
+					c.Next()
+				})
 
 				if hasAnyMethod {
-					party.Any(apiContextMapping, func(c ctx.Context) {
-						hdl.call(c.(context.Context))
-						c.Next()
-					})
+					party.Any(apiContextMapping, methodHandler)
 				} else if hasGenericMethod {
-					route := party.Handle(httpMethod, apiContextMapping, func(c ctx.Context) {
-						hdl.call(c.(context.Context))
-						c.Next()
-					})
+					route := party.Handle(httpMethod, apiContextMapping, methodHandler)
 					route.MainHandlerName = fmt.Sprintf("%s/%s.%s", pkgPath, fieldName, methodName)
 				}
 			}

@@ -18,8 +18,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/kataras/iris"
-	"github.com/kataras/iris/context"
 	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/io"
@@ -155,7 +155,7 @@ func (a *application) RegisterController(controller interface{}) error {
 func (a *application) Use(handlers ...context.Handler) {
 	// pass user's instances
 	for _, hdl := range handlers {
-		a.webApp.Use(hdl)
+		a.webApp.Use(Handler(hdl))
 	}
 }
 

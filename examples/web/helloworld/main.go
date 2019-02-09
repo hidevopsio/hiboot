@@ -30,11 +30,9 @@ type Controller struct {
 }
 
 // Get GET /
-// Get method, the context mapping of this method is '/' by default
-// the Method name Get means that the http request method is GET
 func (c *Controller) Get() string {
 	// response
-	return "hello"
+	return "Hello world"
 }
 
 // main function

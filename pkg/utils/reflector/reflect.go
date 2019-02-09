@@ -305,10 +305,12 @@ func HasEmbeddedFieldType(object interface{}, expected interface{}) (found bool)
 	if object == nil {
 		return false
 	}
-	typ, _ := GetObjectType(object)
-	expectedTyp, _ := GetObjectType(expected)
+	typ, ok := GetObjectType(object)
+	if ok {
+		expectedTyp, _ := GetObjectType(expected)
 
-	_, ok := GetEmbeddedFieldByType(typ, expectedTyp.Name(), expectedTyp.Kind())
+		_, ok = GetEmbeddedFieldByType(typ, expectedTyp.Name(), expectedTyp.Kind())
+	}
 
 	return ok
 }

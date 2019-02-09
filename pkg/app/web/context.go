@@ -15,6 +15,9 @@
 package web
 
 import (
+	"github.com/kataras/iris"
+	"sync"
+
 	ctx "github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/i18n"
 	"hidevops.io/hiboot/pkg/app/web/context"
@@ -26,26 +29,38 @@ import (
 
 // Context Create your own custom Context, put any fields you wanna need.
 type Context struct {
-	// Optional Part 1: embed (optional but required if you don't want to override all context's methods)
-	// it's the context/context.go#context struct but you don't need to know it.
-	ctx.Context
+	iris.Context
 }
 
-var _ ctx.Context = &Context{} // optionally: validate on compile-time if Context implements context.Context.
-
-// NewContext constructor of context.Context
+//NewContext constructor of context.Context
 func NewContext(app ctx.Application) context.Context {
 	return &Context{
 		Context: ctx.NewContext(app),
 	}
 }
 
-// Do The only one important if you will override the Context
-// with an embedded context.Context inside it.
-// Required in order to run the handlers via this "*Context".
-func (c *Context) Do(handlers ctx.Handlers) {
-	//log.Debug("Context.Do()")
-	ctx.Do(c, handlers)
+var contextPool = sync.Pool{New: func() interface{} {
+	return &Context{}
+}}
+
+func acquire(original iris.Context) *Context {
+	c := contextPool.Get().(*Context)
+	c.Context = original // set the context to the original one in order to have access to iris's implementation.
+	return c
+}
+
+func release(c *Context) {
+	contextPool.Put(c)
+}
+
+// Handler will convert our handler of func(*Context) to an iris Handler,
+// in order to be compatible with the HTTP API.
+func Handler(h func(context.Context)) iris.Handler {
+	return func(original iris.Context) {
+		c := acquire(original)
+		h(c)
+		release(c)
+	}
 }
 
 // Next The second one important if you will override the Context
@@ -63,21 +78,6 @@ func (c *Context) HTML(htmlContents string) (int, error) {
 	c.ContentType("text/html")
 	return c.WriteString(htmlContents)
 }
-
-//// RequestBody get RequestBody
-//func (c *Context) RequestBody(data interface{}) error {
-//	return RequestBody(c, data)
-//}
-//
-//// RequestForm get RequestFrom
-//func (c *Context) RequestForm(data interface{}) error {
-//	return RequestForm(c, data)
-//}
-//
-//// RequestParams get RequestParams
-//func (c *Context) RequestParams(data interface{}) error {
-//	return RequestParams(c, data)
-//}
 
 // handle i18n
 func (c *Context) translate(message string) string {
