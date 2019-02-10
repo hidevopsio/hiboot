@@ -366,6 +366,13 @@ func (c *HelloController) GetAll(ctx context.Context) {
 	ctx.ResponseBody("success", data)
 }
 
+// GetMap
+func (c *HelloController) GetMap() map[string]interface{} {
+	response := make(map[string]interface{})
+	response["message"] = "Hello from Map"
+	return response
+}
+
 // Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
 // the lower cased foo will be the context mapping of the controller
 // context path can be overwritten by the tag value of annotation at.ContextPath
@@ -388,6 +395,7 @@ func (c *HelloViewController) Get(ctx context.Context) {
 	ctx.View("index.html")
 }
 
+// AnyTest
 func (c *HelloViewController) AnyTest() string {
 	return "Greeting from any method"
 }
@@ -434,6 +442,12 @@ func TestWebApplication(t *testing.T) {
 	t.Run("should response 200 when GET /hello", func(t *testing.T) {
 		testApp.
 			Get("/hello/").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should response 200 when GET /map", func(t *testing.T) {
+		testApp.
+			Get("/hello/map").
 			Expect().Status(http.StatusOK)
 	})
 
