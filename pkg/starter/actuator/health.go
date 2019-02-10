@@ -17,7 +17,6 @@ package actuator
 
 import (
 	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
 )
@@ -48,7 +47,7 @@ func newHealthController(configurableFactory factory.ConfigurableFactory) *healt
 }
 
 // GET /health
-func (c *healthController) Get(ctx context.Context) {
+func (c *healthController) Get() map[string]interface{} {
 	healthServices := c.configurableFactory.GetInstances(new(at.HealthCheckService))
 	healthCheckProfiles := make(map[string]interface{})
 
@@ -70,5 +69,5 @@ func (c *healthController) Get(ctx context.Context) {
 		}
 	}
 
-	ctx.JSON(healthCheckProfiles)
+	return healthCheckProfiles
 }
