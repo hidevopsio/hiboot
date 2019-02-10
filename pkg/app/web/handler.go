@@ -232,13 +232,13 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 		return
 	}
 
-	switch h.responses[0].typeName {
-	case "string":
+	switch respVal.(type) {
+	case string:
 		ctx.ResponseString(result.Interface().(string))
-	case "error":
+	case error:
 		respErr := result.Interface().(error)
 		ctx.ResponseError(respErr.Error(), http.StatusInternalServerError)
-	case "Response":
+	case model.Response:
 		response := respVal.(model.Response)
 		if numOut >= 2 {
 			var respErr error
@@ -264,6 +264,8 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 			}
 		}
 		ctx.JSON(response)
+	case map[string]interface{}:
+		ctx.JSON(respVal)
 	default:
 		ctx.ResponseError("response type is not implemented!", http.StatusInternalServerError)
 	}
