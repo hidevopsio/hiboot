@@ -63,7 +63,7 @@ type response struct {
 type handler struct {
 	controller      interface{}
 	method          reflect.Method
-	inputs          []reflect.Value
+	ctlVal			reflect.Value
 	numIn           int
 	numOut          int
 	pathParams      []string
@@ -110,7 +110,6 @@ func clean(in string) (out string) {
 	}
 	lenOfOut := len(out) - 1
 	if lenOfOut > 1 && out[lenOfOut:] == "/" {
-		//log.Debug(out[:lenOfOut])
 		out = out[:lenOfOut]
 	}
 	return
@@ -122,8 +121,8 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 	h.method = method
 	h.numIn = method.Type.NumIn()
 	h.numOut = method.Type.NumOut()
-	h.inputs = make([]reflect.Value, h.numIn)
-	h.inputs[0] = reflect.ValueOf(object)
+	//h.inputs = make([]reflect.Value, h.numIn)
+	h.ctlVal = reflect.ValueOf(object)
 
 	//log.Debugf("method: %v", method.Name)
 
@@ -283,28 +282,28 @@ func (h *handler) call(ctx context.Context) {
 
 	if h.lenOfPathParams != 0 {
 		path = ctx.Path()
-		//log.Debugf("path: %v", path)
 		pvs = strings.SplitN(path, "/", -1)
 	}
 
 	if len(h.dependencies) > 0 {
 		runtimeInstance, _ = h.factory.InjectContextAwareObjects(ctx, h.dependencies)
 	}
-
+	inputs := make([]reflect.Value, h.numIn)
+	inputs[0] = h.ctlVal
 	for i := 1; i < h.numIn; i++ {
 		req := h.requests[i]
 		request = req.iVal.Interface()
 
 		if req.callback != nil {
 			reqErr = req.callback(ctx, request)
-			h.inputs[i] = reflect.ValueOf(request)
+			inputs[i] = reflect.ValueOf(request)
 		} else if req.kind == reflect.Interface && model.Context == req.typeName {
 			request = ctx
-			h.inputs[i] = reflect.ValueOf(request)
+			inputs[i] = reflect.ValueOf(request)
 		} else if h.lenOfPathParams != 0 {
 			strVal := pvs[req.pathIdx]
 			val := str.Convert(strVal, req.kind)
-			h.inputs[i] = reflect.ValueOf(val)
+			inputs[i] = reflect.ValueOf(val)
 		} else {
 			// inject instances
 			var inst interface{}
@@ -315,7 +314,7 @@ func (h *handler) call(ctx context.Context) {
 				inst = h.factory.GetInstance(req.fullName)
 			}
 			if inst != nil {
-				h.inputs[i] = reflect.ValueOf(inst)
+				inputs[i] = reflect.ValueOf(inst)
 			} else {
 				msg := fmt.Sprintf("input type: %v is not supported!", req.typ)
 				ctx.ResponseError(msg, http.StatusInternalServerError)
@@ -331,7 +330,8 @@ func (h *handler) call(ctx context.Context) {
 			reflector.SetFieldValue(h.controller, "Ctx", ctx)
 		}
 		// call controller method
-		results = h.method.Func.Call(h.inputs)
+		results = h.method.Func.Call(inputs)
+
 		h.responseData(ctx, h.numOut, results)
 	}
 }
