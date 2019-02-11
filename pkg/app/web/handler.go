@@ -64,7 +64,6 @@ type handler struct {
 	controller      interface{}
 	method          reflect.Method
 	ctlVal			reflect.Value
-	//inputs          []reflect.Value
 	numIn           int
 	numOut          int
 	pathParams      []string
@@ -111,7 +110,6 @@ func clean(in string) (out string) {
 	}
 	lenOfOut := len(out) - 1
 	if lenOfOut > 1 && out[lenOfOut:] == "/" {
-		//log.Debug(out[:lenOfOut])
 		out = out[:lenOfOut]
 	}
 	return
@@ -284,7 +282,6 @@ func (h *handler) call(ctx context.Context) {
 
 	if h.lenOfPathParams != 0 {
 		path = ctx.Path()
-		//log.Debugf("path: %v", path)
 		pvs = strings.SplitN(path, "/", -1)
 	}
 
@@ -302,7 +299,6 @@ func (h *handler) call(ctx context.Context) {
 			inputs[i] = reflect.ValueOf(request)
 		} else if req.kind == reflect.Interface && model.Context == req.typeName {
 			request = ctx
-			log.Debugf("request ctx: %p", ctx)
 			inputs[i] = reflect.ValueOf(request)
 		} else if h.lenOfPathParams != 0 {
 			strVal := pvs[req.pathIdx]
