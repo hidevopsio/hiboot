@@ -14,7 +14,10 @@
 
 package hiboot_test
 
-import "hidevops.io/hiboot/pkg/app/web"
+import (
+	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/at"
+)
 
 // This is a simple hello world example
 func Example() {
@@ -22,12 +25,12 @@ func Example() {
 	web.NewApplication(new(Controller)).Run()
 }
 
-// Controller is the RESTful Controller, derived from web.Controller.
+// Controller is the RESTful Controller, derived from at.RestController.
 // The context path of this controller is '/' by default
 // if you name it HelloController, then the default context path will be /hello
 // which the context path of this controller is hello
 type Controller struct {
-	web.Controller
+	at.RestController
 }
 
 // Get method, the context mapping of this method is '/' by default

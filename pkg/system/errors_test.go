@@ -22,7 +22,7 @@ import (
 func TestInvalidControllerError(t *testing.T) {
 	err := ErrInvalidController{Name: "TestController"}
 
-	assert.Equal(t, "TestController must be derived from web.Controller", err.Error())
+	assert.Equal(t, "TestController must be derived from at.RestController", err.Error())
 }
 
 func TestNotFoundError(t *testing.T) {

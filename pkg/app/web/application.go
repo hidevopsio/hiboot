@@ -140,7 +140,7 @@ func (a *application) build() (err error) {
 	return err
 }
 
-// RegisterController register controller, e.g. web.Controller, jwt.Controller, or other customized controller
+// RegisterController register controller, e.g. at.RestController, jwt.Controller, or other customized controller
 func (a *application) RegisterController(controller interface{}) error {
 	// get from controller map
 	// parse controller type
