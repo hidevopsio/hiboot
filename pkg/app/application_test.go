@@ -137,7 +137,8 @@ func TestApp(t *testing.T) {
 }
 
 func TestBaseApplication(t *testing.T) {
-	os.Args = append(os.Args, "--app.profiles.active=local")
+
+	os.Args = append(os.Args, "--app.profiles.active=local", "--test.property")
 
 	ba := new(app.BaseApplication)
 
