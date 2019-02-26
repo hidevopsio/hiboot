@@ -17,6 +17,7 @@ package inject_test
 import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/at"
 )
 
 //This example shows that the dependency is injected through the constructor
@@ -51,7 +52,7 @@ func (s *helloServiceImpl) SayHello(name string) string {
 
 // PATH: /login
 type helloController struct {
-	web.Controller
+	at.RestController
 	helloService HelloService
 }
 

@@ -72,7 +72,7 @@ func newBar() *Bar {
 
 // PATH /foo
 type FooController struct {
-	web.Controller
+	at.RestController
 	token jwt.Token
 }
 

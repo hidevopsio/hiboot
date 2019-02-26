@@ -23,9 +23,9 @@ import (
 )
 
 // Controller Rest Controller with path /
-// RESTful Controller, derived from web.Controller. The context mapping of this controller is '/' by default
+// RESTful Controller, derived from at.RestController. The context mapping of this controller is '/' by default
 type Controller struct {
-	// at.RestController or web.Controller must be embedded here
+	// at.RestController or at.RestController must be embedded here
 	at.RestController
 }
 

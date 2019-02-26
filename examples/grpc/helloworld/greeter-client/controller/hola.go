@@ -4,14 +4,14 @@ import (
 	"golang.org/x/net/context"
 	"hidevops.io/hiboot/examples/grpc/helloworld/protobuf"
 	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/starter/grpc"
 )
 
 // controller
 type holaController struct {
-	// embedded web.Controller
-	web.Controller
+	// embedded at.RestController
+	at.RestController
 	// declare HolaServiceClient
 	holaServiceClient protobuf.HolaServiceClient
 }
