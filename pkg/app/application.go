@@ -166,6 +166,10 @@ func (a *BaseApplication) setCustomPropertiesFromArgs() {
 			if prefix == "--" {
 				kv := val[2:]
 				kvPair := strings.Split(kv, "=")
+				// --property equal to --property=true
+				if len(kvPair) == 1 {
+					kvPair = append(kvPair, "true")
+				}
 				a.SetProperty(kvPair[0], kvPair[1])
 			}
 		}
