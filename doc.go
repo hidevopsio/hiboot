@@ -73,7 +73,7 @@ of the same service interface are available, you have to disambiguate which impl
 injected. This can be done by naming the field to specific implementation.
 
 	type userController struct {
-		web.Controller
+		at.RestController
 
 		BasicAuthenticationService AuthenticationService	`inject:""`
 		Oauth2AuthenticationService AuthenticationService	`inject:""`
@@ -97,7 +97,7 @@ usually advise people to use constructor injection as it has below advantages,
 	* No need to use a dedicated mechanism to ensure required properties are set.
 
 	type userController struct {
-		web.Controller
+		at.RestController
 
 		basicAuthenticationService AuthenticationService
 	}
