@@ -23,7 +23,7 @@ type ErrInvalidController struct {
 
 func (e *ErrInvalidController) Error() string {
 	// TODO: locale
-	return fmt.Sprintf("%v must be derived from web.Controller", e.Name)
+	return fmt.Sprintf("%v must be derived from at.RestController", e.Name)
 }
 
 // ErrNotFound resource not found error
