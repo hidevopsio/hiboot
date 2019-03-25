@@ -6,6 +6,7 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 	webctx "hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
+	"net/http"
 )
 
 //Span  is the wrap of opentracing.Span
@@ -19,9 +20,9 @@ type Span struct {
 type ChildSpan Span
 
 
-func (s *Span) Inject(ctx context.Context, method string, url string, operationName string) opentracing.Span {
+func (s *Span) Inject(ctx context.Context, method string, url string, req *http.Request) opentracing.Span {
 	c := opentracing.ContextWithSpan(ctx, s)
-	newSpan, _ := opentracing.StartSpanFromContext(c, operationName)
+	newSpan, _ := opentracing.StartSpanFromContext(c, req.RequestURI)
 
 	ext.SpanKindRPCClient.Set(newSpan)
 	ext.HTTPUrl.Set(newSpan, url)
@@ -29,7 +30,7 @@ func (s *Span) Inject(ctx context.Context, method string, url string, operationN
 	newSpan.Tracer().Inject(
 		newSpan.Context(),
 		opentracing.HTTPHeaders,
-		opentracing.HTTPHeadersCarrier(s.context.Request().Header),
+		opentracing.HTTPHeadersCarrier(req.Header),
 	)
 
 	return newSpan

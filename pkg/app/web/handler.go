@@ -63,6 +63,7 @@ type response struct {
 type handler struct {
 	controller      interface{}
 	method          reflect.Method
+	path			string
 	ctlVal          reflect.Value
 	numIn           int
 	numOut          int
@@ -128,6 +129,7 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 
 	// TODO: should parse all of below request and response during router register to improve performance
 	path = clean(path)
+	h.path = path
 	//log.Debugf("path: %v", path)
 	pps := strings.SplitN(path, "/", -1)
 	//log.Debug(pps)

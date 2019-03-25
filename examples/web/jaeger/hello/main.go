@@ -61,7 +61,7 @@ func (c *Controller) formatString(span *jaeger.Span, helloTo string) string {
 	}
 
 	// call formatter service
-	newSpan := span.Inject(context.Background(), "GET", finalUrl, "formatString")
+	newSpan := span.Inject(context.Background(), "GET", finalUrl, req)
 	defer newSpan.Finish()
 
 	resp, err := httpcli.Do(req)
@@ -87,7 +87,7 @@ func (c *Controller) printHello(span *jaeger.Span, helloStr string) {
 		panic(err.Error())
 	}
 	// call publisher service
-	newSpan := span.Inject(context.Background(), "GET", finalUrl, "printHello")
+	newSpan := span.Inject(context.Background(), "GET", finalUrl, req)
 	defer newSpan.Finish()
 
 	if _, err := httpcli.Do(req); err != nil {
