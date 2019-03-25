@@ -6,6 +6,7 @@ require (
 	github.com/Shopify/goreferrer v0.0.0-20180807163728-b9777dc9f9cc
 	github.com/ajg/form v0.0.0-20160822230020-523a5da1a92f
 	github.com/aymerick/raymond v2.0.2+incompatible
+	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v1.7.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -47,6 +48,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
 	github.com/modern-go/reflect2 v1.0.1
 	github.com/moul/http2curl v1.0.0
+	github.com/opentracing/opentracing-go v1.0.2
 	github.com/pelletier/go-toml v1.2.0
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/ryanuber/columnize v2.1.0+incompatible
@@ -59,6 +61,9 @@ require (
 	github.com/spf13/jwalterweatherman v1.0.0
 	github.com/spf13/pflag v1.0.3
 	github.com/stretchr/testify v1.2.2
+	github.com/uber-go/atomic v1.3.2 // indirect
+	github.com/uber/jaeger-client-go v2.15.0+incompatible
+	github.com/uber/jaeger-lib v1.5.0+incompatible // indirect
 	github.com/valyala/bytebufferpool v1.0.0
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415

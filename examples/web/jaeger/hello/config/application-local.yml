@@ -1,0 +1,16 @@
+# config file for testing
+
+server:
+  port: 8080
+
+logging:
+  level: info
+
+jaeger:
+  config:
+    reporter:
+      localAgentHostPort: localhost:6831
+
+provider:
+  formatter: http://localhost:8081
+  publisher: http://localhost:8082
