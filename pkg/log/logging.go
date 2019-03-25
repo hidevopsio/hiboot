@@ -50,6 +50,8 @@ func callerInfo(skip int) (file string, line int, fn string) {
 	return
 }
 
+// TODO: logger should be able to filter out package by name
+
 var withCaller = func(fn func(v ...interface{}), v ...interface{}) {
 	argv := make([]interface{}, 1)
 	_, line, fnName := callerInfo(3)

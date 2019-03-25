@@ -1,0 +1,12 @@
+# config file for testing
+
+server:
+  port: 8081
+
+logging:
+  level: info
+
+jaeger:
+  config:
+    reporter:
+      localAgentHostPort: localhost:6831

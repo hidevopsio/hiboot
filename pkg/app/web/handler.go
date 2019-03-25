@@ -290,6 +290,8 @@ func (h *handler) call(ctx context.Context) {
 	}
 	inputs := make([]reflect.Value, h.numIn)
 	inputs[0] = h.ctlVal
+
+	lenOfPathParams := h.lenOfPathParams
 	for i := 1; i < h.numIn; i++ {
 		req := h.requests[i]
 		request = req.iVal.Interface()
@@ -300,7 +302,9 @@ func (h *handler) call(ctx context.Context) {
 		} else if req.kind == reflect.Interface && model.Context == req.typeName {
 			request = ctx
 			inputs[i] = reflect.ValueOf(request)
-		} else if h.lenOfPathParams != 0 {
+		} else if lenOfPathParams != 0 {
+			// allow inject other dependencies after number of lenOfPathParams
+			lenOfPathParams = lenOfPathParams - 1
 			strVal := pvs[req.pathIdx]
 			val := str.Convert(strVal, req.kind)
 			inputs[i] = reflect.ValueOf(val)
