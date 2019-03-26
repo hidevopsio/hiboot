@@ -19,13 +19,15 @@ package main
 // import web starter from hiboot
 import (
 	"context"
+	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/log"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/starter/httpclient"
 	"hidevops.io/hiboot/pkg/starter/jaeger"
 	"hidevops.io/hiboot/pkg/starter/logging"
-	"hidevops.io/hiboot/pkg/utils/httpcli"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -37,68 +39,74 @@ type Controller struct {
 
 	Formatter string `value:"${provider.formatter}"`
 	Publisher string `value:"${provider.publisher}"`
+
+	client httpclient.Client
 }
 
-// Get GET /name/{name}
+// Get GET /greeting/{greeting}/name/{name}
 func (c *Controller) GetByGreetingName(greeting, name string, span *jaeger.Span) string {
 	defer span.Finish()
 	span.SetTag("hello-to", name)
 	span.SetBaggageItem("greeting", greeting)
 
-	helloStr := c.formatString(span, name)
+	helloStr, err := c.formatString(span, name)
+	if err != nil {
+		return ""
+	}
 	c.printHello(span, helloStr)
 
 	// response
 	return helloStr
 }
 
-
-func (c *Controller) formatString(span *jaeger.Span, helloTo string) string {
+func (c *Controller) formatString(span *jaeger.Span, helloTo string) (string, error) {
 
 	finalUrl := c.Formatter + "/formatter/" + helloTo
-	req, err := http.NewRequest("GET", finalUrl, nil)
+
+	var newSpan opentracing.Span
+
+	resp, err := c.client.Get(finalUrl, nil, func(req *http.Request) {
+		// call formatter service
+		newSpan = span.Inject(context.Background(), "GET", finalUrl, req)
+	})
 	if err != nil {
-		panic(err.Error())
+		return "", err
 	}
 
-	// call formatter service
-	newSpan := span.Inject(context.Background(), "GET", finalUrl, req)
-	defer newSpan.Finish()
-
-	resp, err := httpcli.Do(req)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		panic(err.Error())
+		return "", err
 	}
-
-	helloStr := string(resp)
+	helloStr := string(body)
 
 	newSpan.LogFields(
 		log.String("event", "string-format"),
 		log.String("value", helloStr),
 	)
 
-	return helloStr
+	newSpan.Finish()
+	return helloStr, nil
 }
 
 func (c *Controller) printHello(span *jaeger.Span, helloStr string) {
 
 	finalUrl := c.Publisher + "/publisher/" + helloStr
-	req, err := http.NewRequest("GET", finalUrl, nil)
-	if err != nil {
-		panic(err.Error())
-	}
-	// call publisher service
-	newSpan := span.Inject(context.Background(), "GET", finalUrl, req)
-	defer newSpan.Finish()
 
-	if _, err := httpcli.Do(req); err != nil {
-		panic(err.Error())
-	}
+	var newSpan opentracing.Span
+
+	c.client.Get(finalUrl, nil, func(req *http.Request) {
+		// call formatter service
+		newSpan = span.Inject(context.Background(), "GET", finalUrl, req)
+	})
+
+	newSpan.Finish()
+
 }
 
-
-func newController() *Controller {
-	return &Controller{}
+func newController(client httpclient.Client) *Controller {
+	return &Controller{
+		client: client,
+	}
 }
 
 func init() {
@@ -109,6 +117,7 @@ func init() {
 func main() {
 	// create new web application and run it
 	web.NewApplication().
-		SetProperty(app.ProfilesInclude, logging.Profile, web.Profile, jaeger.Profile).
+		SetProperty(app.ProfilesInclude, logging.Profile, web.Profile,
+			jaeger.Profile, httpclient.Profile).
 		Run()
 }
