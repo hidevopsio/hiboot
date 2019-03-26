@@ -35,7 +35,7 @@ type Controller struct {
 	at.RestController
 }
 
-// Get GET /format/{format}
+// Get GET /formatter/{format}
 func (c *Controller) GetByFormatter(formatter string, span *jaeger.ChildSpan) string {
 	defer span.Finish()
 	greeting := span.BaggageItem("greeting")
