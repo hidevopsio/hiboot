@@ -38,8 +38,12 @@ type Controller struct {
 // Get GET /format/{format}
 func (c *Controller) GetByFormatter(formatter string, span *jaeger.ChildSpan) string {
 	defer span.Finish()
+	greeting := span.BaggageItem("greeting")
+	if greeting == "" {
+		greeting = "Hello"
+	}
 
-	helloStr := fmt.Sprintf("[%s] Hello, %s", time.Now().Format(time.Stamp), formatter)
+	helloStr := fmt.Sprintf("[%s] %s, %s", time.Now().Format(time.Stamp), greeting, formatter)
 
 	span.LogFields(
 		log.String("event", "string-format"),

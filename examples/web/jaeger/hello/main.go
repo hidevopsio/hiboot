@@ -40,13 +40,14 @@ type Controller struct {
 }
 
 // Get GET /name/{name}
-func (c *Controller) GetByName(name string, span *jaeger.Span) string {
+func (c *Controller) GetByGreetingName(greeting, name string, span *jaeger.Span) string {
+	defer span.Finish()
 	span.SetTag("hello-to", name)
+	span.SetBaggageItem("greeting", greeting)
 
 	helloStr := c.formatString(span, name)
 	c.printHello(span, helloStr)
 
-	span.Finish()
 	// response
 	return helloStr
 }
