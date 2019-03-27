@@ -2,6 +2,9 @@ package httpclient
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/gorilla/mux"
+	"github.com/stretchr/testify/mock"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -122,7 +125,7 @@ func TestHTTPClientDeleteSuccess(t *testing.T) {
 	headers.Set("Content-Type", "application/json")
 	headers.Set("Accept-Language", "en")
 
-	response, err := client.Delete(server.URL, headers)
+	response, err := client.Delete(server.URL, headers, func(req *http.Request) {})
 	require.NoError(t, err, "should not have failed to make a DELETE request")
 
 	assert.Equal(t, http.StatusOK, response.StatusCode)
@@ -157,7 +160,7 @@ func TestHTTPClientPutSuccess(t *testing.T) {
 	headers.Set("Content-Type", "application/json")
 	headers.Set("Accept-Language", "en")
 
-	response, err := client.Put(server.URL, requestBody, headers)
+	response, err := client.Put(server.URL, requestBody, headers, func(req *http.Request) {})
 	require.NoError(t, err, "should not have failed to make a PUT request")
 
 	assert.Equal(t, http.StatusOK, response.StatusCode)
@@ -192,7 +195,7 @@ func TestHTTPClientPatchSuccess(t *testing.T) {
 	headers.Set("Content-Type", "application/json")
 	headers.Set("Accept-Language", "en")
 
-	response, err := client.Patch(server.URL, requestBody, headers)
+	response, err := client.Patch(server.URL, requestBody, headers, func(req *http.Request) {})
 	require.NoError(t, err, "should not have failed to make a PATCH request")
 
 	assert.Equal(t, http.StatusOK, response.StatusCode)
@@ -276,7 +279,7 @@ func TestHTTPClientPostRetriesOnFailure(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(dummyHandler))
 	defer server.Close()
 
-	response, err := client.Post(server.URL, strings.NewReader("a=1"), http.Header{})
+	response, err := client.Post(server.URL, strings.NewReader("a=1"), http.Header{}, func(req *http.Request) {})
 	require.NoError(t, err, "should have failed to make GET request")
 
 	require.Equal(t, http.StatusInternalServerError, response.StatusCode)
@@ -363,7 +366,7 @@ func TestHTTPClientGetReturnsNoErrorsIfRetrySucceeds(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(dummyHandler))
 	defer server.Close()
 
-	response, err := client.Get(server.URL, http.Header{})
+	response, err := client.Get(server.URL, http.Header{}, func(req *http.Request) {})
 	require.NoError(t, err, "should not have failed to make GET request")
 
 	require.Equal(t, countWhenCallSucceeds+1, count)
@@ -461,4 +464,114 @@ func respBody(t *testing.T, response *http.Response) string {
 	require.NoError(t, err, "should not have failed to read response body")
 
 	return string(respBody)
+}
+
+func TestHTTPClientOnFailure(t *testing.T) {
+
+	c := NewClient()
+	t.Run("should get error when the url is unsupported on Get", func(t *testing.T) {
+		_, err := c.Get("::", nil)
+		require.EqualError(t, err, "GET - request creation failed: parse ::: missing protocol scheme")
+	})
+	t.Run("should get error when the url is unsupported on Put", func(t *testing.T) {
+		_, err := c.Put("::", nil, nil)
+		require.EqualError(t, err, "PUT - request creation failed: parse ::: missing protocol scheme")
+
+	})
+	t.Run("should get error when the url is unsupported on Post", func(t *testing.T) {
+		_, err := c.Post("::", nil, nil)
+		require.EqualError(t, err, "POST - request creation failed: parse ::: missing protocol scheme")
+
+	})
+	t.Run("should get error when the url is unsupported on Delete", func(t *testing.T) {
+		_, err := c.Delete("::", nil)
+		require.EqualError(t, err, "DELETE - request creation failed: parse ::: missing protocol scheme")
+
+	})
+	t.Run("should get error when the url is unsupported on Patch", func(t *testing.T) {
+		_, err := c.Patch("::", nil, nil)
+		require.EqualError(t, err, "PATCH - request creation failed: parse ::: missing protocol scheme")
+
+	})
+
+}
+
+func TestHTTPClientWhenHeaderIsNotNil(t *testing.T) {
+	r := mux.NewRouter()
+	r.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		w.Write([]byte("hi"))
+	}))
+
+	server := httptest.NewServer(r)
+	defer server.Close()
+	c := NewClient()
+	t.Run("should get error when the url is unsupported on Get", func(t *testing.T) {
+		_, err := c.Get(server.URL, http.Header{})
+		require.NoError(t, err, "should not have failed to make a GET request")
+	})
+	t.Run("should get error when the url is unsupported on Put", func(t *testing.T) {
+		_, err := c.Put(server.URL, nil, http.Header{})
+		require.NoError(t, err, "should not have failed to make a PUT request")
+	})
+	t.Run("should get error when the url is unsupported on Post", func(t *testing.T) {
+		_, err := c.Post(server.URL, nil, http.Header{})
+		require.NoError(t, err, "should not have failed to make a POST request")
+
+	})
+	t.Run("should get error when the url is unsupported on Delete", func(t *testing.T) {
+		_, err := c.Delete(server.URL, http.Header{})
+		require.NoError(t, err, "should not have failed to make a DELETE request")
+
+	})
+	t.Run("should get error when the url is unsupported on Patch", func(t *testing.T) {
+		_, err := c.Patch(server.URL, nil, http.Header{})
+		require.NoError(t, err, "should not have failed to make a PATCH request")
+
+	})
+
+}
+
+func TestHTTPClientDoWhenReadAllFail(t *testing.T) {
+	r := mux.NewRouter()
+	r.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		w.Write([]byte("hi"))
+	}))
+
+	server := httptest.NewServer(r)
+	defer server.Close()
+	c := NewClient()
+
+	mockReadCloser := mockReadCloser{}
+	// if Read is called, it will return error
+	mockReadCloser.On("Read", mock.AnythingOfType("[]uint8")).Return(0, fmt.Errorf("error reading"))
+	// if Close is called, it will return error
+	mockReadCloser.On("Close").Return(fmt.Errorf("error closing"))
+
+	body := ioutil.NopCloser(mockReadCloser)
+
+	t.Run("should get error when client do reading body with a ReadAll error", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodPost, server.URL, body)
+
+		_, err := c.Do(request)
+		println(err.Error())
+		require.EqualError(t, err, "error reading")
+
+	})
+
+}
+
+type mockReadCloser struct {
+	mock.Mock
+}
+
+func (m mockReadCloser) Read(p []byte) (n int, err error) {
+	args := m.Called(p)
+	return args.Int(0), args.Error(1)
+}
+
+func (m *mockReadCloser) Close() error {
+	args := m.Called()
+	return args.Error(0)
 }
