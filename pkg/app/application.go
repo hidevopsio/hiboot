@@ -199,12 +199,7 @@ func (a *BaseApplication) AfterInitialization(configs ...cmap.ConcurrentMap) {
 	// pass user's instances
 	a.postProcessor.Init()
 	a.postProcessor.AfterInitialization()
-
-	if a.addCommandLineProperties {
-		log.Info("Add command line properties is enabled")
-	} else {
-		log.Info("Add command line properties is disabled")
-	}
+	log.Infof("command line properties is enabled: %t", a.addCommandLineProperties)
 }
 
 // RegisterController register controller by interface
