@@ -31,6 +31,7 @@ require (
 	github.com/uber-go/atomic v1.3.2 // indirect
 	github.com/uber/jaeger-client-go v2.15.0+incompatible
 	github.com/uber/jaeger-lib v1.5.0+incompatible // indirect
+	go.uber.org/atomic v1.3.2 // indirect
 	golang.org/x/net v0.0.0-20190213061140-3a22650c66bd
 	google.golang.org/grpc v1.17.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
