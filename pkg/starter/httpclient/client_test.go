@@ -210,7 +210,7 @@ func TestHTTPClientGetRetriesOnFailure(t *testing.T) {
 	maximumJitterInterval := 1 * time.Millisecond
 
 	client := NewClient(
-		WithHTTPTimeout(10*time.Millisecond),
+		WithHTTPTimeout(100*time.Millisecond),
 		WithRetryCount(noOfRetries),
 		WithRetrier(NewRetrier(NewConstantBackoff(backoffInterval, maximumJitterInterval))),
 	)

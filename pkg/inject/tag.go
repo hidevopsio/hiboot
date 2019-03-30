@@ -27,7 +27,7 @@ type Tag interface {
 	// Init init tag
 	Init(configurableFactory factory.InstantiateFactory)
 	// Decode parse tag and do dependency injection
-	Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{})
+	Decode(object reflect.Value, field reflect.StructField, property, tag string) (retVal interface{})
 	// Properties get properties
 	Properties() cmap.ConcurrentMap
 	// IsSingleton check if it is Singleton
@@ -79,6 +79,6 @@ func (t *BaseTag) Properties() cmap.ConcurrentMap {
 }
 
 // Decode no implementation for base tag
-func (t *BaseTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{}) {
+func (t *BaseTag) Decode(object reflect.Value, field reflect.StructField, property, tag string) (retVal interface{}) {
 	return nil
 }

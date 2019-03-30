@@ -105,6 +105,12 @@ func (f *instantiateFactory) SetProperty(name string, value interface{}) factory
 	return f
 }
 
+// SetProperty get property
+func (f *instantiateFactory) SetDefaultProperty(name string, value interface{}) factory.InstantiateFactory {
+	f.builder.SetDefaultProperty(name, value)
+	return f
+}
+
 // AppendComponent append component
 func (f *instantiateFactory) AppendComponent(c ...interface{}) {
 	metaData := factory.NewMetaData(c...)

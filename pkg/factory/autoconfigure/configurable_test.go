@@ -311,8 +311,8 @@ func setFactory(t *testing.T, customProperties cmap.ConcurrentMap) factory.Confi
 	fakeContent :=
 		"app:\n" +
 			"  project: hidevopsio\n" +
-			"  name: hiboot\n" +
-			"  version: ${unknown.version:0.0.1}\n"
+			"  name: hiboot-test\n" +
+			"  version: 0.0.1\n"
 	n, err := io.WriterFile(configPath, fakeFile, []byte(fakeContent))
 	assert.Equal(t, nil, err)
 	assert.Equal(t, n, len(fakeContent))
@@ -468,7 +468,7 @@ func TestReplacer(t *testing.T) {
 	})
 
 	t.Run("should get foo configuration", func(t *testing.T) {
-		assert.Equal(t, "hiboot foo", fooConfig.FakeProperties.Nickname)
+		assert.Equal(t, "hiboot-test foo", fooConfig.FakeProperties.Nickname)
 		assert.Equal(t, "bar", fooConfig.FakeProperties.Username)
 		assert.Equal(t, "foo", fooConfig.FakeProperties.Name)
 	})
