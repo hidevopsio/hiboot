@@ -20,6 +20,7 @@ import (
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/reflector"
+	"hidevops.io/hiboot/pkg/utils/str"
 	"reflect"
 )
 
@@ -59,7 +60,7 @@ var (
 type Inject interface {
 	DefaultValue(object interface{}) error
 	IntoObject(object interface{}) error
-	IntoObjectValue(object reflect.Value, tags ...Tag) error
+	IntoObjectValue(object reflect.Value, property string, tags ...Tag) error
 	IntoMethod(object interface{}, m interface{}) (retVal interface{}, err error)
 	IntoFunc(object interface{}) (retVal interface{}, err error)
 }
@@ -88,16 +89,16 @@ func (i *inject) getInstanceByName(name string, typ reflect.Type) (inst interfac
 
 // DefaultValue injects instance into the tagged field with `inject:"instanceName"`
 func (i *inject) DefaultValue(object interface{}) error {
-	return i.IntoObjectValue(reflect.ValueOf(object), new(defaultTag))
+	return i.IntoObjectValue(reflect.ValueOf(object), "", new(defaultTag))
 }
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
 func (i *inject) IntoObject(object interface{}) error {
-	return i.IntoObjectValue(reflect.ValueOf(object))
+	return i.IntoObjectValue(reflect.ValueOf(object), "")
 }
 
 // IntoObjectValue injects instance into the tagged field with `inject:"instanceName"`
-func (i *inject) IntoObjectValue(object reflect.Value, tags ...Tag) error {
+func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...Tag) error {
 	var err error
 
 	//// TODO refactor IntoObject
@@ -120,6 +121,10 @@ func (i *inject) IntoObjectValue(object reflect.Value, tags ...Tag) error {
 
 	// field injection
 	for _, f := range reflector.DeepFields(object.Type()) {
+		prop := str.ToLowerCamel(f.Name)
+		if property != "" {
+			prop = property + "." + prop
+		}
 		//log.Debugf("parent: %v, name: %v, type: %v, tag: %v", obj.Type(), f.Name, f.Type, f.Tag)
 		// check if object has value field to be injected
 		var injectedObject interface{}
@@ -146,7 +151,7 @@ func (i *inject) IntoObjectValue(object reflect.Value, tags ...Tag) error {
 				tag, ok := f.Tag.Lookup(tagName)
 				if ok {
 					tagImpl.Init(i.factory)
-					injectedObject = tagImpl.Decode(object, f, tag)
+					injectedObject = tagImpl.Decode(object, f, prop, tag)
 					if injectedObject != nil {
 						break
 					}
@@ -180,7 +185,7 @@ func (i *inject) IntoObjectValue(object reflect.Value, tags ...Tag) error {
 		filedKind := filedObject.Kind()
 		canNested := filedKind == reflect.Struct
 		if canNested && fieldObj.IsValid() && fieldObj.CanSet() && filedObject.Type() != obj.Type() {
-			err = i.IntoObjectValue(fieldObj, tags...)
+			err = i.IntoObjectValue(fieldObj, prop, tags...)
 		}
 	}
 	return err
@@ -237,7 +242,7 @@ func (i *inject) IntoFunc(object interface{}) (retVal interface{}, err error) {
 
 			paramValue := reflect.Indirect(val)
 			if val.IsValid() && paramValue.IsValid() && paramValue.Kind() == reflect.Struct {
-				err = i.IntoObjectValue(val)
+				err = i.IntoObjectValue(val, "")
 			}
 		}
 		results := fn.Call(inputs)
@@ -272,7 +277,7 @@ func (i *inject) IntoMethod(object interface{}, m interface{}) (retVal interface
 
 				paramObject := reflect.Indirect(val)
 				if val.IsValid() && paramObject.IsValid() && paramObject.Kind() == reflect.Struct {
-					err = i.IntoObjectValue(val)
+					err = i.IntoObjectValue(val, "")
 				}
 			}
 			results := method.Func.Call(inputs)

@@ -50,6 +50,7 @@ type InstantiateFactory interface {
 	Builder() (builder system.Builder)
 	GetProperty(name string) interface{}
 	SetProperty(name string, value interface{}) InstantiateFactory
+	SetDefaultProperty(name string, value interface{}) InstantiateFactory
 	CustomProperties() map[string]interface{}
 	InjectIntoFunc(object interface{}) (retVal interface{}, err error)
 	InjectIntoMethod(owner, object interface{}) (retVal interface{}, err error)

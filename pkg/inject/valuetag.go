@@ -27,7 +27,7 @@ func init() {
 	AddTag(new(valueTag))
 }
 
-func (t *valueTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{}) {
+func (t *valueTag) Decode(object reflect.Value, field reflect.StructField, property, tag string) (retVal interface{}) {
 	if tag != "" {
 		//log.Debug(valueTag)
 

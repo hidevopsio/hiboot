@@ -37,7 +37,7 @@ func TestTag(t *testing.T) {
 		fakeObj := struct{ Name string }{}
 		objVal := reflect.ValueOf(fakeObj)
 		field := objVal.Type().Field(0)
-		f := tag.Decode(objVal, field, "fake")
+		f := tag.Decode(objVal, field, "", "fake")
 		assert.Equal(t, nil, f)
 	})
 }

@@ -41,6 +41,7 @@ type Builder interface {
 	Replace(source string) (retVal interface{})
 	GetProperty(name string) (retVal interface{})
 	SetProperty(name string, val interface{}) Builder
+	SetDefaultProperty(name string, val interface{}) Builder
 	SetConfiguration(in interface{})
 }
 
@@ -253,5 +254,10 @@ func (b *builder) GetProperty(name string) (retVal interface{}) {
 
 func (b *builder) SetProperty(name string, val interface{}) Builder {
 	b.Set(name, val)
+	return b
+}
+
+func (b *builder) SetDefaultProperty(name string, val interface{}) Builder {
+	b.SetConfig(name, val)
 	return b
 }

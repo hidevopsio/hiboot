@@ -37,7 +37,7 @@ func getInstance(cf factory.InstantiateFactory, pkgName, name string) (retVal in
 	return
 }
 
-func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{}) {
+func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, property, tag string) (retVal interface{}) {
 	properties := t.ParseProperties(tag)
 
 	// first, find if object is already instantiated

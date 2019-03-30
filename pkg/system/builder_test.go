@@ -102,6 +102,14 @@ func TestBuilderBuild(t *testing.T) {
 		assert.Equal(t, b.GetProperty("app.name"), b.GetProperty("fake.name"))
 	})
 
+	t.Run("should set default property", func(t *testing.T) {
+		b.SetDefaultProperty("foo.name", "foo").
+			SetDefaultProperty("bar.name", "bar")
+
+		assert.Equal(t, "foo", b.GetProperty("foo.name"))
+		assert.Equal(t, "bar", b.GetProperty("bar.name"))
+	})
+
 	t.Run("should replace property", func(t *testing.T) {
 		b.SetProperty("app.name", "foo").
 			SetProperty("app.profiles.include", []string{"foo", "bar"})

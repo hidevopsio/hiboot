@@ -27,7 +27,7 @@ type defaultTag struct {
 //	return false
 //}
 
-func (t *defaultTag) Decode(object reflect.Value, field reflect.StructField, tag string) (retVal interface{}) {
+func (t *defaultTag) Decode(object reflect.Value, field reflect.StructField, property, tag string) (retVal interface{}) {
 	if tag != "" {
 		//log.Debug(valueTag)
 
@@ -42,7 +42,8 @@ func (t *defaultTag) Decode(object reflect.Value, field reflect.StructField, tag
 				if typ.Kind() == reflect.Slice {
 					needConvert = false
 				} else if typ.Kind() == reflect.String {
-					return str.Convert(retVal.(string), kind)
+					needConvert = false
+					retVal = str.Convert(retVal.(string), kind)
 				}
 			}
 		case reflect.String:
@@ -52,6 +53,10 @@ func (t *defaultTag) Decode(object reflect.Value, field reflect.StructField, tag
 
 		if needConvert {
 			retVal = str.Convert(tag, kind)
+		}
+
+		if retVal != nil {
+			t.instantiateFactory.SetDefaultProperty(property, retVal)
 		}
 	}
 	return retVal
