@@ -69,6 +69,10 @@ func TestHTTPClientGetSuccess(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 	assert.Equal(t, "{ \"response\": \"ok\" }", respBody(t, response))
+
+	response, err = Get(server.URL, headers)
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+	assert.Equal(t, "{ \"response\": \"ok\" }", respBody(t, response))
 }
 
 func TestHTTPClientPostSuccess(t *testing.T) {
@@ -104,6 +108,11 @@ func TestHTTPClientPostSuccess(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 	assert.Equal(t, "{ \"response\": \"ok\" }", respBody(t, response))
+
+	requestBody = bytes.NewReader([]byte(requestBodyString))
+	response, err = Post(server.URL, requestBody, headers)
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+	assert.Equal(t, "{ \"response\": \"ok\" }", respBody(t, response))
 }
 
 func TestHTTPClientDeleteSuccess(t *testing.T) {
@@ -130,10 +139,15 @@ func TestHTTPClientDeleteSuccess(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 	assert.Equal(t, "{ \"response\": \"ok\" }", respBody(t, response))
+
+	response, err = Delete(server.URL, headers, func(req *http.Request) {})
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+	assert.Equal(t, "{ \"response\": \"ok\" }", respBody(t, response))
 }
 
 func TestHTTPClientPutSuccess(t *testing.T) {
-	client := NewClient(WithHTTPTimeout(10 * time.Millisecond))
+	client := NewClient(WithHTTPTimeout(100 * time.Millisecond))
 
 	requestBodyString := `{ "name": "heimdall" }`
 
@@ -165,10 +179,16 @@ func TestHTTPClientPutSuccess(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 	assert.Equal(t, "{ \"response\": \"ok\" }", respBody(t, response))
+
+	requestBody = bytes.NewReader([]byte(requestBodyString))
+	response, err = Put(server.URL, requestBody, headers, func(req *http.Request) {})
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+	assert.Equal(t, "{ \"response\": \"ok\" }", respBody(t, response))
 }
 
 func TestHTTPClientPatchSuccess(t *testing.T) {
-	client := NewClient(WithHTTPTimeout(10 * time.Millisecond))
+	client := NewClient(WithHTTPTimeout(100 * time.Millisecond))
 
 	requestBodyString := `{ "name": "heimdall" }`
 
@@ -197,6 +217,12 @@ func TestHTTPClientPatchSuccess(t *testing.T) {
 
 	response, err := client.Patch(server.URL, requestBody, headers, func(req *http.Request) {})
 	require.NoError(t, err, "should not have failed to make a PATCH request")
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+	assert.Equal(t, "{ \"response\": \"ok\" }", respBody(t, response))
+
+	requestBody = bytes.NewReader([]byte(requestBodyString))
+	response, err = Patch(server.URL, requestBody, headers, func(req *http.Request) {})
 
 	assert.Equal(t, http.StatusOK, response.StatusCode)
 	assert.Equal(t, "{ \"response\": \"ok\" }", respBody(t, response))
@@ -408,6 +434,8 @@ func TestHTTPClientGetReturnsNoErrorOn5xxFailure(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusInternalServerError, response.StatusCode)
 
+
+
 }
 
 func TestHTTPClientGetReturnsErrorOnFailure(t *testing.T) {
@@ -559,7 +587,6 @@ func TestHTTPClientDoWhenReadAllFail(t *testing.T) {
 		require.EqualError(t, err, "error reading")
 
 	})
-
 }
 
 type mockReadCloser struct {
