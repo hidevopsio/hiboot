@@ -27,6 +27,7 @@ type fooRequestBody struct {
 
 	Name string `json:"name" validate:"required"`
 	Age  int    `json:"age"`
+
 }
 
 type fooRequestParam struct {
@@ -38,13 +39,15 @@ type fooRequestParam struct {
 
 type fooResponse struct {
 	at.ResponseBody
-
+	AppNameVersion string `json:"appNameVersion"`
 	Greeting string `json:"greeting"`
 	Age      int    `json:"age"`
 }
 
 type fooController struct {
 	at.RestController
+
+	AppNameVersion string `value:"${app.name}-${app.version}"`
 }
 
 // init - add &FooController{} to web application
@@ -78,6 +81,7 @@ func (c *fooController) Get(request *fooRequestParam) (response model.Response, 
 	log.Debug("FooController.Get")
 	response = new(model.BaseResponse)
 	response.SetData(&fooResponse{
+		AppNameVersion: c.AppNameVersion,
 		Greeting: "Hello, " + request.Name,
 		Age:      request.Age})
 

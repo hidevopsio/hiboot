@@ -103,11 +103,16 @@ func TestBuilderBuild(t *testing.T) {
 	})
 
 	t.Run("should set default property", func(t *testing.T) {
-		b.SetDefaultProperty("foo.name", "foo").
-			SetDefaultProperty("bar.name", "bar")
+		b.SetDefaultProperty("plant.fruit", "apple").
+			SetDefaultProperty("animal.mammal.carnivores", "tiger")
 
-		assert.Equal(t, "foo", b.GetProperty("foo.name"))
-		assert.Equal(t, "bar", b.GetProperty("bar.name"))
+		assert.Equal(t, "apple", b.GetProperty("plant.fruit"))
+		assert.Equal(t, "tiger", b.GetProperty("animal.mammal.carnivores"))
+	})
+
+	t.Run("should overwrite default property", func(t *testing.T) {
+		b.SetProperty("plant.fruit", "banana")
+		assert.Equal(t, "banana", b.GetProperty("plant.fruit"))
 	})
 
 	t.Run("should replace property", func(t *testing.T) {

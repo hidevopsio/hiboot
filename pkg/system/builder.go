@@ -107,7 +107,7 @@ func (b *builder) Build(profiles ...string) (conf interface{}, err error) {
 	b.profiles = append(b.profiles, profiles...)
 
 	if str.InSlice("default", profiles) {
-		b.read(b.name, false)
+		b.read(b.name)
 		b.load(b.name, "")
 	}
 
@@ -116,7 +116,7 @@ func (b *builder) Build(profiles ...string) (conf interface{}, err error) {
 		// allow the empty of the profile
 		configFile := filepath.Join(b.path, name)
 		if profile != "" && !b.isFileNotExist(configFile+".") {
-			b.read(name, true)
+			b.read(name)
 		}
 		b.load(name, profile)
 	}
@@ -133,22 +133,18 @@ func (b *builder) BuildWithProfile(profile string) (interface{}, error) {
 	if profile == "" || b.isFileNotExist(filepath.Join(b.path, name)+".") {
 		return reflector.NewReflectType(b.configuration), nil
 	}
-	b.read(name, true)
+	b.read(name)
 	return b.load(name, profile)
 }
 
 // Read single file
-func (b *builder) read(fullName string, merge bool) {
+func (b *builder) read(fullName string) {
 
 	// config
 	b.config(fullName)
 
 	// read config
-	if merge {
-		b.MergeInConfig()
-	} else {
-		b.ReadInConfig()
-	}
+	b.MergeInConfig()
 }
 
 // Read single file
@@ -258,6 +254,7 @@ func (b *builder) SetProperty(name string, val interface{}) Builder {
 }
 
 func (b *builder) SetDefaultProperty(name string, val interface{}) Builder {
-	b.SetConfig(name, val)
+	// TODO: bug ...
+	b.SetDefault(name, val)
 	return b
 }
