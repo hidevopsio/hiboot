@@ -254,6 +254,7 @@ func (b *builder) SetProperty(name string, val interface{}) Builder {
 }
 
 func (b *builder) SetDefaultProperty(name string, val interface{}) Builder {
-	b.SetConfig(name, val)
+	// TODO: bug ...
+	b.SetDefault(name, val)
 	return b
 }
