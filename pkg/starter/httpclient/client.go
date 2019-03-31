@@ -26,6 +26,11 @@ const (
 )
 
 var _ Client = (*client)(nil)
+var defaultClient *client
+
+func init() {
+	defaultClient = NewClient()
+}
 
 // NewClient returns a new instance of http client
 func NewClient(opts ...Option) *client {
@@ -48,6 +53,11 @@ func NewClient(opts ...Option) *client {
 	return &client
 }
 
+// Get makes a HTTP GET request to provided URL with default client
+func Get(url string, headers http.Header, callbacks ...func(req *http.Request)) (*http.Response, error) {
+	return defaultClient.Get(url, headers, callbacks...)
+}
+
 // Get makes a HTTP GET request to provided URL
 func (c *client) Get(url string, headers http.Header, callbacks ...func(req *http.Request)) (*http.Response, error) {
 	var response *http.Response
@@ -64,6 +74,11 @@ func (c *client) Get(url string, headers http.Header, callbacks ...func(req *htt
 	}
 
 	return c.Do(request)
+}
+
+// Post makes a HTTP POST request to provided URL and requestBody with default client
+func Post(url string, body io.Reader, headers http.Header, callbacks ...func(req *http.Request)) (*http.Response, error) {
+	return defaultClient.Post(url, body, headers, callbacks...)
 }
 
 // Post makes a HTTP POST request to provided URL and requestBody
@@ -84,6 +99,11 @@ func (c *client) Post(url string, body io.Reader, headers http.Header, callbacks
 	return c.Do(request)
 }
 
+// Put makes a HTTP PUT request to provided URL and requestBody with default client
+func Put(url string, body io.Reader, headers http.Header, callbacks ...func(req *http.Request)) (*http.Response, error) {
+	return defaultClient.Put(url, body, headers, callbacks...)
+}
+
 // Put makes a HTTP PUT request to provided URL and requestBody
 func (c *client) Put(url string, body io.Reader, headers http.Header, callbacks ...func(req *http.Request)) (*http.Response, error) {
 	var response *http.Response
@@ -102,6 +122,11 @@ func (c *client) Put(url string, body io.Reader, headers http.Header, callbacks 
 	return c.Do(request)
 }
 
+// Patch makes a HTTP PATCH request to provided URL and requestBody with default client
+func Patch(url string, body io.Reader, headers http.Header, callbacks ...func(req *http.Request)) (*http.Response, error) {
+	return defaultClient.Patch(url, body, headers, callbacks...)
+}
+
 // Patch makes a HTTP PATCH request to provided URL and requestBody
 func (c *client) Patch(url string, body io.Reader, headers http.Header, callbacks ...func(req *http.Request)) (*http.Response, error) {
 	var response *http.Response
@@ -118,6 +143,11 @@ func (c *client) Patch(url string, body io.Reader, headers http.Header, callback
 	}
 
 	return c.Do(request)
+}
+
+// Delete makes a HTTP DELETE request with provided URL with default client
+func Delete(url string, headers http.Header, callbacks ...func(req *http.Request)) (*http.Response, error) {
+	return defaultClient.Delete(url, headers, callbacks...)
 }
 
 // Delete makes a HTTP DELETE request with provided URL
