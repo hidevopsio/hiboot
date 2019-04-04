@@ -296,7 +296,7 @@ func (h *handler) call(ctx context.Context) {
 	lenOfPathParams := h.lenOfPathParams
 	for i := 1; i < h.numIn; i++ {
 		req := h.requests[i]
-		request = req.iVal.Interface()
+		request = reflect.New(req.iTyp).Interface()
 
 		if req.callback != nil {
 			reqErr = req.callback(ctx, request)
