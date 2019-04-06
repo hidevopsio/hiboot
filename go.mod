@@ -11,6 +11,7 @@ require (
 	github.com/golang/protobuf v1.2.0
 	github.com/gorilla/mux v1.7.0
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/iris-contrib/formBinder v0.0.0-20190104093907-fbd5963f41e1 // indirect
 	github.com/iris-contrib/httpexpect v0.0.0-20180314041918-ebe99fcebbce
 	github.com/iris-contrib/middleware v0.0.0-20171114084220-1060fbb0ce08
 	github.com/kataras/golog v0.0.0-20180321173939-03be10146386
