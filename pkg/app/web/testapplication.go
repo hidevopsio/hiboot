@@ -77,6 +77,8 @@ func (a *testApplication) Run(t *testing.T) TestApplication {
 	err := a.build()
 	assert.Equal(t, nil, err)
 	a.expect = httptest.New(t, a.webApp.Application)
+	// Reset log level as httptest.New disabled log as default
+	log.SetLevel(a.SystemConfig().Logging.Level)
 	return a
 }
 
