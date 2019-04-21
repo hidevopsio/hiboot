@@ -80,6 +80,14 @@ func (c *Controller) GetByFormatter(formatter string, span *ChildSpan) string {
 
 	helloStr := fmt.Sprintf("[%s] %s, %s", time.Now().Format(time.Stamp), greeting, formatter)
 
+	url := "http://a.b"
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		log.Error(err)
+	}
+
+	_ = span.Inject(context.Background(), "GET", url, req)
+
 	span.LogFields(
 		log.String("event", "string-format"),
 		log.String("value", helloStr),
@@ -112,3 +120,4 @@ func TestController(t *testing.T) {
 			Expect().Status(http.StatusOK)
 	})
 }
+
