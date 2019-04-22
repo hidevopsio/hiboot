@@ -35,3 +35,20 @@ func (s *Span) Inject(ctx context.Context, method string, url string, req *http.
 
 	return newSpan
 }
+
+
+func (s *ChildSpan) Inject(ctx context.Context, method string, url string, req *http.Request) opentracing.Span {
+	c := opentracing.ContextWithSpan(ctx, s)
+	newSpan, _ := opentracing.StartSpanFromContext(c, req.RequestURI)
+
+	ext.SpanKindRPCClient.Set(newSpan)
+	ext.HTTPUrl.Set(newSpan, url)
+	ext.HTTPMethod.Set(newSpan, method)
+	newSpan.Tracer().Inject(
+		newSpan.Context(),
+		opentracing.HTTPHeaders,
+		opentracing.HTTPHeadersCarrier(req.Header),
+	)
+
+	return newSpan
+}
