@@ -25,9 +25,9 @@ import (
 type fooRequestBody struct {
 	at.RequestBody
 
-	Name string `json:"name" validate:"required"`
-	Age  int    `json:"age"`
-
+	Name    string `json:"name" validate:"required"`
+	AppName string `json:"appName" default:"${app.name}"`
+	Age     int    `json:"age"`
 }
 
 type fooRequestParam struct {
@@ -68,6 +68,7 @@ func (c *fooController) Before(ctx context.Context) {
 // Post endpoint POST /foo
 func (c *fooController) Post(request *fooRequestBody) (response model.Response, err error) {
 	log.Debug("FooController.Post")
+	log.Debug(request)
 	response = new(model.BaseResponse)
 	response.SetData(&fooResponse{
 		Greeting: "Hello, " + request.Name,

@@ -299,6 +299,7 @@ func (h *handler) call(ctx context.Context) {
 		request = reflect.New(req.iTyp).Interface()
 
 		if req.callback != nil {
+			h.factory.InjectDefaultValue(request) // support default value injection for request body/params/form
 			reqErr = req.callback(ctx, request)
 			inputs[i] = reflect.ValueOf(request)
 		} else if req.kind == reflect.Interface && model.Context == req.typeName {
