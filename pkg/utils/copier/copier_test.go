@@ -130,6 +130,90 @@ func TestCopier(t *testing.T) {
 	}
 }
 
+
+func TestCopierWithConfig(t *testing.T) {
+
+	type src struct {
+		Str string
+		Int int
+		Slice []string
+		Foo *Foo
+	}
+
+	type dst struct {
+		Str string
+		Int int
+		Slice []string
+		Foo *Foo
+	}
+
+	type p1 struct {
+		Foo *Foo
+	}
+	type p2 struct {
+		Foo *Foo
+	}
+
+	type s1 struct {
+		Foo []string
+	}
+	type s2 struct {
+		Foo []string
+	}
+
+	testCases := []struct {
+		name string
+		from interface{}
+		to   interface{}
+		final interface{}
+		err  error
+	}{
+		{
+			name: "Should copy from src to dst",
+			from: &s1{},
+			to:   &s2{Foo: []string{"a", "b", "c"}},
+			final: &s2{Foo: []string{"a", "b", "c"}},
+			err:  nil,
+		},
+		{
+			name: "Should copy from src to dst",
+			from: &s1{Foo: []string{}},
+			to:   &s2{Foo: []string{"a", "b", "c"}},
+			final: &s2{Foo: []string{"a", "b", "c"}},
+			err:  nil,
+		},
+		{
+			name: "Should copy from src to dst",
+			from: &p1{Foo: &Foo{Name: "foo"}},
+			to:   &p2{Foo: &Foo{Name: "bar"}},
+			final: &p2{Foo: &Foo{Name: "foo"}},
+			err:  nil,
+		},
+		{
+			name: "Should copy from src to dst",
+			from: &src{Str: "foo", Int: 1, Slice: []string{"a", "b", "c"}, Foo: &Foo{Name: "foo"}},
+			to:   &dst{Str: "bar", Slice: []string{"one", "two", "three"}, Foo: &Foo{Name: "bar"}},
+			final: &dst{Str: "foo", Int: 1, Slice: []string{"a", "b", "c"}, Foo: &Foo{Name: "foo"}},
+			err:  nil,
+		},
+		{
+			name: "Should copy from src to dst",
+			from: &src{Int: 1, },
+			to:   &dst{Str: "bar", Slice: []string{"one", "two", "three"}, Foo: &Foo{Name: "bar"}},
+			final: &dst{Str: "bar", Int: 1, Slice: []string{"one", "two", "three"}, Foo: &Foo{Name: "bar"}},
+			err:  nil,
+		},
+	}
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			err := copier.Copy(testCase.to, testCase.from, copier.IgnoreEmptyValue)
+			assert.EqualValues(t, testCase.to, testCase.final)
+			assert.Equal(t, testCase.err, err)
+		})
+	}
+}
+
+
 type User struct {
 	Name     string
 	Birthday *time.Time

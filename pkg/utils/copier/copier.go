@@ -44,11 +44,29 @@ import (
 	"reflect"
 )
 
-func set(to, from reflect.Value) bool {
+// Config configurations for Copy function
+type Config struct {
+	IgnoreEmptyValue        bool
+}
+
+// IgnoreEmptyValue option to config IgnoreEmptyValue, any empty or nil value will not copy from source to destination
+func IgnoreEmptyValue(config *Config) {
+	config.IgnoreEmptyValue = true
+}
+
+func set(to, from reflect.Value, config *Config) bool {
 	if from.IsValid() && to.IsValid() {
 		if to.Kind() == reflect.Ptr {
-			//set `to` to nil if from is nil
+			isFromNil := false
 			if from.Kind() == reflect.Ptr && from.IsNil() {
+				isFromNil = true
+			}
+
+			if config.IgnoreEmptyValue && isFromNil {
+				return true
+			}
+			//set `to` to nil if from is nil
+			if isFromNil {
 				to.Set(reflect.Zero(to.Type()))
 				return true
 			}
@@ -60,22 +78,37 @@ func set(to, from reflect.Value) bool {
 		}
 
 		if from.Type().ConvertibleTo(to.Type()) {
-			to.Set(from.Convert(to.Type()))
+			fVal := from.Convert(to.Type())
+			fiVal := fVal.Interface()
+			switch fiVal.(type) {
+			case string:
+				if config.IgnoreEmptyValue && fiVal == "" {
+					return true
+				}
+			}
+			if to.Kind() == reflect.Slice {
+				if from.Kind() == reflect.Slice {
+					if from.Len() == 0 {
+						return true
+					}
+				}
+			}
+
+			to.Set(fVal)
 		} else if scanner, ok := to.Addr().Interface().(sql.Scanner); ok {
 			err := scanner.Scan(from.Interface())
 			if err != nil {
 				return false
 			}
 		} else if from.Kind() == reflect.Ptr {
-			return set(to, from.Elem())
+			return set(to, from.Elem(), config)
 		}
 		return false
 	}
 	return false
 }
 
-// Copy copy things
-func Copy(toValue interface{}, fromValue interface{}) (err error) {
+func copy(toValue interface{}, fromValue interface{}, config *Config) (err error) {
 	var (
 		isSlice bool
 		amount  = 1
@@ -92,6 +125,12 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 		return
 	}
 
+	if to.Kind() == reflect.Slice {
+		isSlice = true
+		if from.Kind() == reflect.Slice {
+			amount = from.Len()
+		}
+	}
 	// Just set it if possible to assign
 	if from.Type().AssignableTo(to.Type()) {
 		to.Set(from)
@@ -103,13 +142,6 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 
 	if fromType.Kind() != reflect.Struct || toType.Kind() != reflect.Struct {
 		return
-	}
-
-	if to.Kind() == reflect.Slice {
-		isSlice = true
-		if from.Kind() == reflect.Slice {
-			amount = from.Len()
-		}
 	}
 
 	for i := 0; i < amount; i++ {
@@ -138,8 +170,8 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 				// has field
 				if toField := dest.FieldByName(name); toField.IsValid() {
 					if toField.CanSet() {
-						if !set(toField, fromField) {
-							err = Copy(toField.Addr().Interface(), fromField.Interface())
+						if !set(toField, fromField, config) {
+							err = copy(toField.Addr().Interface(), fromField.Interface(), config)
 						}
 					}
 				} else {
@@ -172,19 +204,34 @@ func Copy(toValue interface{}, fromValue interface{}) (err error) {
 				if toField := dest.FieldByName(name); toField.IsValid() && toField.CanSet() {
 					values := fromMethod.Call([]reflect.Value{})
 					if len(values) >= 1 {
-						set(toField, values[0])
+						set(toField, values[0], config)
 					}
 				}
 			}
 		}
 
 		if isSlice {
+			var fromSliceVal reflect.Value
 			if dest.Addr().Type().AssignableTo(to.Type().Elem()) {
-				to.Set(reflect.Append(to, dest.Addr()))
+				fromSliceVal = reflect.Append(to, dest.Addr())
 			} else if dest.Type().AssignableTo(to.Type().Elem()) {
-				to.Set(reflect.Append(to, dest))
+				fromSliceVal = reflect.Append(to, dest)
+			}
+			if !(config.IgnoreEmptyValue && fromSliceVal.IsNil()) {
+				to.Set(fromSliceVal)
 			}
 		}
 	}
 	return
+}
+
+// Copy copy things from source to destination
+func Copy(toValue interface{}, fromValue interface{}, opts ...func(*Config)) (err error) {
+	config := &Config{}
+
+	for _, opt := range opts {
+		opt(config)
+	}
+
+	return copy(toValue, fromValue, config)
 }
