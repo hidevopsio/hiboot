@@ -31,7 +31,7 @@ func init() {
 	st := sonyflake.Settings{
 		MachineID: func() (uint16, error) {
 			ma := strings.Split(macAddr, ":")
-			mid, err := strconv.ParseInt(ma[0]+ma[1], 16, 16)
+			mid, err := strconv.ParseInt(ma[0]+ma[1], 16, 64)
 			return uint16(mid), err
 		},
 	}
