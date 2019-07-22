@@ -46,6 +46,7 @@ type fakeProperties struct {
 	Username      string   `default:"should not inject this default value as it will inject by system.Builder"`
 	Url           string   `default:"should not inject this default value as it will inject by system.Builder"`
 	DefStrVal     string   `default:"this is default value"`
+	DefIntPropVal int      `default:"${prop.value:123}"`
 	DefIntVal     int      `default:"123"`
 	DefIntVal8    int8     `default:"12"`
 	DefIntVal16   int16    `default:"123"`
@@ -156,6 +157,7 @@ type userService struct {
 	DefFloatVal32  float32        `value:"0.1"`
 	DefBool        bool           `value:"true"`
 	DefSlice       []string       `value:"jupiter,mercury,mars,earth,moon"`
+	DefInt         int            `value:"${fake.value:123}"`
 }
 
 type PropTestUser struct {
@@ -410,6 +412,10 @@ func TestInject(t *testing.T) {
 
 	t.Run("should inject default float32", func(t *testing.T) {
 		assert.Equal(t, float32(0.1), fakeConfig.Properties.DefFloatVal32)
+	})
+
+	t.Run("should inject default int", func(t *testing.T) {
+		assert.Equal(t, 123, fakeConfig.Properties.DefIntPropVal)
 	})
 
 	t.Run("should get config", func(t *testing.T) {
