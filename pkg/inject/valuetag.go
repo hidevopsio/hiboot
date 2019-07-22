@@ -34,19 +34,18 @@ func (t *valueTag) Decode(object reflect.Value, field reflect.StructField, prope
 		// check if filed type is slice
 		kind := field.Type.Kind()
 		needConvert := true
+		retVal = t.instantiateFactory.Replace(tag)
 		switch kind {
 		case reflect.Slice:
-			retVal = t.instantiateFactory.Replace(tag)
 			if retVal != tag {
 				needConvert = false
 			}
 		case reflect.String:
-			retVal = t.instantiateFactory.Replace(tag)
 			needConvert = false
 		}
 
 		if needConvert {
-			retVal = str.Convert(tag, kind)
+			retVal = str.Convert(retVal.(string), kind)
 		}
 	}
 	return retVal

@@ -16,6 +16,7 @@ package jwt
 
 import (
 	"crypto/rsa"
+	"hidevops.io/hiboot/pkg/log"
 	"time"
 
 	"fmt"
@@ -68,6 +69,9 @@ func (t *jwtToken) Initialize(p *Properties) error {
 			}
 		}
 	}
+	if err != nil {
+		log.Error(err)
+	}
 	return err
 }
 
@@ -91,6 +95,8 @@ func (t *jwtToken) Generate(payload Map, expired int64, unit time.Duration) (tok
 
 		// Sign and get the complete encoded token as a string using the secret
 		tokenString, err = token.SignedString(t.signKey)
+	} else {
+		err = fmt.Errorf("JWT is not initialized")
 	}
 	return
 }

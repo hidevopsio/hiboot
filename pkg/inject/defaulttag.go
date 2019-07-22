@@ -34,9 +34,9 @@ func (t *defaultTag) Decode(object reflect.Value, field reflect.StructField, pro
 		// check if filed type is slice
 		kind := field.Type.Kind()
 		needConvert := true
+		retVal = t.instantiateFactory.Replace(tag)
 		switch kind {
 		case reflect.Slice:
-			retVal = t.instantiateFactory.Replace(tag)
 			typ := reflect.TypeOf(retVal)
 			if retVal != tag {
 				if typ.Kind() == reflect.Slice {
@@ -47,12 +47,11 @@ func (t *defaultTag) Decode(object reflect.Value, field reflect.StructField, pro
 				}
 			}
 		case reflect.String:
-			retVal = t.instantiateFactory.Replace(tag)
 			needConvert = false
 		}
 
 		if needConvert {
-			retVal = str.Convert(tag, kind)
+			retVal = str.Convert(retVal.(string), kind)
 		}
 
 		if retVal != nil {
