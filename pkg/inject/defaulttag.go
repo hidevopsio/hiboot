@@ -15,6 +15,7 @@
 package inject
 
 import (
+	"fmt"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"reflect"
 )
@@ -51,7 +52,8 @@ func (t *defaultTag) Decode(object reflect.Value, field reflect.StructField, pro
 		}
 
 		if needConvert {
-			retVal = str.Convert(retVal.(string), kind)
+			in := fmt.Sprintf("%v", retVal)
+			retVal = str.Convert(in, kind)
 		}
 
 		if retVal != nil {

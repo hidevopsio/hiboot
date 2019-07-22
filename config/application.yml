@@ -8,3 +8,5 @@ app:
 logging:
   level: info
 
+magic:
+  number: 666

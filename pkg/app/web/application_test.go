@@ -74,6 +74,9 @@ func newBar() *Bar {
 type FooController struct {
 	at.RestController
 	token jwt.Token
+
+	MagicNumber int64 `value:"${magic.number:888}"`
+	DefaultNumber int64 `value:"${default.number:888}"`
 }
 
 func newFooController(token jwt.Token) *FooController {
@@ -130,6 +133,20 @@ func (c *FooController) PostLogin(request *UserRequest) (response model.Response
 	response = new(model.BaseResponse)
 	response.SetData(token)
 
+	return
+}
+
+// GetMagicNumber
+func (c *FooController) GetMagic() (response model.Response, err error) {
+	log.Debug("FooController.GetMagic")
+
+	response = new(model.BaseResponse)
+	data := map[string]interface{}{
+		"magic_number": c.MagicNumber,
+		"default_number":  c.DefaultNumber,
+	}
+	log.Debugf("default number: %v magic number: %v", c.DefaultNumber, c.MagicNumber)
+	response.SetData(data)
 	return
 }
 
@@ -526,6 +543,11 @@ func TestWebApplication(t *testing.T) {
 	t.Run("should parse request body GET /foo/err", func(t *testing.T) {
 		testApp.Get("/foo/err").
 			Expect().Status(http.StatusInternalServerError)
+	})
+
+	t.Run("should get magic number GET /foo/magic", func(t *testing.T) {
+		testApp.Get("/foo/magic").
+			Expect().Status(http.StatusOK)
 	})
 
 	//t.Run("should parse request body GET /foo/requestForm", func(t *testing.T) {
