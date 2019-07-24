@@ -27,6 +27,7 @@ import (
 	_ "hidevops.io/hiboot/pkg/starter/actuator"
 	"hidevops.io/hiboot/pkg/starter/jwt"
 	_ "hidevops.io/hiboot/pkg/starter/locale"
+	"hidevops.io/hiboot/pkg/starter/logging"
 	_ "hidevops.io/hiboot/pkg/starter/logging"
 	"hidevops.io/hiboot/pkg/utils/io"
 	"hidevops.io/hiboot/pkg/utils/reflector"
@@ -389,6 +390,58 @@ func (c *HelloController) GetMap() map[string]interface{} {
 	response["message"] = "Hello from Map"
 	return response
 }
+
+
+
+type oneTwoThreeController struct {
+	at.RestController
+}
+
+func newOneTwoThreeController() *oneTwoThreeController {
+	return &oneTwoThreeController{}
+}
+
+func (c *oneTwoThreeController) Get() string {
+	return "from one-two-three controller"
+}
+
+func TestOneTwoThreeController(t *testing.T) {
+
+	testData := []struct{
+		format int
+		path string
+	}{
+		{
+			format: app.ContextPathFormatLowerCamel,
+			path: "/oneTwoThree",
+		},
+		{
+			format: app.ContextPathFormatKebab,
+			path: "/one-two-three",
+		},
+		{
+			format: app.ContextPathFormatSnake,
+			path: "/one_two_three",
+		},
+		{
+			format: app.ContextPathFormatCamel,
+			path: "/OneTwoThree",
+		},
+
+	}
+	for _, td := range testData {
+		testApp := web.NewTestApp(newOneTwoThreeController).
+			SetProperty(app.ContextPathFormat, td.format).
+			SetProperty(logging.Level, log.InfoLevel).
+			Run(t)
+		t.Run("should response 200 when GET " + td.path, func(t *testing.T) {
+			testApp.
+				Get(td.path).
+				Expect().Status(http.StatusOK)
+		})
+	}
+}
+
 
 // Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
 // the lower cased foo will be the context mapping of the controller

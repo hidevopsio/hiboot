@@ -92,7 +92,23 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 		//log.Debug("controllerName: ", controllerName)
 		// use controller's prefix as context mapping
 		if contextMapping == "" {
-			contextMapping = pathSep + controllerName
+			cn := controllerName
+			cpf := d.configurableFactory.GetProperty(app.ContextPathFormat)
+			if cpf != nil {
+				contextPathFormat := cpf.(int)
+
+				switch contextPathFormat {
+				case app.ContextPathFormatKebab:
+					cn = str.ToKebab(controllerName)
+				case app.ContextPathFormatSnake:
+					cn = str.ToSnake(controllerName)
+				case app.ContextPathFormatCamel:
+					cn = str.ToCamel(controllerName)
+				case app.ContextPathFormatLowerCamel:
+					cn = str.ToLowerCamel(controllerName)
+				}
+			}
+			contextMapping = pathSep + cn
 		}
 
 		numOfMethod := field.NumMethod()
