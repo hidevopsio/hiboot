@@ -95,7 +95,7 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 			cn := controllerName
 			cpf := d.configurableFactory.GetProperty(app.ContextPathFormat)
 			if cpf != nil {
-				contextPathFormat := cpf.(int)
+				contextPathFormat := cpf.(string)
 
 				switch contextPathFormat {
 				case app.ContextPathFormatKebab:

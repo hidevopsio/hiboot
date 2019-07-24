@@ -408,7 +408,7 @@ func (c *oneTwoThreeController) Get() string {
 func TestOneTwoThreeController(t *testing.T) {
 
 	testData := []struct{
-		format int
+		format string
 		path string
 	}{
 		{

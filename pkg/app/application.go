@@ -36,10 +36,10 @@ const (
 	// ApplicationContextName is the application context instance name
 	ApplicationContextName = "app.applicationContext"
 	ContextPathFormat = "app.context_path_format"
-	ContextPathFormatKebab int  = iota
-	ContextPathFormatSnake
-	ContextPathFormatCamel
-	ContextPathFormatLowerCamel
+	ContextPathFormatKebab = "kebab"
+	ContextPathFormatSnake = "snake"
+	ContextPathFormatCamel = "camel"
+	ContextPathFormatLowerCamel = "lower-camel"
 )
 
 // Application is the base application interface
