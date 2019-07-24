@@ -38,8 +38,8 @@ type RequestParams struct{}
 // support pagination.
 type ListOptions struct {
 	// For paginated result sets, page of results to retrieve.
-	Page int `url:"page,omitempty" json:"page,omitempty"`
+	Page int `url:"page,omitempty" json:"page,omitempty" validate:"min=1"`
 
 	// For paginated result sets, the number of results to include per page.
-	PerPage int `url:"per_page,omitempty" json:"per_page,omitempty"`
+	PerPage int `url:"per_page,omitempty" json:"per_page,omitempty" validate:"min=1"`
 }
