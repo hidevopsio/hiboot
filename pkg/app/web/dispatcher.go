@@ -62,6 +62,7 @@ func init() {
 	app.Register(newDispatcher)
 }
 
+//TODO: scan apis and params to generate swagger api automatically by include swagger starter
 func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 	for _, metaData := range controllers {
 		c := metaData.Instance
