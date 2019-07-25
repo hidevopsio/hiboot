@@ -24,7 +24,7 @@ import (
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
-	_ "hidevops.io/hiboot/pkg/starter/actuator"
+	//_ "hidevops.io/hiboot/pkg/starter/actuator"
 	"hidevops.io/hiboot/pkg/starter/jwt"
 	_ "hidevops.io/hiboot/pkg/starter/locale"
 	"hidevops.io/hiboot/pkg/starter/logging"
@@ -498,6 +498,63 @@ func TestWebViewApplicationWithArgs(t *testing.T) {
 			Expect().Status(http.StatusOK)
 	})
 }
+
+
+func TestApplicationWithoutController(t *testing.T) {
+	testApp := web.NewTestApp().
+		Run(t)
+
+	t.Run("should response 404 when GET /", func(t *testing.T) {
+		testApp.
+			Get("/").
+			Expect().Status(http.StatusNotFound)
+	})
+}
+
+type circularFoo struct{
+	circularBar *circularBar
+}
+
+func newCircularFoo(circularBar *circularBar) *circularFoo  {
+	return &circularFoo{
+		circularBar: circularBar,
+	}
+}
+
+
+type circularBar struct{
+	circularFoo *circularFoo
+}
+
+
+func newCircularBar(circularFoo *circularFoo) *circularBar  {
+	return &circularBar{
+		circularFoo: circularFoo,
+	}
+}
+
+
+type circularDiController struct {
+	circularFoo *circularFoo
+}
+
+func newCircularDiController(circularFoo *circularFoo) *circularDiController  {
+	return &circularDiController{
+		circularFoo: circularFoo,
+	}
+}
+
+func TestApplicationWithCircularDI(t *testing.T) {
+	testApp := web.NewTestApp(newCircularDiController).
+		Run(t)
+
+	t.Run("should response 404 when GET /", func(t *testing.T) {
+		testApp.
+			Get("/").
+			Expect().Status(http.StatusNotFound)
+	})
+}
+
 
 func TestWebApplication(t *testing.T) {
 	testApp := web.RunTestApplication(t, newHelloController, newFooController, newBarController, newFoobarController)

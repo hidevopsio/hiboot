@@ -154,7 +154,7 @@ func (a *application) RegisterController(controller interface{}) error {
 	if controllers != nil {
 		return a.dispatcher.register(controllers)
 	}
-	return nil
+	return ErrControllersNotFound
 }
 
 // Use apply middleware

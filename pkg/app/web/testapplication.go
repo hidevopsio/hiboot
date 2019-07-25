@@ -75,7 +75,9 @@ func (a *testApplication) SetProperty(name string, value ...interface{}) TestApp
 // RunTestServer run the test server
 func (a *testApplication) Run(t *testing.T) TestApplication {
 	err := a.build()
-	assert.Equal(t, nil, err)
+	if err != nil {
+		log.Error(err)
+	}
 	a.expect = httptest.New(t, a.webApp.Application)
 	// Reset log level as httptest.New disabled log as default
 	log.SetLevel(a.SystemConfig().Logging.Level)

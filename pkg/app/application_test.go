@@ -151,7 +151,8 @@ func TestBaseApplication(t *testing.T) {
 	assert.NotEqual(t, nil, sc)
 
 	// TODO: check concurrency issue during test
-	ba.BuildConfigurations()
+	err = ba.BuildConfigurations()
+	assert.Equal(t, nil, err)
 
 	t.Run("should find instance by name", func(t *testing.T) {
 		ba.GetInstance("foo")
