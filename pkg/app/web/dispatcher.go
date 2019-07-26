@@ -121,7 +121,7 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 			//log.Debug("contextPath: ", contextMapping)
 			//log.Debug("beforeMethod.Name: ", beforeMethod.Name)
 			hdl := newHandler(d.configurableFactory)
-			hdl.parse(beforeMethod, controller, "")
+			hdl.parse("", beforeMethod, controller, "")
 			party = d.webApp.Party(contextMapping, Handler(func(c context.Context) {
 				hdl.call(c)
 			}))
@@ -132,7 +132,7 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 		afterMethod, ok := fieldType.MethodByName(afterMethod)
 		if ok {
 			hdl := newHandler(d.configurableFactory)
-			hdl.parse(afterMethod, controller, "")
+			hdl.parse("", afterMethod, controller, "")
 			party.Done(Handler(func(c context.Context) {
 				hdl.call(c)
 			}))
@@ -167,7 +167,7 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 				// parse all necessary requests and responses
 				// create new method parser here
 				hdl := newHandler(d.configurableFactory)
-				hdl.parse(method, controller, contextMapping+apiContextMapping)
+				hdl.parse(httpMethod, method, controller, contextMapping+apiContextMapping)
 				methodHandler := Handler(func(c context.Context) {
 					hdl.call(c)
 					c.Next()

@@ -116,7 +116,7 @@ func clean(in string) (out string) {
 	return
 }
 
-func (h *handler) parse(method reflect.Method, object interface{}, path string) {
+func (h *handler) parse(httpMethod string, method reflect.Method, object interface{}, path string) {
 	//log.Debug("NumIn: ", method.Type.NumIn())
 	h.controller = object
 	h.method = method
@@ -209,7 +209,7 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 		//log.Debug(h.responses[i])
 	}
 	if path != "" {
-		log.Infof("Mapped \"%v\" onto %v.%v()", path, idv.Type(), method.Name)
+		log.Infof("Mapped %v \"%v\" onto %v.%v()", httpMethod, path, idv.Type(), method.Name)
 	}
 }
 
