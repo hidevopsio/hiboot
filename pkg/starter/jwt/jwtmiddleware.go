@@ -54,6 +54,11 @@ func (m *Middleware) CheckJWT(ctx ictx.Context) error {
 	// Use the specified token extractor to extract a token from the request
 	token, err := m.Config.Extractor(ctx)
 
+	if token == "" {
+		// no token, try extract token form param
+		token, err = mwjwt.FromParameter("token")(ctx)
+	}
+
 	// If debugging is turned on, log the outcome
 	if err != nil {
 		log.Errorf("error extracting JWT: %v", err)
