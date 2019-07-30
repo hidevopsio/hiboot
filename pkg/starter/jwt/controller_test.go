@@ -149,7 +149,7 @@ func TestJwtController(t *testing.T) {
 	t.Run("should return http.StatusOK on /bar with jwt token", func(t *testing.T) {
 
 		testApp.Get("/bar").
-			WithQuery("token", fooCtrl.tokenStr).
+			WithQuery("token", token).
 			Expect().Status(http.StatusOK)
 
 		testApp.Get("/bar").

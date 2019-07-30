@@ -17,6 +17,7 @@ package jwt
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/dgrijalva/jwt-go"
 	mwjwt "github.com/iris-contrib/middleware/jwt"
@@ -56,7 +57,14 @@ func (m *Middleware) CheckJWT(ctx ictx.Context) error {
 
 	if token == "" {
 		// no token, try extract token form param
-		token, err = mwjwt.FromParameter("token")(ctx)
+		token = ctx.URLParam("token")
+		// TODO: Make this a bit more robust, parsing-wise
+		authHeaderParts := strings.Split(token, " ")
+		if len(authHeaderParts) != 2 || strings.ToLower(authHeaderParts[0]) != "bearer" {
+			log.Errorf("error extracting JWT: %v", token)
+		} else {
+			token = authHeaderParts[1]
+		}
 	}
 
 	// If debugging is turned on, log the outcome
