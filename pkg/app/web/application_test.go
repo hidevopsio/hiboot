@@ -448,7 +448,8 @@ func TestOneTwoThreeController(t *testing.T) {
 // context path can be overwritten by the tag value of annotation at.ContextPath
 type HelloViewController struct {
 	at.RestController
-	at.ContextPath `value:"/"`
+	RequestMapping string `value:"/"`
+
 	fooBar         *FooBar
 }
 
@@ -461,8 +462,9 @@ func newHelloViewController(fooBar *FooBar) *HelloViewController {
 // Get hello
 // The first word of method is the http method GET, the rest is the context mapping hello
 // in this method, the name Get means that the method context mapping is '/'
-func (c *HelloViewController) Get(ctx context.Context) {
-	ctx.View("index.html")
+func (c *HelloViewController) Get(ctx context.Context) (err error) {
+	err = ctx.View("index.html")
+	return
 }
 
 // AnyTest

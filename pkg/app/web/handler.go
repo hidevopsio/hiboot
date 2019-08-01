@@ -323,9 +323,13 @@ func (h *handler) call(ctx context.Context) {
 			if inst != nil {
 				inputs[i] = reflect.ValueOf(inst)
 			} else {
-				msg := fmt.Sprintf("input type: %v is not supported!", req.typ)
-				ctx.ResponseError(msg, http.StatusInternalServerError)
-				return
+				if req.kind == reflect.Struct {
+					err := h.factory.InjectIntoObject(request)
+					if err != nil {
+						log.Error(err)
+					}
+				}
+				inputs[i] = reflect.ValueOf(request).Elem()
 			}
 		}
 	}

@@ -23,3 +23,6 @@ type JwtRestController interface{}
 
 // ContextPath is the annotation that set the context path of a controller
 type ContextPath interface{}
+
+// RequestMapping is the annotation that set the RequestMapping of a controller
+type RequestMapping interface{}
