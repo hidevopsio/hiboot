@@ -28,7 +28,7 @@ func TestRunMain(t *testing.T) {
 
 func TestController(t *testing.T) {
 	time.Sleep(time.Second)
-	testApp := web.NewTestApp(t, new(UserController)).SetProperty("server.context_path", "router-example").Run(t)
+	testApp := web.NewTestApp(t, new(UserController), new(orgController)).SetProperty("server.context_path", "/router-example").Run(t)
 
 	testApp.Post("/router-example/user").
 		WithJSON(&UserRequest{UserVO: UserVO{Username: "John", Password: "password"}}).
@@ -41,5 +41,8 @@ func TestController(t *testing.T) {
 		Expect().Status(http.StatusOK)
 
 	testApp.Get("/router-example/user").
+		Expect().Status(http.StatusOK)
+
+	testApp.Get("/router-example/organization/official-site").
 		Expect().Status(http.StatusOK)
 }

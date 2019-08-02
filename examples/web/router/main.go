@@ -61,10 +61,14 @@ type UserResponse struct {
 	model.BaseResponse
 }
 
+func newUserController() *UserController {
+	return &UserController{}
+}
+
 // Create
 func (c *UserController) Create(
 	request *UserRequest,
-	requestMapping struct{Method string `value:"POST"`; Path string `value:"/"`},
+	m struct{at.RequestMapping; Method string `value:"POST"`; Path string `value:"/"`},
 ) (response *UserResponse, err error) {
 
 	// response
@@ -84,7 +88,7 @@ func (c *UserController) Create(
 func (c *UserController) Get(
 	id int,
 	name string,
-	requestMapping struct{Method string `value:"GET"`; Path string `value:"/{id:int}/and/{name}"`},
+	m struct{at.RequestMapping; Method string `value:"GET"`; Path string `value:"/{id:int}/and/{name}"`},
 ) (response *UserResponse, err error) {
 
 	// response
@@ -104,7 +108,7 @@ func (c *UserController) Get(
 // Delete
 func (c *UserController) Delete(
 	id int,
-	requestMapping struct{Method string `value:"DELETE"`; Path string `value:"/{id:int}"`},
+	m struct{at.RequestMapping; Method string `value:"DELETE"`; Path string `value:"/{id:int}"`},
 ) (response *UserResponse, err error) {
 
 	// response
@@ -115,7 +119,7 @@ func (c *UserController) Delete(
 
 // List
 func (c *UserController) List(
-	requestMapping struct{Method string `value:"GET"`; Path string `value:"/"`},
+	m struct{at.RequestMapping; Method string `value:"GET"`; Path string `value:"/"`},
 ) (response *UserResponse, err error) {
 
 	// response
@@ -136,9 +140,23 @@ func (c *UserController) List(
 	return
 }
 
+type orgController struct {
+	at.RestController
+
+	RequestMapping string `value:"/organization"`
+}
+
+func (c *orgController) GetOfficialSite(
+	// at.RequestMapping is an annotation to define request mapping for http method GET /official-site
+	struct{at.RequestMapping; Method string `value:"GET"`; Path string `value:"/official-site"`}) string  {
+
+	return "https://hidevops.io"
+}
+
+
 // main function
 func main() {
 	// create new web application and run it
-	web.NewApplication(new(UserController)).
+	web.NewApplication(newUserController, new(orgController)).
 		Run()
 }

@@ -20,6 +20,7 @@ import (
 	"github.com/kataras/iris"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/copier"
@@ -47,6 +48,7 @@ const (
 	Any             = "ANY"
 	RequestMapping  = "RequestMapping"
 	ContextPathRoot = "/"
+	UrlSep			= "/"
 
 )
 type Dispatcher struct {
@@ -85,10 +87,8 @@ func (d *Dispatcher) parseRequestMapping(object interface{}, method *reflect.Met
 	inputs[0] = reflect.ValueOf(object)
 	for n := 1; n < numIn; n++ {
 		typ := method.Type.In(n)
-		indTyp := reflector.IndirectType(typ)
-		log.Debugf("name: %v - %v - %v - %v", indTyp.Name(), indTyp.Kind(), typ.Name(), typ.Kind())
-		if indTyp.Name() == "" && typ.Kind() == reflect.Struct {
-			o := reflect.New(typ).Interface()
+		o := reflect.New(typ).Interface()
+		if reflector.HasEmbeddedFieldType(o, new(at.RequestMapping)) {
 			err := d.configurableFactory.InjectIntoObject(o)
 			if err == nil {
 				copier.Copy(reqMap, o)
@@ -155,7 +155,11 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 					cn = str.ToLowerCamel(controllerName)
 				}
 			}
-			controllerPath = d.ContextPath + cn
+			contextPath := d.ContextPath
+			if contextPath == ContextPathRoot {
+				contextPath = ""
+			}
+			controllerPath = fmt.Sprintf("%v/%v", contextPath, cn)
 		}
 
 		numOfMethod := field.NumMethod()
@@ -188,6 +192,9 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 			method := fieldType.Method(mi)
 			methodName := method.Name
 			//log.Debug("method: ", methodName)
+			if methodName == "Options" {
+				log.Debug("===")
+			}
 
 			reqMap = d.parseRequestMapping(controller, &method)
 			if !reqMap.customized {
