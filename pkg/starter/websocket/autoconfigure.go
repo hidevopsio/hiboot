@@ -62,6 +62,7 @@ func (c *configuration) Server() *Server {
 		HandshakeTimeout: time.Duration(p.HandshakeTimeout) * time.Second,
 		WriteTimeout: time.Duration(p.WriteTimeout) * time.Second,
 		ReadTimeout: time.Duration(p.ReadTimeout) * time.Second,
+		PongTimeout: time.Duration(p.PongTimeout) * time.Second,
 		PingPeriod: time.Duration(p.PingPeriod) * time.Second,
 		MaxMessageSize: p.MaxMessageSize,
 		BinaryMessages: p.BinaryMessages,
