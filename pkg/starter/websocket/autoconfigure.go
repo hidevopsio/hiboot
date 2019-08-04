@@ -20,6 +20,8 @@ import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/utils/copier"
+	"time"
 )
 
 const (
@@ -52,9 +54,19 @@ func init() {
 
 // Server websocket server
 func (c *configuration) Server() *Server {
+	var cfg websocket.Config
+	copier.Copy(&cfg, &c.Properties)
+	p := &c.Properties
 	s := websocket.New(websocket.Config{
-		ReadBufferSize:  c.Properties.ReadBufferSize,
-		WriteBufferSize: c.Properties.WriteBufferSize,
+		EvtMessagePrefix: []byte(p.EvtMessagePrefix),
+		HandshakeTimeout: time.Duration(p.HandshakeTimeout) * time.Second,
+		WriteTimeout: time.Duration(p.WriteTimeout) * time.Second,
+		ReadTimeout: time.Duration(p.ReadTimeout) * time.Second,
+		PingPeriod: time.Duration(p.PingPeriod) * time.Second,
+		MaxMessageSize: p.MaxMessageSize,
+		BinaryMessages: p.BinaryMessages,
+		ReadBufferSize: p.ReadBufferSize,
+		WriteBufferSize: p.WriteBufferSize,
 	})
 
 	return &Server{

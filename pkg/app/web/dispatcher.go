@@ -74,9 +74,25 @@ func init() {
 
 type requestMapping struct {
 	customized bool
-	ParentPath string
+	Mapping    string
 	Method     string
 	Path       string
+}
+
+var validAnnotations = []interface{}{
+	new(at.RequestMapping),
+	new(at.Method),
+	new(at.Path),
+}
+
+func (d *Dispatcher) hasAnnotation(o interface{}) (ok bool) {
+
+	for _, ann := range validAnnotations {
+		if ok = reflector.HasEmbeddedFieldType(o, ann); ok {
+			return
+		}
+	}
+	return
 }
 
 func (d *Dispatcher) parseRequestMapping(object interface{}, method *reflect.Method) (reqMap *requestMapping) {
@@ -88,7 +104,7 @@ func (d *Dispatcher) parseRequestMapping(object interface{}, method *reflect.Met
 	for n := 1; n < numIn; n++ {
 		typ := method.Type.In(n)
 		o := reflect.New(typ).Interface()
-		if reflector.HasEmbeddedFieldType(o, new(at.RequestMapping)) {
+		if d.hasAnnotation(o) {
 			err := d.configurableFactory.InjectIntoObject(o)
 			if err == nil {
 				copier.Copy(reqMap, o)
@@ -126,7 +142,8 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 		ok := reflector.HasField(controller, RequestMapping)
 		if ok {
 			customizedControllerPath = true
-			controllerPath = filepath.Join(controllerPath, reflector.GetFieldValue(controller, RequestMapping).Interface().(string))
+			fv := reflector.GetFieldValue(controller, RequestMapping)
+			controllerPath = filepath.Join(controllerPath, fv.Interface().(at.RequestMapping).String())
 		}
 
 		// parse method
@@ -212,8 +229,8 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 				}
 				reqMap.Path = apiPath
 			}
-			if reqMap.ParentPath == "" {
-				reqMap.ParentPath = controllerPath
+			if reqMap.Mapping == "" {
+				reqMap.Mapping = controllerPath
 			}
 
 			// apirequestMapping should add arguments
@@ -226,7 +243,7 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 				// parse all necessary requests and responses
 				// create new method parser here
 				hdl := newHandler(d.configurableFactory)
-				hdl.parse(reqMap.Method, method, controller, reqMap.ParentPath+reqMap.Path)
+				hdl.parse(reqMap.Method, method, controller, reqMap.Mapping+reqMap.Path)
 				methodHandler := Handler(func(c context.Context) {
 					hdl.call(c)
 					c.Next()

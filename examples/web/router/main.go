@@ -18,6 +18,7 @@ package main
 
 // import web starter from hiboot
 import (
+	"fmt"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/model"
@@ -32,7 +33,7 @@ type UserController struct {
 
 	// RequestMapping The request mapping of this controller is '/' by default, if you add value tag with value /user,
 	// then Hiboot will inject /user to UserController.RequestMapping
-	RequestMapping string `value:"/user"`
+	at.RequestMapping `value:"/user"`
 }
 
 // UserVO
@@ -68,7 +69,7 @@ func newUserController() *UserController {
 // Create
 func (c *UserController) Create(
 	request *UserRequest,
-	m struct{at.RequestMapping; Method string `value:"POST"`; Path string `value:"/"`},
+	m struct{at.PostMapping; at.Path `value:"/"`},
 ) (response *UserResponse, err error) {
 
 	// response
@@ -88,7 +89,7 @@ func (c *UserController) Create(
 func (c *UserController) Get(
 	id int,
 	name string,
-	m struct{at.RequestMapping; Method string `value:"GET"`; Path string `value:"/{id:int}/and/{name}"`},
+	m struct{at.GetMapping; at.Path `value:"/{id:int}/and/{name}"`},
 ) (response *UserResponse, err error) {
 
 	// response
@@ -108,7 +109,7 @@ func (c *UserController) Get(
 // Delete
 func (c *UserController) Delete(
 	id int,
-	m struct{at.RequestMapping; Method string `value:"DELETE"`; Path string `value:"/{id:int}"`},
+	m struct{at.DeleteMapping; at.Path `value:"/{id:int}"`},
 ) (response *UserResponse, err error) {
 
 	// response
@@ -119,7 +120,7 @@ func (c *UserController) Delete(
 
 // List
 func (c *UserController) List(
-	m struct{at.RequestMapping; Method string `value:"GET"`; Path string `value:"/"`},
+	m struct{at.GetMapping; at.Path `value:"/"`},
 ) (response *UserResponse, err error) {
 
 	// response
@@ -143,16 +144,26 @@ func (c *UserController) List(
 type orgController struct {
 	at.RestController
 
-	RequestMapping string `value:"/organization"`
+	at.RequestMapping `value:"/organization"`
 }
 
 func (c *orgController) GetOfficialSite(
 	// at.RequestMapping is an annotation to define request mapping for http method GET /official-site
-	struct{at.RequestMapping; Method string `value:"GET"`; Path string `value:"/official-site"`}) string  {
+	struct{at.Method `value:"GET"`; at.Path `value:"/official-site"`}) string  {
 
 	return "https://hidevops.io"
 }
 
+
+func (c *orgController) GetWithPathParamIdAndName(
+	id int,
+	name string,
+	// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
+	m struct{at.Method `value:"GET"`; at.Path `value:"/{id}/and/{name}"`},
+) string  {
+
+	return fmt.Sprintf("https://hidevops.io/%v/%v", id, name)
+}
 
 // main function
 func main() {

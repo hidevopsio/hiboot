@@ -15,6 +15,7 @@
 package inject
 
 import (
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/io"
@@ -24,6 +25,7 @@ import (
 )
 
 type injectTag struct {
+	at.Tag `value:"inject"`
 	BaseTag
 }
 
@@ -37,43 +39,46 @@ func getInstance(cf factory.InstantiateFactory, pkgName, name string) (retVal in
 	return
 }
 
-func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, property, tag string) (retVal interface{}) {
-	properties := t.ParseProperties(tag)
+func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, property string) (retVal interface{}) {
+	tag, ok := field.Tag.Lookup(string(t.Tag))
+	if ok {
+		properties := t.ParseProperties(tag)
 
-	// first, find if object is already instantiated
-	if field.Type.Kind() == reflect.Ptr || field.Type.Kind() == reflect.Interface {
-		// if object is not exist, then instantiate new object
-		// parse tag and instantiate filed
-		ft := field.Type
-		if ft.Kind() == reflect.Ptr {
-			ft = ft.Elem()
-		}
+		// first, find if object is already instantiated
+		if field.Type.Kind() == reflect.Ptr || field.Type.Kind() == reflect.Interface {
+			// if object is not exist, then instantiate new object
+			// parse tag and instantiate filed
+			ft := field.Type
+			if ft.Kind() == reflect.Ptr {
+				ft = ft.Elem()
+			}
 
-		pkgName := io.DirName(ft.PkgPath())
+			pkgName := io.DirName(ft.PkgPath())
 
-		// get the user specific instance first
-		if tag != "" {
-			retVal = getInstance(t.instantiateFactory, pkgName, tag)
+			// get the user specific instance first
+			if tag != "" {
+				retVal = getInstance(t.instantiateFactory, pkgName, tag)
+			}
+			// else to find with the field name if above is not found
+			if retVal == nil {
+				retVal = getInstance(t.instantiateFactory, pkgName, field.Name)
+			}
+			// else to find with the type name if above is not found
+			if retVal == nil {
+				retVal = getInstance(t.instantiateFactory, pkgName, ft.Name())
+			}
+			// else create new instance at runtime
+			if retVal == nil && field.Type.Kind() != reflect.Interface {
+				o := reflect.New(ft)
+				retVal = o.Interface()
+			}
+			// inject field value
+			// TODO: do we need this feature?
+			if properties.Count() != 0 {
+				mapstruct.Decode(retVal, properties.Items())
+			}
 		}
-		// else to find with the field name if above is not found
-		if retVal == nil {
-			retVal = getInstance(t.instantiateFactory, pkgName, field.Name)
-		}
-		// else to find with the type name if above is not found
-		if retVal == nil {
-			retVal = getInstance(t.instantiateFactory, pkgName, ft.Name())
-		}
-		// else create new instance at runtime
-		if retVal == nil && field.Type.Kind() != reflect.Interface {
-			o := reflect.New(ft)
-			retVal = o.Interface()
-		}
-		// inject field value
-		// TODO: do we need this feature?
-		if properties.Count() != 0 {
-			mapstruct.Decode(retVal, properties.Items())
-		}
+		log.Debugf("inject tag: %v ==> %v %v: %v", tag, field.Name, field.Type, retVal)
 	}
-	log.Debugf("inject tag: %v ==> %v %v: %v", tag, field.Name, field.Type, retVal)
 	return retVal
 }

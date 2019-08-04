@@ -622,9 +622,13 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 		type EmbeddedInterfaceB interface {
 		}
 
+		type EmbeddedString string
+
 		type embeddedTypeA struct {
 			EmbeddedInterfaceA
+			EmbeddedString `value:"Hello"`
 			EmbeddedInterfaceB
+
 		}
 
 		type embeddedTypeB struct {
@@ -641,6 +645,11 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 
 		yes = HasEmbeddedFieldType(new(embeddedTypeB), new(EmbeddedInterfaceB))
 		assert.Equal(t, true, yes)
+
+		f, ok := GetEmbeddedFieldType(new(embeddedTypeB), new(EmbeddedString))
+		assert.Equal(t, true, ok)
+		log.Debug(f)
+
 	})
 
 	t.Run("should return false if input nil on HasEmbeddedFieldType", func(t *testing.T) {

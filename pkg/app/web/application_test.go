@@ -448,7 +448,7 @@ func TestOneTwoThreeController(t *testing.T) {
 // context path can be overwritten by the tag value of annotation at.ContextPath
 type HelloViewController struct {
 	at.RestController
-	RequestMapping string `value:"/"`
+	at.RequestMapping `value:"/"`
 
 	fooBar         *FooBar
 }
@@ -806,10 +806,11 @@ func TestWebApplication(t *testing.T) {
 			Expect().Status(http.StatusOK)
 	})
 
-	t.Run("should return failure for unsupported args", func(t *testing.T) {
-		testApp.Get("/foo/bar").
-			Expect().Status(http.StatusInternalServerError)
-	})
+	// TODO: this test case is deleted due to the implementation of the anonymous struct that accept the route annotation.
+	//t.Run("should return failure for unsupported args", func(t *testing.T) {
+	//	testApp.Get("/foo/bar").
+	//		Expect().Status(http.StatusInternalServerError)
+	//})
 
 	t.Run("should return invalid response", func(t *testing.T) {
 		testApp.Get("/foo/invalid").

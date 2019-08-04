@@ -16,11 +16,14 @@ package inject
 
 import (
 	"fmt"
+	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"reflect"
 )
 
 type valueTag struct {
+	at.Tag `value:"value"`
 	BaseTag
 }
 
@@ -28,8 +31,20 @@ func init() {
 	AddTag(new(valueTag))
 }
 
-func (t *valueTag) Decode(object reflect.Value, field reflect.StructField, property, tag string) (retVal interface{}) {
-	if tag != "" {
+func IsImplemented(object interface{}) {
+	s := reflect.ValueOf(object).Elem()
+	t := s.Type()
+	modelType := reflect.TypeOf((*at.StringAnnotation)(nil)).Elem()
+
+	for i := 0; i < s.NumField(); i++ {
+		f := t.Field(i)
+		fmt.Printf("%d: %s %s -> %t\n", i, f.Name, f.Type, f.Type.Implements(modelType))
+	}
+}
+
+func (t *valueTag) Decode(object reflect.Value, field reflect.StructField, property string) (retVal interface{}) {
+	tag, ok := field.Tag.Lookup(string(t.Tag))
+	if ok {
 		//log.Debug(valueTag)
 
 		// check if filed type is slice
@@ -43,6 +58,16 @@ func (t *valueTag) Decode(object reflect.Value, field reflect.StructField, prope
 			}
 		case reflect.String:
 			needConvert = false
+			// check if it is an annotation
+			indTyp := reflector.IndirectType(field.Type)
+			//log.Debugf("type name: %v %v %v", field.Type.Name(), indTyp.Name(), indTyp.NumMethod())
+
+			impl := indTyp.Implements(reflect.TypeOf((*at.StringAnnotation)(nil)).Elem())
+			if impl {
+				//log.Debug("found at.StringAnnotation implements")
+				retVal = reflect.New(indTyp).Interface().(at.StringAnnotation).Value(retVal.(string))
+			}
+
 		}
 
 		if needConvert {

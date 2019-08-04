@@ -17,6 +17,7 @@ package inject
 import (
 	"errors"
 	"fmt"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/reflector"
@@ -25,7 +26,7 @@ import (
 )
 
 const (
-	initMethodName = "Init"
+	value          = "value"
 )
 
 var (
@@ -74,10 +75,25 @@ func NewInject(factory factory.InstantiateFactory) Inject {
 	return &inject{factory: factory}
 }
 
+// InitTag init tag implements
+func InitTag(tag Tag) Tag {
+	f, ok := reflector.GetEmbeddedFieldType(tag, new(at.Tag))
+	if ok {
+		t := reflector.Indirect(reflect.ValueOf(tag))
+		v, ok := f.Tag.Lookup(value)
+		if ok {
+			fo := t.FieldByName(f.Name)
+			fo.Set(reflect.ValueOf(at.Tag(v)))
+			return tag
+		}
+	}
+	return nil
+}
+
 // AddTag add new tag
 func AddTag(tag Tag) {
 	if tag != nil {
-		tagsContainer = append(tagsContainer, tag)
+		tagsContainer = append(tagsContainer, InitTag(tag))
 	}
 }
 
@@ -89,7 +105,7 @@ func (i *inject) getInstanceByName(name string, typ reflect.Type) (inst interfac
 
 // DefaultValue injects instance into the tagged field with `inject:"instanceName"`
 func (i *inject) DefaultValue(object interface{}) error {
-	return i.IntoObjectValue(reflect.ValueOf(object), "", new(defaultTag))
+	return i.IntoObjectValue(reflect.ValueOf(object), "", InitTag(new(defaultTag)))
 }
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
@@ -144,17 +160,10 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 		injectedObject = i.getInstanceByName(f.Name, f.Type)
 		if injectedObject == nil {
 			for _, tagImpl := range targetTags {
-				tagName := reflector.ParseObjectName(tagImpl, "Tag")
-				//if tagName == "" {
-				//	return ErrInvalidTagName
-				//}
-				tag, ok := f.Tag.Lookup(tagName)
-				if ok {
-					tagImpl.Init(i.factory)
-					injectedObject = tagImpl.Decode(object, f, prop, tag)
-					if injectedObject != nil {
-						break
-					}
+				tagImpl.Init(i.factory)
+				injectedObject = tagImpl.Decode(object, f, prop)
+				if injectedObject != nil {
+					break
 				}
 			}
 		}

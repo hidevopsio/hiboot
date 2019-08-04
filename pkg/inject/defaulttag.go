@@ -16,11 +16,13 @@ package inject
 
 import (
 	"fmt"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"reflect"
 )
 
 type defaultTag struct {
+	at.Tag `value:"default"`
 	BaseTag
 }
 
@@ -28,8 +30,9 @@ type defaultTag struct {
 //	return false
 //}
 
-func (t *defaultTag) Decode(object reflect.Value, field reflect.StructField, property, tag string) (retVal interface{}) {
-	if tag != "" {
+func (t *defaultTag) Decode(object reflect.Value, field reflect.StructField, property string) (retVal interface{}) {
+	tag, ok := field.Tag.Lookup(string(t.Tag))
+	if ok {
 		//log.Debug(valueTag)
 
 		// check if filed type is slice
