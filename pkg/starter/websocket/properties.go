@@ -32,6 +32,9 @@ type properties struct {
 	// Default value is false
 	BinaryMessages bool
 
+	// Ping enable/disable ping, disabled by default
+	Ping bool `default:"false"`
+
 	ReadBufferSize  int    `default:"1024"`
 	WriteBufferSize int    `default:"1024"`
 	Javascript      string `default:"/websocket/websocket.js"`

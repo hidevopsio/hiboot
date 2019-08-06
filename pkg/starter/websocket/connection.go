@@ -1,8 +1,8 @@
 package websocket
 
 import (
-	"github.com/kataras/iris/websocket"
 	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/starter/websocket/ws"
 )
 
 // Connection is the websocket connection

@@ -16,10 +16,10 @@
 package websocket
 
 import (
-	"github.com/kataras/iris/websocket"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/starter/websocket/ws"
 	"hidevops.io/hiboot/pkg/utils/copier"
 	"time"
 )
@@ -58,6 +58,7 @@ func (c *configuration) Server() *Server {
 	copier.Copy(&cfg, &c.Properties)
 	p := &c.Properties
 	s := websocket.New(websocket.Config{
+		Ping: p.Ping,
 		EvtMessagePrefix: []byte(p.EvtMessagePrefix),
 		HandshakeTimeout: time.Duration(p.HandshakeTimeout) * time.Second,
 		WriteTimeout: time.Duration(p.WriteTimeout) * time.Second,
@@ -86,7 +87,3 @@ func (c *configuration) Register() Register {
 	return registerHandler
 }
 
-// InteractRegister is function that register handler
-func (c *configuration) InteractRegister() InteractRegister {
-	return registerInteractHandler
-}
