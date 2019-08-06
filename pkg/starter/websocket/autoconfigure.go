@@ -81,7 +81,12 @@ func (c *configuration) Connection(ctx context.Context, server *Server) *Connect
 	return conn
 }
 
-// RegisterHandler is function that register handler
-func (c *configuration) RegisterHandler() Register {
+// Register is function that register handler
+func (c *configuration) Register() Register {
 	return registerHandler
+}
+
+// InteractRegister is function that register handler
+func (c *configuration) InteractRegister() InteractRegister {
+	return registerInteractHandler
 }
