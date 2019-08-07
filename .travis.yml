@@ -13,7 +13,7 @@ branches:
 go_import_path: hidevops.io/hiboot
 
 env:
-- GO111MODULE=on APP_PROFILES_ACTIVE=local
+- GO111MODULE=on APP_PROFILES_ACTIVE=local GOPROXY=https://goproxy.io
 
 install: true
 
