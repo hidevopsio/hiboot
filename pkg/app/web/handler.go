@@ -324,10 +324,7 @@ func (h *handler) call(ctx context.Context) {
 				inputs[i] = reflect.ValueOf(inst)
 			} else {
 				if req.kind == reflect.Struct {
-					err := h.factory.InjectIntoObject(request)
-					if err != nil {
-						log.Error(err)
-					}
+					_ = h.factory.InjectIntoObject(request)
 				}
 				inputs[i] = reflect.ValueOf(request).Elem()
 			}
@@ -337,9 +334,6 @@ func (h *handler) call(ctx context.Context) {
 	//var respErr error
 	var results []reflect.Value
 	if reqErr == nil {
-		if h.hasCtxField {
-			reflector.SetFieldValue(h.controller, "Ctx", ctx)
-		}
 		// call controller method
 		results = h.method.Func.Call(inputs)
 

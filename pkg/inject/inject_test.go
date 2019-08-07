@@ -138,6 +138,8 @@ type UserService interface {
 }
 
 type userService struct {
+	at.Path	`value:"/path/to/hiboot"`
+
 	FooUser        *FooUser       `inject:"name=foo"`
 	User           *User          `inject:""`
 	FakeUser       *User          `inject:"name=${fake.name},app=${app.name}"`

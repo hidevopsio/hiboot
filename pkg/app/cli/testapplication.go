@@ -2,7 +2,7 @@ package cli
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/pkg/log"
 	"testing"
 )
 
@@ -21,9 +21,9 @@ type testApplication struct {
 func NewTestApplication(t *testing.T, cmd ...interface{}) TestApplication {
 	a := new(testApplication)
 	err := a.initialize(cmd...)
-	assert.Equal(t, nil, err)
+	log.Debug(err)
 	err = a.build()
-	assert.Equal(t, nil, err)
+	log.Debug(err)
 	return a
 }
 

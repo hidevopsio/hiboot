@@ -179,6 +179,7 @@ func (f *instantiateFactory) BuildComponents() (err error) {
 		} else {
 			// inject dependencies into function
 			// components, controllers
+			// TODO: should save the upstream dependencies that contains item.ContextAware annotation for runtime injection
 			f.injectDependency(item)
 		}
 	}

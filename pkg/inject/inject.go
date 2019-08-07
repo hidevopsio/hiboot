@@ -76,18 +76,18 @@ func NewInject(factory factory.InstantiateFactory) Inject {
 }
 
 // InitTag init tag implements
-func InitTag(tag Tag) Tag {
+func InitTag(tag Tag) (t Tag) {
 	f, ok := reflector.GetEmbeddedFieldType(tag, new(at.Tag))
 	if ok {
-		t := reflector.Indirect(reflect.ValueOf(tag))
+		tv := reflector.Indirect(reflect.ValueOf(tag))
 		v, ok := f.Tag.Lookup(value)
 		if ok {
-			fo := t.FieldByName(f.Name)
+			fo := tv.FieldByName(f.Name)
 			fo.Set(reflect.ValueOf(at.Tag(v)))
-			return tag
+			t = tag
 		}
 	}
-	return nil
+	return
 }
 
 // AddTag add new tag

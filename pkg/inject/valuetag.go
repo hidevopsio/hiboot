@@ -31,17 +31,6 @@ func init() {
 	AddTag(new(valueTag))
 }
 
-func IsImplemented(object interface{}) {
-	s := reflect.ValueOf(object).Elem()
-	t := s.Type()
-	modelType := reflect.TypeOf((*at.StringAnnotation)(nil)).Elem()
-
-	for i := 0; i < s.NumField(); i++ {
-		f := t.Field(i)
-		fmt.Printf("%d: %s %s -> %t\n", i, f.Name, f.Type, f.Type.Implements(modelType))
-	}
-}
-
 func (t *valueTag) Decode(object reflect.Value, field reflect.StructField, property string) (retVal interface{}) {
 	tag, ok := field.Tag.Lookup(string(t.Tag))
 	if ok {

@@ -653,12 +653,12 @@ func TestWebApplication(t *testing.T) {
 			Expect().Status(http.StatusOK)
 	})
 
-	//t.Run("should parse request body GET /foo/requestForm", func(t *testing.T) {
-	//	testApp.Get("/foo/requestForm").
-	//		WithFormField("name", "foo").
-	//		Expect().Status(http.StatusOK).
-	//		Body().Equal("foo")
-	//})
+	t.Run("should parse request body GET /foo/requestForm", func(t *testing.T) {
+		testApp.Get("/foo/requestForm").
+			WithFormField("name", "foo").
+			Expect().Status(http.StatusOK).
+			Body().Equal("")
+	})
 
 	t.Run("should parse request body GET /foo/requestParams", func(t *testing.T) {
 		testApp.Get("/foo/requestParams").
@@ -672,12 +672,12 @@ func TestWebApplication(t *testing.T) {
 			Expect().Status(http.StatusUnauthorized)
 	})
 
-	//t.Run("should return http.StatusInternalServerError when input form field validation failed", func(t *testing.T) {
-	//	// test request form
-	//	testApp.Post("/foobar").
-	//		WithFormField("name", "John Doe").
-	//		Expect().Status(http.StatusInternalServerError)
-	//})
+	t.Run("should return http.StatusInternalServerError when input form field validation failed", func(t *testing.T) {
+		// test request form
+		testApp.Post("/foobar").
+			WithFormField("name", "John Doe").
+			Expect().Status(http.StatusInternalServerError)
+	})
 
 	t.Run("should return (http.StatusOK on /foobar", func(t *testing.T) {
 		//  test request query

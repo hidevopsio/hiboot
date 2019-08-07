@@ -209,3 +209,56 @@ func TestAB(t *testing.T) {
 	b.Name = "bb"
 	b.Run("hello")
 }
+
+
+
+type circularFoo struct {
+	circularBar *circularBar
+}
+
+func newCircularFoo(circularBar *circularBar) *circularFoo {
+	return &circularFoo{
+		circularBar: circularBar,
+	}
+}
+
+type circularBar struct {
+	circularFoo *circularFoo
+}
+
+func newCircularBar(circularFoo *circularFoo) *circularBar {
+	return &circularBar{
+		circularFoo: circularFoo,
+	}
+}
+
+type circularDiCommand struct {
+	cli.RootCommand
+
+	circularFoo *circularFoo
+}
+
+func newCircularCommand(circularFoo *circularFoo) *circularDiCommand {
+	c := new(circularDiCommand)
+	c.Use = "circular"
+	c.Short = "circular command"
+	c.Long = "Run circular command"
+
+	c.circularFoo = circularFoo
+	return c
+}
+
+func (c *circularDiCommand) Run(args []string) (err error) {
+	log.Debug("on circular command")
+	return nil
+}
+
+func TestApplicationWithCircularDI(t *testing.T) {
+	testApp := cli.NewTestApplication(t, newCircularCommand)
+
+	t.Run("should detect circular di", func(t *testing.T) {
+		_, err := testApp.Run("circular")
+		assert.Equal(t, nil, err)
+	})
+}
+
