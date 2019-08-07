@@ -85,6 +85,10 @@ type PutMapping struct{
 	Method `value:"PUT"`
 }
 
+// PatchMapping is the annotation that set the PatchMapping of a controller
+type PatchMapping struct{
+	Method string `value:"PATCH"`
+}
 
 // DeleteMapping is the annotation that set the DeleteMapping of a controller
 type DeleteMapping struct{
