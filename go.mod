@@ -10,8 +10,10 @@ require (
 	github.com/golang/mock v1.2.0
 	github.com/golang/protobuf v1.2.0
 	github.com/gorilla/mux v1.7.0
+	github.com/gorilla/websocket v1.4.0
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/iris-contrib/formBinder v0.0.0-20190104093907-fbd5963f41e1 // indirect
+	github.com/iris-contrib/go.uuid v2.0.0+incompatible
 	github.com/iris-contrib/httpexpect v0.0.0-20180314041918-ebe99fcebbce
 	github.com/iris-contrib/middleware v0.0.0-20171114084220-1060fbb0ce08
 	github.com/kataras/golog v0.0.0-20180321173939-03be10146386
@@ -32,6 +34,7 @@ require (
 	github.com/uber-go/atomic v1.3.2 // indirect
 	github.com/uber/jaeger-client-go v2.15.0+incompatible
 	github.com/uber/jaeger-lib v1.5.0+incompatible // indirect
+	github.com/valyala/bytebufferpool v1.0.0
 	go.uber.org/atomic v1.3.2 // indirect
 	golang.org/x/net v0.0.0-20190213061140-3a22650c66bd
 	google.golang.org/grpc v1.17.0

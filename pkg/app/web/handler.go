@@ -116,7 +116,7 @@ func clean(in string) (out string) {
 	return
 }
 
-func (h *handler) parse(method reflect.Method, object interface{}, path string) {
+func (h *handler) parse(httpMethod string, method reflect.Method, object interface{}, path string) {
 	//log.Debug("NumIn: ", method.Type.NumIn())
 	h.controller = object
 	h.method = method
@@ -209,7 +209,7 @@ func (h *handler) parse(method reflect.Method, object interface{}, path string) 
 		//log.Debug(h.responses[i])
 	}
 	if path != "" {
-		log.Infof("Mapped \"%v\" onto %v.%v()", path, idv.Type(), method.Name)
+		log.Infof("Mapped %v \"%v\" onto %v.%v()", httpMethod, path, idv.Type(), method.Name)
 	}
 }
 
@@ -323,9 +323,10 @@ func (h *handler) call(ctx context.Context) {
 			if inst != nil {
 				inputs[i] = reflect.ValueOf(inst)
 			} else {
-				msg := fmt.Sprintf("input type: %v is not supported!", req.typ)
-				ctx.ResponseError(msg, http.StatusInternalServerError)
-				return
+				if req.kind == reflect.Struct {
+					_ = h.factory.InjectIntoObject(request)
+				}
+				inputs[i] = reflect.ValueOf(request).Elem()
 			}
 		}
 	}
@@ -333,9 +334,6 @@ func (h *handler) call(ctx context.Context) {
 	//var respErr error
 	var results []reflect.Value
 	if reqErr == nil {
-		if h.hasCtxField {
-			reflector.SetFieldValue(h.controller, "Ctx", ctx)
-		}
 		// call controller method
 		results = h.method.Func.Call(inputs)
 

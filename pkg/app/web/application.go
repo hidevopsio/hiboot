@@ -127,13 +127,19 @@ func (a *application) build() (err error) {
 	}
 
 	// build auto configurations
-	a.BuildConfigurations()
+	err = a.BuildConfigurations()
+	if err != nil {
+		return
+	}
 
 	// create dispatcher
 	a.dispatcher = a.GetInstance(Dispatcher{}).(*Dispatcher)
 
 	// first register anon controllers
-	a.RegisterController(new(at.RestController))
+	err = a.RegisterController(new(at.RestController))
+	if err != nil {
+		return
+	}
 
 	// call AfterInitialization with factory interface
 	a.AfterInitialization()
@@ -148,7 +154,7 @@ func (a *application) RegisterController(controller interface{}) error {
 	if controllers != nil {
 		return a.dispatcher.register(controllers)
 	}
-	return nil
+	return ErrControllersNotFound
 }
 
 // Use apply middleware

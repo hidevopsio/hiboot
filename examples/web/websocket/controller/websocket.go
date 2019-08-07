@@ -13,8 +13,8 @@ type websocketController struct {
 	register websocket.Register
 }
 
-func newWebsocketController(register websocket.Register) *websocketController {
-	return &websocketController{register: register}
+func newWebsocketController(interactRegister websocket.Register) *websocketController {
+	return &websocketController{register: interactRegister}
 }
 
 func init() {

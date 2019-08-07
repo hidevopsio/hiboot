@@ -20,10 +20,14 @@ import (
 	"github.com/kataras/iris"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/utils/copier"
 	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"net/http"
+	"path/filepath"
 	"reflect"
 	"strings"
 )
@@ -40,14 +44,20 @@ var httpMethods = []string{
 	http.MethodTrace,
 }
 
-const Any = "ANY"
+const (
+	Any             = "ANY"
+	RequestMapping  = "RequestMapping"
+	ContextPathRoot = "/"
+	UrlSep			= "/"
 
+)
 type Dispatcher struct {
 	webApp *webApp
 	// inject context aware dependencies
 	configurableFactory factory.ConfigurableFactory
 
 	//contextAwareInstances []interface{}
+	ContextPath string `value:"${server.context_path:/}"`
 }
 
 func newDispatcher(webApp *webApp, configurableFactory factory.ConfigurableFactory) *Dispatcher {
@@ -62,8 +72,55 @@ func init() {
 	app.Register(newDispatcher)
 }
 
+type requestMapping struct {
+	customized bool
+	Mapping    string
+	Method     string
+	Path       string
+}
+
+var validAnnotations = []interface{}{
+	new(at.RequestMapping),
+	new(at.Method),
+	new(at.Path),
+}
+
+func (d *Dispatcher) hasAnnotation(o interface{}) (ok bool) {
+
+	for _, ann := range validAnnotations {
+		if ok = reflector.HasEmbeddedFieldType(o, ann); ok {
+			return
+		}
+	}
+	return
+}
+
+func (d *Dispatcher) parseRequestMapping(object interface{}, method *reflect.Method) (reqMap *requestMapping) {
+	//reflector.
+	reqMap = new(requestMapping)
+	numIn := method.Type.NumIn()
+	inputs := make([]reflect.Value, numIn)
+	inputs[0] = reflect.ValueOf(object)
+	for n := 1; n < numIn; n++ {
+		typ := method.Type.In(n)
+		o := reflect.New(typ).Interface()
+		if d.hasAnnotation(o) {
+			err := d.configurableFactory.InjectIntoObject(o)
+			if err == nil {
+				copier.Copy(reqMap, o)
+				reqMap.customized = true
+				break
+			}
+		}
+	}
+	return
+}
+
+//TODO: scan apis and params to generate swagger api automatically by include swagger starter
 func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 	for _, metaData := range controllers {
+		reqMap := new(requestMapping)
+
 		c := metaData.Instance
 		field := reflect.ValueOf(c)
 
@@ -80,7 +137,14 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 		//fieldValue := field.Elem()
 
 		// get context mapping
-		contextMapping, ok := reflector.FindEmbeddedFieldTag(controller, "ContextPath", "value")
+		var customizedControllerPath bool
+		controllerPath := d.ContextPath
+		ok := reflector.HasField(controller, RequestMapping)
+		if ok {
+			customizedControllerPath = true
+			fv := reflector.GetFieldValue(controller, RequestMapping)
+			controllerPath = filepath.Join(controllerPath, fv.Interface().(at.RequestMapping).String())
+		}
 
 		// parse method
 		fieldNames := camelcase.Split(fieldName)
@@ -91,8 +155,28 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 		}
 		//log.Debug("controllerName: ", controllerName)
 		// use controller's prefix as context mapping
-		if contextMapping == "" {
-			contextMapping = pathSep + controllerName
+		if !customizedControllerPath {
+			cn := controllerName
+			cpf := d.configurableFactory.GetProperty(app.ContextPathFormat)
+			if cpf != nil {
+				contextPathFormat := cpf.(string)
+
+				switch contextPathFormat {
+				case app.ContextPathFormatKebab:
+					cn = str.ToKebab(controllerName)
+				case app.ContextPathFormatSnake:
+					cn = str.ToSnake(controllerName)
+				case app.ContextPathFormatCamel:
+					cn = str.ToCamel(controllerName)
+				case app.ContextPathFormatLowerCamel:
+					cn = str.ToLowerCamel(controllerName)
+				}
+			}
+			contextPath := d.ContextPath
+			if contextPath == ContextPathRoot {
+				contextPath = ""
+			}
+			controllerPath = fmt.Sprintf("%v/%v", contextPath, cn)
 		}
 
 		numOfMethod := field.NumMethod()
@@ -101,21 +185,21 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 		beforeMethod, ok := fieldType.MethodByName(beforeMethod)
 		var party iris.Party
 		if ok {
-			//log.Debug("contextPath: ", contextMapping)
+			//log.Debug("contextPath: ", requestMapping)
 			//log.Debug("beforeMethod.Name: ", beforeMethod.Name)
 			hdl := newHandler(d.configurableFactory)
-			hdl.parse(beforeMethod, controller, "")
-			party = d.webApp.Party(contextMapping, Handler(func(c context.Context) {
+			hdl.parse("", beforeMethod, controller, "")
+			party = d.webApp.Party(controllerPath, Handler(func(c context.Context) {
 				hdl.call(c)
 			}))
 		} else {
-			party = d.webApp.Party(contextMapping)
+			party = d.webApp.Party(controllerPath)
 		}
 
 		afterMethod, ok := fieldType.MethodByName(afterMethod)
 		if ok {
 			hdl := newHandler(d.configurableFactory)
-			hdl.parse(afterMethod, controller, "")
+			hdl.parse("", afterMethod, controller, "")
 			party.Done(Handler(func(c context.Context) {
 				hdl.call(c)
 			}))
@@ -125,41 +209,50 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 			method := fieldType.Method(mi)
 			methodName := method.Name
 			//log.Debug("method: ", methodName)
+			if methodName == "Options" {
+				log.Debug("===")
+			}
 
-			ctxMap := camelcase.Split(methodName)
-			httpMethod := strings.ToUpper(ctxMap[0])
-
-			// apiContextMapping should add arguments
-			//log.Debug("contextMapping: ", apiContextMapping)
-			// check if it's valid http method
-			hasAnyMethod := httpMethod == Any
-			hasGenericMethod := str.InSlice(httpMethod, httpMethods)
-			foundMethod := hasAnyMethod || hasGenericMethod
-			if foundMethod {
-				var apiContextMapping string
+			reqMap = d.parseRequestMapping(controller, &method)
+			if !reqMap.customized {
+				ctxMap := camelcase.Split(methodName)
+				reqMap.Method = strings.ToUpper(ctxMap[0])
+				var apiPath string
 				if len(ctxMap) > 2 && ctxMap[1] == "By" {
 					for _, pathParam := range ctxMap[2:] {
 						lpp := strings.ToLower(pathParam)
-						apiContextMapping = apiContextMapping + pathSep + lpp + pathSep + "{" + lpp + "}"
+						apiPath = apiPath + pathSep + lpp + pathSep + "{" + lpp + "}"
 					}
 				} else {
-					apiContextMapping = strings.Replace(methodName, ctxMap[0], "", 1)
-					apiContextMapping = pathSep + str.LowerFirst(apiContextMapping)
+					apiPath = strings.Replace(methodName, ctxMap[0], "", 1)
+					apiPath = pathSep + str.LowerFirst(apiPath)
 				}
+				reqMap.Path = apiPath
+			}
+			if reqMap.Mapping == "" {
+				reqMap.Mapping = controllerPath
+			}
 
+			// apirequestMapping should add arguments
+			//log.Debug("requestMapping: ", apirequestMapping)
+			// check if it's valid http method
+			hasAnyMethod := reqMap.Method == Any
+			hasGenericMethod := str.InSlice(reqMap.Method, httpMethods)
+			foundMethod := hasAnyMethod || hasGenericMethod
+			if foundMethod {
 				// parse all necessary requests and responses
 				// create new method parser here
 				hdl := newHandler(d.configurableFactory)
-				hdl.parse(method, controller, contextMapping+apiContextMapping)
+				hdl.parse(reqMap.Method, method, controller, reqMap.Mapping+reqMap.Path)
 				methodHandler := Handler(func(c context.Context) {
 					hdl.call(c)
 					c.Next()
 				})
 
 				if hasAnyMethod {
-					party.Any(apiContextMapping, methodHandler)
+					party.Any(reqMap.Path, methodHandler)
 				} else if hasGenericMethod {
-					route := party.Handle(httpMethod, apiContextMapping, methodHandler)
+					route := party.Handle(reqMap.Method, reqMap.Path, methodHandler)
 					route.MainHandlerName = fmt.Sprintf("%s/%s.%s", pkgPath, fieldName, methodName)
 				}
 			}

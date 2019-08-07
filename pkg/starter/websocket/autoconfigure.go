@@ -16,10 +16,12 @@
 package websocket
 
 import (
-	"github.com/kataras/iris/websocket"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/starter/websocket/ws"
+	"hidevops.io/hiboot/pkg/utils/copier"
+	"time"
 )
 
 const (
@@ -52,9 +54,21 @@ func init() {
 
 // Server websocket server
 func (c *configuration) Server() *Server {
+	var cfg websocket.Config
+	copier.Copy(&cfg, &c.Properties)
+	p := &c.Properties
 	s := websocket.New(websocket.Config{
-		ReadBufferSize:  c.Properties.ReadBufferSize,
-		WriteBufferSize: c.Properties.WriteBufferSize,
+		Ping: p.Ping,
+		EvtMessagePrefix: []byte(p.EvtMessagePrefix),
+		HandshakeTimeout: time.Duration(p.HandshakeTimeout) * time.Second,
+		WriteTimeout: time.Duration(p.WriteTimeout) * time.Second,
+		ReadTimeout: time.Duration(p.ReadTimeout) * time.Second,
+		PongTimeout: time.Duration(p.PongTimeout) * time.Second,
+		PingPeriod: time.Duration(p.PingPeriod) * time.Second,
+		MaxMessageSize: p.MaxMessageSize,
+		BinaryMessages: p.BinaryMessages,
+		ReadBufferSize: p.ReadBufferSize,
+		WriteBufferSize: p.WriteBufferSize,
 	})
 
 	return &Server{
@@ -68,7 +82,8 @@ func (c *configuration) Connection(ctx context.Context, server *Server) *Connect
 	return conn
 }
 
-// RegisterHandler is function that register handler
-func (c *configuration) RegisterHandler() Register {
+// Register is function that register handler
+func (c *configuration) Register() Register {
 	return registerHandler
 }
+

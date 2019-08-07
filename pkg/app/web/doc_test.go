@@ -15,7 +15,6 @@
 package web_test
 
 import (
-	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/model"
@@ -28,7 +27,7 @@ import (
 // jwtToken jwt.Token will be injectable.
 func Example() {
 	// the web application entry
-	web.NewApplication().Run()
+	web.NewApplication(newLoginController).Run()
 }
 
 // PATH: /login
@@ -43,11 +42,6 @@ type userRequest struct {
 	model.RequestBody
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
-}
-
-func init() {
-	// Register Rest Controller through constructor newLoginController
-	app.Register(newLoginController)
 }
 
 // newLoginController inject jwtToken through the argument jwtToken jwt.Token on constructor

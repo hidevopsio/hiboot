@@ -35,6 +35,11 @@ import (
 const (
 	// ApplicationContextName is the application context instance name
 	ApplicationContextName = "app.applicationContext"
+	ContextPathFormat = "app.context_path_format"
+	ContextPathFormatKebab = "kebab"
+	ContextPathFormatSnake = "snake"
+	ContextPathFormatCamel = "camel"
+	ContextPathFormatLowerCamel = "lower-camel"
 )
 
 // Application is the base application interface
@@ -182,11 +187,13 @@ func (a *BaseApplication) SystemConfig() *system.Configuration {
 }
 
 // BuildConfigurations get BuildConfigurations
-func (a *BaseApplication) BuildConfigurations() {
+func (a *BaseApplication) BuildConfigurations() (err error) {
 	// build configurations
 	a.configurableFactory.Build(configContainer)
 	// build components
-	a.configurableFactory.BuildComponents()
+	err = a.configurableFactory.BuildComponents()
+
+	return
 }
 
 // ConfigurableFactory get ConfigurableFactory

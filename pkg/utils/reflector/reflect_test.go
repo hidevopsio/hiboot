@@ -17,6 +17,7 @@ package reflector
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/reflector/tester"
 	"reflect"
@@ -52,6 +53,7 @@ type Bar struct {
 }
 
 type Baz struct {
+	at.Path `value:"test"`
 	Foo
 	Bar Bar
 }
@@ -129,9 +131,10 @@ func TestDeepFields(t *testing.T) {
 	baz.Name = "foo"
 	bt := reflect.TypeOf(baz)
 	df := DeepFields(bt)
-	assert.Equal(t, 4, len(df))
-	assert.Equal(t, "Name", df[0].Name)
-	assert.Equal(t, "Age", df[1].Name)
+	assert.Equal(t, 5, len(df))
+	assert.Equal(t, "Path", df[0].Name)
+	assert.Equal(t, "Name", df[1].Name)
+	assert.Equal(t, "Age", df[2].Name)
 }
 
 func TestIndirect(t *testing.T) {
@@ -622,9 +625,13 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 		type EmbeddedInterfaceB interface {
 		}
 
+		type EmbeddedString string
+
 		type embeddedTypeA struct {
 			EmbeddedInterfaceA
+			EmbeddedString `value:"Hello"`
 			EmbeddedInterfaceB
+
 		}
 
 		type embeddedTypeB struct {
@@ -641,6 +648,11 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 
 		yes = HasEmbeddedFieldType(new(embeddedTypeB), new(EmbeddedInterfaceB))
 		assert.Equal(t, true, yes)
+
+		f, ok := GetEmbeddedFieldType(new(embeddedTypeB), new(EmbeddedString))
+		assert.Equal(t, true, ok)
+		log.Debug(f)
+
 	})
 
 	t.Run("should return false if input nil on HasEmbeddedFieldType", func(t *testing.T) {

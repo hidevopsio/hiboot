@@ -17,6 +17,7 @@ package inject_test
 import (
 	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/factory/autoconfigure"
 	"hidevops.io/hiboot/pkg/factory/instantiate"
@@ -83,6 +84,7 @@ type FooUser struct {
 }
 
 type fakeTag struct {
+	at.Tag `value:"fake"`
 	inject.BaseTag
 }
 
@@ -136,6 +138,8 @@ type UserService interface {
 }
 
 type userService struct {
+	at.Path	`value:"/path/to/hiboot"`
+
 	FooUser        *FooUser       `inject:"name=foo"`
 	User           *User          `inject:""`
 	FakeUser       *User          `inject:"name=${fake.name},app=${app.name}"`
@@ -263,6 +267,7 @@ type animalService struct {
 }
 
 type testTag struct {
+	at.Tag `value:"test"`
 	inject.BaseTag
 }
 
@@ -681,5 +686,59 @@ func TestInjectIntoFunc(t *testing.T) {
 		res, err := injecting.IntoFunc(newGreeter)
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, nil, res)
+	})
+}
+
+type RequestMapping string
+
+func (m RequestMapping) Value(value string) at.StringAnnotation {
+	return RequestMapping(value)
+}
+func (m RequestMapping) String()(value string) {
+	return string(m)
+}
+
+type RequestPath struct{}
+
+func (p *RequestPath) Value(value string) at.StringAnnotation {
+
+	return nil
+}
+
+func (p *RequestPath) String()(value string) {
+	return ""
+}
+
+type FakeUser struct {
+	RequestMappingA    RequestMapping
+	RequestMappingB    *RequestMapping
+	RequestPathA RequestPath
+	RequestPathB *RequestPath
+}
+
+func (FakeUser) Value(value string) at.StringAnnotation {return nil}
+func (FakeUser) String()(value string)               {return ""}
+
+func TestHasAnnotation(t *testing.T) {
+	t.Run("should implements interface Model", func(t *testing.T) {
+		m := &FakeUser{}
+
+		s := reflect.ValueOf(m).Elem()
+		typ := s.Type()
+		modelType := reflect.TypeOf((*at.StringAnnotation)(nil)).Elem()
+
+		expected := []bool {
+			true,
+			true,
+			false,
+			true,
+		}
+
+		for i := 0; i < s.NumField(); i++ {
+			f := typ.Field(i)
+			impl := f.Type.Implements(modelType)
+			log.Debugf("%d: %s %s -> %t", i, f.Name, f.Type, impl)
+			assert.Equal(t, expected[i], impl)
+		}
 	})
 }

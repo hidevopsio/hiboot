@@ -58,7 +58,7 @@ func (a *application) initialize(cmd ...interface{}) (err error) {
 }
 
 // Init initialize cli application
-func (a *application) build() error {
+func (a *application) build() (err error) {
 
 	a.Build()
 
@@ -72,7 +72,10 @@ func (a *application) build() error {
 	f.SetInstance(app.ApplicationContextName, a)
 
 	// build auto configurations
-	a.BuildConfigurations()
+	err = a.BuildConfigurations()
+	if err != nil {
+		return
+	}
 
 	// set root command
 	r := f.GetInstance(RootCommandName)
@@ -83,7 +86,7 @@ func (a *application) build() error {
 		a.root = root
 		root.EmbeddedCommand().Use = basename
 	}
-	return nil
+	return
 }
 
 // SetProperty set application property

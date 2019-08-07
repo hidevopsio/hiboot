@@ -12,32 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package inject
+package model
 
-import (
-	"github.com/stretchr/testify/assert"
-	"reflect"
-	"testing"
-)
+import "time"
 
-func TestTag(t *testing.T) {
-	tag := new(BaseTag)
+// BaseData specifies the base data fields for database models
+type BaseData struct {
+	// IsDeleted for soft delete
+	IsDeleted   bool      `json:"is_deleted,omitempty"`
 
-	t.Run("should get properties", func(t *testing.T) {
-		p := tag.Properties()
-		assert.NotEqual(t, nil, p)
-	})
+	// CreatedAt data created time
+	CreatedAt   time.Time `json:"created_at,omitempty"`
 
-	t.Run("should get check if it's singleton", func(t *testing.T) {
-		s := tag.IsSingleton()
-		assert.Equal(t, false, s)
-	})
-
-	t.Run("should get properties", func(t *testing.T) {
-		fakeObj := struct{ Name string }{}
-		objVal := reflect.ValueOf(fakeObj)
-		field := objVal.Type().Field(0)
-		f := tag.Decode(objVal, field, "")
-		assert.Equal(t, nil, f)
-	})
+	// UpdatedAt data updated time
+	UpdatedAt   time.Time `json:"updated_at,omitempty"`
 }

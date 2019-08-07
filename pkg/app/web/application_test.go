@@ -24,9 +24,10 @@ import (
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
-	_ "hidevops.io/hiboot/pkg/starter/actuator"
+	//_ "hidevops.io/hiboot/pkg/starter/actuator"
 	"hidevops.io/hiboot/pkg/starter/jwt"
 	_ "hidevops.io/hiboot/pkg/starter/locale"
+	"hidevops.io/hiboot/pkg/starter/logging"
 	_ "hidevops.io/hiboot/pkg/starter/logging"
 	"hidevops.io/hiboot/pkg/utils/io"
 	"hidevops.io/hiboot/pkg/utils/reflector"
@@ -75,7 +76,7 @@ type FooController struct {
 	at.RestController
 	token jwt.Token
 
-	MagicNumber int64 `value:"${magic.number:888}"`
+	MagicNumber   int64 `value:"${magic.number:888}"`
 	DefaultNumber int64 `value:"${default.number:888}"`
 }
 
@@ -142,8 +143,8 @@ func (c *FooController) GetMagic() (response model.Response, err error) {
 
 	response = new(model.BaseResponse)
 	data := map[string]interface{}{
-		"magic_number": c.MagicNumber,
-		"default_number":  c.DefaultNumber,
+		"magic_number":   c.MagicNumber,
+		"default_number": c.DefaultNumber,
 	}
 	log.Debugf("default number: %v magic number: %v", c.DefaultNumber, c.MagicNumber)
 	response.SetData(data)
@@ -390,13 +391,62 @@ func (c *HelloController) GetMap() map[string]interface{} {
 	return response
 }
 
+type oneTwoThreeController struct {
+	at.RestController
+}
+
+func newOneTwoThreeController() *oneTwoThreeController {
+	return &oneTwoThreeController{}
+}
+
+func (c *oneTwoThreeController) Get() string {
+	return "from one-two-three controller"
+}
+
+func TestOneTwoThreeController(t *testing.T) {
+
+	testData := []struct {
+		format string
+		path   string
+	}{
+		{
+			format: app.ContextPathFormatLowerCamel,
+			path:   "/oneTwoThree",
+		},
+		{
+			format: app.ContextPathFormatKebab,
+			path:   "/one-two-three",
+		},
+		{
+			format: app.ContextPathFormatSnake,
+			path:   "/one_two_three",
+		},
+		{
+			format: app.ContextPathFormatCamel,
+			path:   "/OneTwoThree",
+		},
+	}
+	for _, td := range testData {
+		testApp := web.NewTestApp(newOneTwoThreeController).
+			SetProperty(app.ContextPathFormat, td.format).
+			SetProperty(logging.Level, log.InfoLevel).
+			Run(t)
+		t.Run("should response 200 when GET "+td.path, func(t *testing.T) {
+			testApp.
+				Get(td.path).
+				Expect().Status(http.StatusOK)
+		})
+	}
+}
+
 // Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
 // the lower cased foo will be the context mapping of the controller
 // context path can be overwritten by the tag value of annotation at.ContextPath
 type HelloViewController struct {
 	at.RestController
-	at.ContextPath `value:"/"`
-	fooBar         *FooBar
+	at.RequestMapping `value:"/"`
+
+	fooBar *FooBar
 }
 
 func newHelloViewController(fooBar *FooBar) *HelloViewController {
@@ -408,8 +458,9 @@ func newHelloViewController(fooBar *FooBar) *HelloViewController {
 // Get hello
 // The first word of method is the http method GET, the rest is the context mapping hello
 // in this method, the name Get means that the method context mapping is '/'
-func (c *HelloViewController) Get(ctx context.Context) {
-	ctx.View("index.html")
+func (c *HelloViewController) Get(ctx context.Context) (err error) {
+	err = ctx.View("index.html")
+	return
 }
 
 // AnyTest
@@ -443,6 +494,58 @@ func TestWebViewApplicationWithArgs(t *testing.T) {
 		testApp.
 			Get("/test").
 			Expect().Status(http.StatusOK)
+	})
+}
+
+func TestApplicationWithoutController(t *testing.T) {
+	testApp := web.NewTestApp().
+		Run(t)
+
+	t.Run("should response 404 when GET /", func(t *testing.T) {
+		testApp.
+			Get("/").
+			Expect().Status(http.StatusNotFound)
+	})
+}
+
+type circularFoo struct {
+	circularBar *circularBar
+}
+
+func newCircularFoo(circularBar *circularBar) *circularFoo {
+	return &circularFoo{
+		circularBar: circularBar,
+	}
+}
+
+type circularBar struct {
+	circularFoo *circularFoo
+}
+
+func newCircularBar(circularFoo *circularFoo) *circularBar {
+	return &circularBar{
+		circularFoo: circularFoo,
+	}
+}
+
+type circularDiController struct {
+	circularFoo *circularFoo
+}
+
+func newCircularDiController(circularFoo *circularFoo) *circularDiController {
+	return &circularDiController{
+		circularFoo: circularFoo,
+	}
+}
+
+func TestApplicationWithCircularDI(t *testing.T) {
+	testApp := web.NewTestApp(newCircularDiController).
+		Run(t)
+
+	t.Run("should response 404 when GET /", func(t *testing.T) {
+		testApp.
+			Get("/").
+			Expect().Status(http.StatusNotFound)
 	})
 }
 
@@ -550,12 +653,12 @@ func TestWebApplication(t *testing.T) {
 			Expect().Status(http.StatusOK)
 	})
 
-	//t.Run("should parse request body GET /foo/requestForm", func(t *testing.T) {
-	//	testApp.Get("/foo/requestForm").
-	//		WithFormField("name", "foo").
-	//		Expect().Status(http.StatusOK).
-	//		Body().Equal("foo")
-	//})
+	t.Run("should parse request body GET /foo/requestForm", func(t *testing.T) {
+		testApp.Get("/foo/requestForm").
+			WithFormField("name", "foo").
+			Expect().Status(http.StatusOK).
+			Body().Equal("")
+	})
 
 	t.Run("should parse request body GET /foo/requestParams", func(t *testing.T) {
 		testApp.Get("/foo/requestParams").
@@ -694,10 +797,11 @@ func TestWebApplication(t *testing.T) {
 			Expect().Status(http.StatusOK)
 	})
 
-	t.Run("should return failure for unsupported args", func(t *testing.T) {
-		testApp.Get("/foo/bar").
-			Expect().Status(http.StatusInternalServerError)
-	})
+	// TODO: this test case is deleted due to the implementation of the anonymous struct that accept the route annotation.
+	//t.Run("should return failure for unsupported args", func(t *testing.T) {
+	//	testApp.Get("/foo/bar").
+	//		Expect().Status(http.StatusInternalServerError)
+	//})
 
 	t.Run("should return invalid response", func(t *testing.T) {
 		testApp.Get("/foo/invalid").
@@ -769,4 +873,35 @@ func TestAnonymousController(t *testing.T) {
 		testApp := web.RunTestApplication(t, newBar)
 		assert.NotEqual(t, nil, testApp)
 	})
+}
+
+type customRouterController struct {
+	at.RestController
+
+	at.RequestMapping `value:"/custom"`
+}
+
+func newCustomRouterController() *customRouterController {
+	return new(customRouterController)
+}
+
+func (c *customRouterController) PathParamIdAndName(
+	id int,
+	name string,
+	// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
+	at struct {
+	at.GetMapping
+	at.Path `value:"/{id}/and/{name}"`
+},
+) string {
+
+	return fmt.Sprintf("https://hidevops.io/%v/%v", id, name)
+}
+
+func TestCustomRouter(t *testing.T) {
+	testApp := web.NewTestApp(newCustomRouterController).
+		SetProperty("server.context_path", "test").
+		Run(t)
+
+	testApp.Get("/test/custom/123/and/hiboot").Expect().Status(http.StatusOK)
 }

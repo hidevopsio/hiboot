@@ -398,7 +398,7 @@ func TestConfigurableFactory(t *testing.T) {
 	ctx := web.NewContext(nil)
 	f.AppendComponent("context.context", ctx)
 
-	f.BuildComponents()
+	err = f.BuildComponents()
 
 	t.Run("should get SystemConfiguration", func(t *testing.T) {
 		sysCfg := f.SystemConfiguration()
