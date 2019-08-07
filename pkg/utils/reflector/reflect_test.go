@@ -17,6 +17,7 @@ package reflector
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/reflector/tester"
 	"reflect"
@@ -52,6 +53,7 @@ type Bar struct {
 }
 
 type Baz struct {
+	at.Path `value:"test"`
 	Foo
 	Bar Bar
 }
@@ -125,15 +127,14 @@ func TestValidate(t *testing.T) {
 }
 
 func TestDeepFields(t *testing.T) {
-
-
 	baz := &Baz{Bar: Bar{Name: "bar"}}
 	baz.Name = "foo"
 	bt := reflect.TypeOf(baz)
 	df := DeepFields(bt)
-	assert.Equal(t, 4, len(df))
-	assert.Equal(t, "Name", df[0].Name)
-	assert.Equal(t, "Age", df[1].Name)
+	assert.Equal(t, 5, len(df))
+	assert.Equal(t, "Path", df[0].Name)
+	assert.Equal(t, "Name", df[1].Name)
+	assert.Equal(t, "Age", df[2].Name)
 }
 
 func TestIndirect(t *testing.T) {
