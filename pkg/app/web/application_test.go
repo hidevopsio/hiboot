@@ -76,7 +76,7 @@ type FooController struct {
 	at.RestController
 	token jwt.Token
 
-	MagicNumber int64 `value:"${magic.number:888}"`
+	MagicNumber   int64 `value:"${magic.number:888}"`
 	DefaultNumber int64 `value:"${default.number:888}"`
 }
 
@@ -143,8 +143,8 @@ func (c *FooController) GetMagic() (response model.Response, err error) {
 
 	response = new(model.BaseResponse)
 	data := map[string]interface{}{
-		"magic_number": c.MagicNumber,
-		"default_number":  c.DefaultNumber,
+		"magic_number":   c.MagicNumber,
+		"default_number": c.DefaultNumber,
 	}
 	log.Debugf("default number: %v magic number: %v", c.DefaultNumber, c.MagicNumber)
 	response.SetData(data)
@@ -391,8 +391,6 @@ func (c *HelloController) GetMap() map[string]interface{} {
 	return response
 }
 
-
-
 type oneTwoThreeController struct {
 	at.RestController
 }
@@ -407,41 +405,39 @@ func (c *oneTwoThreeController) Get() string {
 
 func TestOneTwoThreeController(t *testing.T) {
 
-	testData := []struct{
+	testData := []struct {
 		format string
-		path string
+		path   string
 	}{
 		{
 			format: app.ContextPathFormatLowerCamel,
-			path: "/oneTwoThree",
+			path:   "/oneTwoThree",
 		},
 		{
 			format: app.ContextPathFormatKebab,
-			path: "/one-two-three",
+			path:   "/one-two-three",
 		},
 		{
 			format: app.ContextPathFormatSnake,
-			path: "/one_two_three",
+			path:   "/one_two_three",
 		},
 		{
 			format: app.ContextPathFormatCamel,
-			path: "/OneTwoThree",
+			path:   "/OneTwoThree",
 		},
-
 	}
 	for _, td := range testData {
 		testApp := web.NewTestApp(newOneTwoThreeController).
 			SetProperty(app.ContextPathFormat, td.format).
 			SetProperty(logging.Level, log.InfoLevel).
 			Run(t)
-		t.Run("should response 200 when GET " + td.path, func(t *testing.T) {
+		t.Run("should response 200 when GET "+td.path, func(t *testing.T) {
 			testApp.
 				Get(td.path).
 				Expect().Status(http.StatusOK)
 		})
 	}
 }
-
 
 // Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
 // the lower cased foo will be the context mapping of the controller
@@ -450,7 +446,7 @@ type HelloViewController struct {
 	at.RestController
 	at.RequestMapping `value:"/"`
 
-	fooBar         *FooBar
+	fooBar *FooBar
 }
 
 func newHelloViewController(fooBar *FooBar) *HelloViewController {
@@ -501,7 +497,6 @@ func TestWebViewApplicationWithArgs(t *testing.T) {
 	})
 }
 
-
 func TestApplicationWithoutController(t *testing.T) {
 	testApp := web.NewTestApp().
 		Run(t)
@@ -513,34 +508,31 @@ func TestApplicationWithoutController(t *testing.T) {
 	})
 }
 
-type circularFoo struct{
+type circularFoo struct {
 	circularBar *circularBar
 }
 
-func newCircularFoo(circularBar *circularBar) *circularFoo  {
+func newCircularFoo(circularBar *circularBar) *circularFoo {
 	return &circularFoo{
 		circularBar: circularBar,
 	}
 }
 
-
-type circularBar struct{
+type circularBar struct {
 	circularFoo *circularFoo
 }
 
-
-func newCircularBar(circularFoo *circularFoo) *circularBar  {
+func newCircularBar(circularFoo *circularFoo) *circularBar {
 	return &circularBar{
 		circularFoo: circularFoo,
 	}
 }
 
-
 type circularDiController struct {
 	circularFoo *circularFoo
 }
 
-func newCircularDiController(circularFoo *circularFoo) *circularDiController  {
+func newCircularDiController(circularFoo *circularFoo) *circularDiController {
 	return &circularDiController{
 		circularFoo: circularFoo,
 	}
@@ -556,7 +548,6 @@ func TestApplicationWithCircularDI(t *testing.T) {
 			Expect().Status(http.StatusNotFound)
 	})
 }
-
 
 func TestWebApplication(t *testing.T) {
 	testApp := web.RunTestApplication(t, newHelloController, newFooController, newBarController, newFoobarController)
@@ -681,12 +672,12 @@ func TestWebApplication(t *testing.T) {
 			Expect().Status(http.StatusUnauthorized)
 	})
 
-	t.Run("should return http.StatusInternalServerError when input form field validation failed", func(t *testing.T) {
-		// test request form
-		testApp.Post("/foobar").
-			WithFormField("name", "John Doe").
-			Expect().Status(http.StatusInternalServerError)
-	})
+	//t.Run("should return http.StatusInternalServerError when input form field validation failed", func(t *testing.T) {
+	//	// test request form
+	//	testApp.Post("/foobar").
+	//		WithFormField("name", "John Doe").
+	//		Expect().Status(http.StatusInternalServerError)
+	//})
 
 	t.Run("should return (http.StatusOK on /foobar", func(t *testing.T) {
 		//  test request query
@@ -882,4 +873,35 @@ func TestAnonymousController(t *testing.T) {
 		testApp := web.RunTestApplication(t, newBar)
 		assert.NotEqual(t, nil, testApp)
 	})
+}
+
+type customRouterController struct {
+	at.RestController
+
+	at.RequestMapping `value:"/custom"`
+}
+
+func newCustomRouterController() *customRouterController {
+	return new(customRouterController)
+}
+
+func (c *customRouterController) PathParamIdAndName(
+	id int,
+	name string,
+	// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
+	at struct {
+	at.GetMapping
+	at.Path `value:"/{id}/and/{name}"`
+},
+) string {
+
+	return fmt.Sprintf("https://hidevops.io/%v/%v", id, name)
+}
+
+func TestCustomRouter(t *testing.T) {
+	testApp := web.NewTestApp(newCustomRouterController).
+		SetProperty("server.context_path", "test").
+		Run(t)
+
+	testApp.Get("/test/custom/123/and/hiboot").Expect().Status(http.StatusOK)
 }

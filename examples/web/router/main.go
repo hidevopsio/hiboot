@@ -147,6 +147,10 @@ type orgController struct {
 	at.RequestMapping `value:"/organization"`
 }
 
+func newOrgController() *orgController {
+	return new(orgController)
+}
+
 func (c *orgController) GetOfficialSite(
 	// at.RequestMapping is an annotation to define request mapping for http method GET /official-site
 	struct{at.Method `value:"GET"`; at.Path `value:"/official-site"`}) string  {
@@ -168,6 +172,6 @@ func (c *orgController) GetWithPathParamIdAndName(
 // main function
 func main() {
 	// create new web application and run it
-	web.NewApplication(newUserController, new(orgController)).
+	web.NewApplication(newUserController, newOrgController).
 		Run()
 }
