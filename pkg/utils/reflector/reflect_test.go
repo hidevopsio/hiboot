@@ -125,6 +125,8 @@ func TestValidate(t *testing.T) {
 }
 
 func TestDeepFields(t *testing.T) {
+
+
 	baz := &Baz{Bar: Bar{Name: "bar"}}
 	baz.Name = "foo"
 	bt := reflect.TypeOf(baz)

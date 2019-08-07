@@ -62,4 +62,23 @@ func TestCheckJWT(t *testing.T) {
 		assert.NotEqual(t, nil, token)
 	})
 
+	t.Run("should return error if jwt is not enabled", func(t *testing.T) {
+		jt := new(jwtToken)
+		err := jt.Initialize(p)
+		if err == nil {
+			token = jt
+		}
+		jwtToken := jwt.NewJwtToken(&jwt.Properties{
+			PrivateKeyPath: "not-exist",
+			PublicKeyPath:  "not-exist",
+		})
+		token, err := jwtToken.Generate(jwt.Map{
+			"username": "johndoe",
+			"password": "PA$$W0RD",
+		}, 500, time.Millisecond)
+
+		assert.Equal(t, nil, err)
+		assert.NotEqual(t, nil, token)
+	})
+
 }
