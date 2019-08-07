@@ -67,9 +67,12 @@ func newUserController() *UserController {
 }
 
 // Create
-func (c *UserController) Create(
+func (c *UserController) CreateUser(
 	request *UserRequest,
-	m struct{at.PostMapping; at.Path `value:"/"`},
+	m struct {
+	at.PostMapping;
+	at.Path `value:"/"`
+},
 ) (response *UserResponse, err error) {
 
 	// response
@@ -86,10 +89,13 @@ func (c *UserController) Create(
 }
 
 // Get
-func (c *UserController) Get(
+func (c *UserController) GetUserById(
 	id int,
 	name string,
-	m struct{at.GetMapping; at.Path `value:"/{id:int}/and/{name}"`},
+	m struct {
+	at.GetMapping
+	at.Path `value:"/{id:int}/and/{name}"`
+},
 ) (response *UserResponse, err error) {
 
 	// response
@@ -105,11 +111,13 @@ func (c *UserController) Get(
 	return
 }
 
-
-// Delete
-func (c *UserController) Delete(
+// Patch
+func (c *UserController) Patch(
 	id int,
-	m struct{at.DeleteMapping; at.Path `value:"/{id:int}"`},
+	m struct {
+	at.PatchMapping
+	at.Path `value:"/"`
+},
 ) (response *UserResponse, err error) {
 
 	// response
@@ -117,10 +125,26 @@ func (c *UserController) Delete(
 	return
 }
 
+// Delete
+func (c *UserController) DeleteUser(
+	id int,
+	m struct {
+	at.DeleteMapping
+	at.Path `value:"/{id:int}"`
+},
+) (response *UserResponse, err error) {
+
+	// response
+	response = new(UserResponse)
+	return
+}
 
 // List
-func (c *UserController) List(
-	m struct{at.GetMapping; at.Path `value:"/"`},
+func (c *UserController) ListUser(
+	m struct {
+	at.GetMapping
+	at.Path `value:"/"`
+},
 ) (response *UserResponse, err error) {
 
 	// response
@@ -147,29 +171,41 @@ type orgController struct {
 	at.RequestMapping `value:"/organization"`
 }
 
+// newOrgController is the constructor for orgController
+// you may inject dependency to constructor
 func newOrgController() *orgController {
 	return new(orgController)
 }
 
+// GetOfficialSite
 func (c *orgController) GetOfficialSite(
-	// at.RequestMapping is an annotation to define request mapping for http method GET /official-site
-	struct{at.Method `value:"GET"`; at.Path `value:"/official-site"`}) string  {
+	at struct {
+	// at.Method is a annotations to define request mapping for http method GET
+	at.Method `value:"GET"`
+	// at.Path is a annotations to define request mapping for path /official-site
+	at.Path `value:"/official-site"`
+}) string {
 
 	return "https://hidevops.io"
 }
 
-
+// GetWithPathParamIdAndName
 func (c *orgController) GetWithPathParamIdAndName(
 	id int,
 	name string,
-	// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
-	m struct{at.Method `value:"GET"`; at.Path `value:"/{id}/and/{name}"`},
-) string  {
+	at struct {
+	// at.GetMapping is an annotation to define request mapping for http method GET,
+	at.GetMapping
+	// at.Path is an annotation to define path for /:id/and/:name
+	// As you can see, Hiboot support path param in /:id/and/:name or /{id:int}/and/{name}
+	at.Path `value:"/:id/and/:name"`
+},
+) string {
 
 	return fmt.Sprintf("https://hidevops.io/%v/%v", id, name)
 }
 
-// main function
+// Hiboot main function
 func main() {
 	// create new web application and run it
 	web.NewApplication(newUserController, newOrgController).
