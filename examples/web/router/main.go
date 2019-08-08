@@ -52,7 +52,6 @@ type User struct {
 // UserRequest
 type UserRequest struct {
 	at.RequestBody
-
 	UserVO
 }
 
@@ -69,7 +68,7 @@ func newUserController() *UserController {
 // Create
 func (c *UserController) CreateUser(
 	request *UserRequest,
-	m struct {
+	at struct {
 	at.PostMapping;
 	at.Path `value:"/"`
 },
@@ -92,7 +91,7 @@ func (c *UserController) CreateUser(
 func (c *UserController) GetUserById(
 	id int,
 	name string,
-	m struct {
+	at struct {
 	at.GetMapping
 	at.Path `value:"/{id:int}/and/{name}"`
 },
@@ -114,7 +113,7 @@ func (c *UserController) GetUserById(
 // Patch
 func (c *UserController) Patch(
 	id int,
-	m struct {
+	at struct {
 	at.PatchMapping
 	at.Path `value:"/"`
 },
@@ -128,7 +127,7 @@ func (c *UserController) Patch(
 // Delete
 func (c *UserController) DeleteUser(
 	id int,
-	m struct {
+	at struct {
 	at.DeleteMapping
 	at.Path `value:"/{id:int}"`
 },
@@ -141,7 +140,7 @@ func (c *UserController) DeleteUser(
 
 // List
 func (c *UserController) ListUser(
-	m struct {
+	at struct {
 	at.GetMapping
 	at.Path `value:"/"`
 },
