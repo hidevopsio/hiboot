@@ -35,20 +35,27 @@ func TestController(t *testing.T) {
 			WithJSON(&UserRequest{UserVO: UserVO{Username: "John", Password: "password"}}).
 			Expect().Status(http.StatusOK)
 
-		testApp.Get("/router-example/user/123/and/John").
-			Expect().Status(http.StatusOK)
-
 		testApp.Delete("/router-example/user/123").
 			Expect().Status(http.StatusOK)
 
 		testApp.Get("/router-example/user").
 			Expect().Status(http.StatusOK)
+
+		testApp.Patch("/router-example/user/123").
+			Expect().Status(http.StatusOK)
 	})
 
-	t.Run("should pass test for organization contoller", func(t *testing.T) {
+	t.Run("should pass test for user controller with path variable", func(t *testing.T) {
+		testApp.Get("/router-example/user/123/and/John").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should pass test for organization controller", func(t *testing.T) {
 		testApp.Get("/router-example/organization/official-site").
 			Expect().Status(http.StatusOK)
+	})
 
+	t.Run("should pass test for organization controller with path variable", func(t *testing.T) {
 		testApp.Get("/router-example/organization/123/and/John").
 			Expect().Status(http.StatusOK)
 

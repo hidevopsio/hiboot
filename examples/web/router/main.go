@@ -69,8 +69,7 @@ func newUserController() *UserController {
 func (c *UserController) CreateUser(
 	request *UserRequest,
 	at struct {
-	at.PostMapping;
-	at.Path `value:"/"`
+	at.PostMapping `value:"/"`
 },
 ) (response *UserResponse, err error) {
 
@@ -89,12 +88,9 @@ func (c *UserController) CreateUser(
 
 // Get
 func (c *UserController) GetUserById(
-	id int,
-	name string,
 	at struct {
-	at.GetMapping
-	at.Path `value:"/{id:int}/and/{name}"`
-},
+	at.GetMapping `value:"/{id:int}/and/{name}"`
+}, id int, name string,
 ) (response *UserResponse, err error) {
 
 	// response
@@ -112,11 +108,9 @@ func (c *UserController) GetUserById(
 
 // Patch
 func (c *UserController) Patch(
-	id int,
 	at struct {
-	at.PatchMapping
-	at.Path `value:"/"`
-},
+	at.PatchMapping `value:"/{id}"`
+}, id int,
 ) (response *UserResponse, err error) {
 
 	// response
@@ -128,8 +122,7 @@ func (c *UserController) Patch(
 func (c *UserController) DeleteUser(
 	id int,
 	at struct {
-	at.DeleteMapping
-	at.Path `value:"/{id:int}"`
+	at.DeleteMapping `value:"/{id:int}"`
 },
 ) (response *UserResponse, err error) {
 
@@ -141,8 +134,7 @@ func (c *UserController) DeleteUser(
 // List
 func (c *UserController) ListUser(
 	at struct {
-	at.GetMapping
-	at.Path `value:"/"`
+	at.GetMapping `value:"/"`
 },
 ) (response *UserResponse, err error) {
 
@@ -180,25 +172,18 @@ func newOrgController() *orgController {
 func (c *orgController) GetOfficialSite(
 	at struct {
 	// at.Method is a annotations to define request mapping for http method GET
-	at.Method `value:"GET"`
-	// at.Path is a annotations to define request mapping for path /official-site
-	at.Path `value:"/official-site"`
+	at.GetMapping `value:"/official-site"`
 }) string {
 
 	return "https://hidevops.io"
 }
 
 // GetWithPathParamIdAndName
+// at.GetMapping is an annotation to define request mapping for http method GET,
 func (c *orgController) GetWithPathParamIdAndName(
-	id int,
-	name string,
 	at struct {
-	// at.GetMapping is an annotation to define request mapping for http method GET,
-	at.GetMapping
-	// at.Path is an annotation to define path for /:id/and/:name
-	// As you can see, Hiboot support path param in /:id/and/:name or /{id:int}/and/{name}
-	at.Path `value:"/:id/and/:name"`
-},
+	at.GetMapping `value:"/{id}/and/{name}"`
+}, id int, name string,
 ) string {
 
 	return fmt.Sprintf("https://hidevops.io/%v/%v", id, name)

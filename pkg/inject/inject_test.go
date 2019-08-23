@@ -138,7 +138,7 @@ type UserService interface {
 }
 
 type userService struct {
-	at.Path	`value:"/path/to/hiboot"`
+	at.RequestMapping	`value:"/path/to/hiboot"`
 
 	FooUser        *FooUser       `inject:"name=foo"`
 	User           *User          `inject:""`
@@ -689,56 +689,16 @@ func TestInjectIntoFunc(t *testing.T) {
 	})
 }
 
-type RequestMapping string
-
-func (m RequestMapping) Value(value string) at.StringAnnotation {
-	return RequestMapping(value)
-}
-func (m RequestMapping) String()(value string) {
-	return string(m)
-}
-
-type RequestPath struct{}
-
-func (p *RequestPath) Value(value string) at.StringAnnotation {
-
-	return nil
-}
-
-func (p *RequestPath) String()(value string) {
-	return ""
-}
-
-type FakeUser struct {
-	RequestMappingA    RequestMapping
-	RequestMappingB    *RequestMapping
-	RequestPathA RequestPath
-	RequestPathB *RequestPath
-}
-
-func (FakeUser) Value(value string) at.StringAnnotation {return nil}
-func (FakeUser) String()(value string)               {return ""}
-
-func TestHasAnnotation(t *testing.T) {
-	t.Run("should implements interface Model", func(t *testing.T) {
-		m := &FakeUser{}
-
-		s := reflect.ValueOf(m).Elem()
-		typ := s.Type()
-		modelType := reflect.TypeOf((*at.StringAnnotation)(nil)).Elem()
-
-		expected := []bool {
-			true,
-			true,
-			false,
-			true,
-		}
-
-		for i := 0; i < s.NumField(); i++ {
-			f := typ.Field(i)
-			impl := f.Type.Implements(modelType)
-			log.Debugf("%d: %s %s -> %t", i, f.Name, f.Type, impl)
-			assert.Equal(t, expected[i], impl)
-		}
-	})
+func TestInjectAnnotation(t *testing.T) {
+	cf := setUp(t)
+	injecting := inject.NewInject(cf)
+	var a struct{
+		at.GetMapping `value:"/path/to/api"`
+		at.RequestMapping `value:"/parent/path"`
+	}
+	err := injecting.IntoObject(&a)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "GET", a.Method)
+	assert.Equal(t, "/path/to/api", a.GetMapping.Value)
+	assert.Equal(t, "/parent/path", a.RequestMapping.Value)
 }

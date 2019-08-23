@@ -890,8 +890,7 @@ func (c *customRouterController) PathParamIdAndName(
 	name string,
 	// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
 	at struct {
-	at.GetMapping
-	at.Path `value:"/{id}/and/{name}"`
+	at.GetMapping `value:"/{id}/and/{name}"`
 },
 ) string {
 
