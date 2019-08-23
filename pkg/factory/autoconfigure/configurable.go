@@ -19,6 +19,7 @@ import (
 	"errors"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/system"
 	"hidevops.io/hiboot/pkg/system/types"
@@ -138,7 +139,7 @@ func (f *configurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 func (f *configurableFactory) Build(configs []*factory.MetaData) {
 	// categorize configurations first, then inject object if necessary
 	for _, item := range configs {
-		if reflector.HasEmbeddedFieldType(item.MetaObject, new(at.AutoConfiguration)) {
+		if annotation.Contains(item.MetaObject, at.AutoConfiguration{}) {
 			f.configureContainer = append(f.configureContainer, item)
 		} else {
 			err := ErrInvalidObjectType

@@ -18,7 +18,7 @@ import (
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/factory/autoconfigure"
-	"hidevops.io/hiboot/pkg/utils/reflector"
+	"hidevops.io/hiboot/pkg/inject/annotation"
 	"reflect"
 )
 
@@ -70,7 +70,7 @@ func Register(params ...interface{}) (err error) {
 	if obj == nil {
 		return ErrInvalidObjectType
 	}
-	ok := reflector.HasEmbeddedFieldType(obj, new(at.AutoConfiguration))
+	ok := annotation.Contains(obj, at.AutoConfiguration{})
 	if ok {
 		configContainer, err = appendParams(autoconfigure.PostfixConfiguration, configContainer, params...)
 	} else {
