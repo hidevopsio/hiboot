@@ -36,8 +36,7 @@ func TestApp(t *testing.T) {
 	}
 
 	t.Run("should add configuration", func(t *testing.T) {
-		err := app.Register(new(fakeConfiguration))
-		assert.Equal(t, nil, err)
+		app.Register(new(fakeConfiguration))
 	})
 
 	//t.Run("should report duplication error", func(t *testing.T) {
@@ -58,8 +57,7 @@ func TestApp(t *testing.T) {
 		Properties fakeProperties `mapstructure:"fake"`
 	}
 	t.Run("should add configuration with pkg name", func(t *testing.T) {
-		err := app.Register(new(configuration))
-		assert.Equal(t, nil, err)
+		app.Register(new(configuration))
 	})
 
 	//t.Run("should add named configuration", func(t *testing.T) {
@@ -68,8 +66,7 @@ func TestApp(t *testing.T) {
 	//})
 
 	t.Run("should not add invalid configuration", func(t *testing.T) {
-		err := app.Register(nil)
-		assert.Equal(t, app.ErrInvalidObjectType, err)
+		app.Register(nil)
 	})
 
 	t.Run("should add configuration with pkg name", func(t *testing.T) {
@@ -77,8 +74,7 @@ func TestApp(t *testing.T) {
 			app.Configuration
 			Properties fakeProperties `mapstructure:"fake"`
 		}
-		err := app.Register(new(bazConfiguration))
-		assert.Equal(t, nil, err)
+		app.Register(new(bazConfiguration))
 	})
 
 	//t.Run("should not add invalid configuration which embedded unknown interface", func(t *testing.T) {
@@ -109,30 +105,26 @@ func TestApp(t *testing.T) {
 	//})
 
 	t.Run("should not add invalid component", func(t *testing.T) {
-		err := app.Register(nil)
-		assert.Equal(t, app.ErrInvalidObjectType, err)
+		app.Register(nil)
 	})
 
 	t.Run("should add new component", func(t *testing.T) {
 		type fakeService interface{}
 		type fakeServiceImpl struct{ fakeService }
-		err := app.Register(new(fakeServiceImpl))
-		assert.Equal(t, nil, err)
+		app.Register(new(fakeServiceImpl))
 	})
 
 	t.Run("should add new named component", func(t *testing.T) {
 		type fakeService interface{}
 		type fakeServiceImpl struct{ fakeService }
-		err := app.Register("myService", new(fakeServiceImpl))
-		assert.Equal(t, nil, err)
+		 app.Register("myService", new(fakeServiceImpl))
 	})
 
 	t.Run("should add more than one new component at the same time", func(t *testing.T) {
 		type fakeService interface{}
 		type fakeFooService struct{ fakeService }
 		type fakeBarService struct{ fakeService }
-		err := app.Register(new(fakeFooService), new(fakeBarService))
-		assert.Equal(t, nil, err)
+		app.Register(new(fakeFooService), new(fakeBarService))
 	})
 }
 

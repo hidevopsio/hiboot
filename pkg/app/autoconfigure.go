@@ -64,17 +64,14 @@ func appendParams(eliminator string, container []*factory.MetaData, params ...in
 }
 
 // Register register a struct instance or constructor (func), so that it will be injectable.
-func Register(params ...interface{}) (err error) {
+func Register(params ...interface{}) {
 	_, obj := factory.ParseParams(params...)
 
-	if obj == nil {
-		return ErrInvalidObjectType
-	}
 	ok := annotation.Contains(obj, at.AutoConfiguration{})
 	if ok {
-		configContainer, err = appendParams(autoconfigure.PostfixConfiguration, configContainer, params...)
+		configContainer, _ = appendParams(autoconfigure.PostfixConfiguration, configContainer, params...)
 	} else {
-		componentContainer, err = appendParams("", componentContainer, params...)
+		componentContainer, _ = appendParams("", componentContainer, params...)
 	}
 	return
 }

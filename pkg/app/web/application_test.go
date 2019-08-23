@@ -296,6 +296,16 @@ func (c *FooController) GetErr() float32 {
 	return 0.01
 }
 
+
+type Foo struct {
+	Name string
+}
+// Get test get
+func (c *FooController) GetInjection(foo *Foo) string {
+	log.Debug(foo)
+	return foo.Name
+}
+
 func (c *FooController) After() {
 	log.Debug("FooController.After")
 }
@@ -550,6 +560,8 @@ func TestApplicationWithCircularDI(t *testing.T) {
 }
 
 func TestWebApplication(t *testing.T) {
+	foo := &Foo{Name: "test injection"}
+	app.Register(foo)
 	testApp := web.RunTestApplication(t, newHelloController, newFooController, newBarController, newFoobarController)
 
 	t.Run("should response 200 when GET /hello/all", func(t *testing.T) {
@@ -597,6 +609,10 @@ func TestWebApplication(t *testing.T) {
 	//t.Run("should pass health check", func(t *testing.T) {
 	//	app.Get("/health").Expect().Status(http.StatusOK)
 	//})
+	t.Run("should inject into controller method", func(t *testing.T) {
+		testApp.Get("/foo/injection").
+			Expect().Status(http.StatusOK).Body().Contains(foo.Name)
+	})
 
 	t.Run("should login with username and password", func(t *testing.T) {
 		testApp.Post("/foo/login").
