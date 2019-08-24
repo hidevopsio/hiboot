@@ -16,7 +16,7 @@
 // main package
 package main
 
-// import web starter from hiboot
+// import web starter from Hiboot
 import (
 	"fmt"
 	"hidevops.io/hiboot/pkg/app"
@@ -33,14 +33,17 @@ type UserController struct {
 	// at.RestController or at.RestController must be embedded here
 	at.RestController
 
-	// RequestMapping The request mapping of this controller is '/' by default, if you add value tag with value /user,
-	// then Hiboot will inject /user to UserController.RequestMapping
+	// RequestMapping The request mapping of this controller is '/' by default,
+	// if you add annotation at.RequestMapping with value /user,
+	// then Hiboot will inject /user into UserController's RequestMapping
 	at.RequestMapping `value:"/user"`
 }
 
 // UserVO
 type UserVO struct {
+	// Username is required
 	Username string `json:"username" validate:"required"`
+	// Password is required
 	Password string `json:"password" validate:"required"`
 }
 
@@ -68,12 +71,7 @@ func newUserController() *UserController {
 }
 
 // Create
-func (c *UserController) CreateUser(
-	request *UserRequest,
-	at struct {
-	at.PostMapping `value:"/"`
-},
-) (response *UserResponse, err error) {
+func (c *UserController) CreateUser(at struct {at.PostMapping `value:"/"`}, request *UserRequest) (response *UserResponse, err error) {
 
 	// response
 	response = new(UserResponse)
@@ -89,11 +87,7 @@ func (c *UserController) CreateUser(
 }
 
 // Get
-func (c *UserController) GetUserById(
-	at struct {
-	at.GetMapping `value:"/{id:int}/and/{name}"`
-}, id int, name string,
-) (response *UserResponse, err error) {
+func (c *UserController) GetUserByPathVariable(at struct{ at.GetMapping `value:"/{id:int}/and/{name}"` }, id int, name string) (response *UserResponse, err error) {
 
 	// response
 	response = new(UserResponse)
@@ -109,11 +103,7 @@ func (c *UserController) GetUserById(
 }
 
 // Patch
-func (c *UserController) Patch(
-	at struct {
-	at.PatchMapping `value:"/{id}"`
-}, id int,
-) (response *UserResponse, err error) {
+func (c *UserController) Patch(at struct{ at.PatchMapping `value:"/{id}"` }, id int) (response *UserResponse, err error) {
 
 	// response
 	response = new(UserResponse)
@@ -121,24 +111,14 @@ func (c *UserController) Patch(
 }
 
 // Delete
-func (c *UserController) DeleteUser(
-	id int,
-	at struct {
-	at.DeleteMapping `value:"/{id:int}"`
-},
-) (response *UserResponse, err error) {
-
+func (c *UserController) DeleteUser(at struct{ at.DeleteMapping `value:"/{id:int}"` }, id int) (response *UserResponse, err error) {
 	// response
 	response = new(UserResponse)
 	return
 }
 
 // List
-func (c *UserController) ListUser(
-	at struct {
-	at.GetMapping `value:"/"`
-},
-) (response *UserResponse, err error) {
+func (c *UserController) ListUser(at struct{ at.GetMapping `value:"/"` }) (response *UserResponse, err error) {
 
 	// response
 	response = new(UserResponse)
@@ -171,22 +151,14 @@ func newOrgController() *orgController {
 }
 
 // GetOfficialSite
-func (c *orgController) GetOfficialSite(
-	at struct {
-	// at.Method is a annotations to define request mapping for http method GET
-	at.GetMapping `value:"/official-site"`
-}) string {
-
+// at.Method is a annotations to define request mapping for http method GET
+func (c *orgController) GetOfficialSite(at struct{ at.GetMapping `value:"/official-site"` }) string {
 	return "https://hidevops.io"
 }
 
 // GetWithPathParamIdAndName
 // at.GetMapping is an annotation to define request mapping for http method GET,
-func (c *orgController) GetWithPathParamIdAndName(
-	at struct {
-	at.GetMapping `value:"/{id}/and/{name}"`
-}, id int, name string,
-) string {
+func (c *orgController) GetWithPathVariable(at struct{ at.GetMapping `value:"/{id}/and/{name}"` }, id int, name string) string {
 
 	return fmt.Sprintf("https://hidevops.io/%v/%v", id, name)
 }
