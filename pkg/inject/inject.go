@@ -128,7 +128,7 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 	//}
 
 	obj := reflector.Indirect(object)
-	if obj.IsNil() || obj.Kind() != reflect.Struct {
+	if obj.Kind() != reflect.Struct {
 		log.Debugf("[inject] ignore object: %v, kind: %v", object, obj.Kind())
 		return ErrInvalidObject
 	}
