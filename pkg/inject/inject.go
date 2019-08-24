@@ -128,7 +128,7 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 	//}
 
 	obj := reflector.Indirect(object)
-	if obj.Kind() != reflect.Struct {
+	if obj.IsNil() || obj.Kind() != reflect.Struct {
 		log.Debugf("[inject] ignore object: %v, kind: %v", object, obj.Kind())
 		return ErrInvalidObject
 	}
@@ -157,7 +157,7 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 
 		// set field object
 		var fieldObj reflect.Value
-		if obj.CanAddr() && obj.Kind() == reflect.Struct {
+		if obj.IsValid() && obj.Kind() == reflect.Struct {
 			fieldObj = obj.FieldByName(f.Name)
 		}
 
