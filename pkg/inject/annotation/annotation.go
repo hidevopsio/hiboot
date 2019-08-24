@@ -62,8 +62,8 @@ func InjectIntoObject(object interface{}) (err error) {
 		return
 	}
 	if ot.Kind() != reflect.Ptr {
-		err = fmt.Errorf("object must be the point of a struct")
-		log.Error(err)
+		err = fmt.Errorf("object %v is not the point of a struct", ot.Name())
+		//log.Error(err)
 		return
 	}
 

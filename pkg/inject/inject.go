@@ -112,7 +112,7 @@ func (i *inject) DefaultValue(object interface{}) error {
 func (i *inject) IntoObject(object interface{}) (err error) {
 	err = annotation.InjectIntoObject(object)
 	if err != nil {
-		log.Error(err)
+		log.Debug(err)
 	}
 	err = i.IntoObjectValue(reflect.ValueOf(object), "")
 	return
@@ -160,13 +160,6 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 		if obj.IsValid() && obj.Kind() == reflect.Struct {
 			fieldObj = obj.FieldByName(f.Name)
 		}
-
-		// TODO: should inject annotation
-		//ok := reflector.HasEmbeddedFieldType(ft, at.Annotation{})
-		//if ok {
-		//	// parse annotation
-		//	log.Debug("found annotation")
-		//}
 
 		// TODO: assume that the f.Name of value and inject tag is not the same
 		injectedObject = i.getInstanceByName(f.Name, f.Type)

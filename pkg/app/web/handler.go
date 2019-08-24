@@ -201,8 +201,9 @@ func (h *handler) parse(httpMethod string, method reflect.Method, object interfa
 		h.requests[i].fullName = reflector.GetLowerCamelFullNameByType(iTyp)
 
 		request := h.requests[i].iVal.Interface()
-		// check if it's annotation
-		if annotation.Contains(request, at.Annotation{}) {
+		// TODO: use annotation.Contains(request, at.Annotation{}) instead, need to test more cases
+		// check if it's annotation at.RequestMapping
+		if annotation.Contains(request, at.RequestMapping{}) {
 			_ = h.factory.InjectIntoObject(request)
 			h.requests[i].iVal = reflect.ValueOf(request).Elem()
 			h.requests[i].isAnnotation = true
