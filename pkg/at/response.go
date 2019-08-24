@@ -1,7 +1,11 @@
 package at
 
 // ResponseBody the annotation ResponseBody
-type ResponseBody interface{}
+type ResponseBody struct {
+	Annotation
+}
 
 // ResponseData the annotation ResponseData
-type ResponseData interface{}
+type ResponseData struct {
+	Annotation
+}

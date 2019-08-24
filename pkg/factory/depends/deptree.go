@@ -29,6 +29,7 @@ package depends
 import (
 	"errors"
 	"fmt"
+	"hidevops.io/hiboot/pkg/log"
 
 	"github.com/deckarep/golang-set"
 	"hidevops.io/hiboot/pkg/factory"
@@ -90,6 +91,9 @@ func resolveGraph(graph Graph) (Graph, error) {
 		dependencySet := mapset.NewSet()
 		for _, dep := range node.deps {
 			dependencySet.Add(dep.name)
+		}
+		if nodeDependencies[node.name] != nil {
+			log.Warnf("%v is already exist, overwrite it, rename it if your meet any issue", node.name)
 		}
 		nodeDependencies[node.name] = dependencySet
 	}

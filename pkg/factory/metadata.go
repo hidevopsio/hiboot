@@ -2,6 +2,7 @@ package factory
 
 import (
 	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/system/types"
 	"hidevops.io/hiboot/pkg/utils/io"
 	"hidevops.io/hiboot/pkg/utils/reflector"
@@ -214,7 +215,7 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 		deps = append(deps, parseDependencies(metaObject, kindName, typ)...)
 
 		// check if it is contextAware
-		contextAware := reflector.HasEmbeddedFieldType(owner, new(at.ContextAware)) || reflector.HasEmbeddedFieldType(metaObject, new(at.ContextAware))
+		contextAware := annotation.Contains(owner, at.ContextAware{}) || annotation.Contains(metaObject, at.ContextAware{})
 
 		metaData = &MetaData{
 			Kind:         kindName,

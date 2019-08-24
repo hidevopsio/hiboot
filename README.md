@@ -26,9 +26,6 @@
   <a href="https://godoc.org/hidevops.io/hiboot">
       <img src="https://godoc.org/github.com/golang/gddo?status.svg" />
   </a>
-  <a href="https://gitter.im/hidevopsio/hiboot">
-      <img src="https://img.shields.io/badge/GITTER-join%20chat-green.svg" />
-  </a>
 </p>
 
 ## About

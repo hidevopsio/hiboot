@@ -17,7 +17,6 @@ package reflector
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/reflector/tester"
 	"reflect"
@@ -52,8 +51,10 @@ type Bar struct {
 	Age  int
 }
 
+type Path string
+
 type Baz struct {
-	at.Path `value:"test"`
+	Path `value:"test"`
 	Foo
 	Bar Bar
 }
@@ -653,6 +654,10 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 		assert.Equal(t, true, ok)
 		log.Debug(f)
 
+		o := new(embeddedTypeB)
+		field, ok := GetEmbeddedFieldByType(IndirectType(reflect.TypeOf(o)), embeddedTypeA{}, reflect.Struct)
+		assert.Equal(t, true, ok)
+		assert.Equal(t, field.Name, "embeddedTypeA")
 	})
 
 	t.Run("should return false if input nil on HasEmbeddedFieldType", func(t *testing.T) {

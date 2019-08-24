@@ -7,6 +7,7 @@ import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/starter/grpc/mockgrpc"
+	"hidevops.io/hiboot/pkg/starter/logging"
 	"net/http"
 	"testing"
 )
@@ -18,7 +19,7 @@ func TestHolaClient(t *testing.T) {
 	mockHolaClient := mock.NewMockHolaServiceClient(ctrl)
 	app.Register("protobuf.holaServiceClient", mockHolaClient)
 
-	testApp := web.RunTestApplication(t, newHolaController)
+	testApp := web.NewTestApp(t, newHolaController).SetProperty(logging.Level, logging.LevelDebug).Run(t)
 
 	req := &protobuf.HolaRequest{Name: "Steve"}
 

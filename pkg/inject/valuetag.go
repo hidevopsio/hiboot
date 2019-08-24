@@ -17,7 +17,6 @@ package inject
 import (
 	"fmt"
 	"hidevops.io/hiboot/pkg/at"
-	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"reflect"
 )
@@ -32,7 +31,7 @@ func init() {
 }
 
 func (t *valueTag) Decode(object reflect.Value, field reflect.StructField, property string) (retVal interface{}) {
-	tag, ok := field.Tag.Lookup(string(t.Tag))
+	tag, ok := field.Tag.Lookup(t.Tag.Value)
 	if ok {
 		//log.Debug(valueTag)
 
@@ -48,14 +47,15 @@ func (t *valueTag) Decode(object reflect.Value, field reflect.StructField, prope
 		case reflect.String:
 			needConvert = false
 			// check if it is an annotation
-			indTyp := reflector.IndirectType(field.Type)
+			//indTyp := reflector.IndirectType(field.Type)
+			// TODO: type MyTag string
 			//log.Debugf("type name: %v %v %v", field.Type.Name(), indTyp.Name(), indTyp.NumMethod())
 
-			impl := indTyp.Implements(reflect.TypeOf((*at.StringAnnotation)(nil)).Elem())
+			/*impl := indTyp.Implements(reflect.TypeOf((*at.AnnotationValue)(nil)).Elem())
 			if impl {
 				//log.Debug("found at.StringAnnotation implements")
-				retVal = reflect.New(indTyp).Interface().(at.StringAnnotation).Value(retVal.(string))
-			}
+				retVal = reflect.New(indTyp).Interface().(at.AnnotationValue).String(retVal.(string))
+			}*/
 
 		}
 

@@ -16,88 +16,74 @@
 package at
 
 // RestController is the annotation that declare current controller is the RESTful Controller
-type RestController interface{}
-
-// JwtRestController is the annotation that declare current controller is the RESTful Controller with JWT support
-type JwtRestController interface{}
-
-// ContextPath is the annotation that set the context path of a controller
-type ContextPath interface{}
-
-// RequestMapping is the annotation that set the RequestMapping of a controller
-type RequestMapping string
-
-// StringValue returns the value of the type RequestMapping
-func (a RequestMapping) String() (value string) {
-	value = string(a)
-	return
+type RestController struct {
+	Annotation
 }
 
-//
-//// Value set and return the value of the type RequestMapping
-func (a RequestMapping) Value(str string) (value StringAnnotation) {
-	value = RequestMapping(str)
-	return
+// JwtRestController is the annotation that declare current controller is the RESTful Controller with JWT support
+type JwtRestController struct {
+	Annotation
+}
+
+// ContextPath is the annotation that set the context path of a controller
+type ContextPath struct {
+	Annotation
+}
+
+// RequestMapping is the annotation that set the RequestMapping of a controller
+type RequestMapping struct {
+	Annotation
 }
 
 // Method is the annotation that set the RequestMethod of a controller
-type Method string
-
-// String returns the value of the type RequestMethod
-func (a Method) String() (value string) {
-	value = string(a)
-	return
-}
-
-// Value set the value of the type RequestMethod
-func (a Method) Value(str string) (value StringAnnotation) {
-	value = Method(str)
-	return
-}
-
-// Path is the annotation that set the Path of a controller
-type Path string
-
-// String returns the value of the type Path in string
-func (a Path) String() (value string) {
-	value = string(a)
-	return
-}
-
-// Value set the value of the type RequestPath
-func (a Path) Value(str string) (value StringAnnotation) {
-	value = Path(str)
-	return
+type Method struct {
+	Annotation
 }
 
 // GetMapping is the annotation that set the GetMapping of a controller
-type GetMapping struct{
-	Method `value:"GET"`
+type GetMapping struct {
+	RequestMapping
+	Method string `value:"GET" json:"-"`
 }
 
 // PostMapping is the annotation that set the PostMapping of a controller
-type PostMapping struct{
-	Method `value:"POST"`
+type PostMapping struct {
+	RequestMapping
+	Method string  `value:"POST" json:"-"`
 }
 
 // PutMapping is the annotation that set the PutMapping of a controller
-type PutMapping struct{
-	Method `value:"PUT"`
+type PutMapping struct {
+	RequestMapping
+	Method string  `value:"PUT" json:"-"`
 }
 
+// PatchMapping is the annotation that set the PatchMapping of a controller
+type PatchMapping struct {
+	RequestMapping
+	Method string  `value:"PATCH" json:"-"`
+}
 
 // DeleteMapping is the annotation that set the DeleteMapping of a controller
-type DeleteMapping struct{
-	Method `value:"DELETE"`
+type DeleteMapping struct {
+	RequestMapping
+	Method string  `value:"DELETE" json:"-"`
 }
 
 // AnyMapping is the annotation that set the AnyMapping of a controller
-type AnyMapping struct{
-	Method string `value:"ANY"`
+type AnyMapping struct {
+	RequestMapping
+	Method string  `value:"ANY" json:"-"`
 }
 
 // OptionsMapping is the annotation that set the OptionsMapping of a controller
-type OptionsMapping struct{
-	Method string `value:"OPTIONS"`
+type OptionsMapping struct {
+	RequestMapping
+	Method string  `value:"OPTIONS" json:"-"`
 }
 
+// TraceMapping is the annotation that set the TraceMapping of a controller
+type TraceMapping struct {
+	RequestMapping
+	Method string  `value:"TRACE" json:"-"`
+}

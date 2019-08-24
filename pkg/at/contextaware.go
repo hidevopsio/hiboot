@@ -6,4 +6,6 @@ package at
 //   at.ContextAware
 //   ...
 // }
-type ContextAware interface{}
+type ContextAware struct {
+	Annotation
+}

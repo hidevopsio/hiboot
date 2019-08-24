@@ -19,6 +19,7 @@ import (
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/io"
 	"testing"
+	"time"
 )
 
 func init() {
@@ -27,16 +28,39 @@ func init() {
 }
 
 func TestAutoConfigure(t *testing.T) {
+	t.Run("should create new jwt middleware", func(t *testing.T) {
+		config := &configuration{
+			Properties: Properties{
+				PrivateKeyPath: "config/ssl/app.rsa",
+				PublicKeyPath:  "config/ssl/app.rsa.pub",
+			},
+		}
 
-	config := &configuration{
-		Properties: Properties{
-			PrivateKeyPath: "config/ssl/app.rsa",
-			PublicKeyPath:  "config/ssl/app.rsa.pub",
-		},
-	}
+		token := config.Token()
+		assert.NotEqual(t, nil, token)
+		mw := config.Middleware(token.(*jwtToken))
+		assert.NotEqual(t, nil, mw)
+	})
 
-	token := config.Token()
-	assert.NotEqual(t, nil, token)
-	mw := config.Middleware(token.(*jwtToken))
-	assert.NotEqual(t, nil, mw)
+	t.Run("should report if jwt ssl does not exist", func(t *testing.T) {
+		config := &configuration{
+			Properties: Properties{
+				PrivateKeyPath: "does-not-exist",
+				PublicKeyPath:  "does-not-exist",
+			},
+		}
+
+		token := config.Token().(*jwtToken)
+		assert.Equal(t, false, token.jwtEnabled)
+
+		err := token.Initialize(&config.Properties)
+		assert.NotEqual(t, nil, err)
+
+		_, err = token.Generate(Map{
+			"username": "johndoe",
+			"password": "PA$$W0RD",
+		}, 10, time.Second)
+		assert.NotEqual(t, nil, err)
+	})
+
 }

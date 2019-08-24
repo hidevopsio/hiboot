@@ -175,7 +175,7 @@ func TestCliApplication(t *testing.T) {
 		out, err := testApp.Run("foo", "fooBar")
 		assert.Contains(t, out, "testing on fooBar command")
 		log.Debugf("%v", out)
-		assert.Equal(t, "testing on fooBar command", err.Error())
+		assert.NotEqual(t, nil, err)
 	})
 }
 

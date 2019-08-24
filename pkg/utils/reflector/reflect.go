@@ -327,11 +327,19 @@ func HasEmbeddedFieldType(object interface{}, expected interface{}) (found bool)
 }
 
 // GetEmbeddedFieldByType get embedded interface field by type
-func GetEmbeddedFieldByType(typ reflect.Type, name string, kind ...reflect.Kind) (field reflect.StructField, ok bool) {
+func GetEmbeddedFieldByType(typ reflect.Type, nameOrType interface{}, kind ...reflect.Kind) (field reflect.StructField, ok bool) {
 	expectedKind := reflect.Interface
 	if len(kind) > 0 {
 		expectedKind = kind[0]
 	}
+	var name string
+	switch nameOrType.(type) {
+	case string:
+		name = nameOrType.(string)
+	default:
+		name = GetName(nameOrType)
+	}
+
 	k := typ.Kind()
 	if k == reflect.Struct {
 		numField := typ.NumField()
@@ -392,14 +400,14 @@ func GetEmbeddedFields(object interface{}, kind ...reflect.Kind) (fields []refle
 }
 
 // GetEmbeddedField get embedded interface field
-func GetEmbeddedField(object interface{}, name string, dataTypes ...reflect.Kind) (field reflect.StructField) {
+func GetEmbeddedField(object interface{}, nameOrType interface{}, dataTypes ...reflect.Kind) (field reflect.StructField) {
 	if object == nil {
 		return
 	}
 
 	typ, ok := GetObjectType(object)
 	if ok {
-		f, ok := GetEmbeddedFieldByType(typ, name, dataTypes...)
+		f, ok := GetEmbeddedFieldByType(typ, nameOrType, dataTypes...)
 		if ok {
 			field = f
 		}

@@ -16,12 +16,14 @@
 // main package
 package main
 
-// import web starter from hiboot
+// import web starter from Hiboot
 import (
 	"fmt"
+	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/model"
+	"hidevops.io/hiboot/pkg/starter/actuator"
 	"time"
 )
 
@@ -31,14 +33,17 @@ type UserController struct {
 	// at.RestController or at.RestController must be embedded here
 	at.RestController
 
-	// RequestMapping The request mapping of this controller is '/' by default, if you add value tag with value /user,
-	// then Hiboot will inject /user to UserController.RequestMapping
+	// RequestMapping The request mapping of this controller is '/' by default,
+	// if you add annotation at.RequestMapping with value /user,
+	// then Hiboot will inject /user into UserController's RequestMapping
 	at.RequestMapping `value:"/user"`
 }
 
 // UserVO
 type UserVO struct {
+	// Username is required
 	Username string `json:"username" validate:"required"`
+	// Password is required
 	Password string `json:"password" validate:"required"`
 }
 
@@ -52,7 +57,6 @@ type User struct {
 // UserRequest
 type UserRequest struct {
 	at.RequestBody
-
 	UserVO
 }
 
@@ -67,10 +71,7 @@ func newUserController() *UserController {
 }
 
 // Create
-func (c *UserController) Create(
-	request *UserRequest,
-	m struct{at.PostMapping; at.Path `value:"/"`},
-) (response *UserResponse, err error) {
+func (c *UserController) CreateUser(at struct {at.PostMapping `value:"/"`}, request *UserRequest) (response *UserResponse, err error) {
 
 	// response
 	response = new(UserResponse)
@@ -86,11 +87,7 @@ func (c *UserController) Create(
 }
 
 // Get
-func (c *UserController) Get(
-	id int,
-	name string,
-	m struct{at.GetMapping; at.Path `value:"/{id:int}/and/{name}"`},
-) (response *UserResponse, err error) {
+func (c *UserController) GetUserByPathVariable(at struct{ at.GetMapping `value:"/{id:int}/and/{name}"` }, id int, name string) (response *UserResponse, err error) {
 
 	// response
 	response = new(UserResponse)
@@ -105,23 +102,23 @@ func (c *UserController) Get(
 	return
 }
 
-
-// Delete
-func (c *UserController) Delete(
-	id int,
-	m struct{at.DeleteMapping; at.Path `value:"/{id:int}"`},
-) (response *UserResponse, err error) {
+// Patch
+func (c *UserController) Patch(at struct{ at.PatchMapping `value:"/{id}"` }, id int) (response *UserResponse, err error) {
 
 	// response
 	response = new(UserResponse)
 	return
 }
 
+// Delete
+func (c *UserController) DeleteUser(at struct{ at.DeleteMapping `value:"/{id:int}"` }, id int) (response *UserResponse, err error) {
+	// response
+	response = new(UserResponse)
+	return
+}
 
 // List
-func (c *UserController) List(
-	m struct{at.GetMapping; at.Path `value:"/"`},
-) (response *UserResponse, err error) {
+func (c *UserController) ListUser(at struct{ at.GetMapping `value:"/"` }) (response *UserResponse, err error) {
 
 	// response
 	response = new(UserResponse)
@@ -147,31 +144,29 @@ type orgController struct {
 	at.RequestMapping `value:"/organization"`
 }
 
+// newOrgController is the constructor for orgController
+// you may inject dependency to constructor
 func newOrgController() *orgController {
 	return new(orgController)
 }
 
-func (c *orgController) GetOfficialSite(
-	// at.RequestMapping is an annotation to define request mapping for http method GET /official-site
-	struct{at.Method `value:"GET"`; at.Path `value:"/official-site"`}) string  {
-
+// GetOfficialSite
+// at.Method is a annotations to define request mapping for http method GET
+func (c *orgController) GetOfficialSite(at struct{ at.GetMapping `value:"/official-site"` }) string {
 	return "https://hidevops.io"
 }
 
-
-func (c *orgController) GetWithPathParamIdAndName(
-	id int,
-	name string,
-	// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
-	m struct{at.Method `value:"GET"`; at.Path `value:"/{id}/and/{name}"`},
-) string  {
+// GetWithPathParamIdAndName
+// at.GetMapping is an annotation to define request mapping for http method GET,
+func (c *orgController) GetWithPathVariable(at struct{ at.GetMapping `value:"/{id}/and/{name}"` }, id int, name string) string {
 
 	return fmt.Sprintf("https://hidevops.io/%v/%v", id, name)
 }
 
-// main function
+// Hiboot main function
 func main() {
 	// create new web application and run it
 	web.NewApplication(newUserController, newOrgController).
+		SetProperty(app.ProfilesInclude, actuator.Profile).
 		Run()
 }

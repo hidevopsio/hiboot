@@ -22,9 +22,9 @@ import (
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/copier"
-	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"net/http"
 	"path/filepath"
@@ -74,25 +74,9 @@ func init() {
 
 type requestMapping struct {
 	customized bool
-	Mapping    string
+	Prefix     string
 	Method     string
-	Path       string
-}
-
-var validAnnotations = []interface{}{
-	new(at.RequestMapping),
-	new(at.Method),
-	new(at.Path),
-}
-
-func (d *Dispatcher) hasAnnotation(o interface{}) (ok bool) {
-
-	for _, ann := range validAnnotations {
-		if ok = reflector.HasEmbeddedFieldType(o, ann); ok {
-			return
-		}
-	}
-	return
+	Value      string
 }
 
 func (d *Dispatcher) parseRequestMapping(object interface{}, method *reflect.Method) (reqMap *requestMapping) {
@@ -104,10 +88,10 @@ func (d *Dispatcher) parseRequestMapping(object interface{}, method *reflect.Met
 	for n := 1; n < numIn; n++ {
 		typ := method.Type.In(n)
 		o := reflect.New(typ).Interface()
-		if d.hasAnnotation(o) {
+		if annotation.Contains(o, at.RequestMapping{}) {
 			err := d.configurableFactory.InjectIntoObject(o)
 			if err == nil {
-				copier.Copy(reqMap, o)
+				_ = copier.Copy(reqMap, o)
 				reqMap.customized = true
 				break
 			}
@@ -139,11 +123,10 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 		// get context mapping
 		var customizedControllerPath bool
 		controllerPath := d.ContextPath
-		ok := reflector.HasField(controller, RequestMapping)
+		af, ok := annotation.GetField(controller, at.RequestMapping{})
 		if ok {
 			customizedControllerPath = true
-			fv := reflector.GetFieldValue(controller, RequestMapping)
-			controllerPath = filepath.Join(controllerPath, fv.Interface().(at.RequestMapping).String())
+			controllerPath = filepath.Join(controllerPath, af.Tag.Get("value"))
 		}
 
 		// parse method
@@ -227,10 +210,10 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 					apiPath = strings.Replace(methodName, ctxMap[0], "", 1)
 					apiPath = pathSep + str.LowerFirst(apiPath)
 				}
-				reqMap.Path = apiPath
+				reqMap.Value = apiPath
 			}
-			if reqMap.Mapping == "" {
-				reqMap.Mapping = controllerPath
+			if reqMap.Prefix == "" {
+				reqMap.Prefix = controllerPath
 			}
 
 			// apirequestMapping should add arguments
@@ -243,16 +226,16 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 				// parse all necessary requests and responses
 				// create new method parser here
 				hdl := newHandler(d.configurableFactory)
-				hdl.parse(reqMap.Method, method, controller, reqMap.Mapping+reqMap.Path)
+				hdl.parse(reqMap.Method, method, controller, reqMap.Prefix+reqMap.Value)
 				methodHandler := Handler(func(c context.Context) {
 					hdl.call(c)
 					c.Next()
 				})
 
 				if hasAnyMethod {
-					party.Any(reqMap.Path, methodHandler)
+					party.Any(reqMap.Value, methodHandler)
 				} else if hasGenericMethod {
-					route := party.Handle(reqMap.Method, reqMap.Path, methodHandler)
+					route := party.Handle(reqMap.Method, reqMap.Value, methodHandler)
 					route.MainHandlerName = fmt.Sprintf("%s/%s.%s", pkgPath, fieldName, methodName)
 				}
 			}

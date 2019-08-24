@@ -17,6 +17,11 @@ package web
 import (
 	"errors"
 	"fmt"
+	"hidevops.io/hiboot/pkg/inject/annotation"
+	"net/http"
+	"reflect"
+	"strings"
+
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
@@ -25,9 +30,6 @@ import (
 	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/replacer"
 	"hidevops.io/hiboot/pkg/utils/str"
-	"net/http"
-	"reflect"
-	"strings"
 )
 
 const (
@@ -40,17 +42,18 @@ var (
 )
 
 type request struct {
-	typeName string
-	name     string
-	fullName string
-	kind     reflect.Kind
-	genKind  reflect.Kind // e.g. convert int16 to int
-	typ      reflect.Type
-	iTyp     reflect.Type
-	val      reflect.Value
-	iVal     reflect.Value
-	pathIdx  int
-	callback func(ctx context.Context, data interface{}) error
+	typeName     string
+	name         string
+	fullName     string
+	kind         reflect.Kind
+	genKind      reflect.Kind // e.g. convert int16 to int
+	typ          reflect.Type
+	iTyp         reflect.Type
+	val          reflect.Value
+	iVal         reflect.Value
+	pathIdx      int
+	callback     func(ctx context.Context, data interface{}) error
+	isAnnotation bool
 }
 
 type response struct {
@@ -63,7 +66,7 @@ type response struct {
 type handler struct {
 	controller      interface{}
 	method          reflect.Method
-	path			string
+	path            string
 	ctlVal          reflect.Value
 	numIn           int
 	numOut          int
@@ -196,6 +199,14 @@ func (h *handler) parse(httpMethod string, method reflect.Method, object interfa
 			}
 		}
 		h.requests[i].fullName = reflector.GetLowerCamelFullNameByType(iTyp)
+
+		request := h.requests[i].iVal.Interface()
+		// check if it's annotation
+		if annotation.Contains(request, at.Annotation{}) {
+			_ = h.factory.InjectIntoObject(request)
+			h.requests[i].iVal = reflect.ValueOf(request).Elem()
+			h.requests[i].isAnnotation = true
+		}
 	}
 	h.lenOfPathParams = lenOfPathParams
 
@@ -298,6 +309,7 @@ func (h *handler) call(ctx context.Context) {
 		req := h.requests[i]
 		request = reflect.New(req.iTyp).Interface()
 
+		// inject params
 		if req.callback != nil {
 			h.factory.InjectDefaultValue(request) // support default value injection for request body/params/form
 			reqErr = req.callback(ctx, request)
@@ -305,7 +317,7 @@ func (h *handler) call(ctx context.Context) {
 		} else if req.kind == reflect.Interface && model.Context == req.typeName {
 			request = ctx
 			inputs[i] = reflect.ValueOf(request)
-		} else if lenOfPathParams != 0 {
+		} else if lenOfPathParams != 0 && req.kind != reflect.Struct {
 			// allow inject other dependencies after number of lenOfPathParams
 			lenOfPathParams = lenOfPathParams - 1
 			strVal := pvs[req.pathIdx]
@@ -323,10 +335,11 @@ func (h *handler) call(ctx context.Context) {
 			if inst != nil {
 				inputs[i] = reflect.ValueOf(inst)
 			} else {
-				if req.kind == reflect.Struct {
-					_ = h.factory.InjectIntoObject(request)
+				// check if it's annotation
+				if  h.requests[i].isAnnotation {
+					inputs[i] = h.requests[i].iVal
+					continue
 				}
-				inputs[i] = reflect.ValueOf(request).Elem()
 			}
 		}
 	}

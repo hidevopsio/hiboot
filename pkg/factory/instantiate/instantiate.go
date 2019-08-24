@@ -18,9 +18,11 @@ package instantiate
 import (
 	"errors"
 	"hidevops.io/hiboot/pkg/app/web/context"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/factory/depends"
 	"hidevops.io/hiboot/pkg/inject"
+	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/system"
 	"hidevops.io/hiboot/pkg/system/types"
@@ -141,9 +143,9 @@ func (f *instantiateFactory) injectDependency(item *factory.MetaData) (err error
 	if inst != nil {
 		// inject into object
 		err = f.inject.IntoObject(inst)
-		tagName, ok := reflector.FindEmbeddedFieldTag(inst, "Qualifier", "name")
+		qf, ok := annotation.GetField(inst, at.Qualifier{})
 		if ok {
-			name = tagName
+			name = qf.Tag.Get("value")
 			log.Debugf("name: %v, Qualifier: %v, ok: %v", item.Name, name, ok)
 		}
 
@@ -204,24 +206,26 @@ func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 
 	if metaData != nil {
 		if metaData.ContextAware && f.contextAwareInstance != nil {
-			f.contextAwareInstance.Set(name, inst)
+			_ = f.contextAwareInstance.Set(name, inst)
 		} else {
 			err = f.instance.Set(name, inst)
 			// categorize instances
-			if metaData != nil {
-				obj := metaData.MetaObject
-				if metaData.Instance != nil {
-					obj = metaData.Instance
+			obj := metaData.MetaObject
+			if metaData.Instance != nil {
+				obj = metaData.Instance
+			}
+
+			fields := annotation.GetFields(obj)
+			if len(fields) == 0 && (metaData.Kind == "func" || metaData.Kind == "Method") {
+				fields = annotation.GetFields(metaData.Type)
+			}
+			for _, field := range fields {
+				typeName := reflector.GetLowerCamelFullNameByType(field.Type)
+				categorised, ok := f.categorized[typeName]
+				if !ok {
+					categorised = make([]*factory.MetaData, 0)
 				}
-				fields := reflector.GetEmbeddedFields(obj)
-				for _, field := range fields {
-					typeName := reflector.GetLowerCamelFullNameByType(field.Type)
-					categorised, ok := f.categorized[typeName]
-					if !ok {
-						categorised = make([]*factory.MetaData, 0)
-					}
-					f.categorized[typeName] = append(categorised, metaData)
-				}
+				f.categorized[typeName] = append(categorised, metaData)
 			}
 		}
 	}
@@ -289,7 +293,7 @@ func (f *instantiateFactory) Replace(source string) (retVal interface{}) {
 func (f *instantiateFactory) injectContextAwareDependencies(dps []*factory.MetaData) (err error) {
 	for _, d := range dps {
 		if len(d.DepMetaData) > 0 {
-			f.injectContextAwareDependencies(d.DepMetaData)
+			err = f.injectContextAwareDependencies(d.DepMetaData)
 		}
 		if d.ContextAware {
 			// making sure that the context aware instance does not exist before the dependency injection

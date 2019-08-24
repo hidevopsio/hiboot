@@ -14,4 +14,6 @@
 package at
 
 // Tag the annotation Tag, tell the injector that the struct implements a tag
-type Tag string
+type Tag struct {
+	Annotation
+}
