@@ -216,7 +216,7 @@ func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 			}
 
 			fields := annotation.GetFields(obj)
-			if metaData.Kind == "func" || metaData.Kind == "Method" {
+			if len(fields) == 0 && (metaData.Kind == "func" || metaData.Kind == "Method") {
 				fields = annotation.GetFields(metaData.Type)
 			}
 			for _, field := range fields {
