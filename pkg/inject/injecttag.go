@@ -40,7 +40,7 @@ func getInstance(cf factory.InstantiateFactory, pkgName, name string) (retVal in
 }
 
 func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, property string) (retVal interface{}) {
-	tag, ok := field.Tag.Lookup(string(t.Tag))
+	tag, ok := field.Tag.Lookup(t.Tag.Value)
 	if ok {
 		properties := t.ParseProperties(tag)
 

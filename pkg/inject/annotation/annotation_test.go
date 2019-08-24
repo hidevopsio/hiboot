@@ -38,6 +38,11 @@ func TestImplementsAnnotation(t *testing.T) {
 	f := new(foo)
 	f.Value = "my object value"
 
+	t.Run("should check if object contains at.Annotation", func(t *testing.T) {
+		ok := annotation.Contains(&f.AtFoo, at.Annotation{})
+		assert.Equal(t, true, ok)
+	})
+
 	t.Run("should get annotation AtFoo", func(t *testing.T) {
 		af, ok := annotation.GetField(f, AtFoo{})
 		value, ok := af.Tag.Lookup("value")

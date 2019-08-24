@@ -78,13 +78,9 @@ func NewInject(factory factory.InstantiateFactory) Inject {
 
 // InitTag init tag implements
 func InitTag(tag Tag) (t Tag) {
-	f, ok := reflector.GetEmbeddedFieldType(tag, new(at.Tag))
-	if ok {
-		tv := reflector.Indirect(reflect.ValueOf(tag))
-		v, ok := f.Tag.Lookup(value)
-		if ok {
-			fo := tv.FieldByName(f.Name)
-			fo.Set(reflect.ValueOf(at.Tag(v)))
+	if annotation.Contains(tag, at.Tag{}) {
+		err := annotation.InjectIntoObject(tag)
+		if err == nil {
 			t = tag
 		}
 	}
@@ -94,7 +90,10 @@ func InitTag(tag Tag) (t Tag) {
 // AddTag add new tag
 func AddTag(tag Tag) {
 	if tag != nil {
-		tagsContainer = append(tagsContainer, InitTag(tag))
+		t := InitTag(tag)
+		if t != nil {
+			tagsContainer = append(tagsContainer, t)
+		}
 	}
 }
 

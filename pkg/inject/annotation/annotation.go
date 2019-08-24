@@ -51,6 +51,10 @@ func Contains(object interface{}, at interface{}) (ok bool) {
 func InjectIntoObject(object interface{}) (err error) {
 	// convert to ptr if it is struct object
 	ot := reflect.TypeOf(object)
+	if ot == nil {
+		err = fmt.Errorf("object must not be nil")
+		return
+	}
 	if ot.Kind() != reflect.Ptr {
 		err = fmt.Errorf("object must be the point of a struct")
 		log.Error(err)
