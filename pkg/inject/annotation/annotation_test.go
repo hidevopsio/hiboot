@@ -36,6 +36,7 @@ type bar struct {
 
 func TestImplementsAnnotation(t *testing.T) {
 	f := new(foo)
+	f.Value = "my object value"
 
 	t.Run("should get annotation AtFoo", func(t *testing.T) {
 		af, ok := annotation.GetField(f, AtFoo{})
@@ -57,6 +58,7 @@ func TestImplementsAnnotation(t *testing.T) {
 		assert.Equal(t, 18, f.AtFoo.Age)
 
 		assert.Equal(t, "bar", f.AtBar.Value)
+		assert.Equal(t, "my object value", f.Value)
 	})
 
 	t.Run("should notify bad syntax for struct tag pair", func(t *testing.T) {
