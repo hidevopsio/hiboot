@@ -7,6 +7,7 @@ import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/starter/grpc/mockgrpc"
+	"hidevops.io/hiboot/pkg/starter/logging"
 	"net/http"
 	"testing"
 )
@@ -18,7 +19,7 @@ func TestHelloClient(t *testing.T) {
 	mockHelloClient := mock.NewMockHelloServiceClient(ctrl)
 	app.Register("protobuf.helloServiceClient", mockHelloClient)
 
-	testApp := web.RunTestApplication(t, newHelloController)
+	testApp := web.NewTestApp(t, newHelloController).SetProperty(logging.Level, logging.LevelDebug).Run(t)
 
 	req := &protobuf.HelloRequest{Name: "Steve"}
 

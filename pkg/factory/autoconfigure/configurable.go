@@ -234,11 +234,11 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 		// build properties, inject settings
 		cf, _ := f.builder.Build(name, f.systemConfig.App.Profiles.Active)
 		//No properties needs to build, use default config
-		if cf == nil {
-			confTyp := reflect.TypeOf(config)
-			log.Warnf("Unsupported configuration type: %v", confTyp)
-			continue
-		}
+		//if cf == nil {
+		//	confTyp := reflect.TypeOf(config)
+		//	log.Warnf("Unsupported configuration type: %v", confTyp)
+		//	continue
+		//}
 
 		_ = f.InjectIntoObject(cf)
 

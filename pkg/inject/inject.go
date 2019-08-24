@@ -112,7 +112,7 @@ func (i *inject) DefaultValue(object interface{}) error {
 func (i *inject) IntoObject(object interface{}) (err error) {
 	err = annotation.InjectIntoObject(object)
 	if err != nil {
-		log.Warn("annotation.InjectIntoObject() return failed")
+		log.Error(err)
 	}
 	err = i.IntoObjectValue(reflect.ValueOf(object), "")
 	return

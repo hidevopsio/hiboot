@@ -343,15 +343,28 @@ func TestMapSet(t *testing.T) {
 	fmt.Println(allClasses.IsSuperset(mapset.NewSetFromSlice([]interface{}{"Welding", "Automotive", "English"}))) //true
 }
 
-type contextAwareObject struct {
+type contextAwareFuncObject struct {
+	at.ContextAware
+
+	context context.Context
+}
+type contextAwareMethodObject struct {
 	at.ContextAware
 
 	context context.Context
 }
 
-func newContextAwareObject(ctx context.Context) *contextAwareObject {
+func newContextAwareObject(ctx context.Context) *contextAwareFuncObject {
 	//log.Infof("context: %v", ctx)
-	return &contextAwareObject{context: ctx}
+	return &contextAwareFuncObject{context: ctx}
+}
+
+type foo struct {
+
+}
+
+func (f *foo) ContextAwareMethodObject(ctx context.Context) *contextAwareMethodObject {
+	return &contextAwareMethodObject{context: ctx}
 }
 
 func TestRuntimeInstance(t *testing.T) {
@@ -360,8 +373,15 @@ func TestRuntimeInstance(t *testing.T) {
 	testComponents := make([]*factory.MetaData, 0)
 
 	ctx := web.NewContext(nil)
+	// method
+	f := new(foo)
+	ft := reflect.TypeOf(f)
+
 	ctxMd := factory.NewMetaData(reflector.GetLowerCamelFullName(new(context.Context)), ctx)
+	method, ok := ft.MethodByName("ContextAwareMethodObject")
+	assert.Equal(t, true, ok)
 	testComponents = append(testComponents,
+		factory.NewMetaData(f, method),
 		ctxMd,
 		factory.NewMetaData(newContextAwareObject),
 	)
@@ -371,15 +391,14 @@ func TestRuntimeInstance(t *testing.T) {
 	customProps.Set("app.project", "runtime-test")
 	instFactory := instantiate.NewInstantiateFactory(ic, testComponents, customProps)
 	instFactory.AppendComponent(new(testService))
-	instFactory.BuildComponents()
+	_ = instFactory.BuildComponents()
 	dps := instFactory.GetInstances(at.ContextAware{})
 	if len(dps) > 0 {
-		for i := 0; i < 3; i++ {
-			ri, err := instFactory.InjectContextAwareObjects(web.NewContext(nil), dps)
-			assert.Equal(t, nil, err)
-			log.Debug(ri.Items())
-			assert.Equal(t, ctx, ri.Get("context.context"))
-		}
+		ri, err := instFactory.InjectContextAwareObjects(web.NewContext(nil), dps)
+		assert.Equal(t, nil, err)
+		log.Debug(ri.Items())
+		assert.Equal(t, ctx, ri.Get(new(context.Context)))
+		assert.NotEqual(t, nil, ri.Get(contextAwareFuncObject{}))
+		assert.NotEqual(t, nil, ri.Get(contextAwareMethodObject{}))
 	}
-
 }
