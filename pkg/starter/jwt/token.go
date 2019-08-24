@@ -51,20 +51,22 @@ func NewJwtToken(p *Properties) (token Token) {
 	return
 }
 
-func (t *jwtToken) Initialize(p *Properties) error {
+func (t *jwtToken) Initialize(p *Properties) (err error) {
 	if io.IsPathNotExist(p.PrivateKeyPath) {
-		return fmt.Errorf("private key file %v does not exist", p.PrivateKeyPath)
+		err = fmt.Errorf("private key file %v does not exist", p.PrivateKeyPath)
 	}
-	var verifyBytes []byte
-	signBytes, err := ioutil.ReadFile(p.PrivateKeyPath)
 	if err == nil {
-		t.signKey, err = jwt.ParseRSAPrivateKeyFromPEM(signBytes)
+		var verifyBytes []byte
+		signBytes, err := ioutil.ReadFile(p.PrivateKeyPath)
 		if err == nil {
-			verifyBytes, err = ioutil.ReadFile(p.PublicKeyPath)
+			t.signKey, err = jwt.ParseRSAPrivateKeyFromPEM(signBytes)
 			if err == nil {
-				t.verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
+				verifyBytes, err = ioutil.ReadFile(p.PublicKeyPath)
 				if err == nil {
-					t.jwtEnabled = true
+					t.verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
+					if err == nil {
+						t.jwtEnabled = true
+					}
 				}
 			}
 		}
