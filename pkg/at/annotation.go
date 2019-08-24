@@ -2,6 +2,6 @@ package at
 
 // Annotation is the abstract annotation
 type Annotation struct {
-	Value string
+	Value string `json:"-"`
 }
 

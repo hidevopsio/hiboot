@@ -48,7 +48,7 @@ func newHealthController(configurableFactory factory.ConfigurableFactory) *healt
 
 // GET /health
 func (c *healthController) Get() map[string]interface{} {
-	healthServices := c.configurableFactory.GetInstances(new(at.HealthCheckService))
+	healthServices := c.configurableFactory.GetInstances(at.HealthCheckService{})
 	healthCheckProfiles := make(map[string]interface{})
 
 	healthCheckProfiles["status"] = "Up"

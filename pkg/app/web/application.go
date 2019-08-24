@@ -136,7 +136,7 @@ func (a *application) build() (err error) {
 	a.dispatcher = a.GetInstance(Dispatcher{}).(*Dispatcher)
 
 	// first register anon controllers
-	err = a.RegisterController(new(at.RestController))
+	err = a.RegisterController(at.RestController{})
 	if err != nil {
 		return
 	}

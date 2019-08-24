@@ -58,11 +58,11 @@ type fooBarService struct {
 }
 
 type qualifierService struct {
-	at.Qualifier `name:"instantiate_test.hibootService"`
+	at.Qualifier `value:"instantiate_test.hibootService"`
 }
 
 type testService struct {
-	at.Qualifier `name:"instantiate_test.hibootService"`
+	at.Qualifier `value:"instantiate_test.hibootService"`
 }
 
 type BarService interface {
@@ -372,7 +372,7 @@ func TestRuntimeInstance(t *testing.T) {
 	instFactory := instantiate.NewInstantiateFactory(ic, testComponents, customProps)
 	instFactory.AppendComponent(new(testService))
 	instFactory.BuildComponents()
-	dps := instFactory.GetInstances(new(at.ContextAware))
+	dps := instFactory.GetInstances(at.ContextAware{})
 	if len(dps) > 0 {
 		for i := 0; i < 3; i++ {
 			ri, err := instFactory.InjectContextAwareObjects(web.NewContext(nil), dps)

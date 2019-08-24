@@ -211,7 +211,7 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 		name := f.parseName(item)
 		config := item.MetaObject
 
-		isContextAware := reflector.HasEmbeddedFieldType(item.MetaObject, new(at.ContextAware))
+		isContextAware := annotation.Contains(item.MetaObject, at.ContextAware{})
 		// TODO: should check if profiles is enabled str.InSlice(name, sysconf.App.Profiles.Include)
 		if f.systemConfig.App.Profiles.Filter &&
 			!isContextAware &&
@@ -229,30 +229,21 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 		f.builder.SetConfiguration(config)
 
 		// inject default value
-		f.InjectDefaultValue(config)
+		_ = f.InjectDefaultValue(config)
 
 		// build properties, inject settings
 		cf, _ := f.builder.Build(name, f.systemConfig.App.Profiles.Active)
-		// No properties needs to build, use default config
-		//if cf == nil {
-		//	confTyp := reflect.TypeOf(config)
-		//	if confTyp != nil && confTyp.Kind() == reflect.Ptr {
-		//		cf = config
-		//	} else {
-		//		log.Fatalf("Unsupported configuration type: %v", confTyp)
-		//		continue
-		//	}
-		//}
+		//No properties needs to build, use default config
+		if cf == nil {
+			confTyp := reflect.TypeOf(config)
+			log.Warnf("Unsupported configuration type: %v", confTyp)
+			continue
+		}
 
-		// replace references and environment variables
-		//if f.systemConfig != nil {
-		//	replacer.Replace(cf, f.systemConfig)
-		//}
-		f.InjectIntoObject(cf)
-		//replacer.Replace(cf, cf)
+		_ = f.InjectIntoObject(cf)
 
 		// instantiation
-		f.Instantiate(cf)
+		_ = f.Instantiate(cf)
 		// save configuration
 
 		configName := name

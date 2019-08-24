@@ -19,6 +19,7 @@ import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/log"
 	"os"
+	"sync"
 	"testing"
 )
 
@@ -129,7 +130,8 @@ func TestApp(t *testing.T) {
 }
 
 func TestBaseApplication(t *testing.T) {
-
+	var mux = &sync.Mutex{}
+	mux.Lock()
 	os.Args = append(os.Args, "--app.profiles.active=local", "--test.property")
 
 	ba := new(app.BaseApplication)
@@ -143,6 +145,7 @@ func TestBaseApplication(t *testing.T) {
 	assert.NotEqual(t, nil, sc)
 
 	// TODO: check concurrency issue during test
+	assert.NotEqual(t, nil, ba)
 	err = ba.BuildConfigurations()
 	assert.Equal(t, nil, err)
 
@@ -197,5 +200,5 @@ func TestBaseApplication(t *testing.T) {
 	ba.Run()
 
 	ba.GetInstance("foo")
-
+	mux.Unlock()
 }

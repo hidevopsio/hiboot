@@ -85,7 +85,7 @@ type baseCommand struct {
 
 // RootCommand root command qualifier
 type RootCommand struct {
-	at.Qualifier `name:"cli.rootCommand"`
+	at.Qualifier `value:"cli.rootCommand"`
 	baseCommand
 }
 

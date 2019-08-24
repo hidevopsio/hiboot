@@ -309,12 +309,6 @@ func (h *handler) call(ctx context.Context) {
 		req := h.requests[i]
 		request = reflect.New(req.iTyp).Interface()
 
-		// check if it's annotation
-		if  h.requests[i].isAnnotation {
-			inputs[i] = h.requests[i].iVal
-			continue
-		}
-
 		// inject params
 		if req.callback != nil {
 			h.factory.InjectDefaultValue(request) // support default value injection for request body/params/form
@@ -323,7 +317,7 @@ func (h *handler) call(ctx context.Context) {
 		} else if req.kind == reflect.Interface && model.Context == req.typeName {
 			request = ctx
 			inputs[i] = reflect.ValueOf(request)
-		} else if lenOfPathParams != 0 {
+		} else if lenOfPathParams != 0 && req.kind != reflect.Struct {
 			// allow inject other dependencies after number of lenOfPathParams
 			lenOfPathParams = lenOfPathParams - 1
 			strVal := pvs[req.pathIdx]
@@ -340,6 +334,12 @@ func (h *handler) call(ctx context.Context) {
 			}
 			if inst != nil {
 				inputs[i] = reflect.ValueOf(inst)
+			} else {
+				// check if it's annotation
+				if  h.requests[i].isAnnotation {
+					inputs[i] = h.requests[i].iVal
+					continue
+				}
 			}
 		}
 	}

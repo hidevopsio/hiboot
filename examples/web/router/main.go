@@ -19,9 +19,11 @@ package main
 // import web starter from hiboot
 import (
 	"fmt"
+	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/model"
+	"hidevops.io/hiboot/pkg/starter/actuator"
 	"time"
 )
 
@@ -193,5 +195,6 @@ func (c *orgController) GetWithPathParamIdAndName(
 func main() {
 	// create new web application and run it
 	web.NewApplication(newUserController, newOrgController).
+		SetProperty(app.ProfilesInclude, actuator.Profile).
 		Run()
 }

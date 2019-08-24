@@ -21,6 +21,7 @@ import (
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/factory/depends"
 	"hidevops.io/hiboot/pkg/inject"
+	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/system"
 	"hidevops.io/hiboot/pkg/system/types"
@@ -213,7 +214,7 @@ func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 				if metaData.Instance != nil {
 					obj = metaData.Instance
 				}
-				fields := reflector.GetEmbeddedFields(obj)
+				fields := annotation.GetFields(obj)
 				for _, field := range fields {
 					typeName := reflector.GetLowerCamelFullNameByType(field.Type)
 					categorised, ok := f.categorized[typeName]
