@@ -71,7 +71,8 @@ func newUserController() *UserController {
 }
 
 // Create
-func (c *UserController) CreateUser(at struct {at.PostMapping `value:"/"`}, request *UserRequest) (response *UserResponse, err error) {
+func (c *UserController) CreateUser(at struct{ at.PostMapping `value:"/"` },
+	request *UserRequest) (response *UserResponse, err error) {
 
 	// response
 	response = new(UserResponse)
@@ -87,7 +88,8 @@ func (c *UserController) CreateUser(at struct {at.PostMapping `value:"/"`}, requ
 }
 
 // Get
-func (c *UserController) GetUserByPathVariable(at struct{ at.GetMapping `value:"/{id:int}/and/{name}"` }, id int, name string) (response *UserResponse, err error) {
+func (c *UserController) GetUserByPathVariable(at struct{ at.GetMapping `value:"/{id:int}/and/{name}"` },
+	id int, name string) (response *UserResponse, err error) {
 
 	// response
 	response = new(UserResponse)
@@ -103,7 +105,8 @@ func (c *UserController) GetUserByPathVariable(at struct{ at.GetMapping `value:"
 }
 
 // Patch
-func (c *UserController) Patch(at struct{ at.PatchMapping `value:"/{id}"` }, id int) (response *UserResponse, err error) {
+func (c *UserController) Patch(at struct{ at.PatchMapping `value:"/{id}"` },
+	id int) (response *UserResponse, err error) {
 
 	// response
 	response = new(UserResponse)
@@ -111,7 +114,8 @@ func (c *UserController) Patch(at struct{ at.PatchMapping `value:"/{id}"` }, id 
 }
 
 // Delete
-func (c *UserController) DeleteUser(at struct{ at.DeleteMapping `value:"/{id:int}"` }, id int) (response *UserResponse, err error) {
+func (c *UserController) DeleteUser(at struct{ at.DeleteMapping `value:"/{id:int}"` },
+	id int) (response *UserResponse, err error) {
 	// response
 	response = new(UserResponse)
 	return
@@ -158,7 +162,8 @@ func (c *orgController) GetOfficialSite(at struct{ at.GetMapping `value:"/offici
 
 // GetWithPathParamIdAndName
 // at.GetMapping is an annotation to define request mapping for http method GET,
-func (c *orgController) GetWithPathVariable(at struct{ at.GetMapping `value:"/{id}/and/{name}"` }, id int, name string) string {
+func (c *orgController) GetWithPathVariable(at struct{ at.GetMapping `value:"/{id}/and/{name}"` },
+	id int, name string) string {
 
 	return fmt.Sprintf("https://hidevops.io/%v/%v", id, name)
 }
