@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/inject/annotation"
+	"reflect"
 	"testing"
 )
 
@@ -70,7 +71,8 @@ func TestImplementsAnnotation(t *testing.T) {
 		// notify bad syntax for struct tag pair
 		b := new(bar)
 		err := annotation.InjectIntoObject(b)
-		assert.Equal(t, nil, err)
+		assert.NotEqual(t, nil, err)
+		assert.Equal(t, "bad syntax for struct tag pair", err.Error())
 	})
 
 	t.Run("should inject to object", func(t *testing.T) {
@@ -88,5 +90,17 @@ func TestImplementsAnnotation(t *testing.T) {
 		var fb struct{at.GetMapping `value:"/path/to/api"`}
 		err := annotation.InjectIntoObject(&fb)
 		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should get annotation by type", func(t *testing.T) {
+		var fb struct{at.PostMapping `value:"/path/to/api"`}
+		f := annotation.GetFields(reflect.TypeOf(&fb))
+		assert.Equal(t, "PostMapping", f[0].Name)
+	})
+
+	t.Run("should report error for nil", func(t *testing.T) {
+		err := annotation.InjectIntoObject(nil)
+		assert.NotEqual(t, nil, err)
+		assert.Equal(t, "object must not be nil", err.Error())
 	})
 }

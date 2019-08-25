@@ -68,11 +68,12 @@ func InjectIntoObject(object interface{}) (err error) {
 	}
 
 	annotationFields := GetFields(object)
+	var tags *structtag.Tags
 	for _, annotationField := range annotationFields {
-		tags, err := structtag.Parse(string(annotationField.Tag))
+		tags, err = structtag.Parse(string(annotationField.Tag))
 		if err != nil {
-			log.Error(err)
-			continue
+			log.Errorf("%v of %v", err, ot)
+			return
 		}
 		// iterate over all tags
 		objectValue := reflector.Indirect(reflect.ValueOf(object))
