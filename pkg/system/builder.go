@@ -69,6 +69,11 @@ func NewBuilder(configuration interface{}, path, name, fileType string, customPr
 
 // New create new viper instance
 func (b *builder) config(name string) {
+	viper.Reset()
+	b.AutomaticEnv()
+	viperReplacer := strings.NewReplacer(".", "_")
+	b.SetEnvKeyReplacer(viperReplacer)
+
 	b.AddConfigPath(b.path)
 	b.SetConfigName(name)
 	b.SetConfigType(b.fileType)
