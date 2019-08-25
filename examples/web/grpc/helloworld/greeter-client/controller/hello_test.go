@@ -2,8 +2,8 @@ package controller
 
 import (
 	"github.com/golang/mock/gomock"
-	"hidevops.io/hiboot/examples/grpc/helloworld/mock"
-	"hidevops.io/hiboot/examples/grpc/helloworld/protobuf"
+	mock2 "hidevops.io/hiboot/examples/web/grpc/helloworld/mock"
+	protobuf2 "hidevops.io/hiboot/examples/web/grpc/helloworld/protobuf"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/starter/grpc/mockgrpc"
@@ -16,17 +16,17 @@ func TestHelloClient(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	mockHelloClient := mock.NewMockHelloServiceClient(ctrl)
+	mockHelloClient := mock2.NewMockHelloServiceClient(ctrl)
 	app.Register("protobuf.helloServiceClient", mockHelloClient)
 
 	testApp := web.NewTestApp(t, newHelloController).SetProperty(logging.Level, logging.LevelDebug).Run(t)
 
-	req := &protobuf.HelloRequest{Name: "Steve"}
+	req := &protobuf2.HelloRequest{Name: "Steve"}
 
 	mockHelloClient.EXPECT().SayHello(
 		gomock.Any(),
 		&mockgrpc.RPCMsg{Message: req},
-	).Return(&protobuf.HelloReply{Message: "Hello " + req.Name}, nil)
+	).Return(&protobuf2.HelloReply{Message: "Hello " + req.Name}, nil)
 
 	testApp.Get("/hello/name/{name}").
 		WithPath("name", req.Name).

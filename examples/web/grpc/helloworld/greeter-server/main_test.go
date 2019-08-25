@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"github.com/stretchr/testify/assert"
-	"hidevops.io/hiboot/examples/grpc/helloworld/protobuf"
+	protobuf2 "hidevops.io/hiboot/examples/web/grpc/helloworld/protobuf"
 	"testing"
 	"time"
 )
@@ -20,7 +20,7 @@ func TestHelloServer(t *testing.T) {
 
 	name := "Steve"
 	expected := "Hello " + name
-	req := &protobuf.HelloRequest{Name: name}
+	req := &protobuf2.HelloRequest{Name: name}
 	res, err := serviceServer.SayHello(context.Background(), req)
 
 	assert.Equal(t, nil, err)
@@ -33,7 +33,7 @@ func TestHolaServer(t *testing.T) {
 
 	name := "Steve"
 	expected := "Hola " + name
-	req := &protobuf.HolaRequest{Name: name}
+	req := &protobuf2.HolaRequest{Name: name}
 	res, err := serviceServer.SayHola(context.Background(), req)
 
 	assert.Equal(t, nil, err)

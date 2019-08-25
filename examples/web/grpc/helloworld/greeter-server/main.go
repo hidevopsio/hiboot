@@ -21,7 +21,7 @@ package main
 
 import (
 	"golang.org/x/net/context"
-	"hidevops.io/hiboot/examples/grpc/helloworld/protobuf"
+	protobuf2 "hidevops.io/hiboot/examples/web/grpc/helloworld/protobuf"
 	"hidevops.io/hiboot/pkg/app/web"
 	_ "hidevops.io/hiboot/pkg/starter/actuator"
 	"hidevops.io/hiboot/pkg/starter/grpc"
@@ -31,35 +31,35 @@ import (
 type helloServiceServerImpl struct {
 }
 
-func newHelloServiceServer() protobuf.HelloServiceServer {
+func newHelloServiceServer() protobuf2.HelloServiceServer {
 	return &helloServiceServerImpl{}
 }
 
 // SayHello implements helloworld.GreeterServer
-func (s *helloServiceServerImpl) SayHello(ctx context.Context, request *protobuf.HelloRequest) (*protobuf.HelloReply, error) {
+func (s *helloServiceServerImpl) SayHello(ctx context.Context, request *protobuf2.HelloRequest) (*protobuf2.HelloReply, error) {
 	// response to client
-	return &protobuf.HelloReply{Message: "Hello " + request.Name}, nil
+	return &protobuf2.HelloReply{Message: "Hello " + request.Name}, nil
 }
 
 // server is used to implement protobuf.GreeterServer.
 type holaServiceServerImpl struct {
 }
 
-func newHolaServiceServer() protobuf.HolaServiceServer {
+func newHolaServiceServer() protobuf2.HolaServiceServer {
 	return &holaServiceServerImpl{}
 }
 
 // SayHello implements helloworld.GreeterServer
-func (s *holaServiceServerImpl) SayHola(ctx context.Context, request *protobuf.HolaRequest) (*protobuf.HolaReply, error) {
+func (s *holaServiceServerImpl) SayHola(ctx context.Context, request *protobuf2.HolaRequest) (*protobuf2.HolaReply, error) {
 	// response to client
-	return &protobuf.HolaReply{Message: "Hola " + request.Name}, nil
+	return &protobuf2.HolaReply{Message: "Hola " + request.Name}, nil
 }
 
 func init() {
 	// must: register grpc server
 	// please note that holaServiceServerImpl must implement protobuf.HelloServiceServer, or it won't be registered.
-	grpc.Server(protobuf.RegisterHelloServiceServer, newHelloServiceServer)
-	grpc.Server(protobuf.RegisterHolaServiceServer, newHolaServiceServer)
+	grpc.Server(protobuf2.RegisterHelloServiceServer, newHelloServiceServer)
+	grpc.Server(protobuf2.RegisterHolaServiceServer, newHolaServiceServer)
 }
 
 func main() {

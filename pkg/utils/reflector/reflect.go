@@ -94,6 +94,12 @@ func Indirect(reflectValue reflect.Value) reflect.Value {
 	return reflectValue
 }
 
+// IndirectValue get indirect value
+func IndirectValue(object interface{}) reflect.Value {
+	val := reflect.ValueOf(object)
+	return Indirect(val)
+}
+
 // IndirectType get indirect type
 func IndirectType(reflectType reflect.Type) reflect.Type {
 	for reflectType.Kind() == reflect.Ptr || reflectType.Kind() == reflect.Slice {
@@ -447,16 +453,25 @@ func GetPkgPath(object interface{}) string {
 
 // GetObjectType get the function output data type
 func GetObjectType(object interface{}) (typ reflect.Type, ok bool) {
-
-	obj := reflect.ValueOf(object)
-	t := obj.Type()
-	typName := t.Name()
-	typKind := t.Kind()
+	var reflectType reflect.Type
+	var reflectValue reflect.Value
+	switch object.(type) {
+	case reflect.Value:
+		reflectValue = object.(reflect.Value)
+		reflectType = reflectValue.Type()
+	case reflect.Type:
+		reflectType = object.(reflect.Type)
+	default:
+		reflectValue = reflect.ValueOf(object)
+		reflectType = reflectValue.Type()
+	}
+	typName := reflectType.Name()
+	typKind := reflectType.Kind()
 	//log.Debugf("type: %v type name: %v, kind: %v", t, typName, typKind)
 	if typKind == reflect.Func {
-		numOut := obj.Type().NumOut()
+		numOut := reflectType.NumOut()
 		if numOut > 0 {
-			typ = IndirectType(obj.Type().Out(0))
+			typ = IndirectType(reflectType.Out(0))
 			ok = true
 		}
 	} else if typKind == reflect.Struct && typName == "Method" {
@@ -469,7 +484,7 @@ func GetObjectType(object interface{}) (typ reflect.Type, ok bool) {
 		}
 	} else {
 		// TODO: check if it effects others
-		typ = IndirectType(t)
+		typ = IndirectType(reflectType)
 		ok = true
 	}
 

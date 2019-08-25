@@ -91,7 +91,8 @@ func (d *Dispatcher) parseRequestMapping(object interface{}, method *reflect.Met
 		if annotation.Contains(o, at.RequestMapping{}) {
 			err := d.configurableFactory.InjectIntoObject(o)
 			if err == nil {
-				_ = copier.Copy(reqMap, o)
+				annotations := annotation.Find(o, at.RequestMapping{})
+				_ = copier.Copy(reqMap, annotations[0])
 				reqMap.customized = true
 				break
 			}

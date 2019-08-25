@@ -123,7 +123,6 @@ func (c *UserController) DeleteUser(at struct{ at.DeleteMapping `value:"/{id:int
 
 // List
 func (c *UserController) ListUser(at struct{ at.GetMapping `value:"/"` }) (response *UserResponse, err error) {
-
 	// response
 	response = new(UserResponse)
 	user := new(User)

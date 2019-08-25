@@ -146,6 +146,12 @@ func TestIndirect(t *testing.T) {
 	assert.Equal(t, reflect.Struct, fv.Kind())
 }
 
+func TestIndirectValue(t *testing.T) {
+	foo := &Foo{Name: "foo"}
+	fv := IndirectValue(foo)
+	assert.Equal(t, reflect.Struct, fv.Kind())
+}
+
 func TestIndirectType(t *testing.T) {
 	foo := &Foo{Name: "foo"}
 	f := reflect.TypeOf(foo)
@@ -585,6 +591,22 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 		pkgName, name := GetPkgAndName(newFooBarService)
 		assert.Equal(t, "reflector", pkgName)
 		assert.Equal(t, "fooBarService", name)
+	})
+
+	t.Run("should get object type", func(t *testing.T) {
+		foo := new(Foo)
+		expectedTyp := reflect.TypeOf(foo)
+		typ, ok := GetObjectType(expectedTyp)
+		assert.Equal(t, true, ok)
+		assert.Equal(t, "Foo", typ.Name())
+	})
+
+	t.Run("should get object type", func(t *testing.T) {
+		foo := new(Foo)
+		expectedTyp := reflect.ValueOf(foo)
+		typ, ok := GetObjectType(expectedTyp)
+		assert.Equal(t, true, ok)
+		assert.Equal(t, "Foo", typ.Name())
 	})
 
 	t.Run("should get method out type", func(t *testing.T) {

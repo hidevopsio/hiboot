@@ -18,6 +18,14 @@ type AtBar struct {
 	at.Annotation
 }
 
+type AtFooBar struct {
+	AtFoo
+}
+
+type AtFooBaz struct {
+	AtFoo
+}
+
 type MyObj struct{
 	Name string
 	Value string
@@ -26,6 +34,8 @@ type MyObj struct{
 type foo struct {
 	AtFoo `value:"foo,option 1,option 2" age:"18"`
 	AtBar `value:"bar"`
+	AtFooBar `value:"foobar" age:"12"`
+	AtFooBaz `value:"baz" age:"22"`
 
 	MyObj
 }
@@ -65,6 +75,22 @@ func TestImplementsAnnotation(t *testing.T) {
 
 		assert.Equal(t, "bar", f.AtBar.Value)
 		assert.Equal(t, "my object value", f.Value)
+	})
+
+	t.Run("should get annotation AtFoo", func(t *testing.T) {
+		atFoo, ok := annotation.Get(f, AtFoo{})
+		assert.Equal(t, true, ok)
+		assert.Equal(t, "foo", atFoo.(AtFoo).Value)
+	})
+
+	t.Run("should get all annotations", func(t *testing.T) {
+		as := annotation.GetAll(f)
+		assert.NotEqual(t, 0, len(as))
+	})
+
+	t.Run("should find annotation AtFoo", func(t *testing.T) {
+		as := annotation.Find(f, AtFoo{})
+		assert.NotEqual(t, 0, len(as))
 	})
 
 	t.Run("should notify bad syntax for struct tag pair", func(t *testing.T) {

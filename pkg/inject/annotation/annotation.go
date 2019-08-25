@@ -23,6 +23,20 @@ func GetField(object interface{}, att interface{}) (field reflect.StructField, o
 	return
 }
 
+// Get is a function that get specific annotation object.
+func Get(object interface{}, att interface{}) (a interface{}, ok bool) {
+	field, found := GetField(object, att)
+	if found {
+		ov := reflector.IndirectValue(object)
+		fv := ov.FieldByName(field.Name)
+		if fv.IsValid() {
+			a = fv.Interface()
+			ok = true
+		}
+	}
+	return
+}
+
 // GetFields iterate annotations of a struct
 func GetFields(object interface{}) []reflect.StructField {
 	var fields []reflect.StructField
@@ -45,6 +59,30 @@ func GetFields(object interface{}) []reflect.StructField {
 		}
 	}
 	return fields
+}
+
+// GetAll is a function that get all annotations object.
+func GetAll(object interface{}) (as []interface{}) {
+	fields := GetFields(object)
+	ov := reflector.IndirectValue(object)
+	for _, field := range fields {
+		fv := ov.FieldByName(field.Name)
+		if fv.IsValid() {
+			as = append(as, fv.Interface())
+		}
+	}
+	return
+}
+
+// FindContains is a function that find an annotation object.
+func Find(object interface{}, att interface{}) (aa []interface{}) {
+	as := GetAll(object)
+	for _, a := range as {
+		if Contains(a, att) {
+			aa = append(aa, a)
+		}
+	}
+	return
 }
 
 // Has is a function that check if object is the implements of specific Annotation

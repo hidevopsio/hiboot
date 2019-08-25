@@ -61,6 +61,7 @@ type response struct {
 	name     string
 	kind     reflect.Kind
 	typ      reflect.Type
+	isResponseBody bool
 }
 
 type handler struct {
@@ -153,6 +154,7 @@ func (h *handler) parse(httpMethod string, method reflect.Method, object interfa
 	h.hasCtxField = reflector.HasEmbeddedFieldType(object, Controller{})
 
 	lenOfPathParams := len(h.pathParams)
+	pathIdx := lenOfPathParams
 	for i := 1; i < h.numIn; i++ {
 		typ := method.Type.In(i)
 		iTyp := reflector.IndirectType(typ)
@@ -167,6 +169,7 @@ func (h *handler) parse(httpMethod string, method reflect.Method, object interfa
 			}
 		}
 
+		// basic info
 		h.requests[i].typ = typ
 		h.requests[i].iTyp = iTyp
 		if typ.Kind() == reflect.Slice {
@@ -176,19 +179,34 @@ func (h *handler) parse(httpMethod string, method reflect.Method, object interfa
 		}
 		h.requests[i].val = reflect.New(typ)
 		h.requests[i].iVal = reflect.New(iTyp)
+		h.requests[i].typeName = iTyp.Name()
 		h.requests[i].genKind = reflector.GetKindByValue(h.requests[i].iVal) // TODO:
+		h.requests[i].fullName = reflector.GetLowerCamelFullNameByType(iTyp)
 
-		pi := i - 1
-		if pi < lenOfPathParams {
-			h.requests[i].name = pp[pi][1]
+		// handle annotations
+		request := h.requests[i].iVal.Interface()
+		// TODO: use annotation.Contains(request, at.Annotation{}) instead, need to test more cases
+		// check if it's annotation at.RequestMapping
+		if annotation.Contains(request, at.RequestMapping{}) {
+			_ = h.factory.InjectIntoObject(request)
+			h.requests[i].iVal = reflect.ValueOf(request).Elem()
+			h.requests[i].isAnnotation = true
+			continue
+		}
+
+		// parse path variable
+		if pathIdx != 0 {
+			pathIdx = pathIdx - 1
+			h.requests[i].name = pp[pathIdx][1]
 			for idx, pv := range pps {
-				if pv == pp[pi][0] {
+				if pv == pp[pathIdx][0] {
 					h.requests[i].pathIdx = idx
 					break
 				}
 			}
 		}
-		h.requests[i].typeName = iTyp.Name()
+
+		// request params, body, form
 		if iTyp.Kind() == reflect.Struct {
 			for _, tn := range requestSets {
 				if field, ok := iTyp.FieldByName(tn.name); ok && field.Anonymous {
@@ -198,16 +216,7 @@ func (h *handler) parse(httpMethod string, method reflect.Method, object interfa
 				}
 			}
 		}
-		h.requests[i].fullName = reflector.GetLowerCamelFullNameByType(iTyp)
 
-		request := h.requests[i].iVal.Interface()
-		// TODO: use annotation.Contains(request, at.Annotation{}) instead, need to test more cases
-		// check if it's annotation at.RequestMapping
-		if annotation.Contains(request, at.RequestMapping{}) {
-			_ = h.factory.InjectIntoObject(request)
-			h.requests[i].iVal = reflect.ValueOf(request).Elem()
-			h.requests[i].isAnnotation = true
-		}
 	}
 	h.lenOfPathParams = lenOfPathParams
 
@@ -219,6 +228,9 @@ func (h *handler) parse(httpMethod string, method reflect.Method, object interfa
 		h.responses[i].kind = typ.Kind()
 		h.responses[i].typeName = typ.Name()
 		//log.Debug(h.responses[i])
+		if annotation.Contains(typ, at.ResponseBody{}) {
+			h.responses[i].isResponseBody = true
+		}
 	}
 	if path != "" {
 		log.Infof("Mapped %v \"%v\" onto %v.%v()", httpMethod, path, idv.Type(), method.Name)
@@ -280,7 +292,11 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 	case map[string]interface{}:
 		ctx.JSON(respVal)
 	default:
-		ctx.ResponseError("response type is not implemented!", http.StatusInternalServerError)
+		if h.responses[0].isResponseBody {
+			ctx.JSON(respVal)
+		} else {
+			ctx.ResponseError("response type is not implemented!", http.StatusInternalServerError)
+		}
 	}
 	return
 }
@@ -318,7 +334,7 @@ func (h *handler) call(ctx context.Context) {
 		} else if req.kind == reflect.Interface && model.Context == req.typeName {
 			request = ctx
 			inputs[i] = reflect.ValueOf(request)
-		} else if lenOfPathParams != 0 && req.kind != reflect.Struct {
+		} else if lenOfPathParams != 0 && !req.isAnnotation {
 			// allow inject other dependencies after number of lenOfPathParams
 			lenOfPathParams = lenOfPathParams - 1
 			strVal := pvs[req.pathIdx]
