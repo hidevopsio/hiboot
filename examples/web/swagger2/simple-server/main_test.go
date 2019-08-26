@@ -35,11 +35,11 @@ func TestController(t *testing.T) {
 
 func TestAnnotation(t *testing.T) {
 	type foo struct{
-		//at.GetMapping `value:"/{id:int}"`
-		//at.ApiOperation `value:"Get an employee"`
-		//at.ApiParam `value:"Path variable employee ID" required:"true"`
+		at.GetMapping `value:"/{id:int}"`
+		at.ApiOperation `value:"Get an employee"`
+		at.ApiParam `value:"Path variable employee ID" required:"true"`
 		at.ApiResponse200 `value:"Successfully get an employee"`
-		//at.ApiResponse404 `value:"The resource you were trying to reach is not found"`
+		at.ApiResponse404 `value:"The resource you were trying to reach is not found"`
 	}
 	var f foo
 	err := annotation.InjectIntoObject(&f)

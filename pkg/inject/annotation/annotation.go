@@ -40,14 +40,9 @@ func Get(object interface{}, att interface{}) (a interface{}, ok bool) {
 // GetFields iterate annotations of a struct
 func GetFields(object interface{}) []reflect.StructField {
 	var fields []reflect.StructField
-	var reflectType reflect.Type
-	switch object.(type) {
-	case reflect.Type:
-		reflectType = object.(reflect.Type)
-	default:
-		reflectType = reflect.TypeOf(object)
-	}
-	if reflectType = reflector.IndirectType(reflectType); reflectType.Kind() == reflect.Struct {
+
+	reflectType, ok := reflector.GetObjectType(object)
+	if ok && reflectType.Kind() == reflect.Struct {
 		for i := 0; i < reflectType.NumField(); i++ {
 			v := reflectType.Field(i)
 			if v.Anonymous {

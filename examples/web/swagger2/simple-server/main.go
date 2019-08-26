@@ -5,10 +5,28 @@ import (
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
 	"hidevops.io/hiboot/pkg/starter/actuator"
 	"hidevops.io/hiboot/pkg/starter/swagger2"
 )
+
+
+type Employee struct {
+	at.ApiModel     `description:"All details about the Employee. " json:"-"`
+	Id        int    `api:"The database generated employee ID" json:"id"`
+	FirstName string `api:"The employee first name" json:"first_name"`
+	LastName  string `api:"The employee last name" json:"last_name"`
+}
+
+type EmployeeResponse struct {
+	at.ResponseBody `json:"-"`
+
+	Code            int      `json:"code"`
+	Message         string   `json:"message"`
+	Data            Employee `json:"data"`
+}
+
 
 type employeeController struct {
 	at.RestController
@@ -28,13 +46,15 @@ func (c *employeeController) Get(at struct {
 	at.GetMapping `value:"/{id:int}"`
 	at.ApiOperation `value:"Get an employee"`
 	at.ApiParam `value:"Path variable employee ID" required:"true"`
-	// TODO: Code is not injected ...
+	// TODO: ApiResponse200 and ApiResponse404 should work together
 	at.ApiResponse200 `value:"Successfully get an employee"`
 	at.ApiResponse404 `value:"The resource you were trying to reach is not found"`
 }, id int) (response *EmployeeResponse, err error) {
+	log.Infof("annotations: %v", at)
+
 	response = new(EmployeeResponse)
 	response.Code = at.ApiResponse200.Code
-	response.Message = "Success"
+	response.Message = at.ApiResponse200.Value
 	response.Data = Employee{
 		Id: id,
 		FirstName: "John",

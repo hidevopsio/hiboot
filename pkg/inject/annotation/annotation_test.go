@@ -20,10 +20,12 @@ type AtBar struct {
 
 type AtFooBar struct {
 	AtFoo
+	Code int `value:"200"`
 }
 
 type AtFooBaz struct {
 	AtFoo
+	Code int `value:"400"`
 }
 
 type MyObj struct{
@@ -63,6 +65,16 @@ func TestImplementsAnnotation(t *testing.T) {
 		age, ok := af.Tag.Lookup("age")
 		assert.Equal(t, "18", age)
 		assert.Equal(t, true, ok)
+	})
+
+	t.Run("should report error for invalid type that pass to GetFields", func(t *testing.T) {
+		af := annotation.GetFields(123)
+		assert.Equal(t, []reflect.StructField([]reflect.StructField(nil)), af)
+	})
+
+	t.Run("should report error for invalid type that pass to GetField", func(t *testing.T) {
+		_, ok := annotation.GetField(123, AtFoo{})
+		assert.Equal(t, false, ok)
 	})
 
 	t.Run("should inject all annotations", func(t *testing.T) {
