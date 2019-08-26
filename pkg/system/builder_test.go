@@ -45,6 +45,8 @@ func init() {
 var customProps = make(map[string]interface{})
 
 func TestBuilderBuild(t *testing.T) {
+	err := os.Setenv("APP_NAME", "hiboot-app")
+
 	testProject := "system-configuration-test"
 	customProps["app.project"] = testProject
 	b := NewBuilder(&Configuration{},
@@ -57,22 +59,22 @@ func TestBuilderBuild(t *testing.T) {
 	t.Run("should build configuration properly", func(t *testing.T) {
 		c := cp.(*Configuration)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, "hiboot", c.App.Name)
+		assert.Equal(t, "hiboot-app", c.App.Name)
 		assert.Equal(t, testProject, c.App.Project)
 	})
 
 	t.Run("should build mock and local configuration properly and merge them", func(t *testing.T) {
 		cp, err = b.Build("mock", "local")
 		assert.Equal(t, nil, err)
-		assert.Equal(t, "hiboot-mocking", b.GetProperty("mock.nickname"))
-		assert.Equal(t, "hiboot-user-local", b.GetProperty("mock.username"))
+		assert.Equal(t, "hiboot-app-mocking", b.GetProperty("mock.nickname"))
+		assert.Equal(t, "hiboot-app-user-local", b.GetProperty("mock.username"))
 		assert.Equal(t, "hiboot-mock-local", b.GetProperty("mock.name"))
 	})
 
 	t.Run("should build configuration properly", func(t *testing.T) {
 		assert.Equal(t, nil, err)
 		c := cp.(*Configuration)
-		assert.Equal(t, "hiboot", c.App.Name)
+		assert.Equal(t, "hiboot-app", c.App.Name)
 		log.Debugf("app: %v", b.GetProperty("app"))
 		log.Debugf("app.name: %v", b.GetProperty("app.name"))
 		log.Debugf("server: %v", b.GetProperty("server"))
@@ -97,9 +99,21 @@ func TestBuilderBuild(t *testing.T) {
 				fake:
 				  name: ${app.name}
 		*/
-		b.SetConfiguration(new(fakeConfiguration))
-		b.Build("fake")
-		assert.Equal(t, b.GetProperty("app.name"), b.GetProperty("fake.name"))
+
+		err = os.Setenv("APP_URL", "https://examples.org/api")
+		assert.Equal(t, nil, err)
+		fc := new(fakeConfiguration)
+		b.SetConfiguration(fc)
+		br, err := b.Build("fake")
+		assert.Equal(t, nil, err)
+		assert.NotEqual(t, nil, br)
+		assert.Equal(t, "hiboot-app", b.GetProperty("app.name"))
+
+		log.Info(b.GetProperty("fake.name"))
+		log.Info(b.GetProperty("app.name"))
+		log.Info(b.GetProperty("app.url"))
+		log.Info(b.GetProperty("app.profiles.active"))
+
 	})
 
 	t.Run("should set default property", func(t *testing.T) {
