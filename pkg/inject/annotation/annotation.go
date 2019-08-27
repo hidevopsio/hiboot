@@ -41,14 +41,15 @@ func Get(object interface{}, att interface{}) (a interface{}, ok bool) {
 func GetFields(object interface{}) []reflect.StructField {
 	var fields []reflect.StructField
 
-	reflectType, ok := reflector.GetObjectType(object)
-	if ok && reflectType.Kind() == reflect.Struct {
+	reflectValue := reflector.IndirectValue(object)
+	reflectType := reflectValue.Type()
+	if reflectType.Kind() == reflect.Struct {
 		for i := 0; i < reflectType.NumField(); i++ {
-			v := reflectType.Field(i)
-			if v.Anonymous {
-				_, ok := reflector.GetEmbeddedFieldByType(v.Type, at.Annotation{}, reflect.Struct)
+			f := reflectType.Field(i)
+			if f.Anonymous {
+				_, ok := reflector.GetEmbeddedFieldByType(f.Type, at.Annotation{}, reflect.Struct)
 				if ok {
-					fields = append(fields, v)
+					fields = append(fields, f)
 				}
 			}
 		}
@@ -57,13 +58,13 @@ func GetFields(object interface{}) []reflect.StructField {
 }
 
 // GetAll is a function that get all annotations object.
-func GetAll(object interface{}) (as []interface{}) {
+func GetAll(object interface{}) (retVal []interface{}) {
 	fields := GetFields(object)
 	ov := reflector.IndirectValue(object)
 	for _, field := range fields {
 		fv := ov.FieldByName(field.Name)
 		if fv.IsValid() {
-			as = append(as, fv.Interface())
+			retVal = append(retVal, fv.Interface())
 		}
 	}
 	return

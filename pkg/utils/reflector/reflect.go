@@ -95,9 +95,17 @@ func Indirect(reflectValue reflect.Value) reflect.Value {
 }
 
 // IndirectValue get indirect value
-func IndirectValue(object interface{}) reflect.Value {
-	val := reflect.ValueOf(object)
-	return Indirect(val)
+func IndirectValue(object interface{}) (reflectValue reflect.Value) {
+	switch object.(type) {
+	case reflect.Value:
+		reflectValue = object.(reflect.Value)
+	case reflect.Type:
+		return
+	default:
+		reflectValue = reflect.ValueOf(object)
+	}
+	reflectValue = Indirect(reflectValue)
+	return
 }
 
 // IndirectType get indirect type

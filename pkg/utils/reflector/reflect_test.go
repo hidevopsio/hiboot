@@ -147,9 +147,21 @@ func TestIndirect(t *testing.T) {
 }
 
 func TestIndirectValue(t *testing.T) {
-	foo := &Foo{Name: "foo"}
+	foo := Foo{Name: "foo"}
 	fv := IndirectValue(foo)
 	assert.Equal(t, reflect.Struct, fv.Kind())
+
+	fv = IndirectValue(&foo)
+	assert.Equal(t, reflect.Struct, fv.Kind())
+
+	fv = IndirectValue("test")
+	assert.Equal(t, reflect.String, fv.Kind())
+
+	fv = IndirectValue(reflect.ValueOf(foo))
+	assert.Equal(t, reflect.Struct, fv.Kind())
+
+	fv = IndirectValue(reflect.TypeOf(foo))
+	assert.Equal(t, false, fv.IsValid())
 }
 
 func TestIndirectType(t *testing.T) {

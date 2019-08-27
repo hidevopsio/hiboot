@@ -158,6 +158,8 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 		// set field object
 		var fieldObj reflect.Value
 		if obj.IsValid() && obj.Kind() == reflect.Struct {
+			// TODO: consider embedded property
+			log.Debugf("inject: %v.%v", obj.Type(), f.Name)
 			fieldObj = obj.FieldByName(f.Name)
 		}
 
