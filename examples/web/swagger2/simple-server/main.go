@@ -45,7 +45,6 @@ func (c *employeeController) Get(at struct {
 	at.GetMapping `value:"/{id:int}"`
 	at.ApiOperation `value:"Get an employee"`
 	at.ApiParam `value:"Path variable employee ID" required:"true"`
-	// TODO: ApiResponse200 and ApiResponse404 should work together
 	at.ApiResponse200 `value:"Successfully get an employee"`
 	at.ApiResponse404 `value:"The resource you were trying to reach is not found"`
 }, id int) (response *EmployeeResponse, err error) {

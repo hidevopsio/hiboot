@@ -79,7 +79,7 @@ func NewInject(factory factory.InstantiateFactory) Inject {
 // InitTag init tag implements
 func InitTag(tag Tag) (t Tag) {
 	if annotation.Contains(tag, at.Tag{}) {
-		err := annotation.InjectIntoObject(tag)
+		err := annotation.InjectIntoFields(tag)
 		if err == nil {
 			t = tag
 		}
@@ -110,11 +110,26 @@ func (i *inject) DefaultValue(object interface{}) error {
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
 func (i *inject) IntoObject(object interface{}) (err error) {
-	err = annotation.InjectIntoObject(object)
+	err = annotation.InjectIntoFields(object)
 	if err != nil {
 		log.Debug(err)
 	}
 	err = i.IntoObjectValue(reflect.ValueOf(object), "")
+
+	// inject annotation
+	if err == nil {
+		annotations := annotation.GetFields(object)
+		for _, a := range annotations {
+			err = annotation.InjectIntoField(a)
+			if err != nil {
+				return
+			}
+			err = i.IntoObjectValue(a.Value.Addr(), "")
+			if err != nil {
+				return
+			}
+		}
+	}
 	return
 }
 
@@ -159,7 +174,7 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 		var fieldObj reflect.Value
 		if obj.IsValid() && obj.Kind() == reflect.Struct {
 			// TODO: consider embedded property
-			log.Debugf("inject: %v.%v", obj.Type(), f.Name)
+			//log.Debugf("inject: %v.%v", obj.Type(), f.Name)
 			fieldObj = obj.FieldByName(f.Name)
 		}
 

@@ -35,7 +35,3 @@ func newConfiguration() *configuration {
 func init() {
 	app.Register(newConfiguration)
 }
-
-func (c *configuration) Api()  {
-
-}

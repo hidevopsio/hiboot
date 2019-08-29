@@ -26,7 +26,7 @@ package depends
 
 import (
 	"fmt"
-	"github.com/magiconair/properties/assert"
+	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/log"
 	"testing"
 )

@@ -88,11 +88,11 @@ func (d *Dispatcher) parseRequestMapping(object interface{}, method *reflect.Met
 	for n := 1; n < numIn; n++ {
 		typ := method.Type.In(n)
 		o := reflect.New(typ).Interface()
-		if annotation.Contains(o, at.RequestMapping{}) {
+		annotations := annotation.Find(o, at.RequestMapping{})
+		if len(annotations) != 0 {
 			err := d.configurableFactory.InjectIntoObject(o)
 			if err == nil {
-				annotations := annotation.Find(o, at.RequestMapping{})
-				_ = copier.Copy(reqMap, annotations[0])
+				_ = copier.Copy(reqMap, annotations[0].Value.Interface())
 				reqMap.customized = true
 				break
 			}
@@ -127,7 +127,7 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 		af, ok := annotation.GetField(controller, at.RequestMapping{})
 		if ok {
 			customizedControllerPath = true
-			controllerPath = filepath.Join(controllerPath, af.Tag.Get("value"))
+			controllerPath = filepath.Join(controllerPath, af.StructField.Tag.Get("value"))
 		}
 
 		// parse method

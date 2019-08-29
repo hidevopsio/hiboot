@@ -15,7 +15,7 @@
 package depends_test
 
 import (
-	"github.com/magiconair/properties/assert"
+	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/factory/depends"

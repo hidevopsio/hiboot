@@ -699,13 +699,18 @@ func TestInjectAnnotation(t *testing.T) {
 		at.ApiResponse200 `value:"successfully get resource"`
 		at.ApiResponse404 `value:"resource is not found"`
 	}
-	annotations := annotation.GetAll(&att)
+	annotations := annotation.GetFields(&att)
 	for _, a := range annotations {
-		err := injecting.IntoObject(a)
+		err := annotation.InjectIntoField(a)
+		assert.Equal(t, nil, err)
+
+		err = injecting.IntoObjectValue(a.Value.Addr(), "")
 		assert.Equal(t, nil, err)
 	}
 	log.Debugf("final result: %v", att)
 	assert.Equal(t, "GET", att.Method)
 	assert.Equal(t, "/path/to/api", att.GetMapping.Value)
 	assert.Equal(t, "/parent/path", att.RequestMapping.Value)
+	assert.Equal(t, 200, att.ApiResponse200.Code)
+	assert.Equal(t, 404, att.ApiResponse404.Code)
 }
