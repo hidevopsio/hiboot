@@ -23,7 +23,6 @@ import (
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/inject/annotation"
-	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/copier"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"net/http"
@@ -193,10 +192,8 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 			method := fieldType.Method(mi)
 			methodName := method.Name
 			//log.Debug("method: ", methodName)
-			if methodName == "Options" {
-				log.Debug("===")
-			}
 
+			// TODO: move it into handler.parse()
 			reqMap = d.parseRequestMapping(controller, &method)
 			if !reqMap.customized {
 				ctxMap := camelcase.Split(methodName)

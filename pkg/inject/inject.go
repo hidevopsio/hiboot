@@ -114,10 +114,12 @@ func (i *inject) IntoObject(object interface{}) (err error) {
 	if err != nil {
 		log.Debug(err)
 	}
+	log.Info("inject into object")
 	err = i.IntoObjectValue(reflect.ValueOf(object), "")
 
 	// inject annotation
 	if err == nil {
+		log.Info("inject into annotation")
 		annotations := annotation.GetFields(object)
 		for _, a := range annotations {
 			err = annotation.InjectIntoField(a)
@@ -130,6 +132,7 @@ func (i *inject) IntoObject(object interface{}) (err error) {
 			}
 		}
 	}
+	log.Info("injected")
 	return
 }
 

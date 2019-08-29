@@ -39,9 +39,10 @@ func newEmployeeController() *employeeController {
 	return new(employeeController)
 }
 
-// GetAnEmployee
+// Get
 // at.GetMapping is an annotation to define request mapping for http method GET,
 func (c *employeeController) Get(at struct {
+	at.PathVariable
 	at.GetMapping `value:"/{id:int}"`
 	at.ApiOperation `value:"Get an employee"`
 	at.ApiParam `value:"Path variable employee ID" required:"true"`
