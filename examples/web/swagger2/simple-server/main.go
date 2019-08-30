@@ -3,6 +3,7 @@ package main
 import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/log"
@@ -39,9 +40,16 @@ func newEmployeeController() *employeeController {
 	return new(employeeController)
 }
 
+// Before
+func (c *employeeController) BeforeMethod(at struct{at.BeforeMethod}, ctx context.Context)  {
+	log.Debug("before method")
+	ctx.Next()
+	return
+}
+
 // Get
 // at.GetMapping is an annotation to define request mapping for http method GET,
-func (c *employeeController) Get(at struct {
+func (c *employeeController) GetEmployee(at struct {
 	at.PathVariable
 	at.GetMapping `value:"/{id:int}"`
 	at.ApiOperation `value:"Get an employee"`
@@ -65,6 +73,13 @@ func (c *employeeController) Get(at struct {
 // ListEmployee
 func (c *employeeController) ListEmployee(at struct{ at.GetMapping `value:"/"` }, factory factory.ConfigurableFactory) (response model.Response, err error) {
 	response = new(model.BaseResponse)
+	return
+}
+
+// After
+func (c *employeeController) AfterMethod(at struct{at.AfterMethod}, ctx context.Context)  {
+	log.Debug("before method")
+	ctx.Next()
 	return
 }
 

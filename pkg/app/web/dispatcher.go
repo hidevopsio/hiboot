@@ -23,6 +23,7 @@ import (
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/inject/annotation"
+	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/copier"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"net/http"
@@ -55,8 +56,30 @@ type Dispatcher struct {
 	// inject context aware dependencies
 	configurableFactory factory.ConfigurableFactory
 
-	//contextAwareInstances []interface{}
 	ContextPath string `value:"${server.context_path:/}"`
+	ContextPathFormat string `value:"${server.context_path_format}" `
+}
+
+type requestMapping struct {
+	Method     string
+	Value      string
+}
+
+type restMethod struct {
+	method *reflect.Method
+	annotations []*annotation.Field
+	hasMethodAnnotation bool
+	requestMapping *requestMapping
+}
+
+type restController struct {
+	controller interface{}
+	fieldName string
+	pkgPath string
+	pathPrefix string
+	before *restMethod
+	after *restMethod
+	methods []*restMethod
 }
 
 func newDispatcher(webApp *webApp, configurableFactory factory.ConfigurableFactory) *Dispatcher {
@@ -71,12 +94,6 @@ func init() {
 	app.Register(newDispatcher)
 }
 
-type requestMapping struct {
-	customized bool
-	Prefix     string
-	Method     string
-	Value      string
-}
 
 func (d *Dispatcher) parseRequestMapping(object interface{}, method *reflect.Method) (reqMap *requestMapping) {
 	//reflector.
@@ -87,12 +104,11 @@ func (d *Dispatcher) parseRequestMapping(object interface{}, method *reflect.Met
 	for n := 1; n < numIn; n++ {
 		typ := method.Type.In(n)
 		o := reflect.New(typ).Interface()
-		annotations := annotation.Find(o, at.RequestMapping{})
+		annotations := annotation.Find(o, at.HttpMethod{})
 		if len(annotations) != 0 {
 			err := d.configurableFactory.InjectIntoObject(o)
 			if err == nil {
 				_ = copier.Copy(reqMap, annotations[0].Value.Interface())
-				reqMap.customized = true
 				break
 			}
 		}
@@ -100,141 +116,207 @@ func (d *Dispatcher) parseRequestMapping(object interface{}, method *reflect.Met
 	return
 }
 
+
+func (d *Dispatcher) getAnnotations(object interface{}, method *reflect.Method) (annotations []*annotation.Field) {
+	numIn := method.Type.NumIn()
+	inputs := make([]reflect.Value, numIn)
+	inputs[0] = reflect.ValueOf(object)
+	for n := 1; n < numIn; n++ {
+		typ := method.Type.In(n)
+		log.Debugf("type: %v", typ)
+		log.Debugf("type pkgPath: %v", typ.PkgPath())
+		log.Debugf("type kind: %v", typ.Kind())
+		if typ.Name() == "" && typ.Kind() == reflect.Struct {
+			o := reflect.New(typ).Interface()
+			annotations = annotation.GetFields(o)
+			if len(annotations) != 0 {
+				_ = d.configurableFactory.InjectIntoObject(o)
+				break
+			}
+		}
+	}
+	return
+}
+
+func (d *Dispatcher) getRestMethods(metaData *factory.MetaData) (restCtl *restController) {
+
+	restCtl = new(restController)
+
+	c := metaData.Instance
+	field := reflect.ValueOf(c)
+
+	fieldType := field.Type()
+	//log.Debug("fieldType: ", fieldType)
+	ift := fieldType.Elem()
+	fieldName := ift.Name()
+	restCtl.pkgPath = ift.PkgPath()
+	//log.Debug("fieldName: ", fieldName)
+
+	controller := field.Interface()
+	restCtl.controller = controller
+	//log.Debug("controller: ", controller)
+
+	// get context mapping
+	var customizedControllerPath bool
+	controllerPath := d.ContextPath
+	af, ok := annotation.GetField(controller, at.RequestMapping{})
+	if ok {
+		customizedControllerPath = true
+		controllerPath = filepath.Join(controllerPath, af.StructField.Tag.Get("value"))
+	}
+
+	// parse method
+	fieldNames := camelcase.Split(fieldName)
+	controllerName := ""
+	if len(fieldNames) >= 2 {
+		controllerName = strings.Replace(fieldName, fieldNames[len(fieldNames)-1], "", 1)
+		controllerName = str.LowerFirst(controllerName)
+	}
+	//log.Debug("controllerName: ", controllerName)
+	// use controller's prefix as context mapping
+	if !customizedControllerPath {
+		cn := controllerName
+		switch d.ContextPathFormat {
+		case app.ContextPathFormatKebab:
+			cn = str.ToKebab(controllerName)
+		case app.ContextPathFormatSnake:
+			cn = str.ToSnake(controllerName)
+		case app.ContextPathFormatCamel:
+			cn = str.ToCamel(controllerName)
+		case app.ContextPathFormatLowerCamel:
+			cn = str.ToLowerCamel(controllerName)
+		}
+		contextPath := d.ContextPath
+		if contextPath == ContextPathRoot {
+			contextPath = ""
+		}
+		controllerPath = fmt.Sprintf("%v/%v", contextPath, cn)
+	}
+	restCtl.pathPrefix = controllerPath
+	restCtl.fieldName = fieldName
+
+	numOfMethod := field.NumMethod()
+	//log.Debug("methods: ", numOfMethod)
+
+	// find before, after method
+	before, ok := fieldType.MethodByName(beforeMethod)
+	if ok {
+		restMethod := new(restMethod)
+		restMethod.method = &before
+		restCtl.before = restMethod
+	}
+
+	after, ok := fieldType.MethodByName(afterMethod)
+	if ok {
+		restMethod := new(restMethod)
+		restMethod.method = &after
+		restCtl.after = restMethod
+	}
+
+	var methods []*restMethod
+	for mi := 0; mi < numOfMethod; mi++ {
+		restMethod := new(restMethod)
+
+		method := fieldType.Method(mi)
+		methodName := method.Name
+		annotations := d.getAnnotations(controller, &method)
+		restMethod.annotations = annotations
+		restMethod.method = &method
+		httpMethodAnnotation := annotation.Filter(annotations, at.HttpMethod{})
+		restMethod.hasMethodAnnotation = len(httpMethodAnnotation) > 0
+
+		reqMap := new(requestMapping)
+		if restMethod.hasMethodAnnotation {
+			// only one HttpMethod should be annotated
+			_ = copier.Copy(reqMap, httpMethodAnnotation[0].Value.Interface())
+		}
+
+		beforeMethod := annotation.Filter(annotations, at.BeforeMethod{})
+		if len(beforeMethod) > 0 {
+			restMethod.method = &method
+			restCtl.before = restMethod
+			continue
+		}
+		afterMethod := annotation.Filter(annotations, at.AfterMethod{})
+		if len(afterMethod) > 0 {
+			restMethod.method = &method
+			restCtl.after = restMethod
+			continue
+		}
+
+		if !restMethod.hasMethodAnnotation {
+			ctxMap := camelcase.Split(methodName)
+			reqMap.Method = strings.ToUpper(ctxMap[0])
+			var apiPath string
+			if len(ctxMap) > 2 && ctxMap[1] == "By" {
+				for _, pathParam := range ctxMap[2:] {
+					lpp := strings.ToLower(pathParam)
+					apiPath = apiPath + pathSep + lpp + pathSep + "{" + lpp + "}"
+				}
+			} else {
+				apiPath = strings.Replace(methodName, ctxMap[0], "", 1)
+				apiPath = pathSep + str.LowerFirst(apiPath)
+			}
+			reqMap.Value = apiPath
+		}
+		restMethod.requestMapping = reqMap
+		methods = append(methods, restMethod)
+	}
+	restCtl.methods = methods
+	return
+}
+
 //TODO: scan apis and params to generate swagger api automatically by include swagger starter
 func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
+	log.Debug("register rest controller")
 	for _, metaData := range controllers {
-		reqMap := new(requestMapping)
+		// get and parse all controller methods
+		restController := d.getRestMethods(metaData)
 
-		c := metaData.Instance
-		field := reflect.ValueOf(c)
-
-		fieldType := field.Type()
-		//log.Debug("fieldType: ", fieldType)
-		ift := fieldType.Elem()
-		fieldName := ift.Name()
-		pkgPath := ift.PkgPath()
-		//log.Debug("fieldName: ", fieldName)
-
-		controller := field.Interface()
-		//log.Debug("controller: ", controller)
-
-		//fieldValue := field.Elem()
-
-		// get context mapping
-		var customizedControllerPath bool
-		controllerPath := d.ContextPath
-		af, ok := annotation.GetField(controller, at.RequestMapping{})
-		if ok {
-			customizedControllerPath = true
-			controllerPath = filepath.Join(controllerPath, af.StructField.Tag.Get("value"))
-		}
-
-		// parse method
-		fieldNames := camelcase.Split(fieldName)
-		controllerName := ""
-		if len(fieldNames) >= 2 {
-			controllerName = strings.Replace(fieldName, fieldNames[len(fieldNames)-1], "", 1)
-			controllerName = str.LowerFirst(controllerName)
-		}
-		//log.Debug("controllerName: ", controllerName)
-		// use controller's prefix as context mapping
-		if !customizedControllerPath {
-			cn := controllerName
-			cpf := d.configurableFactory.GetProperty(app.ContextPathFormat)
-			if cpf != nil {
-				contextPathFormat := cpf.(string)
-
-				switch contextPathFormat {
-				case app.ContextPathFormatKebab:
-					cn = str.ToKebab(controllerName)
-				case app.ContextPathFormatSnake:
-					cn = str.ToSnake(controllerName)
-				case app.ContextPathFormatCamel:
-					cn = str.ToCamel(controllerName)
-				case app.ContextPathFormatLowerCamel:
-					cn = str.ToLowerCamel(controllerName)
-				}
-			}
-			contextPath := d.ContextPath
-			if contextPath == ContextPathRoot {
-				contextPath = ""
-			}
-			controllerPath = fmt.Sprintf("%v/%v", contextPath, cn)
-		}
-
-		numOfMethod := field.NumMethod()
-		//log.Debug("methods: ", numOfMethod)
-
-		beforeMethod, ok := fieldType.MethodByName(beforeMethod)
 		var party iris.Party
-		if ok {
-			//log.Debug("contextPath: ", requestMapping)
-			//log.Debug("beforeMethod.Name: ", beforeMethod.Name)
+		if restController.before != nil {
 			hdl := newHandler(d.configurableFactory)
-			hdl.parse("", beforeMethod, controller, "")
-			party = d.webApp.Party(controllerPath, Handler(func(c context.Context) {
+			hdl.parse("", restController.before.method, restController.controller, "")
+			party = d.webApp.Party(restController.pathPrefix, Handler(func(c context.Context) {
 				hdl.call(c)
 			}))
 		} else {
-			party = d.webApp.Party(controllerPath)
+			party = d.webApp.Party(restController.pathPrefix)
 		}
 
-		afterMethod, ok := fieldType.MethodByName(afterMethod)
-		if ok {
+		if restController.after != nil {
 			hdl := newHandler(d.configurableFactory)
-			hdl.parse("", afterMethod, controller, "")
+			hdl.parse("", restController.after.method, restController.controller, "")
 			party.Done(Handler(func(c context.Context) {
 				hdl.call(c)
 			}))
 		}
 
-		for mi := 0; mi < numOfMethod; mi++ {
-			method := fieldType.Method(mi)
+		// bind method handlers with router
+		for _, m := range restController.methods{
+			method := m.method
 			methodName := method.Name
 			//log.Debug("method: ", methodName)
 
-			// TODO: move it into handler.parse()
-			reqMap = d.parseRequestMapping(controller, &method)
-			if !reqMap.customized {
-				ctxMap := camelcase.Split(methodName)
-				reqMap.Method = strings.ToUpper(ctxMap[0])
-				var apiPath string
-				if len(ctxMap) > 2 && ctxMap[1] == "By" {
-					for _, pathParam := range ctxMap[2:] {
-						lpp := strings.ToLower(pathParam)
-						apiPath = apiPath + pathSep + lpp + pathSep + "{" + lpp + "}"
-					}
-				} else {
-					apiPath = strings.Replace(methodName, ctxMap[0], "", 1)
-					apiPath = pathSep + str.LowerFirst(apiPath)
-				}
-				reqMap.Value = apiPath
-			}
-			if reqMap.Prefix == "" {
-				reqMap.Prefix = controllerPath
-			}
-
-			// apirequestMapping should add arguments
-			//log.Debug("requestMapping: ", apirequestMapping)
 			// check if it's valid http method
-			hasAnyMethod := reqMap.Method == Any
-			hasGenericMethod := str.InSlice(reqMap.Method, httpMethods)
-			foundMethod := hasAnyMethod || hasGenericMethod
+			hasAnyMethod := m.requestMapping.Method == Any
+			hasRegularMethod := str.InSlice(m.requestMapping.Method, httpMethods)
+			foundMethod := hasAnyMethod || hasRegularMethod
 			if foundMethod {
 				// parse all necessary requests and responses
 				// create new method parser here
 				hdl := newHandler(d.configurableFactory)
-				hdl.parse(reqMap.Method, method, controller, reqMap.Prefix+reqMap.Value)
-				methodHandler := Handler(func(c context.Context) {
+				hdl.parse(m.requestMapping.Method, m.method, restController.controller, restController.pathPrefix + m.requestMapping.Value)
+				hdlHttpMethod := Handler(func(c context.Context) {
 					hdl.call(c)
 					c.Next()
 				})
 
 				if hasAnyMethod {
-					party.Any(reqMap.Value, methodHandler)
-				} else if hasGenericMethod {
-					route := party.Handle(reqMap.Method, reqMap.Value, methodHandler)
-					route.MainHandlerName = fmt.Sprintf("%s/%s.%s", pkgPath, fieldName, methodName)
+					party.Any(m.requestMapping.Value, hdlHttpMethod)
+				} else if hasRegularMethod {
+					route := party.Handle(m.requestMapping.Method, m.requestMapping.Value, hdlHttpMethod)
+					route.MainHandlerName = fmt.Sprintf("%s/%s.%s", restController.pkgPath, restController.fieldName, methodName)
 				}
 			}
 		}

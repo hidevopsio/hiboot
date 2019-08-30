@@ -20,10 +20,24 @@ type Field struct{
 func GetField(object interface{}, att interface{}) (field *Field, ok bool) {
 	field = new(Field)
 	var structField reflect.StructField
+	atType := reflect.TypeOf(att)
+
+	switch object.(type) {
+	case []*Field:
+		fields := object.([]*Field)
+		for _, f := range fields {
+			if f.StructField.Type == atType {
+				field = f
+				ok = true
+				return
+			}
+		}
+	}
+
 	structField, ok = reflector.GetEmbeddedFieldType(object, att)
 	if ok {
 		fieldType := reflector.IndirectType(structField.Type)
-		if reflect.TypeOf(att) != reflect.TypeOf(at.Annotation{}) {
+		if atType != reflect.TypeOf(at.Annotation{}) {
 			_, ok = reflector.GetEmbeddedFieldByType(fieldType, at.Annotation{}, reflect.Struct)
 		}
 		if ok {
@@ -65,10 +79,10 @@ func GetFields(object interface{}) []*Field {
 	return fields
 }
 
-// FindContains is a function that find an annotation object.
-func Find(object interface{}, att interface{}) (fields []*Field) {
-	allFields := GetFields(object)
-	for _, f := range allFields {
+
+// Filter is a function that filter specific annotations.
+func Filter(input []*Field, att interface{}) (fields []*Field) {
+	for _, f := range input {
 		if f.Value.IsValid() {
 			ok := f.StructField.Type == reflect.TypeOf(att)
 			ok =  ok || reflector.HasEmbeddedFieldType(f.Value.Interface(), att)
@@ -77,6 +91,14 @@ func Find(object interface{}, att interface{}) (fields []*Field) {
 			}
 		}
 	}
+	return
+}
+
+
+// Find is a function that find specific annotation.
+func Find(object interface{}, att interface{}) (fields []*Field) {
+	allFields := GetFields(object)
+	fields = Filter(allFields, att)
 	return
 }
 

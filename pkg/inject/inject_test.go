@@ -698,6 +698,7 @@ func TestInjectAnnotation(t *testing.T) {
 		at.RequestMapping `value:"/parent/path"`
 		at.ApiResponse200 `value:"successfully get resource"`
 		at.ApiResponse404 `value:"resource is not found"`
+		at.BeforeMethod
 	}
 	annotations := annotation.GetFields(&att)
 	for _, a := range annotations {
@@ -713,4 +714,10 @@ func TestInjectAnnotation(t *testing.T) {
 	assert.Equal(t, "/parent/path", att.RequestMapping.Value)
 	assert.Equal(t, 200, att.ApiResponse200.Code)
 	assert.Equal(t, 404, att.ApiResponse404.Code)
+
+	t.Run("should find all annotations that inherit form at.HttpMethod{}", func(t *testing.T) {
+		found := annotation.Find(&struct{at.BeforeMethod}{}, at.HttpMethod{})
+		assert.Equal(t, 1, len(found))
+		assert.Equal(t, "BeforeMethod", found[0].StructField.Name)
+	})
 }

@@ -30,11 +30,13 @@ func TestController(t *testing.T) {
 	time.Sleep(time.Second)
 	testApp := web.NewTestApp(t, new(UserController), new(orgController)).SetProperty("server.context_path", "/router-example").Run(t)
 
-	t.Run("should pass test for user controller", func(t *testing.T) {
+	t.Run("should send post request to user", func(t *testing.T) {
 		testApp.Post("/router-example/user").
 			WithJSON(&UserRequest{UserVO: UserVO{Username: "John", Password: "password"}}).
 			Expect().Status(http.StatusOK)
+	})
 
+	t.Run("should pass test for user controller", func(t *testing.T) {
 		testApp.Delete("/router-example/user/123").
 			Expect().Status(http.StatusOK)
 

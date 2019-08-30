@@ -32,12 +32,27 @@ type ContextPath struct {
 
 // RequestMapping is the annotation that set the RequestMapping of a controller
 type RequestMapping struct {
-	Annotation
+	HttpMethod
 }
 
 // Method is the annotation that set the RequestMethod of a controller
 type Method struct {
 	Annotation
+}
+
+// HttpMethod is the annotation that the http method of a controller
+type HttpMethod struct {
+	Annotation
+}
+
+// BeforeMethod is the annotation that set the called before the http method of a controller
+type BeforeMethod struct {
+	HttpMethod
+}
+
+// AfterMethod is the annotation that set the called after the http method of a controller
+type AfterMethod struct {
+	HttpMethod
 }
 
 // GetMapping is the annotation that set the GetMapping of a controller

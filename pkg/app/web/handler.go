@@ -66,7 +66,7 @@ type response struct {
 
 type handler struct {
 	controller      interface{}
-	method          reflect.Method
+	method          *reflect.Method
 	path            string
 	ctlVal          reflect.Value
 	numIn           int
@@ -75,7 +75,6 @@ type handler struct {
 	requests        []request
 	responses       []response
 	lenOfPathParams int
-	hasCtxField     bool
 	factory         factory.ConfigurableFactory
 	runtimeInstance factory.Instance
 	contextName     string
@@ -120,7 +119,7 @@ func clean(in string) (out string) {
 	return
 }
 
-func (h *handler) parse(httpMethod string, method reflect.Method, object interface{}, path string) {
+func (h *handler) parse(httpMethod string, method *reflect.Method, object interface{}, path string) {
 	//log.Debug("NumIn: ", method.Type.NumIn())
 	h.controller = object
 	h.method = method
@@ -151,10 +150,10 @@ func (h *handler) parse(httpMethod string, method reflect.Method, object interfa
 	h.requests[0].typeName = objTyp.Name()
 	h.requests[0].typ = objTyp
 	h.requests[0].val = objVal
-	h.hasCtxField = reflector.HasEmbeddedFieldType(object, Controller{})
 
 	lenOfPathParams := len(h.pathParams)
 	pathIdx := lenOfPathParams
+	// parse request
 	for i := 1; i < h.numIn; i++ {
 		typ := method.Type.In(i)
 		iTyp := reflector.IndirectType(typ)
@@ -187,7 +186,7 @@ func (h *handler) parse(httpMethod string, method reflect.Method, object interfa
 		request := h.requests[i].iVal.Interface()
 		// TODO: use annotation.Contains(request, at.Annotation{}) instead, need to test more cases
 		// check if it's annotation at.RequestMapping
-		if annotation.Contains(request, at.RequestMapping{}) {
+		if annotation.Contains(request, at.HttpMethod{}) {
 			_ = h.factory.InjectIntoObject(request)
 			h.requests[i].iVal = reflect.ValueOf(request).Elem()
 			h.requests[i].isAnnotation = true
@@ -220,6 +219,7 @@ func (h *handler) parse(httpMethod string, method reflect.Method, object interfa
 	}
 	h.lenOfPathParams = lenOfPathParams
 
+	// parse response
 	h.responses = make([]response, h.numOut)
 	for i := 0; i < h.numOut; i++ {
 		typ := method.Type.Out(i)
@@ -319,7 +319,9 @@ func (h *handler) call(ctx context.Context) {
 		runtimeInstance, _ = h.factory.InjectContextAwareObjects(ctx, h.dependencies)
 	}
 	inputs := make([]reflect.Value, h.numIn)
-	inputs[0] = h.ctlVal
+	if h.numIn != 0 {
+		inputs[0] = h.ctlVal
+	}
 
 	lenOfPathParams := h.lenOfPathParams
 	for i := 1; i < h.numIn; i++ {
