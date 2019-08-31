@@ -78,8 +78,6 @@ func (c *employeeController) GetEmployee(at struct {
 	at.ApiResponse200 `value:"Successfully get an employee"`
 	at.ApiResponse404 `value:"The resource you were trying to reach is not found"`
 }, id int) (response *EmployeeResponse, err error) {
-	log.Debug("annotations: %v", at)
-
 	response = new(EmployeeResponse)
 	for _, e := range c.dummyData {
 		if id == e.Id {

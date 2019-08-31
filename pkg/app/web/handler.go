@@ -232,6 +232,13 @@ func (h *handler) parseMethod(httpMethod string, path string, restMethod *restMe
 			h.responses[i].isResponseBody = true
 		}
 	}
+
+	// check if configured annotation for starters
+	//for _, subscriber := range h.factory.GetInstances() {
+	//
+	//}
+
+	// finally, print mapped method
 	if path != "" {
 		log.Infof("Mapped %v \"%v\" onto %v.%v()", httpMethod, path, idv.Type(), method.Name)
 	}

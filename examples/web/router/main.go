@@ -167,10 +167,14 @@ func (c *orgController) GetWithPathVariable(at struct{ at.GetMapping `value:"/{i
 	return fmt.Sprintf("https://hidevops.io/%v/%v", id, name)
 }
 
+func init() {
+	app.Register(newUserController, newOrgController)
+}
+
 // Hiboot main function
 func main() {
 	// create new web application and run it
-	web.NewApplication(newUserController, newOrgController).
+	web.NewApplication().
 		SetProperty(app.ProfilesInclude, actuator.Profile).
 		Run()
 }

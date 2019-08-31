@@ -143,11 +143,11 @@ func (d *Dispatcher) getRestMethods(metaData *factory.MetaData) (restCtl *restCo
 
 	// get context mapping
 	var customizedControllerPath bool
-	controllerPath := d.ContextPath
+	pathPrefix := d.ContextPath
 	af, ok := annotation.GetField(controller, at.RequestMapping{})
 	if ok {
 		customizedControllerPath = true
-		controllerPath = filepath.Join(controllerPath, af.StructField.Tag.Get("value"))
+		pathPrefix = filepath.Join(pathPrefix, af.StructField.Tag.Get("value"))
 	}
 
 	// parse method
@@ -175,9 +175,9 @@ func (d *Dispatcher) getRestMethods(metaData *factory.MetaData) (restCtl *restCo
 		if contextPath == ContextPathRoot {
 			contextPath = ""
 		}
-		controllerPath = fmt.Sprintf("%v/%v", contextPath, cn)
+		pathPrefix = fmt.Sprintf("%v/%v", contextPath, cn)
 	}
-	restCtl.pathPrefix = controllerPath
+	restCtl.pathPrefix = pathPrefix
 	restCtl.name = fieldName
 
 	numOfMethod := field.NumMethod()
@@ -307,5 +307,5 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 			}
 		}
 	}
-	return nil
+	return
 }

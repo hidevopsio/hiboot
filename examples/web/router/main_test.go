@@ -22,13 +22,9 @@ import (
 	"time"
 )
 
-func TestRunMain(t *testing.T) {
-	go main()
-}
-
 func TestController(t *testing.T) {
 	time.Sleep(time.Second)
-	testApp := web.NewTestApp(t, new(UserController), new(orgController)).SetProperty("server.context_path", "/router-example").Run(t)
+	testApp := web.NewTestApp(t).SetProperty("server.context_path", "/router-example").Run(t)
 
 	t.Run("should send post request to user", func(t *testing.T) {
 		testApp.Post("/router-example/user").
