@@ -18,6 +18,11 @@ func TestController(t *testing.T) {
 			Body().Contains("123")
 	})
 
+	t.Run("should report 404 when employee does not exist", func(t *testing.T) {
+		testApp.Get("/employee/100").
+			Expect().Status(http.StatusNotFound)
+	})
+
 	t.Run("should list employee", func(t *testing.T) {
 		testApp.Get("/employee").
 			Expect().Status(http.StatusOK)

@@ -49,7 +49,7 @@ type request struct {
 	genKind      reflect.Kind // e.g. convert int16 to int
 	typ          reflect.Type
 	iTyp         reflect.Type
-	val          reflect.Value
+	//val          reflect.Value
 	iVal         reflect.Value
 	pathIdx      int
 	callback     func(ctx context.Context, data interface{}) error
@@ -119,7 +119,7 @@ func clean(in string) (out string) {
 	return
 }
 
-func (h *handler) parse(httpMethod string, path string, restMethod *restMethod, object interface{}) {
+func (h *handler) parseMethod(httpMethod string, path string, restMethod *restMethod, object interface{}) {
 	//log.Debug("NumIn: ", method.Type.NumIn())
 	method := restMethod.method
 	h.controller = object
@@ -150,7 +150,7 @@ func (h *handler) parse(httpMethod string, path string, restMethod *restMethod, 
 	objTyp := idv.Type()
 	h.requests[0].typeName = objTyp.Name()
 	h.requests[0].typ = objTyp
-	h.requests[0].val = objVal
+	//h.requests[0].val = objVal
 
 	lenOfPathParams := len(h.pathParams)
 	pathIdx := lenOfPathParams
@@ -177,7 +177,7 @@ func (h *handler) parse(httpMethod string, path string, restMethod *restMethod, 
 		} else {
 			h.requests[i].kind = iTyp.Kind()
 		}
-		h.requests[i].val = reflect.New(typ)
+		//h.requests[i].val = reflect.New(typ)
 		h.requests[i].iVal = reflect.New(iTyp)
 		h.requests[i].typeName = iTyp.Name()
 		h.requests[i].genKind = reflector.GetKindByValue(h.requests[i].iVal) // TODO:
@@ -188,8 +188,7 @@ func (h *handler) parse(httpMethod string, path string, restMethod *restMethod, 
 		// TODO: use annotation.Contains(request, at.Annotation{}) instead, need to test more cases
 		// check if it's annotation at.RequestMapping
 		if annotation.Contains(request, at.HttpMethod{}) {
-			_ = h.factory.InjectIntoObject(request)
-			h.requests[i].iVal = reflect.ValueOf(request).Elem()
+			h.requests[i].iVal = restMethod.annotation.value.Elem() //reflect.ValueOf(request).Elem()
 			h.requests[i].isAnnotation = true
 			continue
 		}

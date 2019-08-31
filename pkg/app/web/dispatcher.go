@@ -66,11 +66,10 @@ type requestMapping struct {
 }
 
 type restMethod struct {
-	method *reflect.Method
-	annotationFieldIndex int
-	annotations []*annotation.Field
-	hasMethodAnnotation bool
-	requestMapping *requestMapping
+	method               *reflect.Method
+	annotation           *methodAnnotation
+	hasMethodAnnotation  bool
+	requestMapping       *requestMapping
 }
 
 type restController struct {
@@ -81,6 +80,13 @@ type restController struct {
 	before *restMethod
 	after *restMethod
 	methods []*restMethod
+}
+
+type methodAnnotation struct {
+	index int
+	fields []*annotation.Field
+	object interface{}
+	value  reflect.Value
 }
 
 func newDispatcher(webApp *webApp, configurableFactory factory.ConfigurableFactory) *Dispatcher {
@@ -96,21 +102,20 @@ func init() {
 }
 
 
-func (d *Dispatcher) getAnnotations(object interface{}, method *reflect.Method) (idx int, annotations []*annotation.Field) {
+func (d *Dispatcher) parseAnnotation(object interface{}, method *reflect.Method) (ma *methodAnnotation) {
+	ma = new(methodAnnotation)
 	numIn := method.Type.NumIn()
 	inputs := make([]reflect.Value, numIn)
 	inputs[0] = reflect.ValueOf(object)
 	for n := 1; n < numIn; n++ {
 		typ := method.Type.In(n)
-		log.Debugf("type: %v", typ)
-		log.Debugf("type pkgPath: %v", typ.PkgPath())
-		log.Debugf("type kind: %v", typ.Kind())
 		if typ.Name() == "" && typ.Kind() == reflect.Struct {
-			o := reflect.New(typ).Interface()
-			annotations = annotation.GetFields(o)
-			idx = n
-			if len(annotations) != 0 {
-				_ = d.configurableFactory.InjectIntoObject(o)
+			ma.value = reflect.New(typ)
+			ma.object = ma.value.Interface()
+			ma.fields = annotation.GetFields(ma.object)
+			ma.index = n
+			if len(ma.fields) != 0 {
+				_ = d.configurableFactory.InjectIntoObject(ma.object)
 				break
 			}
 		}
@@ -199,11 +204,9 @@ func (d *Dispatcher) getRestMethods(metaData *factory.MetaData) (restCtl *restCo
 
 		method := fieldType.Method(mi)
 		methodName := method.Name
-		idx, annotations := d.getAnnotations(controller, &method)
-		restMethod.annotations = annotations
-		restMethod.annotationFieldIndex = idx
+		restMethod.annotation = d.parseAnnotation(controller, &method)
 		restMethod.method = &method
-		httpMethodAnnotation := annotation.Filter(annotations, at.HttpMethod{})
+		httpMethodAnnotation := annotation.Filter(restMethod.annotation.fields, at.HttpMethod{})
 		restMethod.hasMethodAnnotation = len(httpMethodAnnotation) > 0
 
 		reqMap := new(requestMapping)
@@ -212,13 +215,13 @@ func (d *Dispatcher) getRestMethods(metaData *factory.MetaData) (restCtl *restCo
 			_ = copier.Copy(reqMap, httpMethodAnnotation[0].Value.Interface())
 		}
 
-		beforeMethod := annotation.Filter(annotations, at.BeforeMethod{})
+		beforeMethod := annotation.Filter(restMethod.annotation.fields, at.BeforeMethod{})
 		if len(beforeMethod) > 0 {
 			restMethod.method = &method
 			restCtl.before = restMethod
 			continue
 		}
-		afterMethod := annotation.Filter(annotations, at.AfterMethod{})
+		afterMethod := annotation.Filter(restMethod.annotation.fields, at.AfterMethod{})
 		if len(afterMethod) > 0 {
 			restMethod.method = &method
 			restCtl.after = restMethod
@@ -258,7 +261,7 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 		if restController.before != nil {
 			m := restController.before
 			hdl := newHandler(d.configurableFactory)
-			hdl.parse("", "", m, restController.controller)
+			hdl.parseMethod("", "", m, restController.controller)
 			party = d.webApp.Party(restController.pathPrefix, Handler(func(c context.Context) {
 				hdl.call(c)
 			}))
@@ -269,7 +272,7 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 		if restController.after != nil {
 			m := restController.after
 			hdl := newHandler(d.configurableFactory)
-			hdl.parse("", "", m, restController.controller)
+			hdl.parseMethod("", "", m, restController.controller)
 			party.Done(Handler(func(c context.Context) {
 				hdl.call(c)
 			}))
@@ -289,7 +292,7 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 				// parse all necessary requests and responses
 				// create new method parser here
 				hdl := newHandler(d.configurableFactory)
-				hdl.parse(m.requestMapping.Method, restController.pathPrefix+m.requestMapping.Value, m, restController.controller)
+				hdl.parseMethod(m.requestMapping.Method, restController.pathPrefix+m.requestMapping.Value, m, restController.controller)
 				hdlHttpMethod := Handler(func(c context.Context) {
 					hdl.call(c)
 					c.Next()
