@@ -259,9 +259,7 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 
 		var party iris.Party
 		if restController.before != nil {
-			m := restController.before
-			hdl := newHandler(d.configurableFactory)
-			hdl.parseMethod("", "", m, restController.controller)
+			hdl := newHandler(d.configurableFactory, restController, restController.before)
 			party = d.webApp.Party(restController.pathPrefix, Handler(func(c context.Context) {
 				hdl.call(c)
 			}))
@@ -270,9 +268,7 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 		}
 
 		if restController.after != nil {
-			m := restController.after
-			hdl := newHandler(d.configurableFactory)
-			hdl.parseMethod("", "", m, restController.controller)
+			hdl := newHandler(d.configurableFactory, restController, restController.after)
 			party.Done(Handler(func(c context.Context) {
 				hdl.call(c)
 			}))
@@ -291,8 +287,7 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 			if foundMethod {
 				// parse all necessary requests and responses
 				// create new method parser here
-				hdl := newHandler(d.configurableFactory)
-				hdl.parseMethod(m.requestMapping.Method, restController.pathPrefix+m.requestMapping.Value, m, restController.controller)
+				hdl := newHandler(d.configurableFactory, restController, m)
 				hdlHttpMethod := Handler(func(c context.Context) {
 					hdl.call(c)
 					c.Next()

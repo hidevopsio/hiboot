@@ -71,7 +71,7 @@ type handler struct {
 	ctlVal          reflect.Value
 	numIn           int
 	numOut          int
-	pathParams      []string
+	pathVariable    []string
 	requests        []request
 	responses       []response
 	lenOfPathParams int
@@ -79,6 +79,9 @@ type handler struct {
 	runtimeInstance factory.Instance
 	contextName     string
 	dependencies    []*factory.MetaData
+
+	restController *restController
+	restMethod *restMethod
 }
 
 type requestSet struct {
@@ -100,11 +103,16 @@ func init() {
 	}
 }
 
-func newHandler(factory factory.ConfigurableFactory) *handler {
-	return &handler{
+func newHandler(factory factory.ConfigurableFactory, restController *restController, restMethod *restMethod) *handler {
+	hdl := &handler{
 		contextName: reflector.GetLowerCamelFullName(new(context.Context)),
 		factory:     factory,
+		restController: restController,
+		restMethod: restMethod,
 	}
+
+	hdl.parseMethod(restController, restMethod)
+	return hdl
 }
 
 func clean(in string) (out string) {
@@ -119,17 +127,20 @@ func clean(in string) (out string) {
 	return
 }
 
-func (h *handler) parseMethod(httpMethod string, path string, restMethod *restMethod, object interface{}) {
+func (h *handler) parseMethod(restController *restController, restMethod *restMethod) {
 	//log.Debug("NumIn: ", method.Type.NumIn())
 	method := restMethod.method
-	h.controller = object
+	path := ""
+	if restMethod.requestMapping != nil && restMethod.requestMapping.Value != "" {
+		path = restController.pathPrefix + restMethod.requestMapping.Value
+	}
+	h.controller = restController.controller
 	h.method = method
 	h.numIn = method.Type.NumIn()
 	h.numOut = method.Type.NumOut()
 	//h.inputs = make([]reflect.Value, h.numIn)
-	h.ctlVal = reflect.ValueOf(object)
-
-	//log.Debugf("method: %v", method.Name)
+	ctlVal := reflect.ValueOf(h.controller)
+	h.ctlVal = ctlVal
 
 	// TODO: should parse all of below request and response during router register to improve performance
 	path = clean(path)
@@ -138,21 +149,21 @@ func (h *handler) parseMethod(httpMethod string, path string, restMethod *restMe
 	pps := strings.SplitN(path, "/", -1)
 	//log.Debug(pps)
 	pp := replacer.ParseVariables(path, compiledRegExp)
-	h.pathParams = make([]string, len(pp))
+	h.pathVariable = make([]string, len(pp))
 	for i, pathParam := range pp {
 		//log.Debugf("pathParm: %v", pathParam[1])
-		h.pathParams[i] = pathParam[1]
+		h.pathVariable[i] = pathParam[1]
 	}
 
 	h.requests = make([]request, h.numIn)
-	objVal := reflect.ValueOf(object)
-	idv := reflect.Indirect(objVal)
+
+	idv := reflect.Indirect(ctlVal)
 	objTyp := idv.Type()
 	h.requests[0].typeName = objTyp.Name()
 	h.requests[0].typ = objTyp
 	//h.requests[0].val = objVal
 
-	lenOfPathParams := len(h.pathParams)
+	lenOfPathParams := len(h.pathVariable)
 	pathIdx := lenOfPathParams
 	// parse request
 	for i := 1; i < h.numIn; i++ {
@@ -240,7 +251,7 @@ func (h *handler) parseMethod(httpMethod string, path string, restMethod *restMe
 
 	// finally, print mapped method
 	if path != "" {
-		log.Infof("Mapped %v \"%v\" onto %v.%v()", httpMethod, path, idv.Type(), method.Name)
+		log.Infof("Mapped %v \"%v\" onto %v.%v()", restMethod.requestMapping.Method, path, idv.Type(), method.Name)
 	}
 }
 

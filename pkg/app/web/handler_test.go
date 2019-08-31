@@ -31,8 +31,8 @@ type fooController struct {
 	Controller
 }
 
-// PutByIdentityNameAge PUT /foo/{identity}/{name}/{age}
-func (c *fooController) PutByIdentityNameAge(id int, name string, age int) error {
+// PutByIdNameAge PUT /foo/{id}/{name}/{age}
+func (c *fooController) PutByIdNameAge(id int, name string, age int) error {
 	log.Debugf("FooController.Put %v %v %v", id, name, age)
 	return nil
 }
@@ -46,23 +46,34 @@ func (f *fakeFactory) GetInstance(params ...interface{}) (retVal interface{}) {
 }
 
 func TestParse(t *testing.T) {
+	restCtl := new(restController)
+	restCtl.controller = new(fooController)
+	ctrlVal := reflect.ValueOf(restCtl.controller)
+	method, ok := ctrlVal.Type().MethodByName("PutByIdNameAge")
+	assert.Equal(t, true, ok)
+	restMethod := &restMethod{
+		requestMapping: &requestMapping{
+			Method: "GET",
+			Value:  "/foo/{id}/{name}/{age}",
+		},
+		method: &method,
+	}
+	hdl := newHandler(new(fakeFactory), restCtl, restMethod)
 
-	hdl := newHandler(new(fakeFactory))
-
-	controller := new(fooController)
-	ctrlVal := reflect.ValueOf(controller)
-
-	t.Run("should parse method with path params", func(t *testing.T) {
-		method, ok := ctrlVal.Type().MethodByName("PutByIdentityNameAge")
-		restMethod := &restMethod{method: &method}
-		assert.Equal(t, true, ok)
-		hdl.parseMethod("PUT", "/foo/{identity}/{name}/{age}", restMethod, controller)
+	t.Run("should parse method with path variable", func(t *testing.T) {
 		log.Debug(hdl)
-		assert.Equal(t, 3, len(hdl.pathParams))
+		assert.Equal(t, 3, len(hdl.pathVariable))
 		assert.Equal(t, "fooController", hdl.requests[0].typeName)
 		assert.Equal(t, "int", hdl.requests[1].typeName)
 		assert.Equal(t, "string", hdl.requests[2].typeName)
 		assert.Equal(t, "int", hdl.requests[3].typeName)
+	})
+	t.Run("should return ErrCanNotInterface for private field", func(t *testing.T) {
+		type hello struct {
+			world string
+		}
+		err := hdl.responseData(NewContext(iris.New()), 1, []reflect.Value{reflect.ValueOf(&hello{}).Elem().Field(0)})
+		assert.Equal(t, ErrCanNotInterface, err)
 	})
 
 	t.Run("should clean path", func(t *testing.T) {
@@ -80,11 +91,5 @@ func TestParse(t *testing.T) {
 		assert.Equal(t, "/", p)
 	})
 
-	t.Run("should return ErrCanNotInterface for private field", func(t *testing.T) {
-		type hello struct {
-			world string
-		}
-		err := hdl.responseData(NewContext(iris.New()), 1, []reflect.Value{reflect.ValueOf(&hello{}).Elem().Field(0)})
-		assert.Equal(t, ErrCanNotInterface, err)
-	})
+
 }
