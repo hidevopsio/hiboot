@@ -44,5 +44,5 @@ func (p *postProcessor) AfterInitialization() {
 	p.applicationContext.Use(p.jwtMiddleware.Serve)
 
 	// finally register jwt controllers
-	p.applicationContext.RegisterController(new(at.JwtRestController))
+	_ = p.applicationContext.RegisterController(at.JwtRestController{})
 }

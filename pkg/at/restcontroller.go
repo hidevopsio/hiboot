@@ -22,7 +22,7 @@ type RestController struct {
 
 // JwtRestController is the annotation that declare current controller is the RESTful Controller with JWT support
 type JwtRestController struct {
-	Annotation
+	RestController
 }
 
 // ContextPath is the annotation that set the context path of a controller
