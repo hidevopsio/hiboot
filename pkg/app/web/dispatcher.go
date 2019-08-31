@@ -67,6 +67,7 @@ type requestMapping struct {
 
 type restMethod struct {
 	method *reflect.Method
+	annotationFieldIndex int
 	annotations []*annotation.Field
 	hasMethodAnnotation bool
 	requestMapping *requestMapping
@@ -74,7 +75,7 @@ type restMethod struct {
 
 type restController struct {
 	controller interface{}
-	fieldName string
+	name string
 	pkgPath string
 	pathPrefix string
 	before *restMethod
@@ -95,29 +96,7 @@ func init() {
 }
 
 
-func (d *Dispatcher) parseRequestMapping(object interface{}, method *reflect.Method) (reqMap *requestMapping) {
-	//reflector.
-	reqMap = new(requestMapping)
-	numIn := method.Type.NumIn()
-	inputs := make([]reflect.Value, numIn)
-	inputs[0] = reflect.ValueOf(object)
-	for n := 1; n < numIn; n++ {
-		typ := method.Type.In(n)
-		o := reflect.New(typ).Interface()
-		annotations := annotation.Find(o, at.HttpMethod{})
-		if len(annotations) != 0 {
-			err := d.configurableFactory.InjectIntoObject(o)
-			if err == nil {
-				_ = copier.Copy(reqMap, annotations[0].Value.Interface())
-				break
-			}
-		}
-	}
-	return
-}
-
-
-func (d *Dispatcher) getAnnotations(object interface{}, method *reflect.Method) (annotations []*annotation.Field) {
+func (d *Dispatcher) getAnnotations(object interface{}, method *reflect.Method) (idx int, annotations []*annotation.Field) {
 	numIn := method.Type.NumIn()
 	inputs := make([]reflect.Value, numIn)
 	inputs[0] = reflect.ValueOf(object)
@@ -129,6 +108,7 @@ func (d *Dispatcher) getAnnotations(object interface{}, method *reflect.Method) 
 		if typ.Name() == "" && typ.Kind() == reflect.Struct {
 			o := reflect.New(typ).Interface()
 			annotations = annotation.GetFields(o)
+			idx = n
 			if len(annotations) != 0 {
 				_ = d.configurableFactory.InjectIntoObject(o)
 				break
@@ -193,7 +173,7 @@ func (d *Dispatcher) getRestMethods(metaData *factory.MetaData) (restCtl *restCo
 		controllerPath = fmt.Sprintf("%v/%v", contextPath, cn)
 	}
 	restCtl.pathPrefix = controllerPath
-	restCtl.fieldName = fieldName
+	restCtl.name = fieldName
 
 	numOfMethod := field.NumMethod()
 	//log.Debug("methods: ", numOfMethod)
@@ -219,8 +199,9 @@ func (d *Dispatcher) getRestMethods(metaData *factory.MetaData) (restCtl *restCo
 
 		method := fieldType.Method(mi)
 		methodName := method.Name
-		annotations := d.getAnnotations(controller, &method)
+		idx, annotations := d.getAnnotations(controller, &method)
 		restMethod.annotations = annotations
+		restMethod.annotationFieldIndex = idx
 		restMethod.method = &method
 		httpMethodAnnotation := annotation.Filter(annotations, at.HttpMethod{})
 		restMethod.hasMethodAnnotation = len(httpMethodAnnotation) > 0
@@ -275,8 +256,9 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 
 		var party iris.Party
 		if restController.before != nil {
+			m := restController.before
 			hdl := newHandler(d.configurableFactory)
-			hdl.parse("", restController.before.method, restController.controller, "")
+			hdl.parse("", "", m, restController.controller)
 			party = d.webApp.Party(restController.pathPrefix, Handler(func(c context.Context) {
 				hdl.call(c)
 			}))
@@ -285,8 +267,9 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 		}
 
 		if restController.after != nil {
+			m := restController.after
 			hdl := newHandler(d.configurableFactory)
-			hdl.parse("", restController.after.method, restController.controller, "")
+			hdl.parse("", "", m, restController.controller)
 			party.Done(Handler(func(c context.Context) {
 				hdl.call(c)
 			}))
@@ -306,7 +289,7 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 				// parse all necessary requests and responses
 				// create new method parser here
 				hdl := newHandler(d.configurableFactory)
-				hdl.parse(m.requestMapping.Method, m.method, restController.controller, restController.pathPrefix + m.requestMapping.Value)
+				hdl.parse(m.requestMapping.Method, restController.pathPrefix+m.requestMapping.Value, m, restController.controller)
 				hdlHttpMethod := Handler(func(c context.Context) {
 					hdl.call(c)
 					c.Next()
@@ -316,7 +299,7 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 					party.Any(m.requestMapping.Value, hdlHttpMethod)
 				} else if hasRegularMethod {
 					route := party.Handle(m.requestMapping.Method, m.requestMapping.Value, hdlHttpMethod)
-					route.MainHandlerName = fmt.Sprintf("%s/%s.%s", restController.pkgPath, restController.fieldName, methodName)
+					route.MainHandlerName = fmt.Sprintf("%s/%s.%s", restController.pkgPath, restController.name, methodName)
 				}
 			}
 		}

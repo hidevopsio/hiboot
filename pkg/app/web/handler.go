@@ -119,8 +119,9 @@ func clean(in string) (out string) {
 	return
 }
 
-func (h *handler) parse(httpMethod string, method *reflect.Method, object interface{}, path string) {
+func (h *handler) parse(httpMethod string, path string, restMethod *restMethod, object interface{}) {
 	//log.Debug("NumIn: ", method.Type.NumIn())
+	method := restMethod.method
 	h.controller = object
 	h.method = method
 	h.numIn = method.Type.NumIn()

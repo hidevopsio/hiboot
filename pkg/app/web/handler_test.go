@@ -54,8 +54,9 @@ func TestParse(t *testing.T) {
 
 	t.Run("should parse method with path params", func(t *testing.T) {
 		method, ok := ctrlVal.Type().MethodByName("PutByIdentityNameAge")
+		restMethod := &restMethod{method: &method}
 		assert.Equal(t, true, ok)
-		hdl.parse("PUT", &method, controller, "/foo/{identity}/{name}/{age}")
+		hdl.parse("PUT", "/foo/{identity}/{name}/{age}", restMethod, controller)
 		log.Debug(hdl)
 		assert.Equal(t, 3, len(hdl.pathParams))
 		assert.Equal(t, "fooController", hdl.requests[0].typeName)

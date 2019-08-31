@@ -10,7 +10,7 @@ import (
 
 func TestController(t *testing.T) {
 	time.Sleep(time.Second)
-	testApp := web.NewTestApp(t, newEmployeeController).Run(t)
+	testApp := web.NewTestApp(t).Run(t)
 
 	t.Run("should get employee ", func(t *testing.T) {
 		testApp.Get("/employee/123").
