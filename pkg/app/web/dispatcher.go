@@ -244,11 +244,18 @@ func (d *Dispatcher) getRestMethods(metaData *factory.MetaData) (restCtl *restCo
 			reqMap.Value = apiPath
 		}
 		restMethod.requestMapping = reqMap
-		methods = append(methods, restMethod)
+
+		hasAnyMethod := reqMap.Method == Any
+		hasRegularMethod := str.InSlice(reqMap.Method, httpMethods)
+		foundMethod := hasAnyMethod || hasRegularMethod
+		if foundMethod {
+			methods = append(methods, restMethod)
+		}
 	}
 	restCtl.methods = methods
 	return
 }
+
 
 //TODO: scan apis and params to generate swagger api automatically by include swagger starter
 func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
@@ -274,33 +281,24 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 			}))
 		}
 
-		// bind method handlers with router
+		// bind regular http method handlers with router
 		for _, m := range restController.methods{
-			method := m.method
-			methodName := method.Name
-			//log.Debug("method: ", methodName)
-
-			// check if it's valid http method
-			hasAnyMethod := m.requestMapping.Method == Any
-			hasRegularMethod := str.InSlice(m.requestMapping.Method, httpMethods)
-			foundMethod := hasAnyMethod || hasRegularMethod
-			if foundMethod {
-				// parse all necessary requests and responses
-				// create new method parser here
-				hdl := newHandler(d.configurableFactory, restController, m)
-				hdlHttpMethod := Handler(func(c context.Context) {
-					hdl.call(c)
-					c.Next()
-				})
-
-				if hasAnyMethod {
-					party.Any(m.requestMapping.Value, hdlHttpMethod)
-				} else if hasRegularMethod {
-					route := party.Handle(m.requestMapping.Method, m.requestMapping.Value, hdlHttpMethod)
-					route.MainHandlerName = fmt.Sprintf("%s/%s.%s", restController.pkgPath, restController.name, methodName)
-				}
-			}
+			hdl := newHandler(d.configurableFactory, restController, m)
+			httpHandler := Handler(func(c context.Context) {
+				hdl.call(c)
+				c.Next()
+			})
+			d.handle(party, m, restController, httpHandler)
 		}
 	}
 	return
+}
+
+func (d *Dispatcher) handle(party iris.Party, m *restMethod, restController *restController, httpHandler iris.Handler) {
+	if m.requestMapping.Method == Any {
+		party.Any(m.requestMapping.Value, httpHandler)
+	} else {
+		route := party.Handle(m.requestMapping.Method, m.requestMapping.Value, httpHandler)
+		route.MainHandlerName = fmt.Sprintf("%s/%s.%s", restController.pkgPath, restController.name, m.method.Name)
+	}
 }
