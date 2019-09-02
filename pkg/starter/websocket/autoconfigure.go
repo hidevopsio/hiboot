@@ -79,6 +79,7 @@ func (c *configuration) Server() *Server {
 // Connection websocket connection for runtime dependency injection
 func (c *configuration) Connection(ctx context.Context, server *Server) *Connection {
 	conn := newConnection(server.Upgrade(ctx))
+	conn.SetValue("context", ctx)
 	return conn
 }
 

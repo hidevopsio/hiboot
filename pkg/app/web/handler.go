@@ -65,10 +65,10 @@ type response struct {
 }
 
 type handler struct {
-	controller      interface{}
+	object          interface{}
 	method          *reflect.Method
 	path            string
-	ctlVal          reflect.Value
+	objVal          reflect.Value
 	numIn           int
 	numOut          int
 	pathVariable    []string
@@ -80,8 +80,8 @@ type handler struct {
 	contextName     string
 	dependencies    []*factory.MetaData
 
-	restController *restController
-	restMethod *restMethod
+	injectableObject *injectableObject
+	restMethod       *injectableMethod
 }
 
 type requestSet struct {
@@ -103,15 +103,15 @@ func init() {
 	}
 }
 
-func newHandler(factory factory.ConfigurableFactory, restController *restController, restMethod *restMethod) *handler {
+func newHandler(factory factory.ConfigurableFactory, injectableObject *injectableObject, restMethod *injectableMethod, atType interface{}) *handler {
 	hdl := &handler{
-		contextName: reflector.GetLowerCamelFullName(new(context.Context)),
-		factory:     factory,
-		restController: restController,
-		restMethod: restMethod,
+		contextName:      reflector.GetLowerCamelFullName(new(context.Context)),
+		factory:          factory,
+		injectableObject: injectableObject,
+		restMethod:       restMethod,
 	}
 
-	hdl.parseMethod(restController, restMethod)
+	hdl.parseMethod(injectableObject, restMethod, atType)
 	return hdl
 }
 
@@ -127,20 +127,20 @@ func clean(in string) (out string) {
 	return
 }
 
-func (h *handler) parseMethod(restController *restController, restMethod *restMethod) {
+func (h *handler) parseMethod(injectableObject *injectableObject, injectableMethod *injectableMethod, atType interface{}) {
 	//log.Debug("NumIn: ", method.Type.NumIn())
-	method := restMethod.method
+	method := injectableMethod.method
 	path := ""
-	if restMethod.requestMapping != nil && restMethod.requestMapping.Value != "" {
-		path = restController.pathPrefix + restMethod.requestMapping.Value
+	if injectableMethod.requestMapping != nil && injectableMethod.requestMapping.Value != "" {
+		path = injectableObject.pathPrefix + injectableMethod.requestMapping.Value
 	}
-	h.controller = restController.controller
+	h.object = injectableObject.object
 	h.method = method
 	h.numIn = method.Type.NumIn()
 	h.numOut = method.Type.NumOut()
 	//h.inputs = make([]reflect.Value, h.numIn)
-	ctlVal := reflect.ValueOf(h.controller)
-	h.ctlVal = ctlVal
+	objVal := reflect.ValueOf(h.object)
+	h.objVal = objVal
 
 	// TODO: should parse all of below request and response during router register to improve performance
 	path = clean(path)
@@ -157,7 +157,7 @@ func (h *handler) parseMethod(restController *restController, restMethod *restMe
 
 	h.requests = make([]request, h.numIn)
 
-	idv := reflect.Indirect(ctlVal)
+	idv := reflect.Indirect(objVal)
 	objTyp := idv.Type()
 	h.requests[0].typeName = objTyp.Name()
 	h.requests[0].typ = objTyp
@@ -198,8 +198,8 @@ func (h *handler) parseMethod(restController *restController, restMethod *restMe
 		request := h.requests[i].iVal.Interface()
 		// TODO: use annotation.Contains(request, at.Annotation{}) instead, need to test more cases
 		// check if it's annotation at.RequestMapping
-		if annotation.Contains(request, at.HttpMethod{}) {
-			h.requests[i].iVal = restMethod.annotation.value.Elem() //reflect.ValueOf(request).Elem()
+		if annotation.Contains(request, atType) {
+			h.requests[i].iVal = injectableMethod.annotation.value.Elem() //reflect.ValueOf(request).Elem()
 			h.requests[i].isAnnotation = true
 			continue
 		}
@@ -251,15 +251,15 @@ func (h *handler) parseMethod(restController *restController, restMethod *restMe
 
 	// finally, print mapped method
 	if path != "" {
-		log.Infof("Mapped %v \"%v\" onto %v.%v()", restMethod.requestMapping.Method, path, idv.Type(), method.Name)
+		log.Infof("Mapped %v \"%v\" onto %v.%v()", injectableMethod.requestMapping.Method, path, idv.Type(), method.Name)
 	}
 }
 
 func (h *handler) responseData(ctx context.Context, numOut int, results []reflect.Value) (err error) {
-	if numOut == 0 {
-		ctx.StatusCode(http.StatusOK)
-		return
-	}
+	//if numOut == 0 {
+	//	ctx.StatusCode(http.StatusOK)
+	//	return
+	//}
 
 	result := results[0]
 	if !result.CanInterface() {
@@ -321,7 +321,7 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 
 func (h *handler) call(ctx context.Context) {
 
-	var request interface{}
+	var input interface{}
 	var reqErr error
 	var path string
 	var pvs []string
@@ -338,22 +338,22 @@ func (h *handler) call(ctx context.Context) {
 	}
 	inputs := make([]reflect.Value, h.numIn)
 	if h.numIn != 0 {
-		inputs[0] = h.ctlVal
+		inputs[0] = h.objVal
 	}
 
 	lenOfPathParams := h.lenOfPathParams
 	for i := 1; i < h.numIn; i++ {
 		req := h.requests[i]
-		request = reflect.New(req.iTyp).Interface()
+		input = reflect.New(req.iTyp).Interface()
 
 		// inject params
 		if req.callback != nil {
-			h.factory.InjectDefaultValue(request) // support default value injection for request body/params/form
-			reqErr = req.callback(ctx, request)
-			inputs[i] = reflect.ValueOf(request)
+			_ = h.factory.InjectDefaultValue(input) // support default value injection for request body/params/form
+			reqErr = req.callback(ctx, input)
+			inputs[i] = reflect.ValueOf(input)
 		} else if req.kind == reflect.Interface && model.Context == req.typeName {
-			request = ctx
-			inputs[i] = reflect.ValueOf(request)
+			input = ctx
+			inputs[i] = reflect.ValueOf(input)
 		} else if lenOfPathParams != 0 && !req.isAnnotation {
 			// allow inject other dependencies after number of lenOfPathParams
 			lenOfPathParams = lenOfPathParams - 1
@@ -386,7 +386,8 @@ func (h *handler) call(ctx context.Context) {
 	if reqErr == nil {
 		// call controller method
 		results = h.method.Func.Call(inputs)
-
-		h.responseData(ctx, h.numOut, results)
+		if h.numOut > 0 {
+			_ = h.responseData(ctx, h.numOut, results)
+		}
 	}
 }

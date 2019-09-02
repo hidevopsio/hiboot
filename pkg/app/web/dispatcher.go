@@ -48,42 +48,47 @@ const (
 	Any             = "ANY"
 	RequestMapping  = "RequestMapping"
 	ContextPathRoot = "/"
-	UrlSep			= "/"
-
+	UrlSep          = "/"
 )
+
 type Dispatcher struct {
 	webApp *webApp
 	// inject context aware dependencies
 	configurableFactory factory.ConfigurableFactory
 
-	ContextPath string `value:"${server.context_path:/}"`
+	ContextPath       string `value:"${server.context_path:/}"`
 	ContextPathFormat string `value:"${server.context_path_format}" `
 }
 
 type requestMapping struct {
-	Method     string
-	Value      string
+	Method string
+	Value  string
 }
 
-type restMethod struct {
-	method               *reflect.Method
-	annotation           *methodAnnotation
-	hasMethodAnnotation  bool
+type injectableMethod struct {
+	method              *reflect.Method
+	annotation          *methodAnnotation
+	handler             iris.Handler
+	hasMethodAnnotation bool
 	requestMapping       *requestMapping
 }
 
-type restController struct {
-	controller interface{}
-	name string
-	pkgPath string
+type middlewareHandler struct {
+	annotation *methodAnnotation
+}
+
+type injectableObject struct {
+	object     interface{}
+	name       string
+	pkgPath    string
 	pathPrefix string
-	before *restMethod
-	after *restMethod
-	methods []*restMethod
+	before     *injectableMethod
+	after      *injectableMethod
+	methods    []*injectableMethod
 }
 
 type methodAnnotation struct {
-	index int
+	index  int
 	fields []*annotation.Field
 	object interface{}
 	value  reflect.Value
@@ -101,7 +106,6 @@ func init() {
 	app.Register(newDispatcher)
 }
 
-
 func (d *Dispatcher) parseAnnotation(object interface{}, method *reflect.Method) (ma *methodAnnotation) {
 	ma = new(methodAnnotation)
 	numIn := method.Type.NumIn()
@@ -116,6 +120,7 @@ func (d *Dispatcher) parseAnnotation(object interface{}, method *reflect.Method)
 			ma.index = n
 			if len(ma.fields) != 0 {
 				_ = d.configurableFactory.InjectIntoObject(ma.object)
+				log.Debug(ma.object)
 				break
 			}
 		}
@@ -123,22 +128,49 @@ func (d *Dispatcher) parseAnnotation(object interface{}, method *reflect.Method)
 	return
 }
 
-func (d *Dispatcher) getRestMethods(metaData *factory.MetaData) (restCtl *restController) {
+// TODO: controller method handler, middleware handler, and event handler, they all use the same way to achieve handler dispatch.
+func (d *Dispatcher) parseMiddleware(m *factory.MetaData) (middleware *injectableObject) {
+	middleware = new(injectableObject)
 
-	restCtl = new(restController)
+	mwi := reflect.ValueOf(m.Instance)
+	middleware.object = mwi.Interface()
+	mwType := mwi.Type()
+	numOfMethod := mwi.NumMethod()
+	for mi := 0; mi < numOfMethod; mi++ {
+		methodHandler := new(injectableMethod)
+		method := mwType.Method(mi)
+		methodHandler.method = &method
+		ma := d.parseAnnotation(mi, &method)
+		methodHandler.annotation = ma
+		mwh := annotation.Filter(ma.fields, at.MiddlewareHandler{})
+		if len(mwh) > 0 {
+			methodHandler.hasMethodAnnotation = true
+			hdl := newHandler(d.configurableFactory, middleware, methodHandler, at.MiddlewareHandler{})
+			methodHandler.handler = Handler(func(c context.Context) {
+				hdl.call(c)
+			})
+			middleware.methods = append(middleware.methods, methodHandler)
+		}
+	}
+	return
+}
 
-	c := metaData.Instance
+func (d *Dispatcher) parseRestController(ctl *factory.MetaData) (restController *injectableObject) {
+
+	restController = new(injectableObject)
+
+	c := ctl.Instance
 	field := reflect.ValueOf(c)
 
 	fieldType := field.Type()
 	//log.Debug("fieldType: ", fieldType)
 	ift := fieldType.Elem()
 	fieldName := ift.Name()
-	restCtl.pkgPath = ift.PkgPath()
+	restController.pkgPath = ift.PkgPath()
 	//log.Debug("fieldName: ", fieldName)
 
 	controller := field.Interface()
-	restCtl.controller = controller
+	restController.object = controller
 	//log.Debug("controller: ", controller)
 
 	// get context mapping
@@ -177,8 +209,8 @@ func (d *Dispatcher) getRestMethods(metaData *factory.MetaData) (restCtl *restCo
 		}
 		pathPrefix = fmt.Sprintf("%v/%v", contextPath, cn)
 	}
-	restCtl.pathPrefix = pathPrefix
-	restCtl.name = fieldName
+	restController.pathPrefix = pathPrefix
+	restController.name = fieldName
 
 	numOfMethod := field.NumMethod()
 	//log.Debug("methods: ", numOfMethod)
@@ -186,21 +218,21 @@ func (d *Dispatcher) getRestMethods(metaData *factory.MetaData) (restCtl *restCo
 	// find before, after method
 	before, ok := fieldType.MethodByName(beforeMethod)
 	if ok {
-		restMethod := new(restMethod)
+		restMethod := new(injectableMethod)
 		restMethod.method = &before
-		restCtl.before = restMethod
+		restController.before = restMethod
 	}
 
 	after, ok := fieldType.MethodByName(afterMethod)
 	if ok {
-		restMethod := new(restMethod)
+		restMethod := new(injectableMethod)
 		restMethod.method = &after
-		restCtl.after = restMethod
+		restController.after = restMethod
 	}
 
-	var methods []*restMethod
+	var methods []*injectableMethod
 	for mi := 0; mi < numOfMethod; mi++ {
-		restMethod := new(restMethod)
+		restMethod := new(injectableMethod)
 
 		method := fieldType.Method(mi)
 		methodName := method.Name
@@ -218,13 +250,13 @@ func (d *Dispatcher) getRestMethods(metaData *factory.MetaData) (restCtl *restCo
 		beforeMethod := annotation.Filter(restMethod.annotation.fields, at.BeforeMethod{})
 		if len(beforeMethod) > 0 {
 			restMethod.method = &method
-			restCtl.before = restMethod
+			restController.before = restMethod
 			continue
 		}
 		afterMethod := annotation.Filter(restMethod.annotation.fields, at.AfterMethod{})
 		if len(afterMethod) > 0 {
 			restMethod.method = &method
-			restCtl.after = restMethod
+			restController.after = restMethod
 			continue
 		}
 
@@ -251,22 +283,30 @@ func (d *Dispatcher) getRestMethods(metaData *factory.MetaData) (restCtl *restCo
 		if foundMethod {
 			methods = append(methods, restMethod)
 		}
+
 	}
-	restCtl.methods = methods
+	restController.methods = methods
 	return
 }
 
-
 //TODO: scan apis and params to generate swagger api automatically by include swagger starter
-func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
+func (d *Dispatcher) register(controllers []*factory.MetaData, middleware []*factory.MetaData) (err error) {
+	var mws []*injectableObject
+	for _, m := range middleware {
+		mw := d.parseMiddleware(m)
+		if mw != nil {
+			mws = append(mws, mw)
+		}
+	}
+
 	log.Debug("register rest controller")
-	for _, metaData := range controllers {
+	for _, ctl := range controllers {
 		// get and parse all controller methods
-		restController := d.getRestMethods(metaData)
+		restController := d.parseRestController(ctl)
 
 		var party iris.Party
 		if restController.before != nil {
-			hdl := newHandler(d.configurableFactory, restController, restController.before)
+			hdl := newHandler(d.configurableFactory, restController, restController.before, at.BeforeMethod{})
 			party = d.webApp.Party(restController.pathPrefix, Handler(func(c context.Context) {
 				hdl.call(c)
 			}))
@@ -275,30 +315,50 @@ func (d *Dispatcher) register(controllers []*factory.MetaData) (err error) {
 		}
 
 		if restController.after != nil {
-			hdl := newHandler(d.configurableFactory, restController, restController.after)
+			hdl := newHandler(d.configurableFactory, restController, restController.after, at.AfterMethod{})
 			party.Done(Handler(func(c context.Context) {
 				hdl.call(c)
 			}))
 		}
 
 		// bind regular http method handlers with router
-		for _, m := range restController.methods{
-			hdl := newHandler(d.configurableFactory, restController, m)
+		for _, m := range restController.methods {
+			var handlers []iris.Handler
+
+			// 1. pass all annotations to registered starter for further implementations, e.g. swagger
+
+			// 2. get all handlers from middleware, then use middleware
+			// first check if controller annotated to use at.Middleware
+			// second check if method annotated to use at.MiddlewareHandler
+			// handlers = append(handlers, middleware...)
+			if len(mws) > 0 {
+				for _, mw := range mws {
+					for _, mth := range mw.methods {
+						handlers = append(handlers, mth.handler)
+					}
+				}
+			}
+
+			// 3. create new handler for rest controller method
+			hdl := newHandler(d.configurableFactory, restController, m, at.HttpMethod{})
 			httpHandler := Handler(func(c context.Context) {
 				hdl.call(c)
 				c.Next()
 			})
-			d.handle(party, m, restController, httpHandler)
+			handlers = append(handlers, httpHandler)
+
+			// 4. finally, handle all method handlers
+			d.handleControllerMethod(restController, m, party, handlers)
 		}
 	}
 	return
 }
 
-func (d *Dispatcher) handle(party iris.Party, m *restMethod, restController *restController, httpHandler iris.Handler) {
+func (d *Dispatcher) handleControllerMethod(restController *injectableObject, m *injectableMethod, party iris.Party, httpHandler []iris.Handler) {
 	if m.requestMapping.Method == Any {
-		party.Any(m.requestMapping.Value, httpHandler)
+		party.Any(m.requestMapping.Value, httpHandler...)
 	} else {
-		route := party.Handle(m.requestMapping.Method, m.requestMapping.Value, httpHandler)
+		route := party.Handle(m.requestMapping.Method, m.requestMapping.Value, httpHandler...)
 		route.MainHandlerName = fmt.Sprintf("%s/%s.%s", restController.pkgPath, restController.name, m.method.Name)
 	}
 }

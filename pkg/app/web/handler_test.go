@@ -17,6 +17,7 @@ package web
 import (
 	"github.com/kataras/iris"
 	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/log"
 	"reflect"
@@ -46,19 +47,19 @@ func (f *fakeFactory) GetInstance(params ...interface{}) (retVal interface{}) {
 }
 
 func TestParse(t *testing.T) {
-	restCtl := new(restController)
-	restCtl.controller = new(fooController)
-	ctrlVal := reflect.ValueOf(restCtl.controller)
+	restCtl := new(injectableObject)
+	restCtl.object = new(fooController)
+	ctrlVal := reflect.ValueOf(restCtl.object)
 	method, ok := ctrlVal.Type().MethodByName("PutByIdNameAge")
 	assert.Equal(t, true, ok)
-	restMethod := &restMethod{
+	restMethod := &injectableMethod{
 		requestMapping: &requestMapping{
 			Method: "GET",
 			Value:  "/foo/{id}/{name}/{age}",
 		},
 		method: &method,
 	}
-	hdl := newHandler(new(fakeFactory), restCtl, restMethod)
+	hdl := newHandler(new(fakeFactory), restCtl, restMethod, at.HttpMethod{})
 
 	t.Run("should parse method with path variable", func(t *testing.T) {
 		log.Debug(hdl)

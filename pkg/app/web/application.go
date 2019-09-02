@@ -148,11 +148,13 @@ func (a *application) build() (err error) {
 
 // RegisterController register controller, e.g. at.RestController, jwt.Controller, or other customized controller
 func (a *application) RegisterController(controller interface{}) error {
+	middleware := a.ConfigurableFactory().GetInstances(at.Middleware{})
+	log.Debug(middleware)
 	// get from controller map
 	// parse controller type
 	controllers := a.ConfigurableFactory().GetInstances(controller)
 	if controllers != nil {
-		return a.dispatcher.register(controllers)
+		return a.dispatcher.register(controllers, middleware)
 	}
 	return ErrControllersNotFound
 }

@@ -891,6 +891,32 @@ func TestAnonymousController(t *testing.T) {
 	})
 }
 
+type fooMiddleware struct {
+	at.Middleware
+}
+
+func newFooMiddleware() *fooMiddleware {
+	return &fooMiddleware{}
+}
+
+// Logging is the middleware handler,it support dependency injection, method annotation
+// middleware handler can be annotated to specific purpose or general purpose
+func (m *fooMiddleware) Logging( at struct{at.MiddlewareHandler `value:"/" `}, ctx context.Context) {
+
+	log.Infof("[logging middleware] %v", ctx.GetCurrentRoute())
+
+	// call ctx.Next() if you want to continue, otherwise do not call it
+	ctx.Next()
+	return
+}
+
+type CustomResponse struct {
+	at.ResponseBody
+	Code int `json:"code"`
+	Message string `json:"message"`
+	Data interface{} `json:"data"`
+}
+
 type customRouterController struct {
 	at.RestController
 
@@ -901,22 +927,44 @@ func newCustomRouterController() *customRouterController {
 	return new(customRouterController)
 }
 
-func (c *customRouterController) PathParamIdAndName(
-	id int,
-	name string,
-	// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
+func (c *customRouterController) PathVariable(
 	at struct {
+	// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
 	at.GetMapping `value:"/{id}/and/{name}"`
-},
-) string {
+}, id int, name string) (response *CustomResponse, err error) {
+	response = new(CustomResponse)
+	log.Infof("PathParamIdAndName: %v", at.Value)
 
-	return fmt.Sprintf("https://hidevops.io/%v/%v", id, name)
+	response.Code = http.StatusOK
+	response.Message = "Success"
+	response.Data = fmt.Sprintf("https://hidevops.io/%v/%v", id, name)
+	return
+}
+
+// BeforeMethod
+func (c *customRouterController) BeforeMethod(at struct{ at.BeforeMethod}, ctx context.Context)  {
+	ctx.Next()
+	return
+}
+
+// AfterMethod
+func (c *customRouterController) AfterMethod(at struct{ at.AfterMethod })  {
+	return
 }
 
 func TestCustomRouter(t *testing.T) {
+	app.Register(newFooMiddleware)
 	testApp := web.NewTestApp(newCustomRouterController).
-		SetProperty("server.context_path", "test").
+		SetProperty("server.context_path", "/test").
 		Run(t)
 
 	testApp.Get("/test/custom/123/and/hiboot").Expect().Status(http.StatusOK)
+}
+
+func TestCustomRoute2(t *testing.T) {
+	app.Register(newFooMiddleware)
+	testApp := web.NewTestApp(newCustomRouterController).
+		Run(t)
+
+	testApp.Get("/custom/123/and/hiboot").Expect().Status(http.StatusOK)
 }

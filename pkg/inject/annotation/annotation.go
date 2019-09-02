@@ -2,11 +2,11 @@ package annotation
 
 import (
 	"fmt"
-	"github.com/fatih/structtag"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/str"
+	"hidevops.io/hiboot/pkg/utils/structtag"
 	"reflect"
 )
 
@@ -118,11 +118,13 @@ func InjectIntoField(field *Field) (err error) {
 			return
 		}
 		// iterate over all tags
-		for _, tag := range tags.Tags() {
-			tagObjectValue := field.Value.FieldByName(str.ToCamel(tag.Key))
-			v := str.Convert(tag.Name, tagObjectValue.Kind())
-			if tagObjectValue.CanSet() {
-				tagObjectValue.Set(reflect.ValueOf(v))
+		if tags != nil {
+			for _, tag := range tags.Tags() {
+				tagObjectValue := field.Value.FieldByName(str.ToCamel(tag.Key))
+				v := str.Convert(tag.Name, tagObjectValue.Kind())
+				if tagObjectValue.CanSet() {
+					tagObjectValue.Set(reflect.ValueOf(v))
+				}
 			}
 		}
 	}
@@ -154,11 +156,13 @@ func InjectIntoFields(object interface{}) (err error) {
 				return
 			}
 			// iterate over all tags
-			for _, tag := range tags.Tags() {
-				tagObjectValue := field.Value.FieldByName(str.ToCamel(tag.Key))
-				v := str.Convert(tag.Name, tagObjectValue.Kind())
-				if tagObjectValue.CanSet() {
-					tagObjectValue.Set(reflect.ValueOf(v))
+			if tags != nil {
+				for _, tag := range tags.Tags() {
+					tagObjectValue := field.Value.FieldByName(str.ToCamel(tag.Key))
+					v := str.Convert(tag.Name, tagObjectValue.Kind())
+					if tagObjectValue.CanSet() {
+						tagObjectValue.Set(reflect.ValueOf(v))
+					}
 				}
 			}
 		}
