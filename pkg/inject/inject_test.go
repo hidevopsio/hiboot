@@ -22,6 +22,7 @@ import (
 	"hidevops.io/hiboot/pkg/factory/autoconfigure"
 	"hidevops.io/hiboot/pkg/factory/instantiate"
 	"hidevops.io/hiboot/pkg/inject"
+	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/cmap"
 	"hidevops.io/hiboot/pkg/utils/io"
@@ -692,13 +693,31 @@ func TestInjectIntoFunc(t *testing.T) {
 func TestInjectAnnotation(t *testing.T) {
 	cf := setUp(t)
 	injecting := inject.NewInject(cf)
-	var a struct{
+	var att struct{
 		at.GetMapping `value:"/path/to/api"`
 		at.RequestMapping `value:"/parent/path"`
+		at.ApiResponse200 `value:"successfully get resource"`
+		at.ApiResponse404 `value:"resource is not found"`
+		at.BeforeMethod
 	}
-	err := injecting.IntoObject(&a)
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "GET", a.Method)
-	assert.Equal(t, "/path/to/api", a.GetMapping.Value)
-	assert.Equal(t, "/parent/path", a.RequestMapping.Value)
+	annotations := annotation.GetFields(&att)
+	for _, a := range annotations {
+		err := annotation.InjectIntoField(a)
+		assert.Equal(t, nil, err)
+
+		err = injecting.IntoObjectValue(a.Value.Addr(), "")
+		assert.Equal(t, nil, err)
+	}
+	log.Debugf("final result: %v", att)
+	assert.Equal(t, "GET", att.Method)
+	assert.Equal(t, "/path/to/api", att.GetMapping.Value)
+	assert.Equal(t, "/parent/path", att.RequestMapping.Value)
+	assert.Equal(t, 200, att.ApiResponse200.Code)
+	assert.Equal(t, 404, att.ApiResponse404.Code)
+
+	t.Run("should find all annotations that inherit form at.HttpMethod{}", func(t *testing.T) {
+		found := annotation.Find(&struct{at.BeforeMethod}{}, at.HttpMethod{})
+		assert.Equal(t, 1, len(found))
+		assert.Equal(t, "BeforeMethod", found[0].StructField.Name)
+	})
 }

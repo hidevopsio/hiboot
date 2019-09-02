@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	"hidevops.io/hiboot/examples/grpc/helloworld/protobuf"
+	protobuf2 "hidevops.io/hiboot/examples/web/grpc/helloworld/protobuf"
 	mockproto "hidevops.io/hiboot/pkg/starter/grpc/mockgrpc"
 	"testing"
 	"time"
@@ -31,13 +31,13 @@ func TestMockHello(t *testing.T) {
 	defer ctrl.Finish()
 	mockHelloClient := NewMockHelloServiceClient(ctrl)
 	t.Run("should get message from mock gRpc client directly", func(t *testing.T) {
-		req := &protobuf.HelloRequest{Name: "unit_test"}
+		req := &protobuf2.HelloRequest{Name: "unit_test"}
 		opt := &grpc.HeaderCallOption{}
 		mockHelloClient.EXPECT().SayHello(
 			gomock.Any(),
 			&mockproto.RPCMsg{Message: req},
 			opt,
-		).Return(&protobuf.HelloReply{Message: "Mocked Interface"}, nil)
+		).Return(&protobuf2.HelloReply{Message: "Mocked Interface"}, nil)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 		r, err := mockHelloClient.SayHello(ctx, req, opt)

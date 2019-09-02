@@ -6,7 +6,6 @@ require (
 	github.com/deckarep/golang-set v1.7.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/camelcase v1.0.0
-	github.com/fatih/structtag v1.0.0
 	github.com/gojektech/valkyrie v0.0.0-20190210220504-8f62c1e7ba45
 	github.com/golang/mock v1.2.0
 	github.com/golang/protobuf v1.2.0
@@ -20,7 +19,6 @@ require (
 	github.com/kataras/golog v0.0.0-20180321173939-03be10146386
 	github.com/kataras/iris v11.0.3+incompatible
 	github.com/kataras/pio v0.0.0-20180511174041-a9733b5b6b83
-	github.com/magiconair/properties v1.8.0
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/moul/http2curl v1.0.0 // indirect
 	github.com/opentracing/opentracing-go v1.0.2

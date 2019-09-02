@@ -46,17 +46,6 @@ func (t *valueTag) Decode(object reflect.Value, field reflect.StructField, prope
 			}
 		case reflect.String:
 			needConvert = false
-			// check if it is an annotation
-			//indTyp := reflector.IndirectType(field.Type)
-			// TODO: type MyTag string
-			//log.Debugf("type name: %v %v %v", field.Type.Name(), indTyp.Name(), indTyp.NumMethod())
-
-			/*impl := indTyp.Implements(reflect.TypeOf((*at.AnnotationValue)(nil)).Elem())
-			if impl {
-				//log.Debug("found at.StringAnnotation implements")
-				retVal = reflect.New(indTyp).Interface().(at.AnnotationValue).String(retVal.(string))
-			}*/
-
 		}
 
 		if needConvert {

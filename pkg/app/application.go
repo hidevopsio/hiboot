@@ -35,7 +35,7 @@ import (
 const (
 	// ApplicationContextName is the application context instance name
 	ApplicationContextName = "app.applicationContext"
-	ContextPathFormat = "app.context_path_format"
+	ContextPathFormat = "server.context_path_format"
 	ContextPathFormatKebab = "kebab"
 	ContextPathFormatSnake = "snake"
 	ContextPathFormatCamel = "camel"

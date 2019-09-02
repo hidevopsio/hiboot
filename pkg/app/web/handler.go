@@ -49,7 +49,7 @@ type request struct {
 	genKind      reflect.Kind // e.g. convert int16 to int
 	typ          reflect.Type
 	iTyp         reflect.Type
-	val          reflect.Value
+	//val          reflect.Value
 	iVal         reflect.Value
 	pathIdx      int
 	callback     func(ctx context.Context, data interface{}) error
@@ -61,24 +61,27 @@ type response struct {
 	name     string
 	kind     reflect.Kind
 	typ      reflect.Type
+	isResponseBody bool
 }
 
 type handler struct {
-	controller      interface{}
-	method          reflect.Method
+	object          interface{}
+	method          *reflect.Method
 	path            string
-	ctlVal          reflect.Value
+	objVal          reflect.Value
 	numIn           int
 	numOut          int
-	pathParams      []string
+	pathVariable    []string
 	requests        []request
 	responses       []response
 	lenOfPathParams int
-	hasCtxField     bool
 	factory         factory.ConfigurableFactory
 	runtimeInstance factory.Instance
 	contextName     string
 	dependencies    []*factory.MetaData
+
+	injectableObject *injectableObject
+	restMethod       *injectableMethod
 }
 
 type requestSet struct {
@@ -100,11 +103,16 @@ func init() {
 	}
 }
 
-func newHandler(factory factory.ConfigurableFactory) *handler {
-	return &handler{
-		contextName: reflector.GetLowerCamelFullName(new(context.Context)),
-		factory:     factory,
+func newHandler(factory factory.ConfigurableFactory, injectableObject *injectableObject, restMethod *injectableMethod, atType interface{}) *handler {
+	hdl := &handler{
+		contextName:      reflector.GetLowerCamelFullName(new(context.Context)),
+		factory:          factory,
+		injectableObject: injectableObject,
+		restMethod:       restMethod,
 	}
+
+	hdl.parseMethod(injectableObject, restMethod, atType)
+	return hdl
 }
 
 func clean(in string) (out string) {
@@ -119,16 +127,20 @@ func clean(in string) (out string) {
 	return
 }
 
-func (h *handler) parse(httpMethod string, method reflect.Method, object interface{}, path string) {
+func (h *handler) parseMethod(injectableObject *injectableObject, injectableMethod *injectableMethod, atType interface{}) {
 	//log.Debug("NumIn: ", method.Type.NumIn())
-	h.controller = object
+	method := injectableMethod.method
+	path := ""
+	if injectableMethod.requestMapping != nil && injectableMethod.requestMapping.Value != "" {
+		path = injectableObject.pathPrefix + injectableMethod.requestMapping.Value
+	}
+	h.object = injectableObject.object
 	h.method = method
 	h.numIn = method.Type.NumIn()
 	h.numOut = method.Type.NumOut()
 	//h.inputs = make([]reflect.Value, h.numIn)
-	h.ctlVal = reflect.ValueOf(object)
-
-	//log.Debugf("method: %v", method.Name)
+	objVal := reflect.ValueOf(h.object)
+	h.objVal = objVal
 
 	// TODO: should parse all of below request and response during router register to improve performance
 	path = clean(path)
@@ -137,22 +149,23 @@ func (h *handler) parse(httpMethod string, method reflect.Method, object interfa
 	pps := strings.SplitN(path, "/", -1)
 	//log.Debug(pps)
 	pp := replacer.ParseVariables(path, compiledRegExp)
-	h.pathParams = make([]string, len(pp))
+	h.pathVariable = make([]string, len(pp))
 	for i, pathParam := range pp {
 		//log.Debugf("pathParm: %v", pathParam[1])
-		h.pathParams[i] = pathParam[1]
+		h.pathVariable[i] = pathParam[1]
 	}
 
 	h.requests = make([]request, h.numIn)
-	objVal := reflect.ValueOf(object)
+
 	idv := reflect.Indirect(objVal)
 	objTyp := idv.Type()
 	h.requests[0].typeName = objTyp.Name()
 	h.requests[0].typ = objTyp
-	h.requests[0].val = objVal
-	h.hasCtxField = reflector.HasEmbeddedFieldType(object, Controller{})
+	//h.requests[0].val = objVal
 
-	lenOfPathParams := len(h.pathParams)
+	lenOfPathParams := len(h.pathVariable)
+	pathIdx := lenOfPathParams
+	// parse request
 	for i := 1; i < h.numIn; i++ {
 		typ := method.Type.In(i)
 		iTyp := reflector.IndirectType(typ)
@@ -167,6 +180,7 @@ func (h *handler) parse(httpMethod string, method reflect.Method, object interfa
 			}
 		}
 
+		// basic info
 		h.requests[i].typ = typ
 		h.requests[i].iTyp = iTyp
 		if typ.Kind() == reflect.Slice {
@@ -174,21 +188,35 @@ func (h *handler) parse(httpMethod string, method reflect.Method, object interfa
 		} else {
 			h.requests[i].kind = iTyp.Kind()
 		}
-		h.requests[i].val = reflect.New(typ)
+		//h.requests[i].val = reflect.New(typ)
 		h.requests[i].iVal = reflect.New(iTyp)
+		h.requests[i].typeName = iTyp.Name()
 		h.requests[i].genKind = reflector.GetKindByValue(h.requests[i].iVal) // TODO:
+		h.requests[i].fullName = reflector.GetLowerCamelFullNameByType(iTyp)
 
-		pi := i - 1
-		if pi < lenOfPathParams {
-			h.requests[i].name = pp[pi][1]
+		// handle annotations
+		request := h.requests[i].iVal.Interface()
+		// TODO: use annotation.Contains(request, at.Annotation{}) instead, need to test more cases
+		// check if it's annotation at.RequestMapping
+		if annotation.Contains(request, atType) {
+			h.requests[i].iVal = injectableMethod.annotations.value.Elem() //reflect.ValueOf(request).Elem()
+			h.requests[i].isAnnotation = true
+			continue
+		}
+
+		// parse path variable
+		if pathIdx != 0 {
+			pathIdx = pathIdx - 1
+			h.requests[i].name = pp[pathIdx][1]
 			for idx, pv := range pps {
-				if pv == pp[pi][0] {
+				if pv == pp[pathIdx][0] {
 					h.requests[i].pathIdx = idx
 					break
 				}
 			}
 		}
-		h.requests[i].typeName = iTyp.Name()
+
+		// request params, body, form
 		if iTyp.Kind() == reflect.Struct {
 			for _, tn := range requestSets {
 				if field, ok := iTyp.FieldByName(tn.name); ok && field.Anonymous {
@@ -198,19 +226,11 @@ func (h *handler) parse(httpMethod string, method reflect.Method, object interfa
 				}
 			}
 		}
-		h.requests[i].fullName = reflector.GetLowerCamelFullNameByType(iTyp)
 
-		request := h.requests[i].iVal.Interface()
-		// TODO: use annotation.Contains(request, at.Annotation{}) instead, need to test more cases
-		// check if it's annotation at.RequestMapping
-		if annotation.Contains(request, at.RequestMapping{}) {
-			_ = h.factory.InjectIntoObject(request)
-			h.requests[i].iVal = reflect.ValueOf(request).Elem()
-			h.requests[i].isAnnotation = true
-		}
 	}
 	h.lenOfPathParams = lenOfPathParams
 
+	// parse response
 	h.responses = make([]response, h.numOut)
 	for i := 0; i < h.numOut; i++ {
 		typ := method.Type.Out(i)
@@ -219,17 +239,27 @@ func (h *handler) parse(httpMethod string, method reflect.Method, object interfa
 		h.responses[i].kind = typ.Kind()
 		h.responses[i].typeName = typ.Name()
 		//log.Debug(h.responses[i])
+		if annotation.Contains(typ, at.ResponseBody{}) {
+			h.responses[i].isResponseBody = true
+		}
 	}
+
+	// check if configured annotation for starters
+	//for _, subscriber := range h.factory.GetInstances() {
+	//
+	//}
+
+	// finally, print mapped method
 	if path != "" {
-		log.Infof("Mapped %v \"%v\" onto %v.%v()", httpMethod, path, idv.Type(), method.Name)
+		log.Infof("Mapped %v \"%v\" onto %v.%v()", injectableMethod.requestMapping.Method, path, idv.Type(), method.Name)
 	}
 }
 
 func (h *handler) responseData(ctx context.Context, numOut int, results []reflect.Value) (err error) {
-	if numOut == 0 {
-		ctx.StatusCode(http.StatusOK)
-		return
-	}
+	//if numOut == 0 {
+	//	ctx.StatusCode(http.StatusOK)
+	//	return
+	//}
 
 	result := results[0]
 	if !result.CanInterface() {
@@ -280,14 +310,18 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 	case map[string]interface{}:
 		ctx.JSON(respVal)
 	default:
-		ctx.ResponseError("response type is not implemented!", http.StatusInternalServerError)
+		if h.responses[0].isResponseBody {
+			ctx.JSON(respVal)
+		} else {
+			ctx.ResponseError("response type is not implemented!", http.StatusInternalServerError)
+		}
 	}
 	return
 }
 
 func (h *handler) call(ctx context.Context) {
 
-	var request interface{}
+	var input interface{}
 	var reqErr error
 	var path string
 	var pvs []string
@@ -303,22 +337,24 @@ func (h *handler) call(ctx context.Context) {
 		runtimeInstance, _ = h.factory.InjectContextAwareObjects(ctx, h.dependencies)
 	}
 	inputs := make([]reflect.Value, h.numIn)
-	inputs[0] = h.ctlVal
+	if h.numIn != 0 {
+		inputs[0] = h.objVal
+	}
 
 	lenOfPathParams := h.lenOfPathParams
 	for i := 1; i < h.numIn; i++ {
 		req := h.requests[i]
-		request = reflect.New(req.iTyp).Interface()
+		input = reflect.New(req.iTyp).Interface()
 
 		// inject params
 		if req.callback != nil {
-			h.factory.InjectDefaultValue(request) // support default value injection for request body/params/form
-			reqErr = req.callback(ctx, request)
-			inputs[i] = reflect.ValueOf(request)
+			_ = h.factory.InjectDefaultValue(input) // support default value injection for request body/params/form
+			reqErr = req.callback(ctx, input)
+			inputs[i] = reflect.ValueOf(input)
 		} else if req.kind == reflect.Interface && model.Context == req.typeName {
-			request = ctx
-			inputs[i] = reflect.ValueOf(request)
-		} else if lenOfPathParams != 0 && req.kind != reflect.Struct {
+			input = ctx
+			inputs[i] = reflect.ValueOf(input)
+		} else if lenOfPathParams != 0 && !req.isAnnotation {
 			// allow inject other dependencies after number of lenOfPathParams
 			lenOfPathParams = lenOfPathParams - 1
 			strVal := pvs[req.pathIdx]
@@ -350,7 +386,8 @@ func (h *handler) call(ctx context.Context) {
 	if reqErr == nil {
 		// call controller method
 		results = h.method.Func.Call(inputs)
-
-		h.responseData(ctx, h.numOut, results)
+		if h.numOut > 0 {
+			_ = h.responseData(ctx, h.numOut, results)
+		}
 	}
 }

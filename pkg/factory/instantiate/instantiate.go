@@ -145,7 +145,7 @@ func (f *instantiateFactory) injectDependency(item *factory.MetaData) (err error
 		err = f.inject.IntoObject(inst)
 		qf, ok := annotation.GetField(inst, at.Qualifier{})
 		if ok {
-			name = qf.Tag.Get("value")
+			name = qf.StructField.Tag.Get("value")
 			log.Debugf("name: %v, Qualifier: %v, ok: %v", item.Name, name, ok)
 		}
 
@@ -220,7 +220,7 @@ func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 				fields = annotation.GetFields(metaData.Type)
 			}
 			for _, field := range fields {
-				typeName := reflector.GetLowerCamelFullNameByType(field.Type)
+				typeName := reflector.GetLowerCamelFullNameByType(field.StructField.Type)
 				categorised, ok := f.categorized[typeName]
 				if !ok {
 					categorised = make([]*factory.MetaData, 0)

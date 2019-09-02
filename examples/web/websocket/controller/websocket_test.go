@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/starter/websocket"
 	"net/http"
 	"testing"
@@ -11,6 +12,8 @@ import (
 func TestWebSocketController(t *testing.T) {
 	mockController := newWebsocketController(func(handler websocket.Handler, conn *websocket.Connection) {
 		// For controller's unit testing, do nothing
+		ctx := conn.GetValue("context").(context.Context)
+		ctx.StatusCode(http.StatusOK)
 	})
 
 	testApp := web.NewTestApp(mockController).Run(t)

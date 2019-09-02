@@ -14,3 +14,8 @@ type RequestForm struct{
 type RequestParams struct {
 	Annotation
 }
+
+// PathVariable the annotation PathVariable
+type PathVariable struct {
+	Annotation
+}

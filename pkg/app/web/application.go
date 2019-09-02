@@ -137,22 +137,22 @@ func (a *application) build() (err error) {
 
 	// first register anon controllers
 	err = a.RegisterController(at.RestController{})
-	if err != nil {
-		return
+	if err == nil {
+		// call AfterInitialization with factory interface
+		a.AfterInitialization()
 	}
-
-	// call AfterInitialization with factory interface
-	a.AfterInitialization()
-	return err
+	return
 }
 
 // RegisterController register controller, e.g. at.RestController, jwt.Controller, or other customized controller
 func (a *application) RegisterController(controller interface{}) error {
+	middleware := a.ConfigurableFactory().GetInstances(at.Middleware{})
+	log.Debug(middleware)
 	// get from controller map
 	// parse controller type
 	controllers := a.ConfigurableFactory().GetInstances(controller)
 	if controllers != nil {
-		return a.dispatcher.register(controllers)
+		return a.dispatcher.register(controllers, middleware)
 	}
 	return ErrControllersNotFound
 }

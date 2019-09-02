@@ -891,6 +891,76 @@ func TestAnonymousController(t *testing.T) {
 	})
 }
 
+type fakeConditionalJwtMiddleware struct {
+	at.Middleware
+	at.UseJwt
+}
+
+func newConditionalFakeJwtMiddleware() *fakeConditionalJwtMiddleware {
+	return &fakeConditionalJwtMiddleware{}
+}
+
+// CheckJwt
+func (m *fakeConditionalJwtMiddleware) CheckJwt(at struct{ at.MiddlewareHandler
+}, ctx context.Context)  {
+	log.Debug("fakeConditionalJwtMiddleware.CheckJwt()")
+	if ctx.URLParam("token") == "" {
+		ctx.StatusCode(http.StatusUnauthorized)
+		return
+	}
+	ctx.Next()
+	return
+}
+
+type fakeMethodConditionalJwtMiddleware struct {
+	at.Middleware
+}
+
+func newMethodConditionalFakeJwtMiddleware() *fakeMethodConditionalJwtMiddleware {
+	return &fakeMethodConditionalJwtMiddleware{}
+}
+
+// CheckJwt
+func (m *fakeMethodConditionalJwtMiddleware) CheckJwt(at struct{
+	at.MiddlewareHandler
+	at.UseJwt
+}, ctx context.Context)  {
+	log.Debug("fakeMethodConditionalJwtMiddleware.CheckJwt()")
+	if ctx.URLParam("token") == "" {
+		ctx.StatusCode(http.StatusUnauthorized)
+		return
+	}
+	ctx.Next()
+	return
+}
+
+
+type fooMiddleware struct {
+	at.Middleware
+}
+
+func newFooMiddleware() *fooMiddleware {
+	return &fooMiddleware{}
+}
+
+// Logging is the middleware handler,it support dependency injection, method annotation
+// middleware handler can be annotated to specific purpose or general purpose
+func (m *fooMiddleware) Logging( at struct{at.MiddlewareHandler `value:"/" `}, ctx context.Context) {
+
+	log.Infof("[logging middleware] %v", ctx.GetCurrentRoute())
+
+	// call ctx.Next() if you want to continue, otherwise do not call it
+	ctx.Next()
+	return
+}
+
+type CustomResponse struct {
+	at.ResponseBody
+	Code int `json:"code"`
+	Message string `json:"message"`
+	Data interface{} `json:"data"`
+}
+
 type customRouterController struct {
 	at.RestController
 
@@ -901,22 +971,140 @@ func newCustomRouterController() *customRouterController {
 	return new(customRouterController)
 }
 
-func (c *customRouterController) PathParamIdAndName(
-	id int,
-	name string,
-	// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
+func (c *customRouterController) PathVariable(
 	at struct {
+	// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
 	at.GetMapping `value:"/{id}/and/{name}"`
-},
-) string {
+}, id int, name string) (response *CustomResponse, err error) {
+	response = new(CustomResponse)
+	log.Infof("PathParamIdAndName: %v", at.Value)
 
-	return fmt.Sprintf("https://hidevops.io/%v/%v", id, name)
+	response.Code = http.StatusOK
+	response.Message = "Success"
+	response.Data = fmt.Sprintf("https://hidevops.io/%v/%v", id, name)
+	return
+}
+
+func (c *customRouterController) Delete(
+	at struct {
+	// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
+	at.DeleteMapping `value:"/{id}"`
+	// uses jwt auth, it can be placed in struct of method
+	at.UseJwt
+}, id int,) (response *CustomResponse, err error) {
+	response = new(CustomResponse)
+	log.Infof("Delete: %v", at.DeleteMapping.Value)
+
+	response.Code = http.StatusOK
+	response.Message = "Success"
+	return
+}
+
+// BeforeMethod
+func (c *customRouterController) BeforeMethod(at struct{ at.BeforeMethod}, ctx context.Context)  {
+	ctx.Next()
+	return
+}
+
+// AfterMethod
+func (c *customRouterController) AfterMethod(at struct{ at.AfterMethod })  {
+	return
+}
+
+type jwtAuthTestController struct {
+	at.RestController
+	at.UseJwt
+	at.RequestMapping `value:"jwt-auth" `
+}
+
+func newJwtAuthTestController() *jwtAuthTestController {
+	return &jwtAuthTestController{}
+}
+
+// Get
+func (c *jwtAuthTestController) Get(at struct{ at.GetMapping `value:"/"` }) string {
+	return "Get from jwt auth test controller"
+}
+
+// Delete
+func (c *jwtAuthTestController) Delete(at struct{ at.DeleteMapping `value:"/"` }) string  {
+	return "Delete from jwt auth test controller"
+}
+
+type regularTestController struct {
+	at.RestController
+	at.RequestMapping `value:"regular" `
+}
+
+func init() {
+	app.Register(newRegularTestController)
+}
+
+func newRegularTestController() *regularTestController {
+	return &regularTestController{}
+}
+
+// Get
+func (c *regularTestController) Get(at struct{ at.GetMapping `value:"/"` }) string  {
+	return "regularTestController.Get()"
 }
 
 func TestCustomRouter(t *testing.T) {
+	app.Register(newFooMiddleware)
 	testApp := web.NewTestApp(newCustomRouterController).
-		SetProperty("server.context_path", "test").
+		SetProperty("server.context_path", "/test").
 		Run(t)
 
 	testApp.Get("/test/custom/123/and/hiboot").Expect().Status(http.StatusOK)
+}
+
+func TestMiddlewareAnnotation(t *testing.T) {
+	app.Register(
+		newCustomRouterController,
+		newFooMiddleware,
+		newConditionalFakeJwtMiddleware,
+		newJwtAuthTestController,
+		newRegularTestController,
+		newMethodConditionalFakeJwtMiddleware)
+	testApp := web.NewTestApp(newCustomRouterController).
+		Run(t)
+
+	t.Run("should get resource from custom controller", func(t *testing.T) {
+		testApp.Get("/custom/123/and/hiboot").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should delete resource from custom controller with jwt token", func(t *testing.T) {
+		testApp.Delete("/custom/123").
+			WithQuery("token", "fake-token").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should not delete resource from custom controller without jwt token", func(t *testing.T) {
+		testApp.Delete("/custom/123").
+			Expect().Status(http.StatusUnauthorized)
+	})
+
+	t.Run("should get resource from regular controller", func(t *testing.T) {
+		testApp.Get("/regular").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should get resource from jwt-auth controller with jwt token", func(t *testing.T) {
+		testApp.Get("/jwt-auth").
+			WithQuery("token", "fake-token").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should delete resource from jwt-auth controller with jwt token", func(t *testing.T) {
+		testApp.Delete("/jwt-auth").
+			WithQuery("token", "fake-token").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should not delete resource from jwt-auth controller without jwt token", func(t *testing.T) {
+		testApp.Delete("/jwt-auth").
+			Expect().Status(http.StatusUnauthorized)
+	})
+
 }

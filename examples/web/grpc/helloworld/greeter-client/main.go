@@ -20,7 +20,7 @@
 package main
 
 import (
-	_ "hidevops.io/hiboot/examples/grpc/helloworld/greeter-client/controller"
+	_ "hidevops.io/hiboot/examples/web/grpc/helloworld/greeter-client/controller"
 	"hidevops.io/hiboot/pkg/app/web"
 	_ "hidevops.io/hiboot/pkg/starter/actuator"
 	_ "hidevops.io/hiboot/pkg/starter/logging"

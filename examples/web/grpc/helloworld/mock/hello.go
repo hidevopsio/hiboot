@@ -5,11 +5,11 @@
 package mock
 
 import (
-	context "context"
-	gomock "github.com/golang/mock/gomock"
-	grpc "google.golang.org/grpc"
-	protobuf "hidevops.io/hiboot/examples/grpc/helloworld/protobuf"
-	reflect "reflect"
+	"context"
+	"github.com/golang/mock/gomock"
+	"google.golang.org/grpc"
+	protobuf2 "hidevops.io/hiboot/examples/web/grpc/helloworld/protobuf"
+	"reflect"
 )
 
 // MockHelloServiceClient is a mock of HelloServiceClient interface
@@ -36,13 +36,13 @@ func (m *MockHelloServiceClient) EXPECT() *MockHelloServiceClientMockRecorder {
 }
 
 // SayHello mocks base method
-func (m *MockHelloServiceClient) SayHello(arg0 context.Context, arg1 *protobuf.HelloRequest, arg2 ...grpc.CallOption) (*protobuf.HelloReply, error) {
+func (m *MockHelloServiceClient) SayHello(arg0 context.Context, arg1 *protobuf2.HelloRequest, arg2 ...grpc.CallOption) (*protobuf2.HelloReply, error) {
 	varargs := []interface{}{arg0, arg1}
 	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "SayHello", varargs...)
-	ret0, _ := ret[0].(*protobuf.HelloReply)
+	ret0, _ := ret[0].(*protobuf2.HelloReply)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

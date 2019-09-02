@@ -2,33 +2,33 @@ package controller
 
 import (
 	"golang.org/x/net/context"
-	"hidevops.io/hiboot/examples/grpc/helloworld/protobuf"
+	protobuf2 "hidevops.io/hiboot/examples/web/grpc/helloworld/protobuf"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/starter/grpc"
 )
 
 // controller
-type helloController struct {
+type holaController struct {
 	// embedded at.RestController
 	at.RestController
-	// declare HelloServiceClient
-	helloServiceClient protobuf.HelloServiceClient
+	// declare HolaServiceClient
+	holaServiceClient protobuf2.HolaServiceClient
 }
 
-// Init inject helloServiceClient
-func newHelloController(helloServiceClient protobuf.HelloServiceClient) *helloController {
-	return &helloController{
-		helloServiceClient: helloServiceClient,
+// Init inject holaServiceClient
+func newHolaController(holaServiceClient protobuf2.HolaServiceClient) *holaController {
+	return &holaController{
+		holaServiceClient: holaServiceClient,
 	}
 }
 
 // GET /greeter/name/{name}
-func (c *helloController) GetByName(name string) (response string) {
+func (c *holaController) GetByName(name string) (response string) {
 
 	// call grpc server method
 	// pass context.Background() for the sake of simplicity
-	result, err := c.helloServiceClient.SayHello(context.Background(), &protobuf.HelloRequest{Name: name})
+	result, err := c.holaServiceClient.SayHola(context.Background(), &protobuf2.HolaRequest{Name: name})
 
 	// got response
 	if err == nil {
@@ -49,8 +49,8 @@ func init() {
 	//       port: 7575      # server port
 	//
 	grpc.Client("hello-world-service",
-		protobuf.NewHelloServiceClient)
+		protobuf2.NewHolaServiceClient)
 
-	// must: register Rest Controller
-	app.Register(newHelloController)
+	// must: register Controller
+	app.Register(newHolaController)
 }
