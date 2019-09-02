@@ -22,6 +22,10 @@ import (
 	"time"
 )
 
+func TestRunMain(t *testing.T) {
+	go main()
+}
+
 func TestController(t *testing.T) {
 	time.Sleep(time.Second)
 	testApp := web.NewTestApp(t).SetProperty("server.context_path", "/router-example").Run(t)

@@ -137,13 +137,11 @@ func (a *application) build() (err error) {
 
 	// first register anon controllers
 	err = a.RegisterController(at.RestController{})
-	if err != nil {
-		return
+	if err == nil {
+		// call AfterInitialization with factory interface
+		a.AfterInitialization()
 	}
-
-	// call AfterInitialization with factory interface
-	a.AfterInitialization()
-	return err
+	return
 }
 
 // RegisterController register controller, e.g. at.RestController, jwt.Controller, or other customized controller

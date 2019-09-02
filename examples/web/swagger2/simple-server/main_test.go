@@ -7,6 +7,9 @@ import (
 	"time"
 )
 
+func TestRunMain(t *testing.T) {
+	go main()
+}
 
 func TestController(t *testing.T) {
 	time.Sleep(time.Second)
