@@ -23,21 +23,7 @@ type RestController struct {
 // JwtRestController is the annotation that declare current controller is the RESTful Controller with JWT support
 type JwtRestController struct {
 	RestController
-}
-
-// Middleware is the annotation that annotate the controller or method use middleware
-type Middleware struct {
-	Annotation
-}
-
-// MiddlewareHandler is the annotation that annotate the controller or method use middleware
-type MiddlewareHandler struct {
-	Annotation
-}
-
-// UseJwt is the annotation that that annotate the controller or method use JWT middleware
-type UseJwt struct {
-	Middleware
+	UseJwt
 }
 
 // ContextPath is the annotation that set the context path of a controller

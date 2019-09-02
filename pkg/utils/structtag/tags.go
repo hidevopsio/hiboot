@@ -1,10 +1,10 @@
+// package structtag provides struct tag utils (from https://github.com/fatih/structtag)
 package structtag
 
 import (
 	"bytes"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 )
 
@@ -94,10 +94,12 @@ func Parse(tag string) (t *Tags, err error) {
 		qvalue := string(tag[:i+1])
 		tag = tag[i+1:]
 
-		value, err := strconv.Unquote(qvalue)
-		if err != nil {
-			return nil, errTagValueSyntax
-		}
+		//value, err := strconv.Unquote(qvalue)
+		//if err != nil {
+		//	return nil, errTagValueSyntax
+		//}
+		// trim quotes
+		value := qvalue[1 : len(qvalue)-1]
 
 		res := strings.Split(value, ",")
 		name := res[0]

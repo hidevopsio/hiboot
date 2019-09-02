@@ -56,11 +56,16 @@ func TestImplementsAnnotation(t *testing.T) {
 	f := new(foo)
 	f.Value = "my object value"
 
+	fields := annotation.GetFields(f)
 	t.Run("should check if object contains at.Annotation", func(t *testing.T) {
-		fields := annotation.GetFields(f)
 		assert.NotEqual(t, nil, fields)
 
 		ok := annotation.Contains(fields, AtFoo{})
+		assert.Equal(t, true, ok)
+	})
+
+	t.Run("should find if contains child annotation", func(t *testing.T) {
+		ok := annotation.ContainsChild(fields, AtFoo{})
 		assert.Equal(t, true, ok)
 	})
 
@@ -164,6 +169,5 @@ func TestImplementsAnnotation(t *testing.T) {
 		err := annotation.InjectIntoField(field)
 		assert.Equal(t, nil, err)
 	})
-
 }
 

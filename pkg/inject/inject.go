@@ -121,12 +121,8 @@ func (i *inject) IntoObject(object interface{}) (err error) {
 		annotations := annotation.GetFields(object)
 		for _, a := range annotations {
 			err = annotation.InjectIntoField(a)
-			if err != nil {
-				return
-			}
-			err = i.IntoObjectValue(a.Value.Addr(), "")
-			if err != nil {
-				return
+			if err == nil {
+				err = i.IntoObjectValue(a.Value.Addr(), "")
 			}
 		}
 	}

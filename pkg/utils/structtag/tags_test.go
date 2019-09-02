@@ -16,6 +16,11 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			name:    "wrong tag",
+			tag:     `v:'1`,
+			invalid: true,
+		},
+		{
+			name:    "wrong tag",
 			tag:     `v:"1`,
 			invalid: true,
 		},
@@ -83,7 +88,7 @@ func TestParse(t *testing.T) {
 			exp: []*Tag{
 				{
 					Key:  "json",
-					Name: "\\foo",
+					Name: `\\foo`,
 				},
 			},
 		},
@@ -184,6 +189,17 @@ func TestParse(t *testing.T) {
 				{
 					Key:  "hcl",
 					Name: "-",
+				},
+			},
+		},
+		{
+			name: "tag with quoted name",
+			tag:  `json:"foo,bar:\"baz\""`,
+			exp: []*Tag{
+				{
+					Key:     "json",
+					Name:    "foo",
+					Options: []string{`bar:\"baz\"`},
 				},
 			},
 		},
@@ -480,3 +496,17 @@ func TestTag_String(t *testing.T) {
 	s := tags.String()
 	assert.Equal(t, "", s)
 }
+
+type ty struct {
+	Foo string `tag:"foo,bar:\"baz\""`
+}
+
+//func TestParse2(t *testing.T) {
+//	tagString := string(reflect.TypeOf(ty{}).Field(0).Tag)
+//	tags, err := Parse(tagString)
+//	require.NoError(t, err)
+//	tag, err := tags.Get("tag")
+//	require.NoError(t, err)
+//	require.Equal(t, `bar:"baz"`, tag.Options[0])
+//	require.Equal(t, tagString, tags.String())
+//}
