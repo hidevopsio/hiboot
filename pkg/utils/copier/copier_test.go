@@ -62,6 +62,12 @@ func TestCopier(t *testing.T) {
 		err  error
 	}{
 		{
+			name: "should copy struct slice",
+			from:   &[]Bar{},
+			to: &[]Foo{{Name: "foo"}, {Name: "bar"}},
+			err:  nil,
+		},
+		{
 			name: "Should copy from Foo to Bar",
 			from: &Foo{Name: "foo"},
 			to:   &Bar{},
@@ -161,53 +167,154 @@ func TestCopierWithConfig(t *testing.T) {
 		Foo []string
 	}
 
+	type baz struct {
+		Name string
+	}
+	type bar struct{
+		Name string
+		Arr []baz
+	}
+	type foo struct {
+		Name string
+		Bar bar
+	}
+	type fake struct {
+		Name string
+		Foo foo
+	}
+
 	testCases := []struct {
-		name string
-		from interface{}
-		to   interface{}
-		final interface{}
-		err  error
+		name     string
+		from     interface{}
+		to       interface{}
+		expected interface{}
+		err      error
 	}{
 		{
-			name: "Should copy from src to dst",
-			from: &s1{},
-			to:   &s2{Foo: []string{"a", "b", "c"}},
-			final: &s2{Foo: []string{"a", "b", "c"}},
+			name: "should copy struct slice deeply",
+			from: &fake{
+				Name: "fake",
+				Foo:  foo{
+					Name: "foo",
+					Bar:  bar{
+						Name: "bar",
+					},
+				},
+			},
+			to:   &fake{
+				Name: "fake",
+				Foo:  foo{
+					Name: "foo",
+					Bar:  bar{
+						Name: "bar",
+						Arr: []baz{{Name: "foo"}, {Name: "bar"}, {Name: "baz"}},
+					},
+				},
+			},
+			expected: &fake{
+				Name: "fake",
+				Foo:  foo{
+					Name: "foo",
+					Bar:  bar{
+						Name: "bar",
+					},
+				},
+			},
 			err:  nil,
 		},
 		{
-			name: "Should copy from src to dst",
-			from: &s1{Foo: []string{}},
-			to:   &s2{Foo: []string{"a", "b", "c"}},
-			final: &s2{Foo: []string{"a", "b", "c"}},
+			name: "should copy struct slice deeply",
+			from: &fake{
+				Name: "fake",
+				Foo:  foo{
+					Name: "foo",
+					Bar:  bar{
+						Name: "bar",
+						Arr: []baz{{Name: "foo"}, {Name: "bar"}, {Name: "baz"}},
+					},
+				},
+			},
+			to:   &fake{},
+			expected: &fake{
+				Name: "fake",
+				Foo:  foo{
+					Name: "foo",
+					Bar:  bar{
+						Name: "bar",
+						Arr: []baz{{Name: "foo"}, {Name: "bar"}, {Name: "baz"}},
+					},
+				},
+			},
 			err:  nil,
 		},
 		{
-			name: "Should copy from src to dst",
-			from: &p1{Foo: &Foo{Name: "foo"}},
-			to:   &p2{Foo: &Foo{Name: "bar"}},
-			final: &p2{Foo: &Foo{Name: "foo"}},
-			err:  nil,
+			name:     "should copy struct slice",
+			from:     &[]Foo{{Name: "foo"}, {Name: "bar"}},
+			to:       &[]Foo{{Name: "fb"}},
+			expected: &[]Foo{{Name: "foo"}, {Name: "bar"}},
+			err:      nil,
 		},
 		{
-			name: "Should copy from src to dst",
-			from: &src{Str: "foo", Int: 1, Slice: []string{"a", "b", "c"}, Foo: &Foo{Name: "foo"}},
-			to:   &dst{Str: "bar", Slice: []string{"one", "two", "three"}, Foo: &Foo{Name: "bar"}},
-			final: &dst{Str: "foo", Int: 1, Slice: []string{"a", "b", "c"}, Foo: &Foo{Name: "foo"}},
-			err:  nil,
+			name:     "should copy struct slice",
+			from:     &[]Foo{{Name: "foo"}, {Name: "bar"}},
+			to:       &[]Foo{},
+			expected: &[]Foo{{Name: "foo"}, {Name: "bar"}},
+			err:      nil,
 		},
 		{
-			name: "Should copy from src to dst",
-			from: &src{Int: 1, },
-			to:   &dst{Str: "bar", Slice: []string{"one", "two", "three"}, Foo: &Foo{Name: "bar"}},
-			final: &dst{Str: "bar", Int: 1, Slice: []string{"one", "two", "three"}, Foo: &Foo{Name: "bar"}},
-			err:  nil,
+			name:     "should copy struct slice",
+			from:     nil,
+			to:       &[]Foo{{Name: "foo"}, {Name: "bar"}},
+			expected: &[]Foo{{Name: "foo"}, {Name: "bar"}},
+			err:      nil,
+		},
+		{
+			name:     "should copy struct slice",
+			from:     &[]Bar{},
+			to:       &[]Foo{{Name: "foo"}, {Name: "bar"}},
+			expected: &[]Foo{{Name: "foo"}, {Name: "bar"}},
+			err:      nil,
+		},
+		{
+			name:     "Should copy from src to dst",
+			from:     &s1{},
+			to:       &s2{Foo: []string{"a", "b", "c"}},
+			expected: &s2{Foo: []string{"a", "b", "c"}},
+			err:      nil,
+		},
+		{
+			name:     "Should copy from src to dst",
+			from:     &s1{Foo: []string{}},
+			to:       &s2{Foo: []string{"a", "b", "c"}},
+			expected: &s2{Foo: []string{"a", "b", "c"}},
+			err:      nil,
+		},
+		{
+			name:     "Should copy from src to dst",
+			from:     &p1{Foo: &Foo{Name: "foo"}},
+			to:       &p2{Foo: &Foo{Name: "bar"}},
+			expected: &p2{Foo: &Foo{Name: "foo"}},
+			err:      nil,
+		},
+		{
+			name:     "Should copy from src to dst",
+			from:     &src{Str: "foo", Int: 1, Slice: []string{"a", "b", "c"}, Foo: &Foo{Name: "foo"}},
+			to:       &dst{Str: "bar", Slice: []string{"one", "two", "three"}, Foo: &Foo{Name: "bar"}},
+			expected: &dst{Str: "foo", Int: 1, Slice: []string{"a", "b", "c"}, Foo: &Foo{Name: "foo"}},
+			err:      nil,
+		},
+		{
+			name:     "Should copy from src to dst",
+			from:     &src{Int: 1, },
+			to:       &dst{Str: "bar", Slice: []string{"one", "two", "three"}, Foo: &Foo{Name: "bar"}},
+			expected: &dst{Str: "bar", Int: 1, Slice: []string{"one", "two", "three"}, Foo: &Foo{Name: "bar"}},
+			err:      nil,
 		},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			err := copier.Copy(testCase.to, testCase.from, copier.IgnoreEmptyValue)
-			assert.EqualValues(t, testCase.to, testCase.final)
+			assert.EqualValues(t, testCase.expected, testCase.to)
 			assert.Equal(t, testCase.err, err)
 		})
 	}

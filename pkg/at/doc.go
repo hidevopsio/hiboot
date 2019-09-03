@@ -12,5 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//Package at provides annotations for struct
+//Package at provides annotations for struct, function, or method
 package at
