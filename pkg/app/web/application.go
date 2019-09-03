@@ -97,16 +97,16 @@ func (a *application) Run() {
 		log.Infof("Hiboot started on port(s) http://localhost%v", serverPort)
 		timeDiff := time.Since(a.startUpTime)
 		log.Infof("Started %v in %f seconds", conf.App.Name, timeDiff.Seconds())
+		// build web app
 		a.webApp.Configure(iris.WithConfiguration(defaultConfiguration()))
+		err = a.webApp.Build()
 
 		// handler to Serve HTTP
 		http.Handle("/", a.webApp)
 
-		// build web app
-		err = a.webApp.Build()
 		// serve web app with server port, default port number is 8080
 		if err == nil {
-			err = http.ListenAndServe(serverPort, a.webApp)
+			err = http.ListenAndServe(serverPort, nil)
 		}
 	}
 }

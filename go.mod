@@ -23,6 +23,7 @@ require (
 	github.com/moul/http2curl v1.0.0 // indirect
 	github.com/opentracing/opentracing-go v1.0.2
 	github.com/pkg/errors v0.8.0
+	github.com/rakyll/statik v0.1.6
 	github.com/sony/sonyflake v0.0.0-20160530021500-fa881fb1052b
 	github.com/spf13/afero v1.1.2
 	github.com/spf13/cast v1.3.0 // indirect
