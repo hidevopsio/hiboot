@@ -24,6 +24,7 @@ import (
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/io"
 	"hidevops.io/hiboot/pkg/utils/str"
+	"net/http"
 	"os"
 	"regexp"
 	"time"
@@ -86,16 +87,27 @@ func (a *application) Initialize() error {
 // Run run web application
 func (a *application) Run() {
 	serverPort := ":8080"
+	// build HiBoot Application
 	err := a.build()
 	conf := a.SystemConfig()
-	if conf != nil && conf.Server.Port != "" {
-		serverPort = fmt.Sprintf(":%v", conf.Server.Port)
-	}
-	if err == nil {
+	if conf != nil && err == nil {
+		if conf.Server.Port != "" {
+			serverPort = fmt.Sprintf(":%v", conf.Server.Port)
+		}
 		log.Infof("Hiboot started on port(s) http://localhost%v", serverPort)
 		timeDiff := time.Since(a.startUpTime)
 		log.Infof("Started %v in %f seconds", conf.App.Name, timeDiff.Seconds())
-		err = a.webApp.Run(iris.Addr(fmt.Sprintf(serverPort)), iris.WithConfiguration(defaultConfiguration()))
+		a.webApp.Configure(iris.WithConfiguration(defaultConfiguration()))
+
+		// handler to Serve HTTP
+		http.Handle("/", a.webApp)
+
+		// build web app
+		err = a.webApp.Build()
+		// serve web app with server port, default port number is 8080
+		if err == nil {
+			err = http.ListenAndServe(serverPort, a.webApp)
+		}
 	}
 }
 
