@@ -12,16 +12,17 @@ import (
 )
 
 // Before run go build, run go generate.
-// Then, run the main program and visit http://localhost:8080/public/hello.txt
+// Then, run the main program and visit http://localhost:8080/public/hello.txt or http://localhost:8080/public/img/hiboot.png
 func main() {
 	// static files path prefix
 	stripPrefix := "/public/"
 
+	// create new static resources
 	staticFiles, err := fs.New()
 	if err == nil {
 		http.Handle(stripPrefix, http.StripPrefix(stripPrefix, http.FileServer(staticFiles)))
-
-		// Run HiBoot Application
-		web.NewApplication().SetProperty(app.ProfilesInclude, actuator.Profile).Run()
 	}
+
+	// Run HiBoot Application
+	web.NewApplication().SetProperty(app.ProfilesInclude, actuator.Profile).Run()
 }
