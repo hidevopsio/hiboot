@@ -1,4 +1,4 @@
-# default config file for testing
+# config file for testing
 # filename should be application.yml
 
 app:
@@ -8,15 +8,6 @@ app:
     include:
     - foo
 
-logging:
-  level: debug
-
-# added for test only
-fake:
-  name: ${app.name}
-
-foo: foo name
-
 star:
-  name: Earth
+  name: Mars
   system: solar

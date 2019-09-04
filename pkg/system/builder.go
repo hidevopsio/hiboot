@@ -35,9 +35,10 @@ import (
 // Builder is the config file (yaml, json) builder
 type Builder interface {
 	Init() error
-	Build(profiles ...string) (interface{}, error)
+	Build(profiles ...string) (p interface{}, err error)
 	BuildWithProfile(profile string) (interface{}, error)
-	Save(p interface{}) error
+	Load(properties interface{}) (err error)
+	Save(p interface{}) (err error)
 	Replace(source string) (retVal interface{})
 	GetProperty(name string) (retVal interface{})
 	SetProperty(name string, val interface{}) Builder
@@ -53,6 +54,10 @@ type builder struct {
 	configuration    interface{}
 	customProperties map[string]interface{}
 	profiles         []string
+}
+
+func (b *builder) Load(properties interface{}) (err error) {
+	panic("implement me")
 }
 
 // NewBuilder is the constructor of system.Builder
