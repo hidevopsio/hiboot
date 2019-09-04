@@ -4,7 +4,7 @@ package main
 
 import (
 	"github.com/rakyll/statik/fs"
-	_ "hidevops.io/hiboot/examples/web/swagger2/https-server/statik"
+	_ "hidevops.io/hiboot/examples/web/swagger/https-server/statik"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/starter/actuator"
