@@ -30,7 +30,7 @@ func init() {
 func TestAutoConfigure(t *testing.T) {
 	t.Run("should create new jwt middleware", func(t *testing.T) {
 		config := &configuration{
-			Properties: Properties{
+			Properties: &Properties{
 				PrivateKeyPath: "config/ssl/app.rsa",
 				PublicKeyPath:  "config/ssl/app.rsa.pub",
 			},
@@ -44,7 +44,7 @@ func TestAutoConfigure(t *testing.T) {
 
 	t.Run("should report if jwt ssl does not exist", func(t *testing.T) {
 		config := &configuration{
-			Properties: Properties{
+			Properties: &Properties{
 				PrivateKeyPath: "does-not-exist",
 				PublicKeyPath:  "does-not-exist",
 			},
@@ -53,7 +53,7 @@ func TestAutoConfigure(t *testing.T) {
 		token := config.Token().(*jwtToken)
 		assert.Equal(t, false, token.jwtEnabled)
 
-		err := token.Initialize(&config.Properties)
+		err := token.Initialize(config.Properties)
 		assert.NotEqual(t, nil, err)
 
 		_, err = token.Generate(Map{

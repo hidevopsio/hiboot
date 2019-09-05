@@ -1,5 +1,10 @@
 package web
 
+import (
+	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/at"
+)
+
 const (
 	// ViewEnabled is the property for enabling web view
 	ViewEnabled = "web.view.enabled"
@@ -27,6 +32,12 @@ type view struct {
 }
 
 type properties struct {
+	at.ConfigurationProperties `value:"web"`
+
 	// View is the properties for setting web view
 	View view
+}
+
+func init() {
+	app.Register(new(properties))
 }

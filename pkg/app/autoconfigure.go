@@ -17,7 +17,6 @@ package app
 import (
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
-	"hidevops.io/hiboot/pkg/factory/autoconfigure"
 	"hidevops.io/hiboot/pkg/inject/annotation"
 	"reflect"
 )
@@ -29,7 +28,7 @@ type Configuration struct {
 }
 
 // appendParam is the common func to append meta data to meta data slice
-func appendParam(eliminator string, container []*factory.MetaData, params ...interface{}) (retVal []*factory.MetaData, err error) {
+func appendParam(container []*factory.MetaData, params ...interface{}) (retVal []*factory.MetaData, err error) {
 
 	retVal = container
 
@@ -38,7 +37,12 @@ func appendParam(eliminator string, container []*factory.MetaData, params ...int
 
 	// append meta data
 	if metaData.MetaObject != nil {
-		retVal = append(retVal, metaData)
+		ok := annotation.Contains(metaData.MetaObject, at.AutoConfiguration{})
+		if ok {
+			configContainer = append(configContainer, metaData)
+		} else {
+			retVal = append(retVal, metaData)
+		}
 		//return
 	}
 	//err = ErrInvalidObjectType
@@ -46,7 +50,7 @@ func appendParam(eliminator string, container []*factory.MetaData, params ...int
 }
 
 // appendParams is the common func to append params to component or configuration containers
-func appendParams(eliminator string, container []*factory.MetaData, params ...interface{}) (retVal []*factory.MetaData, err error) {
+func appendParams(container []*factory.MetaData, params ...interface{}) (retVal []*factory.MetaData, err error) {
 	retVal = container
 	if len(params) == 0 || params[0] == nil {
 		err = ErrInvalidObjectType
@@ -55,24 +59,25 @@ func appendParams(eliminator string, container []*factory.MetaData, params ...in
 
 	if len(params) > 1 && reflect.TypeOf(params[0]).Kind() != reflect.String {
 		for _, param := range params {
-			retVal, err = appendParam(eliminator, retVal, param)
+			retVal, err = appendParam(retVal, param)
 		}
 	} else {
-		retVal, err = appendParam(eliminator, retVal, params...)
+		retVal, err = appendParam(retVal, params...)
 	}
 	return
 }
 
 // Register register a struct instance or constructor (func), so that it will be injectable.
 func Register(params ...interface{}) {
-	_, obj := factory.ParseParams(params...)
 
-	ok := annotation.Contains(obj, at.AutoConfiguration{})
-	if ok {
-		configContainer, _ = appendParams(autoconfigure.PostfixConfiguration, configContainer, params...)
-	} else {
-		componentContainer, _ = appendParams("", componentContainer, params...)
-	}
+	//_, obj := factory.ParseParams(params...)
+
+	//ok := annotation.Contains(obj, at.AutoConfiguration{})
+	//if ok {
+	//	configContainer, _ = appendParams(autoconfigure.PostfixConfiguration, configContainer, params...)
+	//} else {
+		componentContainer, _ = appendParams(componentContainer, params...)
+	//}
 	return
 }
 

@@ -1,6 +1,10 @@
 package websocket
 
+import "hidevops.io/hiboot/pkg/at"
+
 type properties struct {
+	at.ConfigurationProperties `value:"websocket"`
+
 	// EvtMessagePrefix is the prefix of the underline websocket events that are being established under the hoods.
 	// This prefix is visible only to the javascript side (code) and it has nothing to do
 	// with the message that the end-user receives.

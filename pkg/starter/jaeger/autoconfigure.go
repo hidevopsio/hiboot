@@ -34,16 +34,16 @@ const (
 type configuration struct {
 	at.AutoConfiguration
 
-	Properties Properties 			`mapstructure:"jaeger"`
+	Properties *properties
 	Closer     io.Closer
 }
 
 func init() {
-	app.Register(newConfiguration)
+	app.Register(newConfiguration, new(properties))
 }
 
-func newConfiguration() *configuration {
-	return &configuration{}
+func newConfiguration(properties *properties) *configuration {
+	return &configuration{Properties: properties}
 }
 
 //Tracer returns an instance of Jaeger Tracer that samples 100% of traces and logs all spans to stdout.

@@ -26,8 +26,8 @@ type defaultTag struct {
 	BaseTag
 }
 
-//func (t *defaultTag) IsSingleton() bool {
-//	return false
+//func init() {
+//	AddTag(new(defaultTag))
 //}
 
 func (t *defaultTag) Decode(object reflect.Value, field reflect.StructField, property string) (retVal interface{}) {

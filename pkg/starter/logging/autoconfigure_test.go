@@ -23,7 +23,9 @@ import (
 )
 
 func TestConfiguration(t *testing.T) {
-	c := newConfiguration(new(fake.ApplicationContext))
+	c := newConfiguration(new(fake.ApplicationContext), &properties{
+		Level: "debug",
+	})
 
 	t.Run("should get nil handler", func(t *testing.T) {
 		lh := c.LoggerHandler()
@@ -32,9 +34,6 @@ func TestConfiguration(t *testing.T) {
 
 	t.Run("should get handler", func(t *testing.T) {
 		io.EnsureWorkDir(1, "config/application.yml")
-		c.Properties = Properties{
-			Level: "debug",
-		}
 		c.LoggerHandler()
 	})
 }

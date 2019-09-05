@@ -14,8 +14,12 @@
 
 package jwt
 
+import "hidevops.io/hiboot/pkg/at"
+
 // Properties the jwt properties
 type Properties struct {
+	at.ConfigurationProperties `value:"jwt"`
+
 	PrivateKeyPath string `json:"private_key_path" default:"config/ssl/app.rsa"`
 	PublicKeyPath  string `json:"public_key_path" default:"config/ssl/app.rsa.pub"`
 }

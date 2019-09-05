@@ -46,6 +46,7 @@ type Builder interface {
 	SetConfiguration(in interface{})
 }
 
+// use propertyBuilder instead
 type builder struct {
 	*viper.Viper
 	path             string
@@ -60,6 +61,8 @@ func (b *builder) Load(properties interface{}) (err error) {
 	panic("implement me")
 }
 
+// Deprecated
+// use NewPropertyBuilder instead
 // NewBuilder is the constructor of system.Builder
 func NewBuilder(configuration interface{}, path, name, fileType string, customProperties map[string]interface{}) Builder {
 	return &builder{

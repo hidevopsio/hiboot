@@ -38,7 +38,7 @@ func TestDependencies(t *testing.T) {
 	assert.Equal(t, deps, c.RuntimeDeps.Get("hello"))
 
 	t.Run("should report error if we pass nil to appendParams", func(t *testing.T) {
-		_, err := appendParams("", nil)
+		_, err := appendParams(nil)
 		assert.Equal(t, ErrInvalidObjectType, err)
 	})
 }

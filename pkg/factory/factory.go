@@ -45,6 +45,7 @@ type InstantiateFactory interface {
 	GetInstance(params ...interface{}) (retVal interface{})
 	GetInstances(params ...interface{}) (retVal []*MetaData)
 	Items() map[string]interface{}
+	Append(i ...interface{})
 	AppendComponent(c ...interface{})
 	BuildComponents() (err error)
 	Builder() (builder system.Builder)
@@ -66,7 +67,7 @@ type ConfigurableFactory interface {
 	InstantiateFactory
 	SystemConfiguration() *system.Configuration
 	Configuration(name string) interface{}
-	BuildSystemConfig() (systemConfig *system.Configuration, err error)
+	BuildProperties() (systemConfig *system.Configuration, err error)
 	Build(configs []*MetaData)
 }
 

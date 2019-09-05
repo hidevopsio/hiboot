@@ -93,7 +93,7 @@ func resolveGraph(graph Graph) (Graph, error) {
 			dependencySet.Add(dep.name)
 		}
 		if nodeDependencies[node.name] != nil {
-			log.Warnf("%v is already exist, overwrite it, rename it if your meet any issue", node.name)
+			log.Debugf("%v is already exist, overwrite!", node.name)
 		}
 		nodeDependencies[node.name] = dependencySet
 	}

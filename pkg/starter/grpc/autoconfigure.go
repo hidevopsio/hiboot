@@ -33,9 +33,21 @@ const (
 
 type configuration struct {
 	app.Configuration
-	Properties properties `mapstructure:"grpc"`
+	Properties *properties
 
 	instantiateFactory factory.InstantiateFactory
+}
+
+func newConfiguration(properties *properties, instantiateFactory factory.InstantiateFactory) *configuration {
+	c := &configuration{Properties: properties, instantiateFactory: instantiateFactory}
+	var dep []string
+	for _, srv := range grpcServers {
+		if srv.svc != nil {
+			dep = append(dep, srv.name)
+		}
+	}
+	c.RuntimeDeps.Set(c.ServerFactory, dep)
+	return c
 }
 
 type grpcService struct {
@@ -116,25 +128,9 @@ var Client = RegisterClient
 func init() {
 	clientMap = cmap.New()
 	Server(pb.RegisterHealthServer, health.NewServer)
-	app.Register(newConfiguration)
+	app.Register(newConfiguration, new(properties))
 }
 
-func newConfiguration(instantiateFactory factory.InstantiateFactory) *configuration {
-	c := &configuration{
-		instantiateFactory: instantiateFactory,
-	}
-
-	// we need to specify dependencies for runtime dependency injection
-	var dep []string
-	for _, srv := range grpcServers {
-		if srv.svc != nil {
-			dep = append(dep, srv.name)
-		}
-	}
-	c.RuntimeDeps.Set(c.ServerFactory, dep)
-
-	return c
-}
 
 // ClientConnector is the interface that connect to grpc client
 // it can be injected to struct at runtime

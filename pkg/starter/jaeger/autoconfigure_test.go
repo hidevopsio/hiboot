@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/opentracing/opentracing-go/log"
 	"github.com/stretchr/testify/assert"
+	"github.com/uber/jaeger-client-go/config"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/at"
@@ -17,7 +18,19 @@ import (
 )
 
 func TestConfiguration(t *testing.T) {
-	c := newConfiguration()
+	c := newConfiguration(&properties{
+		Config:                  config.Configuration{
+			ServiceName:         "test",
+			Disabled:            false,
+			RPCMetrics:          false,
+			Tags:                nil,
+			Sampler:             nil,
+			Reporter:            nil,
+			Headers:             nil,
+			BaggageRestrictions: nil,
+			Throttler:           nil,
+		},
+	})
 	assert.NotEqual(t, nil, c)
 
 	tracer := c.Tracer()
@@ -109,13 +122,13 @@ func TestController(t *testing.T) {
 
 	t.Run("should response 200 when GET /foo/{foo}", func(t *testing.T) {
 		testApp.
-			Request(http.MethodGet, "/foo/{foo}").
+			Get("/foo/{foo}").
 			WithPath("foo", "bar").
 			Expect().Status(http.StatusOK)
 	})
 	t.Run("should response 200 when GET /formatter/{format}", func(t *testing.T) {
 		testApp.
-			Request(http.MethodGet, "/formatter/{format}").
+			Get("/formatter/{format}").
 			WithPath("format", "bar").
 			Expect().Status(http.StatusOK)
 	})

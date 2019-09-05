@@ -14,9 +14,14 @@
 
 package jaeger
 
-import "github.com/uber/jaeger-client-go/config"
+import (
+	"github.com/uber/jaeger-client-go/config"
+	"hidevops.io/hiboot/pkg/at"
+)
 
 // Properties the jaeger properties
-type Properties struct {
+type properties struct {
+	at.ConfigurationProperties `value:"jaeger" `
+
 	Config config.Configuration
 }

@@ -26,12 +26,14 @@ const (
 
 type configuration struct {
 	at.AutoConfiguration
+
+	Properties *properties
 }
 
-func newConfiguration() *configuration {
-	return &configuration{}
+func newConfiguration(properties *properties) *configuration {
+	return &configuration{Properties: properties}
 }
 
 func init() {
-	app.Register(newConfiguration)
+	app.Register(newConfiguration, new(properties))
 }

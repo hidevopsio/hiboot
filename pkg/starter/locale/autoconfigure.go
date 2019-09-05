@@ -32,18 +32,19 @@ const (
 
 type configuration struct {
 	app.Configuration
-	Properties         properties `mapstructure:"locale"`
+	Properties         *properties
 	applicationContext app.ApplicationContext
 }
 
-func newConfiguration(applicationContext app.ApplicationContext) *configuration {
+func newConfiguration(applicationContext app.ApplicationContext, properties *properties) *configuration {
 	return &configuration{
 		applicationContext: applicationContext,
+		Properties:         properties,
 	}
 }
 
 func init() {
-	app.Register(newConfiguration)
+	app.Register(newConfiguration, new(properties))
 }
 
 func (c *configuration) Handler() (handler context.Handler) {

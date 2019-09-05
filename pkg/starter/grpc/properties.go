@@ -1,6 +1,9 @@
 package grpc
 
-import "time"
+import (
+	"hidevops.io/hiboot/pkg/at"
+	"time"
+)
 
 type server struct {
 	Enabled bool `json:"enabled" default:"false"`
@@ -37,6 +40,8 @@ type ClientProperties struct {
 }
 
 type properties struct {
+	at.ConfigurationProperties `value:"grpc"`
+
 	TimeoutSecond time.Duration          `json:"timeout_second"`
 	Server        server                 `json:"server"`
 	Client        map[string]interface{} `json:"client"`

@@ -30,7 +30,7 @@ type ServerFactory interface {
 type serverFactory struct {
 }
 
-func newServerFactory(instantiateFactory factory.InstantiateFactory, properties properties, grpcServer *grpc.Server) ServerFactory {
+func newServerFactory(instantiateFactory factory.InstantiateFactory, properties *properties, grpcServer *grpc.Server) ServerFactory {
 	sf := &serverFactory{}
 
 	// just return if grpc server is not enabled

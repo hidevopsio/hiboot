@@ -37,38 +37,38 @@ type configuration struct {
 	// embedded annotation at.AutoConfiguration
 	at.AutoConfiguration
 
-	Properties properties `mapstructure:"websocket"`
+	Properties *properties
 }
 
 type Server struct {
 	*websocket.Server
 }
 
-func newConfiguration() *configuration {
-	return &configuration{}
+func newConfiguration(properties *properties) *configuration {
+	return &configuration{Properties: properties}
 }
 
 func init() {
-	app.Register(newConfiguration)
+	app.Register(newConfiguration, new(properties))
 }
 
 // Server websocket server
 func (c *configuration) Server() *Server {
 	var cfg websocket.Config
-	copier.Copy(&cfg, &c.Properties)
-	p := &c.Properties
+	_ = copier.Copy(&cfg, &c.Properties)
+	p := c.Properties
 	s := websocket.New(websocket.Config{
-		Ping: p.Ping,
+		Ping:             p.Ping,
 		EvtMessagePrefix: []byte(p.EvtMessagePrefix),
 		HandshakeTimeout: time.Duration(p.HandshakeTimeout) * time.Second,
-		WriteTimeout: time.Duration(p.WriteTimeout) * time.Second,
-		ReadTimeout: time.Duration(p.ReadTimeout) * time.Second,
-		PongTimeout: time.Duration(p.PongTimeout) * time.Second,
-		PingPeriod: time.Duration(p.PingPeriod) * time.Second,
-		MaxMessageSize: p.MaxMessageSize,
-		BinaryMessages: p.BinaryMessages,
-		ReadBufferSize: p.ReadBufferSize,
-		WriteBufferSize: p.WriteBufferSize,
+		WriteTimeout:     time.Duration(p.WriteTimeout) * time.Second,
+		ReadTimeout:      time.Duration(p.ReadTimeout) * time.Second,
+		PongTimeout:      time.Duration(p.PongTimeout) * time.Second,
+		PingPeriod:       time.Duration(p.PingPeriod) * time.Second,
+		MaxMessageSize:   p.MaxMessageSize,
+		BinaryMessages:   p.BinaryMessages,
+		ReadBufferSize:   p.ReadBufferSize,
+		WriteBufferSize:  p.WriteBufferSize,
 	})
 
 	return &Server{
@@ -87,4 +87,3 @@ func (c *configuration) Connection(ctx context.Context, server *Server) *Connect
 func (c *configuration) Register() Register {
 	return registerHandler
 }
-

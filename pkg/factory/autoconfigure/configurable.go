@@ -69,6 +69,8 @@ var (
 )
 
 type configurableFactory struct {
+	at.Qualifier `value:"factory.configurableFactory"`
+
 	factory.InstantiateFactory
 	configurations cmap.ConcurrentMap
 	systemConfig   *system.Configuration
@@ -87,9 +89,11 @@ func NewConfigurableFactory(instantiateFactory factory.InstantiateFactory, confi
 	}
 
 	f.configurations = configurations
-	f.SetInstance("configurations", configurations)
+	_ = f.SetInstance("configurations", configurations)
 
 	f.builder = f.Builder()
+
+	f.Append(f)
 	return f
 }
 
@@ -107,12 +111,13 @@ func (f *configurableFactory) Configuration(name string) interface{} {
 	return nil
 }
 
-// BuildSystemConfig build system configuration
-func (f *configurableFactory) BuildSystemConfig() (systemConfig *system.Configuration, err error) {
+// BuildProperties build all properties
+func (f *configurableFactory) BuildProperties() (systemConfig *system.Configuration, err error) {
+	// manually inject systemConfiguration
 	systemConfig = f.GetInstance(system.Configuration{}).(*system.Configuration)
-	f.InjectDefaultValue(systemConfig)
-	profile := os.Getenv(EnvAppProfilesActive)
+	_ = f.InjectDefaultValue(systemConfig)
 
+	profile := os.Getenv(EnvAppProfilesActive)
 	if profile == "" {
 		profile = defaultProfileName
 	}
@@ -122,9 +127,9 @@ func (f *configurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 		f.builder.SetProperty(prop, val)
 	}
 
-	_, err = f.builder.Build(defaultProfileName, profile)
+	_, err = f.builder.Build(profile)
 	if err == nil {
-		f.InjectIntoObject(systemConfig)
+		_ = f.InjectIntoObject(systemConfig)
 		//replacer.Replace(systemConfig, systemConfig)
 
 		f.configurations.Set(System, systemConfig)
@@ -132,6 +137,10 @@ func (f *configurableFactory) BuildSystemConfig() (systemConfig *system.Configur
 		f.systemConfig = systemConfig
 	}
 
+	allProperties := f.GetInstances(at.ConfigurationProperties{})
+	for _, properties := range allProperties {
+		_ = f.builder.Load(properties.MetaObject)
+	}
 	return
 }
 
@@ -148,6 +157,11 @@ func (f *configurableFactory) Build(configs []*factory.MetaData) {
 	}
 
 	f.build(f.configureContainer)
+
+	allProperties := f.GetInstances(at.ConfigurationProperties{})
+	for _, properties := range allProperties {
+		_ = f.builder.Load(properties.MetaObject)
+	}
 }
 
 // Instantiate run instantiation by method
@@ -155,9 +169,9 @@ func (f *configurableFactory) Instantiate(configuration interface{}) (err error)
 	cv := reflect.ValueOf(configuration)
 	icv := reflector.Indirect(cv)
 
-	//if !cv.IsValid() {
-	//	return ErrInvalidObjectType
-	//}
+	if !cv.IsValid() {
+		return ErrInvalidObjectType
+	}
 	configType := cv.Type()
 	//log.Debug("type: ", configType)
 	//name := configType.Elem().Name()
@@ -213,44 +227,51 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 
 		isContextAware := annotation.Contains(item.MetaObject, at.ContextAware{})
 		// TODO: should check if profiles is enabled str.InSlice(name, sysconf.App.Profiles.Include)
-		if f.systemConfig.App.Profiles.Filter &&
-			!isContextAware &&
-			f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
-			continue
+		filter := f.GetProperty("app.profiles.filter")
+		if filter != nil {
+			pf := filter.(bool)
+			if pf &&
+				!isContextAware &&
+				f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
+				continue
+			}
 		}
 		log.Infof("Auto configure %v starter on %v", item.PkgName, item.Type)
 
 		// inject into func
+		var cf interface{}
 		if item.Kind == types.Func {
-			config, _ = f.InjectIntoFunc(config)
+			cf, _ = f.InjectIntoFunc(config)
+		} else if item.Kind == types.Struct {
+			cf = config
 		}
+		if cf != nil {
 
-		// inject properties
-		f.builder.SetConfiguration(config)
+			_ = f.InjectDefaultValue(cf)
+			// inject default value
 
-		// inject default value
-		_ = f.InjectDefaultValue(config)
+			// build properties, inject settings
+			//_ = f.builder.Load(cf)
 
-		// build properties, inject settings
-		cf, _ := f.builder.Build(name, f.systemConfig.App.Profiles.Active)
-		//No properties needs to build, use default config
-		//if cf == nil {
-		//	confTyp := reflect.TypeOf(config)
-		//	log.Warnf("Unsupported configuration type: %v", confTyp)
-		//	continue
-		//}
+			//No properties needs to build, use default config
+			//if cf == nil {
+			//	confTyp := reflect.TypeOf(config)
+			//	log.Warnf("Unsupported configuration type: %v", confTyp)
+			//	continue
+			//}
 
-		_ = f.InjectIntoObject(cf)
+			_ = f.InjectIntoObject(cf)
 
-		// instantiation
-		_ = f.Instantiate(cf)
-		// save configuration
+			// instantiation
+			_ = f.Instantiate(cf)
 
-		configName := name
-		//if _, ok := f.configurations.Get(name); ok {
-		//	configName = reflector.GetFullName(cf)
-		//}
-		// TODO: should set full name instead
-		f.configurations.Set(configName, cf)
+			// save configuration
+			configName := name
+			//if _, ok := f.configurations.Get(name); ok {
+			//	configName = reflector.GetFullName(cf)
+			//}
+			// TODO: should set full name instead
+			f.configurations.Set(configName, cf)
+		}
 	}
 }

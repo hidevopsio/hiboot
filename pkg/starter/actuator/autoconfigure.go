@@ -25,19 +25,20 @@ const (
 	Profile = "actuator"
 )
 
-type Properties struct {
+type properties struct {
+	at.ConfigurationProperties `value:"actuator"`
 }
 
 type configuration struct {
 	at.AutoConfiguration
 
-	Properties Properties `mapstructure:"actuator"`
+	Properties *properties
 }
 
-func newConfiguration() *configuration {
-	return &configuration{}
+func newConfiguration(properties *properties) *configuration {
+	return &configuration{Properties: properties}
 }
 
 func init() {
-	app.Register(newConfiguration)
+	app.Register(newConfiguration, new(properties))
 }
