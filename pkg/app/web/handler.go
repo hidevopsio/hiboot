@@ -372,11 +372,7 @@ func (h *handler) call(ctx context.Context) {
 			if inst != nil {
 				inputs[i] = reflect.ValueOf(inst)
 			} else {
-				// check if it's annotation
-				if  h.requests[i].isAnnotation {
-					inputs[i] = h.requests[i].iVal
-					continue
-				}
+				inputs[i] = h.requests[i].iVal
 			}
 		}
 	}

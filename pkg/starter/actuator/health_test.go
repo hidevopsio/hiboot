@@ -18,6 +18,8 @@ import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/starter/logging"
 	"net/http"
 	"testing"
 )
@@ -43,6 +45,7 @@ func init() {
 }
 
 func TestHealthController(t *testing.T) {
+	log.SetLevel(logging.LevelDebug)
 	web.RunTestApplication(t).
 		Get("/health").
 		Expect().Status(http.StatusOK)

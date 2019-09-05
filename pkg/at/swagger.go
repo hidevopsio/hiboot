@@ -1,6 +1,6 @@
 package at
 
-// Swagger annotation to declare swagger2 config
+// Swagger annotation to declare swagger config
 type Swagger struct {
 	Annotation
 }

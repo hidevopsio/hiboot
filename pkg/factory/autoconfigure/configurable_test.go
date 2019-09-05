@@ -32,6 +32,8 @@ import (
 )
 
 type FakeProperties struct {
+	at.ConfigurationProperties `value:"fake"`
+
 	Name     string `default:"foo"`
 	Nickname string `default:"foobar"`
 	Username string `default:"fb"`
@@ -57,7 +59,11 @@ func (c *ContextAwareConfiguration) Connection(context context.Context) *Connect
 }
 
 type unknownConfiguration struct {
-	FakeProperties FakeProperties `mapstructure:"fake"`
+	FakeProperties FakeProperties
+}
+
+func newUnknownConfiguration(fakeProperties FakeProperties) *unknownConfiguration {
+	return &unknownConfiguration{FakeProperties: fakeProperties}
 }
 
 type FooInterface interface {
@@ -65,36 +71,75 @@ type FooInterface interface {
 
 type unsupportedConfiguration struct {
 	FooInterface
-	FakeProperties FakeProperties `mapstructure:"fake"`
+	FakeProperties *FakeProperties
 }
 
-type Properties struct {
+func newUnsupportedConfiguration(fakeProperties *FakeProperties) *unsupportedConfiguration {
+	return &unsupportedConfiguration{FakeProperties: fakeProperties}
+}
+
+type fooProperties struct {
+	at.ConfigurationProperties `value:"foo"`
+
 	Name     string `default:"${fake.name}"`
 	Nickname string `default:"foobar"`
 	Username string `default:"fb"`
 }
 
-type Configuration struct {
+type foobarProperties struct {
+	at.ConfigurationProperties `value:"foobar"`
+
+	Name     string `default:"${fake.name}"`
+	Nickname string `default:"foobar"`
+	Username string `default:"fb"`
+}
+
+
+type barProperties struct {
+	at.ConfigurationProperties `value:"bar"`
+
+	Name     string `default:"${fake.name}"`
+	Nickname string `default:"foobar"`
+	Username string `default:"fb"`
+}
+
+type configuration struct {
 	at.AutoConfiguration
+}
+
+func newConfiguration() *configuration {
+	return &configuration{}
 }
 
 type emptyConfiguration struct {
 }
 
-type FooConfiguration struct {
+func newEmptyConfiguration() *emptyConfiguration {
+	return &emptyConfiguration{}
+}
+
+type fooConfiguration struct {
 	at.AutoConfiguration
-	FakeProperties Properties `mapstructure:"foo"`
+	FooProperties *fooProperties
+}
+
+func newFooConfiguration(fooProperties *fooProperties) *fooConfiguration {
+	return &fooConfiguration{FooProperties: fooProperties}
 }
 
 type BarConfiguration struct {
 	app.Configuration
-	FakeProperties Properties `mapstructure:"bar"`
+	barProperties *barProperties
 }
 
 type FooBarConfiguration struct {
 	app.Configuration
-	FakeProperties Properties `mapstructure:"foobar"`
+	FakeProperties *foobarProperties
 	foobar         *FooBar
+}
+
+func NewFooBarConfiguration(fakeProperties *foobarProperties, foobar *FooBar) *FooBarConfiguration {
+	return &FooBarConfiguration{FakeProperties: fakeProperties, foobar: foobar}
 }
 
 type mercury struct {
@@ -109,7 +154,11 @@ type jupiter struct {
 }
 
 type marsConfiguration struct {
-	app.Configuration `depends:"mercuryConfiguration"`
+	app.Configuration
+}
+
+func newMarsConfiguration() *marsConfiguration {
+	return &marsConfiguration{}
 }
 
 func (c *marsConfiguration) Mars(m *mercury) *mars {
@@ -117,7 +166,11 @@ func (c *marsConfiguration) Mars(m *mercury) *mars {
 }
 
 type mercuryConfiguration struct {
-	app.Configuration `depends:"jupiterConfiguration"`
+	app.Configuration
+}
+
+func newMercuryConfiguration() *mercuryConfiguration {
+	return &mercuryConfiguration{}
 }
 
 func (c *mercuryConfiguration) Mercury(j *jupiter) *mercury {
@@ -126,6 +179,10 @@ func (c *mercuryConfiguration) Mercury(j *jupiter) *mercury {
 
 type jupiterConfiguration struct {
 	app.Configuration
+}
+
+func newJupiterConfiguration() *jupiterConfiguration {
+	return &jupiterConfiguration{}
 }
 
 func (c *jupiterConfiguration) Jupiter() *jupiter {
@@ -141,11 +198,11 @@ func newFooBarConfiguration(foobar *FooBar) *FooBarConfiguration {
 type HelloWorld string
 type Hello string
 
-func (c *FooConfiguration) HelloWorld(foo Hello) HelloWorld {
+func (c *fooConfiguration) HelloWorld(foo Hello) HelloWorld {
 	return HelloWorld(foo + " world")
 }
 
-func (c *FooConfiguration) Hello() Hello {
+func (c *fooConfiguration) Hello() Hello {
 	return Hello("Hello")
 }
 
@@ -163,7 +220,13 @@ type FooBar struct {
 }
 
 type barConfiguration struct {
-	FakeProperties Properties `mapstructure:"bar"`
+	at.AutoConfiguration
+	
+	barProperties *barProperties 
+}
+
+func newBarConfiguration(barProperties *barProperties) *barConfiguration {
+	return &barConfiguration{barProperties: barProperties}
 }
 
 func (c *barConfiguration) BarBar() *Bar {
@@ -177,25 +240,25 @@ func init() {
 
 type fakeConfiguration struct {
 	app.Configuration
-	FakeProperties FakeProperties `mapstructure:"fake"`
+	FakeProperties *FakeProperties 
 }
 
-func newFakeConfiguration() *fakeConfiguration {
-	return &fakeConfiguration{}
+func newFakeConfiguration(fakeProperties *FakeProperties) *fakeConfiguration {
+	return &fakeConfiguration{FakeProperties: fakeProperties}
 }
 
 type foobarConfiguration struct {
 	app.Configuration
-	FakeProperties FakeProperties `mapstructure:"foobar"`
+	FoobarProperties *foobarProperties
 }
 
-func newFoobarConfiguration() *foobarConfiguration {
-	return &foobarConfiguration{}
+func newFoobarConfiguration(properties *foobarProperties) *foobarConfiguration {
+	return &foobarConfiguration{FoobarProperties: properties}
 }
 
 func (c *foobarConfiguration) Foo(bar *Bar) *Foo {
 	f := new(Foo)
-	f.Name = c.FakeProperties.Name
+	f.Name = c.FoobarProperties.Name
 	f.Bar = bar
 	return f
 }
@@ -301,11 +364,11 @@ func newHelloService(foo *Foo) *helloService {
 	return &helloService{foo: foo}
 }
 
-func setFactory(t *testing.T, customProperties cmap.ConcurrentMap) factory.ConfigurableFactory {
+func setFactory(t *testing.T, configDir string, customProperties cmap.ConcurrentMap) factory.ConfigurableFactory {
 	io.ChangeWorkDir(os.TempDir())
 
 	configPath := filepath.Join(os.TempDir(), "config")
-
+	os.Remove(filepath.Join(configPath, "foo.yaml"))
 	fakeFile := "application.yml"
 	os.Remove(filepath.Join(configPath, fakeFile))
 	fakeContent :=
@@ -339,22 +402,15 @@ func setFactory(t *testing.T, customProperties cmap.ConcurrentMap) factory.Confi
 
 func TestConfigurableFactory(t *testing.T) {
 	customProperties := cmap.New()
-	f := setFactory(t, customProperties)
+	f := setFactory(t, "mercury", customProperties)
 
 	var err error
-	t.Run("should set factory instance", func(t *testing.T) {
-		err = f.SetInstance(factory.InstantiateFactoryName, f)
-		assert.Equal(t, nil, err)
 
-		f.SetInstance(factory.ConfigurableFactoryName, f)
-		assert.Equal(t, nil, err)
-	})
-	//inject.SetFactory(f)
 	// backup profile
 	profile := os.Getenv(autoconfigure.EnvAppProfilesActive)
 	t.Run("should build app config", func(t *testing.T) {
 		os.Setenv(autoconfigure.EnvAppProfilesActive, "")
-		sc, err := f.BuildSystemConfig()
+		sc, err := f.BuildProperties()
 		assert.Equal(t, nil, err)
 		assert.Equal(t, "default", sc.App.Profiles.Active)
 		// restore profile
@@ -364,7 +420,7 @@ func TestConfigurableFactory(t *testing.T) {
 	os.Setenv(autoconfigure.EnvAppProfilesActive, profile)
 	customProperties.Set(autoconfigure.PropAppProfilesActive, "dev")
 	t.Run("should build app config", func(t *testing.T) {
-		sc, err := f.BuildSystemConfig()
+		sc, err := f.BuildProperties()
 		assert.Equal(t, nil, err)
 		assert.Equal(t, "dev", sc.App.Profiles.Active)
 		// restore profile
@@ -372,23 +428,21 @@ func TestConfigurableFactory(t *testing.T) {
 	})
 
 	t.Run("should build app config", func(t *testing.T) {
-		_, err = f.BuildSystemConfig()
+		_, err = f.BuildProperties()
 		assert.Equal(t, nil, err)
 	})
-
-	fooConfig := new(FooConfiguration)
-
+	
 	f.Build([]*factory.MetaData{
-		factory.NewMetaData(new(emptyConfiguration)),
+		factory.NewMetaData(newEmptyConfiguration),
 		factory.NewMetaData(newFakeConfiguration),
-		factory.NewMetaData("foo", fooConfig),
-		factory.NewMetaData(new(Configuration)),
-		factory.NewMetaData(new(BarConfiguration)),
-		factory.NewMetaData(new(marsConfiguration)),
-		factory.NewMetaData(new(jupiterConfiguration)),
-		factory.NewMetaData(new(mercuryConfiguration)),
-		factory.NewMetaData(new(unknownConfiguration)),
-		factory.NewMetaData(new(unsupportedConfiguration)),
+		factory.NewMetaData(newFooConfiguration),
+		factory.NewMetaData(newConfiguration),
+		factory.NewMetaData(newBarConfiguration),
+		factory.NewMetaData(newMarsConfiguration),
+		factory.NewMetaData(newJupiterConfiguration),
+		factory.NewMetaData(newMercuryConfiguration),
+		factory.NewMetaData(newUnknownConfiguration),
+		factory.NewMetaData(newUnsupportedConfiguration),
 		factory.NewMetaData(newFoobarConfiguration),
 		factory.NewMetaData(newEarthConfiguration),
 		factory.NewMetaData(newContextAwareConfiguration),
@@ -447,29 +501,33 @@ func TestReplacer(t *testing.T) {
 	customProperties := cmap.New()
 	customProperties.Set("app.profiles.filter", true)
 	customProperties.Set("app.profiles.include", []string{"foo", "fake"})
-	f := setFactory(t, customProperties)
+	f := setFactory(t, "jupiter", customProperties)
 	var err error
 
 	t.Run("should build app config", func(t *testing.T) {
-		_, err = f.BuildSystemConfig()
+		_, err = f.BuildProperties()
 		assert.Equal(t, nil, err)
 	})
-	fooConfig := new(FooConfiguration)
+
 
 	type outConfiguration struct {
 		at.AutoConfiguration
-		Properties Properties `mapstructure:"out"`
+		Properties *fooProperties `inject:""`
 	}
 
 	f.Build([]*factory.MetaData{
 		factory.NewMetaData(new(outConfiguration)),
 		factory.NewMetaData(newFakeConfiguration),
-		factory.NewMetaData("foo", fooConfig),
+		factory.NewMetaData(newFooConfiguration),
 	})
 
+	fp := f.GetInstance(fooProperties{})
+	assert.NotEqual(t, nil, fp)
+	fooProp := fp.(*fooProperties)
+	
 	t.Run("should get foo configuration", func(t *testing.T) {
-		assert.Equal(t, "hiboot-test foo", fooConfig.FakeProperties.Nickname)
-		assert.Equal(t, "bar", fooConfig.FakeProperties.Username)
-		assert.Equal(t, "foo", fooConfig.FakeProperties.Name)
+		assert.Equal(t, "hiboot-test foo", fooProp.Nickname)
+		assert.Equal(t, "bar", fooProp.Username)
+		assert.Equal(t, "foo", fooProp.Name)
 	})
 }

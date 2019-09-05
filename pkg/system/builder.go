@@ -35,9 +35,10 @@ import (
 // Builder is the config file (yaml, json) builder
 type Builder interface {
 	Init() error
-	Build(profiles ...string) (interface{}, error)
+	Build(profiles ...string) (p interface{}, err error)
 	BuildWithProfile(profile string) (interface{}, error)
-	Save(p interface{}) error
+	Load(properties interface{}) (err error)
+	Save(p interface{}) (err error)
 	Replace(source string) (retVal interface{})
 	GetProperty(name string) (retVal interface{})
 	SetProperty(name string, val interface{}) Builder
@@ -45,6 +46,7 @@ type Builder interface {
 	SetConfiguration(in interface{})
 }
 
+// use propertyBuilder instead
 type builder struct {
 	*viper.Viper
 	path             string
@@ -55,6 +57,12 @@ type builder struct {
 	profiles         []string
 }
 
+func (b *builder) Load(properties interface{}) (err error) {
+	return
+}
+
+// Deprecated
+// use NewPropertyBuilder instead
 // NewBuilder is the constructor of system.Builder
 func NewBuilder(configuration interface{}, path, name, fileType string, customProperties map[string]interface{}) Builder {
 	return &builder{

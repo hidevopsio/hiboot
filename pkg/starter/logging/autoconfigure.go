@@ -42,18 +42,19 @@ const (
 
 type configuration struct {
 	app.Configuration
-	Properties         Properties `mapstructure:"logging"`
+	Properties         *properties
 	applicationContext app.ApplicationContext
 }
 
-func newConfiguration(applicationContext app.ApplicationContext) *configuration {
+func newConfiguration(applicationContext app.ApplicationContext, properties *properties ) *configuration {
 	return &configuration{
 		applicationContext: applicationContext,
+		Properties:         properties,
 	}
 }
 
 func init() {
-	app.Register(newConfiguration)
+	app.Register(newConfiguration, new(properties))
 }
 
 // LoggerHandler config logger handler

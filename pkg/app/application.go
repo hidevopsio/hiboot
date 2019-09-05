@@ -145,18 +145,11 @@ func (a *BaseApplication) Build() {
 	a.setCustomPropertiesFromArgs()
 
 	instantiateFactory := instantiate.NewInstantiateFactory(a.instances, componentContainer, a.properties)
-	// TODO: should set or get instance by passing object instantiateFactory
-	instantiateFactory.SetInstance(factory.InstantiateFactoryName, instantiateFactory)
-	instantiateFactory.AppendComponent(factory.InstantiateFactoryName, instantiateFactory)
-
 	configurableFactory := autoconfigure.NewConfigurableFactory(instantiateFactory, a.configurations)
-	instantiateFactory.SetInstance(factory.ConfigurableFactoryName, configurableFactory)
-	instantiateFactory.AppendComponent(factory.ConfigurableFactoryName, configurableFactory)
 	a.configurableFactory = configurableFactory
 
 	a.postProcessor = newPostProcessor(instantiateFactory)
-
-	a.systemConfig, _ = configurableFactory.BuildSystemConfig()
+	a.systemConfig, _ = configurableFactory.BuildProperties()
 
 	// set logging level
 	log.SetLevel(a.systemConfig.Logging.Level)
@@ -189,6 +182,11 @@ func (a *BaseApplication) SystemConfig() *system.Configuration {
 // BuildConfigurations get BuildConfigurations
 func (a *BaseApplication) BuildConfigurations() (err error) {
 	// build configurations
+	//for _, cfg := range componentContainer {
+	//	if annotation.Contains(cfg.MetaObject, at.AutoConfiguration{}) {
+	//		configContainer = append(configContainer, cfg)
+	//	}
+	//}
 	a.configurableFactory.Build(configContainer)
 	// build components
 	err = a.configurableFactory.BuildComponents()

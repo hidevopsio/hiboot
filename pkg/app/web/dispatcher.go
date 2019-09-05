@@ -372,13 +372,13 @@ func (d *Dispatcher) register(controllers []*factory.MetaData, middleware []*fac
 				hdl.call(c)
 			}))
 		}
-		log.Debugf("| mw.obj | mw.mth | ctl.obj | ctl.mth | = | res |")
 
 		// bind regular http method handlers with router
 		atCtl := annotation.Filter(restController.annotations.fields, at.UseMiddleware{})
 		for _, m := range restController.methods {
-			atCtlMth := annotation.Filter(m.annotations.fields, at.UseMiddleware{})
 			var handlers []iris.Handler
+
+			atCtlMth := annotation.Filter(m.annotations.fields, at.UseMiddleware{})
 
 			// 1. pass all annotations to registered starter for further implementations, e.g. swagger
 

@@ -16,6 +16,7 @@ package system
 
 import (
 	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/io"
 	"os"
@@ -29,11 +30,14 @@ type profiles struct {
 }
 
 type properties struct {
+	at.ConfigurationProperties `value:"app"`
+
 	Name string `json:"name"`
+	Profiles profiles `json:"profiles"`
 }
 
 type fakeConfiguration struct {
-	Properties properties `mapstructure:"fake"`
+	Properties properties `mapstructure:"app"`
 }
 
 func init() {
@@ -44,16 +48,20 @@ func init() {
 
 var customProps = make(map[string]interface{})
 
+
 func TestBuilderBuild(t *testing.T) {
 	err := os.Setenv("APP_NAME", "hiboot-app")
 
-	testProject := "system-configuration-test"
+	testProject := "hidevopsio"
 	customProps["app.project"] = testProject
-	b := NewBuilder(&Configuration{},
+	b := NewBuilder(NewConfiguration(new(App), new(Server), new(Logging)),
 		filepath.Join(io.GetWorkDir(), "config"),
 		"application",
 		"yaml",
 		customProps)
+
+	// not used
+	_ = b.Load(nil)
 
 	cp, err := b.Build("default", "local")
 	t.Run("should build configuration properly", func(t *testing.T) {
@@ -270,11 +278,11 @@ func TestBuilderSave(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	c := &Configuration{
-		App: App{
+		App: &App{
 			Name:    "foo",
 			Project: "bar",
 		},
-		Server: Server{
+		Server: &Server{
 			Port: "8080",
 		},
 	}

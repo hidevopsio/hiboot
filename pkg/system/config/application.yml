@@ -1,4 +1,4 @@
-# config file for testing
+# default config file for testing
 # filename should be application.yml
 
 app:
@@ -16,3 +16,7 @@ fake:
   name: ${app.name}
 
 foo: foo name
+
+star:
+  name: Earth
+  system: solar

@@ -97,7 +97,7 @@ func AddTag(tag Tag) {
 	}
 }
 
-func (i *inject) getInstanceByName(name string, typ reflect.Type) (inst interface{}) {
+func (i *inject) getInstance(typ reflect.Type) (inst interface{}) {
 	n := reflector.GetLowerCamelFullNameByType(typ)
 	inst = i.factory.GetInstance(n)
 	return
@@ -129,6 +129,27 @@ func (i *inject) IntoObject(object interface{}) (err error) {
 	return
 }
 
+func (i *inject) convert(f reflect.StructField, src interface{}) (fov reflect.Value) {
+	fov = reflect.ValueOf(src)
+
+	// convert slice
+	switch src.(type) {
+	//case []string:
+	case []interface{}:
+		switch f.Type.Elem().Kind() {
+		case reflect.String:
+			var sv []string
+			src := src.([]interface{})
+			for _, elm := range src {
+				sv = append(sv, elm.(string))
+			}
+			fov = reflect.ValueOf(sv)
+		}
+	}
+	log.Debugf("Injected slice %v.(%v) into %v.%v", src, fov.Type(), fov.Type(), f.Name)
+	return
+}
+
 // IntoObjectValue injects instance into the tagged field with `inject:"instanceName"`
 func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...Tag) error {
 	var err error
@@ -153,13 +174,19 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 
 	// field injection
 	for _, f := range reflector.DeepFields(object.Type()) {
+		var injectedObject interface{}
 		prop := str.ToLowerCamel(f.Name)
+
+		// debug prints
+		//n := reflector.GetLowerCamelFullNameByType(f.Type)
+		//log.Debugf("%v : %v",property + "." + prop, n)
+
 		if property != "" {
 			prop = property + "." + prop
 		}
+
 		//log.Debugf("parent: %v, name: %v, type: %v, tag: %v", obj.Type(), f.Name, f.Type, f.Tag)
 		// check if object has value field to be injected
-		var injectedObject interface{}
 
 		ft := f.Type
 		if f.Type.Kind() == reflect.Ptr {
@@ -175,7 +202,7 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 		}
 
 		// TODO: assume that the f.Name of value and inject tag is not the same
-		injectedObject = i.getInstanceByName(f.Name, f.Type)
+		injectedObject = i.getInstance(f.Type)
 		if injectedObject == nil {
 			for _, tagImpl := range targetTags {
 				tagImpl.Init(i.factory)
@@ -186,24 +213,14 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 			}
 		}
 
+		// assign value to struct field
 		if injectedObject != nil && fieldObj.CanSet() {
-			fov := reflect.ValueOf(injectedObject)
-			switch injectedObject.(type) {
-			//case []string:
-			case []interface{}:
-				switch f.Type.Elem().Kind() {
-				case reflect.String:
-					var sv []string
-					src := injectedObject.([]interface{})
-					for _, elm := range src {
-						sv = append(sv, elm.(string))
-					}
-					fov = reflect.ValueOf(sv)
-					log.Debugf("Injected %v.(%v) into %v.%v", injectedObject, fov.Type(), obj.Type(), f.Name)
-				}
+			fov := i.convert(f, injectedObject)
+			if fov.Type().AssignableTo(fieldObj.Type()) {
+				fieldObj.Set(fov)
+			//} else {
+			//	log.Errorf("unmatched type %v against %v", fov.Type(), fieldObj.Type())
 			}
-			log.Debugf("Injected %v.(%v) into %v.%v", injectedObject, fov.Type(), obj.Type(), f.Name)
-			fieldObj.Set(fov)
 		}
 
 		//log.Debugf("- kind: %v, %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type(), f.Name)
@@ -220,8 +237,7 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 
 func (i *inject) parseFuncOrMethodInput(inType reflect.Type) (paramValue reflect.Value, ok bool) {
 	inType = reflector.IndirectType(inType)
-	inTypeName := inType.Name()
-	inst := i.getInstanceByName(inTypeName, inType)
+	inst := i.getInstance(inType)
 	ok = true
 	if inst == nil {
 		log.Debug(inType.Kind())

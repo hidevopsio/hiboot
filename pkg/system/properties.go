@@ -14,6 +14,8 @@
 
 package system
 
+import "hidevops.io/hiboot/pkg/at"
+
 // Profiles is app profiles
 // .include auto configuration starter should be included inside this slide
 // .active active profile
@@ -33,6 +35,9 @@ type banner struct {
 
 // App is the properties of the application, it hold the base info of the application
 type App struct {
+	// at.ConfigurationProperties annotation
+	at.ConfigurationProperties `value:"app" `
+
 	// project name
 	Project string `json:"project" default:"hidevopsio"`
 	// app name
@@ -49,11 +54,18 @@ type App struct {
 
 // Server is the properties of http server
 type Server struct {
+	// annotation
+	at.ConfigurationProperties `value:"server" `
+
 	Port string `json:"port" default:"8080"`
+	PathPrefix string `json:"path_prefix"`
 }
 
 // Logging is the properties of logging
 type Logging struct {
+	// annotation
+	at.ConfigurationProperties `value:"logging" `
+
 	Level string `json:"level" default:"info"`
 }
 

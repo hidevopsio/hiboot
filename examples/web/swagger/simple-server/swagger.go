@@ -5,7 +5,7 @@ import (
 	"hidevops.io/hiboot/pkg/at"
 )
 
-type swagger struct {
+type swaggerDesc struct {
 	at.Swagger `value:"2.0"`
 	Info struct{
 		Title string `value:"The demo application of a tutorial on https://hiboot.hidevopsio.io" json:"title"`
@@ -16,5 +16,5 @@ type swagger struct {
 }
 
 func init() {
-	app.Register(new(swagger))
+	app.Register(new(swaggerDesc))
 }

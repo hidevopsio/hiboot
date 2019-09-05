@@ -23,7 +23,11 @@ import (
 )
 
 func TestConfiguration(t *testing.T) {
-	c := newConfiguration(new(fake.ApplicationContext))
+	c := newConfiguration(new(fake.ApplicationContext), &properties{
+		Default:      "en-US",
+		URLParameter: "lang",
+		LocalePath:   "config/i18n/",
+	})
 
 	t.Run("should get nil handler", func(t *testing.T) {
 		h := c.Handler()
@@ -33,11 +37,6 @@ func TestConfiguration(t *testing.T) {
 
 	t.Run("should get handler", func(t *testing.T) {
 		io.EnsureWorkDir(1, "config/application.yml")
-		c.Properties = properties{
-			Default:      "en-US",
-			URLParameter: "lang",
-			LocalePath:   "config/i18n/",
-		}
 		h := c.Handler()
 		val := reflect.ValueOf(h)
 		assert.Equal(t, false, val.IsNil())

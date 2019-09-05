@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package swagger2 provides the hiboot starter for swagger2
-package swagger2
+// Package swagger provides the hiboot starter for swagger
+package swagger
 
 import (
 	"hidevops.io/hiboot/pkg/app"
@@ -21,17 +21,19 @@ import (
 )
 
 const (
-	Profile = "swagger2"
+	Profile = "swagger"
 )
 
 type configuration struct {
 	at.AutoConfiguration
+
+	Properties *properties
 }
 
-func newConfiguration() *configuration {
-	return &configuration{}
+func newConfiguration(properties *properties) *configuration {
+	return &configuration{Properties: properties}
 }
 
 func init() {
-	app.Register(newConfiguration)
+	app.Register(newConfiguration, new(properties))
 }

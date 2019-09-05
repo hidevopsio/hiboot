@@ -14,7 +14,7 @@ type ClientFactory interface {
 type clientFactory struct {
 }
 
-func newClientFactory(instantiateFactory factory.InstantiateFactory, properties properties, cc ClientConnector) ClientFactory {
+func newClientFactory(instantiateFactory factory.InstantiateFactory, properties *properties, cc ClientConnector) ClientFactory {
 	cf := &clientFactory{}
 
 	clientProps := properties.Client

@@ -31,17 +31,17 @@ const (
 type configuration struct {
 	at.AutoConfiguration
 
-	Properties Properties `mapstructure:"jwt"`
+	Properties *Properties
 	middleware *Middleware
 	token      Token
 }
 
 func init() {
-	app.Register(newConfiguration)
+	app.Register(newConfiguration, new(Properties))
 }
 
-func newConfiguration() *configuration {
-	return &configuration{}
+func newConfiguration(properties *Properties) *configuration {
+	return &configuration{Properties: properties}
 }
 
 func (c *configuration) Middleware(jwtToken Token) *Middleware {
@@ -60,7 +60,7 @@ func (c *configuration) Middleware(jwtToken Token) *Middleware {
 // JwtToken
 func (c *configuration) Token() Token {
 	t := new(jwtToken)
-	t.Initialize(&c.Properties)
+	_ = t.Initialize(c.Properties)
 	return t
 }
 

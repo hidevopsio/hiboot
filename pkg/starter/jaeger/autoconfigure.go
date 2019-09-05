@@ -34,25 +34,23 @@ const (
 type configuration struct {
 	at.AutoConfiguration
 
-	Properties Properties 			`mapstructure:"jaeger"`
+	Properties *properties
 	Closer     io.Closer
 }
 
 func init() {
-	app.Register(newConfiguration)
+	app.Register(newConfiguration, new(properties))
 }
 
-func newConfiguration() *configuration {
-	return &configuration{}
+func newConfiguration(properties *properties) *configuration {
+	return &configuration{Properties: properties}
 }
 
 //Tracer returns an instance of Jaeger Tracer that samples 100% of traces and logs all spans to stdout.
 func (c *configuration) Tracer() (tracer Tracer) {
 	var err error
 	tracer, c.Closer, err = c.Properties.Config.NewTracer(config.Logger(&Logger{}))
-	if err != nil {
-		log.Error(err)
-	}
+	log.Debug(err)
 	opentracing.SetGlobalTracer(tracer)
 	return tracer
 }

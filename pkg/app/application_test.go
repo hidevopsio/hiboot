@@ -17,6 +17,7 @@ package app_test
 import (
 	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 	"os"
 	"sync"
@@ -29,6 +30,8 @@ func init() {
 
 func TestApp(t *testing.T) {
 	type fakeProperties struct {
+		at.ConfigurationProperties `value:"fake"`
+
 		Name string `default:"fake"`
 	}
 	type fakeConfiguration struct {
@@ -55,7 +58,7 @@ func TestApp(t *testing.T) {
 
 	type configuration struct {
 		app.Configuration
-		Properties fakeProperties `mapstructure:"fake"`
+		Properties *fakeProperties `inject:""`
 	}
 	t.Run("should add configuration with pkg name", func(t *testing.T) {
 		app.Register(new(configuration))
@@ -78,33 +81,6 @@ func TestApp(t *testing.T) {
 		app.Register(new(bazConfiguration))
 	})
 
-	//t.Run("should not add invalid configuration which embedded unknown interface", func(t *testing.T) {
-	//	type unknownInterface interface{}
-	//	type configuration struct {
-	//		unknownInterface
-	//		Properties fakeProperties `mapstructure:"fake"`
-	//	}
-	//	err := app.AutoConfiguration(new(configuration))
-	//	assert.Equal(t, app.InvalidObjectTypeError, err)
-	//})
-
-	//t.Run("should not add configuration with non point type", func(t *testing.T) {
-	//	type configuration struct {
-	//		app.Configuration
-	//		Properties fakeProperties `mapstructure:"fake"`
-	//	}
-	//	err := app.AutoConfiguration(configuration{})
-	//	assert.Equal(t, app.ErrInvalidObjectType, err)
-	//})
-
-	//t.Run("should not add invalid configuration that not embedded with app.Configuration", func(t *testing.T) {
-	//	type invalidConfiguration struct {
-	//		Properties fakeProperties `mapstructure:"fake"`
-	//	}
-	//	err := app.AutoConfiguration(new(invalidConfiguration))
-	//	assert.Equal(t, app.ErrInvalidObjectType, err)
-	//})
-
 	t.Run("should not add invalid component", func(t *testing.T) {
 		app.Register(nil)
 	})
@@ -117,8 +93,8 @@ func TestApp(t *testing.T) {
 
 	t.Run("should add new named component", func(t *testing.T) {
 		type fakeService interface{}
-		type fakeServiceImpl struct{ fakeService }
-		 app.Register("myService", new(fakeServiceImpl))
+		type fakeServiceImpl struct{ at.Qualifier `value:"myService"`; fakeService }
+		 app.Register(new(fakeServiceImpl))
 	})
 
 	t.Run("should add more than one new component at the same time", func(t *testing.T) {

@@ -14,11 +14,11 @@ const Profile = "web"
 type configuration struct {
 	at.AutoConfiguration
 
-	Properties properties `mapstructure:"web"`
+	Properties *properties
 }
 
-func newWebConfiguration() *configuration {
-	return &configuration{}
+func newWebConfiguration(properties *properties) *configuration {
+	return &configuration{Properties: properties}
 }
 
 func init() {

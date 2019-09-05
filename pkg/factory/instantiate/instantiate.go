@@ -48,6 +48,8 @@ const (
 
 // InstantiateFactory is the factory that responsible for object instantiation
 type instantiateFactory struct {
+	at.Qualifier `value:"factory.instantiateFactory"`
+
 	instance             factory.Instance
 	contextAwareInstance factory.Instance
 	components           []*factory.MetaData
@@ -73,15 +75,21 @@ func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory
 
 	// create new builder
 	workDir := io.GetWorkDir()
-	systemConfig := new(system.Configuration)
-	f.SetInstance(systemConfig)
+
+	sa := new(system.App)
+	ss := new(system.Server)
+	sl := new(system.Logging)
+	syscfg := system.NewConfiguration(sa, ss, sl)
+
+
 	customProps := customProperties.Items()
-	f.builder = system.NewBuilder(systemConfig,
+	f.builder = system.NewPropertyBuilder(
 		filepath.Join(workDir, config),
-		application,
-		yaml,
 		customProps,
 	)
+
+	f.Append(syscfg, sa, ss, sl, f)
+
 	return f
 }
 
@@ -111,6 +119,14 @@ func (f *instantiateFactory) SetProperty(name string, value interface{}) factory
 func (f *instantiateFactory) SetDefaultProperty(name string, value interface{}) factory.InstantiateFactory {
 	f.builder.SetDefaultProperty(name, value)
 	return f
+}
+
+// Append append to component and instance container
+func (f *instantiateFactory) Append(i ...interface{}) {
+	for _, inst := range i {
+		f.AppendComponent(inst)
+		_ = f.SetInstance(inst)
+	}
 }
 
 // AppendComponent append component
@@ -143,6 +159,7 @@ func (f *instantiateFactory) injectDependency(item *factory.MetaData) (err error
 	if inst != nil {
 		// inject into object
 		err = f.inject.IntoObject(inst)
+		// TODO: remove duplicated code
 		qf, ok := annotation.GetField(inst, at.Qualifier{})
 		if ok {
 			name = qf.StructField.Tag.Get("value")

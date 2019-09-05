@@ -66,12 +66,18 @@ type fakeProperties struct {
 }
 
 type fooProperties struct {
+	at.ConfigurationProperties `value:"foo"`
+
 	Name string `default:"foo"`
 }
 
 type fakeConfiguration struct {
 	app.Configuration
-	Properties fakeProperties `mapstructure:"fake"`
+	FakeProperties *fakeProperties
+}
+
+func newFakeConfiguration(properties *fakeProperties) *fakeConfiguration {
+	return &fakeConfiguration{FakeProperties: properties}
 }
 
 type fakeDataSource struct {
@@ -118,7 +124,7 @@ func (c *fakeConfiguration) User() *User {
 
 type fooConfiguration struct {
 	app.Configuration
-	Properties fooProperties `mapstructure:"foo"`
+	FooProperties *fooProperties `inject:""`
 }
 
 type fooService struct {
@@ -139,6 +145,7 @@ type UserService interface {
 }
 
 type userService struct {
+	// just put at.RequestMapping here for test only, it has no meaning
 	at.RequestMapping	`value:"/path/to/hiboot"`
 
 	FooUser        *FooUser       `inject:"name=foo"`
@@ -386,9 +393,12 @@ func setUp(t *testing.T) factory.ConfigurableFactory {
 	cf = autoconfigure.NewConfigurableFactory(
 		instantiate.NewInstantiateFactory(instances, []*factory.MetaData{}, customProps),
 		configurations)
-	cf.BuildSystemConfig()
+	cf.BuildProperties()
+
+	cf.SetInstance(new(fooProperties))
+	cf.SetInstance(new(fakeProperties))
 	configs := []*factory.MetaData{
-		factory.NewMetaData(new(fakeConfiguration)),
+		factory.NewMetaData(newFakeConfiguration),
 		factory.NewMetaData(new(fooConfiguration)),
 	}
 	cf.Build(configs)
@@ -405,23 +415,23 @@ func TestInject(t *testing.T) {
 	cf.SetInstance("inject_test.hello", Hello("Hello"))
 
 	t.Run("should inject default string", func(t *testing.T) {
-		assert.Equal(t, "this is default value", fakeConfig.Properties.DefStrVal)
+		assert.Equal(t, "this is default value", fakeConfig.FakeProperties.DefStrVal)
 	})
 
 	t.Run("should inject default int", func(t *testing.T) {
-		assert.Equal(t, 123, fakeConfig.Properties.DefIntVal)
+		assert.Equal(t, 123, fakeConfig.FakeProperties.DefIntVal)
 	})
 
 	t.Run("should inject default uint", func(t *testing.T) {
-		assert.Equal(t, uint(123), fakeConfig.Properties.DefIntValU)
+		assert.Equal(t, uint(123), fakeConfig.FakeProperties.DefIntValU)
 	})
 
 	t.Run("should inject default float32", func(t *testing.T) {
-		assert.Equal(t, float32(0.1), fakeConfig.Properties.DefFloatVal32)
+		assert.Equal(t, float32(0.1), fakeConfig.FakeProperties.DefFloatVal32)
 	})
 
 	t.Run("should inject default int", func(t *testing.T) {
-		assert.Equal(t, 123, fakeConfig.Properties.DefIntPropVal)
+		assert.Equal(t, 123, fakeConfig.FakeProperties.DefIntPropVal)
 	})
 
 	t.Run("should get config", func(t *testing.T) {

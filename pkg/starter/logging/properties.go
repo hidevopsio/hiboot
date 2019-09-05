@@ -14,8 +14,12 @@
 
 package logging
 
+import "hidevops.io/hiboot/pkg/at"
+
 // Properties is the logging properties
-type Properties struct {
+type properties struct {
+	at.ConfigurationProperties `value:"logging"`
+
 	Level       string   `json:"level" default:"info"`
 	Status      bool     `json:"status" default:"true"`
 	IP          bool     `json:"ip" default:"true"`

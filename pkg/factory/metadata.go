@@ -148,12 +148,25 @@ func ParseParams(params ...interface{}) (name string, object interface{}) {
 		md := CastMetaData(object)
 		if md != nil {
 			name = md.Name
+			name = GetObjectQualifierName(md.MetaObject, name)
 		} else {
 			name = getFullName(object, name)
+			name = GetObjectQualifierName(object, name)
 		}
 	}
 
 	return
+}
+
+// GetObjectQualifierName get the qualifier's name of object
+func GetObjectQualifierName(object interface{}, name string) string {
+	// overwrite with qualifier's name
+	qf, ok := annotation.GetField(object, at.Qualifier{})
+	if ok {
+		name = qf.StructField.Tag.Get("value")
+		//log.Debugf("Qualifier's name: %v", name)
+	}
+	return name
 }
 
 // NewMetaData create new meta data
@@ -216,6 +229,8 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 
 		// check if it is contextAware
 		contextAware := annotation.Contains(owner, at.ContextAware{}) || annotation.Contains(metaObject, at.ContextAware{})
+
+		name = GetObjectQualifierName(metaObject, name)
 
 		metaData = &MetaData{
 			Kind:         kindName,

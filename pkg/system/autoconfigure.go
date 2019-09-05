@@ -14,9 +14,19 @@
 
 package system
 
+import (
+	"hidevops.io/hiboot/pkg/at"
+)
+
 // Configuration is the system configuration
 type Configuration struct {
-	App     App     `mapstructure:"app"`
-	Server  Server  `mapstructure:"server"`
-	Logging Logging `mapstructure:"logging"`
+	at.AutoConfiguration
+
+	App     *App
+	Server  *Server
+	Logging *Logging
+}
+
+func NewConfiguration(app *App, server *Server, logging *Logging) *Configuration {
+	return &Configuration{App: app, Server: server, Logging: logging}
 }
