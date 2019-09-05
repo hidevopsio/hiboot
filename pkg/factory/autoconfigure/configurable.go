@@ -169,9 +169,9 @@ func (f *configurableFactory) Instantiate(configuration interface{}) (err error)
 	cv := reflect.ValueOf(configuration)
 	icv := reflector.Indirect(cv)
 
-	if !cv.IsValid() {
-		return ErrInvalidObjectType
-	}
+	//if !cv.IsValid() {
+	//	return ErrInvalidObjectType
+	//}
 	configType := cv.Type()
 	//log.Debug("type: ", configType)
 	//name := configType.Elem().Name()
@@ -242,8 +242,6 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 		var cf interface{}
 		if item.Kind == types.Func {
 			cf, _ = f.InjectIntoFunc(config)
-		} else if item.Kind == types.Struct {
-			cf = config
 		}
 		if cf != nil {
 

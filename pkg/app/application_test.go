@@ -101,8 +101,7 @@ func TestApp(t *testing.T) {
 		type fakeService interface{}
 		type fakeFooService struct{ fakeService }
 		type fakeBarService struct{ fakeService }
-		app.Register(new(fakeFooService))
-		app.Register(new(fakeBarService))
+		app.Register(new(fakeFooService), new(fakeBarService))
 	})
 }
 

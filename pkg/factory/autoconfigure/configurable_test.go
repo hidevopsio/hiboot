@@ -120,11 +120,11 @@ func newEmptyConfiguration() *emptyConfiguration {
 
 type fooConfiguration struct {
 	at.AutoConfiguration
-	fooProperties *fooProperties
+	FooProperties *fooProperties
 }
 
 func newFooConfiguration(fooProperties *fooProperties) *fooConfiguration {
-	return &fooConfiguration{fooProperties: fooProperties}
+	return &fooConfiguration{FooProperties: fooProperties}
 }
 
 type BarConfiguration struct {

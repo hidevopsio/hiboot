@@ -69,15 +69,8 @@ func appendParams(container []*factory.MetaData, params ...interface{}) (retVal 
 
 // Register register a struct instance or constructor (func), so that it will be injectable.
 func Register(params ...interface{}) {
-
-	//_, obj := factory.ParseParams(params...)
-
-	//ok := annotation.Contains(obj, at.AutoConfiguration{})
-	//if ok {
-	//	configContainer, _ = appendParams(autoconfigure.PostfixConfiguration, configContainer, params...)
-	//} else {
-		componentContainer, _ = appendParams(componentContainer, params...)
-	//}
+	// appendParams will append the object that annotated with at.AutoConfiguration
+	componentContainer, _ = appendParams(componentContainer, params...)
 	return
 }
 

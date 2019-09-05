@@ -50,9 +50,7 @@ func newConfiguration(properties *properties) *configuration {
 func (c *configuration) Tracer() (tracer Tracer) {
 	var err error
 	tracer, c.Closer, err = c.Properties.Config.NewTracer(config.Logger(&Logger{}))
-	if err != nil {
-		log.Error(err)
-	}
+	log.Debug(err)
 	opentracing.SetGlobalTracer(tracer)
 	return tracer
 }
