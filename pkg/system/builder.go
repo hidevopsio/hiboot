@@ -58,7 +58,7 @@ type builder struct {
 }
 
 func (b *builder) Load(properties interface{}) (err error) {
-	panic("implement me")
+	return
 }
 
 // Deprecated
