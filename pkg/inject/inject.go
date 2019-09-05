@@ -218,8 +218,8 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 			fov := i.convert(f, injectedObject)
 			if fov.Type().AssignableTo(fieldObj.Type()) {
 				fieldObj.Set(fov)
-			} else {
-				log.Errorf("unmatched type %v against %v", fov.Type(), fieldObj.Type())
+			//} else {
+			//	log.Errorf("unmatched type %v against %v", fov.Type(), fieldObj.Type())
 			}
 		}
 

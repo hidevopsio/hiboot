@@ -2,6 +2,7 @@ package factory
 
 import (
 	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/system/types"
 	"hidevops.io/hiboot/pkg/utils/reflector"
 	"reflect"
@@ -9,6 +10,7 @@ import (
 )
 
 type foo struct {
+	at.Qualifier `value:"foo"`
 	name string
 }
 
@@ -145,6 +147,10 @@ func TestUtils(t *testing.T) {
 		src := NewMetaData(new(foo))
 		dst := CloneMetaData(src)
 		assert.Equal(t, dst.Type, src.Type)
+	})
+	t.Run("test GetObjectQualifierName", func(t *testing.T) {
+		name := GetObjectQualifierName(reflect.ValueOf(new(foo)), "default")
+		assert.Equal(t, "foo", name)
 	})
 }
 
