@@ -1,17 +1,18 @@
 module hidevops.io/hiboot
 
 require (
-	cloud.google.com/go v0.36.0 // indirect
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/deckarep/golang-set v1.7.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/camelcase v1.0.0
+	github.com/gobuffalo/packd v0.3.0
+	github.com/gobuffalo/packr v1.30.1
+	github.com/gobuffalo/packr/v2 v2.5.1
 	github.com/gojektech/valkyrie v0.0.0-20190210220504-8f62c1e7ba45
 	github.com/golang/mock v1.2.0
 	github.com/golang/protobuf v1.2.0
 	github.com/gorilla/mux v1.7.0
 	github.com/gorilla/websocket v1.4.0
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/iris-contrib/formBinder v0.0.0-20190104093907-fbd5963f41e1 // indirect
 	github.com/iris-contrib/go.uuid v2.0.0+incompatible
 	github.com/iris-contrib/httpexpect v0.0.0-20180314041918-ebe99fcebbce
@@ -26,11 +27,9 @@ require (
 	github.com/rakyll/statik v0.1.6
 	github.com/sony/sonyflake v0.0.0-20160530021500-fa881fb1052b
 	github.com/spf13/afero v1.1.2
-	github.com/spf13/cast v1.3.0 // indirect
-	github.com/spf13/cobra v0.0.3
+	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
-	github.com/stretchr/objx v0.1.1 // indirect
-	github.com/stretchr/testify v1.2.2
+	github.com/stretchr/testify v1.3.0
 	github.com/uber-go/atomic v1.3.2 // indirect
 	github.com/uber/jaeger-client-go v2.15.0+incompatible
 	github.com/uber/jaeger-lib v1.5.0+incompatible // indirect
@@ -40,7 +39,7 @@ require (
 	google.golang.org/grpc v1.17.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2
-	gopkg.in/yaml.v2 v2.2.1
+	gopkg.in/yaml.v2 v2.2.2
 	hidevops.io/viper v1.3.2
 )
 

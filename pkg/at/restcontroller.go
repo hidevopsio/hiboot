@@ -103,3 +103,9 @@ type TraceMapping struct {
 	RequestMapping
 	Method string  `value:"TRACE" json:"-"`
 }
+
+// StaticResource is the annotation that set the StaticResource of a controller
+// value: static resource dir
+type StaticResource struct {
+	RequestMapping
+}

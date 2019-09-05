@@ -63,11 +63,23 @@ func Handler(h func(context.Context)) iris.Handler {
 	}
 }
 
+// WrapHandler is a helper function for wrapping http.Handler and returns a web middleware.
+func WrapHandler(h http.Handler) iris.Handler {
+	return Handler(func(c context.Context) {
+		h.ServeHTTP(c.ResponseWriter(), c.Request())
+	})
+}
+
 // Next The second one important if you will override the Context
 // with an embedded context.Context inside it.
 // Required in order to run the chain of handlers via this "*Context".
 func (c *Context) Next() {
 	ctx.Next(c)
+}
+
+// WrapHandler is a helper function for wrapping http.Handler
+func (c *Context) WrapHandler(h http.Handler)  {
+	h.ServeHTTP(c.ResponseWriter(), c.Request())
 }
 
 // HTML Override any context's method you want...

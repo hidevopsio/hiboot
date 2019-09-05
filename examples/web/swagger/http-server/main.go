@@ -4,7 +4,7 @@ package main
 
 import (
 	"github.com/rakyll/statik/fs"
-	_ "hidevops.io/hiboot/examples/web/swagger/https-server/statik"
+	_ "hidevops.io/hiboot/examples/web/swagger/http-server/statik"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/starter/actuator"
@@ -22,7 +22,6 @@ func main() {
 	if err == nil {
 		http.Handle(stripPrefix, http.StripPrefix(stripPrefix, http.FileServer(staticFiles)))
 	}
-
 	// Run HiBoot Application
 	web.NewApplication().SetProperty(app.ProfilesInclude, actuator.Profile).Run()
 }

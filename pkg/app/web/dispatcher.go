@@ -17,6 +17,7 @@ package web
 import (
 	"fmt"
 	"github.com/fatih/camelcase"
+	"github.com/gobuffalo/packr"
 	"github.com/kataras/iris"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
@@ -25,6 +26,7 @@ import (
 	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/copier"
+	"hidevops.io/hiboot/pkg/utils/io"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"net/http"
 	"path/filepath"
@@ -403,26 +405,52 @@ func (d *Dispatcher) register(controllers []*factory.MetaData, middleware []*fac
 				}
 			}
 
-			// 3. create new handler for rest controller method
-			hdl := newHandler(d.configurableFactory, restController, m, at.HttpMethod{})
-			httpHandler := Handler(func(c context.Context) {
-				hdl.call(c)
-				c.Next()
-			})
-			handlers = append(handlers, httpHandler)
-
-			// 4. finally, handle all method handlers
+			// 3. finally, handle all method handlers
 			d.handleControllerMethod(restController, m, party, handlers)
 		}
 	}
 	return
 }
 
-func (d *Dispatcher) handleControllerMethod(restController *injectableObject, m *injectableMethod, party iris.Party, httpHandler []iris.Handler) {
-	if m.requestMapping.Method == Any {
-		party.Any(m.requestMapping.Value, httpHandler...)
+func (d *Dispatcher) handleControllerMethod(restController *injectableObject, m *injectableMethod, party iris.Party, handlers []iris.Handler) {
+	// 3. create new handler for rest controller method
+	hdl := newHandler(d.configurableFactory, restController, m, at.HttpMethod{})
+
+	var h iris.Handler
+	staticResource, ok := annotation.GetField(m.annotations.fields, at.StaticResource{})
+	if ok {
+		asr := staticResource.Value.Interface().(at.StaticResource)
+		dir := filepath.Join(io.GetWorkDir(), asr.Value)
+		path := restController.pathPrefix + m.requestMapping.Value
+		h = Handler(func(c context.Context) {
+			// call controller method first
+			hdl.call(c)
+
+			// serve static resource
+			box := packr.NewBox(dir)
+
+			//html, err := box.FindString("index.html")
+			//log.Debug(dir)
+			//log.Debug(path)
+			//log.Debug(err)
+			//log.Debug(html)
+			c.WrapHandler(http.StripPrefix(path, http.FileServer(box)))
+
+			// next
+			c.Next()
+		})
 	} else {
-		route := party.Handle(m.requestMapping.Method, m.requestMapping.Value, httpHandler...)
+		h = Handler(func(c context.Context) {
+			hdl.call(c)
+			c.Next()
+		})
+	}
+	handlers = append(handlers, h)
+
+	if m.requestMapping.Method == Any {
+		party.Any(m.requestMapping.Value, handlers...)
+	} else {
+		route := party.Handle(m.requestMapping.Method, m.requestMapping.Value, handlers...)
 		route.MainHandlerName = fmt.Sprintf("%s/%s.%s", restController.pkgPath, restController.name, m.method.Name)
 	}
 }
