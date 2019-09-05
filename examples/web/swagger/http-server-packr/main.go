@@ -6,7 +6,8 @@ import (
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
-	"net/http"
+	"hidevops.io/hiboot/pkg/starter/actuator"
+	"hidevops.io/hiboot/pkg/starter/logging"
 )
 
 type staticController struct {
@@ -26,7 +27,7 @@ func newStaticController() *staticController {
 func (c *staticController) UI(at struct{ at.GetMapping `value:"/ui"` }, ctx context.Context) {
 
 	box := packr.NewBox("./static")
-	ctx.WrapHandler(http.StripPrefix(c.RequestMapping.Value+at.GetMapping.Value, http.FileServer(box)))
+	ctx.StaticResource(box)
 
 	return
 }
@@ -39,5 +40,7 @@ func (c *staticController) SimpleUI(at struct {
 }
 
 func main() {
-	web.NewApplication(newStaticController).Run()
+	web.NewApplication(newStaticController).
+		SetProperty(app.ProfilesInclude, actuator.Profile, logging.Profile).
+		Run()
 }

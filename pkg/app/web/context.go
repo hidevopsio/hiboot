@@ -78,6 +78,12 @@ func (c *Context) Next() {
 }
 
 // WrapHandler is a helper function for wrapping http.Handler
+func (c *Context) StaticResource(system http.FileSystem) {
+	path := c.GetCurrentRoute()
+	c.WrapHandler(http.StripPrefix(path.Path(), http.FileServer(system)))
+}
+
+// WrapHandler is a helper function for wrapping http.Handler
 func (c *Context) WrapHandler(h http.Handler)  {
 	h.ServeHTTP(c.ResponseWriter(), c.Request())
 }
