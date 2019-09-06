@@ -1112,27 +1112,32 @@ func TestMiddlewareAnnotation(t *testing.T) {
 }
 
 // --- test file server
-type controller struct {
+type publicTestController struct {
 	at.RestController
 	at.RequestMapping `value:"/public"`
 }
 
-func newStaticController() *controller {
-	return &controller{}
+func newPublicTestController() *publicTestController {
+	return &publicTestController{}
 }
 
 // UI serve static resource via context StaticResource method
-func (c *controller) UI(at struct{ at.GetMapping `value:"/ui/*"`; at.FileServer `value:"/ui"` }, ctx context.Context) {
+func (c *publicTestController) UI(at struct{ at.GetMapping `value:"/ui/*"`; at.FileServer `value:"/ui"` }, ctx context.Context) {
 	return
 }
 
 // UI serve static resource via context StaticResource method
-func (c *controller) UIIndex(at struct{ at.GetMapping `value:"/ui"`; at.FileServer `value:"/ui"` }, ctx context.Context) {
+func (c *publicTestController) UIIndex(at struct{ at.GetMapping `value:"/ui"`; at.FileServer `value:"/ui"` }, ctx context.Context) {
 	return
+}
+
+// UI serve static resource via context StaticResource method
+func (c *publicTestController) NotFound(at struct{ at.GetMapping `value:"/foo"`; at.FileServer `value:"/ui"` }, ctx context.Context) {
+	ctx.WrapHandler( http.NotFoundHandler() )
 }
 
 func TestController(t *testing.T) {
-	testApp := web.NewTestApp(t, newStaticController).Run(t)
+	testApp := web.NewTestApp(t, newPublicTestController).Run(t)
 
 	t.Run("should get index.html ", func(t *testing.T) {
 		testApp.Get("/public/ui").
@@ -1142,5 +1147,10 @@ func TestController(t *testing.T) {
 	t.Run("should get hello.txt ", func(t *testing.T) {
 		testApp.Get("/public/ui/hello.txt").
 			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should report not found ", func(t *testing.T) {
+		testApp.Get("/public/foo").
+			Expect().Status(http.StatusNotFound)
 	})
 }
