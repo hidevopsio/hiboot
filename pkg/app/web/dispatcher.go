@@ -427,7 +427,6 @@ func (d *Dispatcher) handleControllerMethod(restController *injectableObject, m 
 			// serve static resource
 			f, err := fs.New()
 			if err == nil {
-				log.Debug(path)
 				c.WrapHandler(http.StripPrefix(path, http.FileServer(f)))
 			}
 

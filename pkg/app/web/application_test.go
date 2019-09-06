@@ -11,7 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//go:generate statik -src=./static
 
+// package web_test provides web uint tests
 package web_test
 
 import (
@@ -1107,4 +1109,38 @@ func TestMiddlewareAnnotation(t *testing.T) {
 			Expect().Status(http.StatusUnauthorized)
 	})
 
+}
+
+// --- test file server
+type controller struct {
+	at.RestController
+	at.RequestMapping `value:"/public"`
+}
+
+func newStaticController() *controller {
+	return &controller{}
+}
+
+// UI serve static resource via context StaticResource method
+func (c *controller) UI(at struct{ at.GetMapping `value:"/ui/*"`; at.FileServer `value:"/ui"` }, ctx context.Context) {
+	return
+}
+
+// UI serve static resource via context StaticResource method
+func (c *controller) UIIndex(at struct{ at.GetMapping `value:"/ui"`; at.FileServer `value:"/ui"` }, ctx context.Context) {
+	return
+}
+
+func TestController(t *testing.T) {
+	testApp := web.NewTestApp(t, newStaticController).Run(t)
+
+	t.Run("should get index.html ", func(t *testing.T) {
+		testApp.Get("/public/ui").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should get hello.txt ", func(t *testing.T) {
+		testApp.Get("/public/ui/hello.txt").
+			Expect().Status(http.StatusOK)
+	})
 }
