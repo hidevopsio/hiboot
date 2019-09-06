@@ -16,6 +16,7 @@ package web
 
 import (
 	"github.com/kataras/iris"
+	"strings"
 	"sync"
 
 	ctx "github.com/kataras/iris/context"
@@ -79,8 +80,9 @@ func (c *Context) Next() {
 
 // WrapHandler is a helper function for wrapping http.Handler
 func (c *Context) StaticResource(system http.FileSystem) {
-	path := c.GetCurrentRoute()
-	c.WrapHandler(http.StripPrefix(path.Path(), http.FileServer(system)))
+	path := c.GetCurrentRoute().Path()
+	path = strings.Replace(path, "*", "", -1)
+	c.WrapHandler(http.StripPrefix(path, http.FileServer(system)))
 }
 
 // WrapHandler is a helper function for wrapping http.Handler

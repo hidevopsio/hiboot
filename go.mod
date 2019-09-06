@@ -1,13 +1,11 @@
 module hidevops.io/hiboot
 
 require (
+	cloud.google.com/go v0.36.0 // indirect
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/deckarep/golang-set v1.7.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/camelcase v1.0.0
-	github.com/gobuffalo/packd v0.3.0
-	github.com/gobuffalo/packr v1.30.1
-	github.com/gobuffalo/packr/v2 v2.5.1
 	github.com/gojektech/valkyrie v0.0.0-20190210220504-8f62c1e7ba45
 	github.com/golang/mock v1.2.0
 	github.com/golang/protobuf v1.2.0
@@ -29,14 +27,19 @@ require (
 	github.com/spf13/afero v1.1.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
+	github.com/stretchr/objx v0.1.1 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/uber-go/atomic v1.3.2 // indirect
 	github.com/uber/jaeger-client-go v2.15.0+incompatible
 	github.com/uber/jaeger-lib v1.5.0+incompatible // indirect
 	github.com/valyala/bytebufferpool v1.0.0
 	go.uber.org/atomic v1.3.2 // indirect
+	golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4 // indirect
 	golang.org/x/net v0.0.0-20190213061140-3a22650c66bd
+	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
+	golang.org/x/sys v0.0.0-20190515120540-06a5c4944438 // indirect
 	google.golang.org/grpc v1.17.0
+	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2
 	gopkg.in/yaml.v2 v2.2.2

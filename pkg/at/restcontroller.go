@@ -106,6 +106,6 @@ type TraceMapping struct {
 
 // StaticResource is the annotation that set the StaticResource of a controller
 // value: static resource dir
-type StaticResource struct {
+type FileServer struct {
 	RequestMapping
 }

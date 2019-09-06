@@ -17,8 +17,8 @@ package web
 import (
 	"fmt"
 	"github.com/fatih/camelcase"
-	"github.com/gobuffalo/packr"
 	"github.com/kataras/iris"
+	"github.com/rakyll/statik/fs"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
@@ -26,7 +26,6 @@ import (
 	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/copier"
-	"hidevops.io/hiboot/pkg/utils/io"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"net/http"
 	"path/filepath"
@@ -417,24 +416,20 @@ func (d *Dispatcher) handleControllerMethod(restController *injectableObject, m 
 	hdl := newHandler(d.configurableFactory, restController, m, at.HttpMethod{})
 
 	var h iris.Handler
-	staticResource, ok := annotation.GetField(m.annotations.fields, at.StaticResource{})
+	atFileServer, ok := annotation.GetField(m.annotations.fields, at.FileServer{})
 	if ok {
-		asr := staticResource.Value.Interface().(at.StaticResource)
-		dir := filepath.Join(io.GetWorkDir(), asr.Value)
-		path := restController.pathPrefix + m.requestMapping.Value
+		afs := atFileServer.Value.Interface().(at.FileServer)
+		path := restController.pathPrefix + afs.Value
 		h = Handler(func(c context.Context) {
 			// call controller method first
 			hdl.call(c)
 
 			// serve static resource
-			box := packr.NewBox(dir)
-
-			//html, err := box.FindString("index.html")
-			//log.Debug(dir)
-			//log.Debug(path)
-			//log.Debug(err)
-			//log.Debug(html)
-			c.WrapHandler(http.StripPrefix(path, http.FileServer(box)))
+			f, err := fs.New()
+			if err == nil {
+				log.Debug(path)
+				c.WrapHandler(http.StripPrefix(path, http.FileServer(f)))
+			}
 
 			// next
 			c.Next()

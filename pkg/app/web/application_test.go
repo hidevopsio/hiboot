@@ -1126,8 +1126,8 @@ func newStaticController() *staticController {
 
 // static resource annotation
 func (c *staticController) SimpleUI(at struct {
-	at.GetMapping     `value:"/simple/ui"`
-	at.StaticResource `value:"./static"`
+	at.GetMapping `value:"/simple/ui"`
+	at.FileServer `value:"./static"`
 }) {
 }
 
