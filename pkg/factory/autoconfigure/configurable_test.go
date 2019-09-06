@@ -368,7 +368,6 @@ func setFactory(t *testing.T, configDir string, customProperties cmap.Concurrent
 	io.ChangeWorkDir(os.TempDir())
 
 	configPath := filepath.Join(os.TempDir(), "config")
-	os.Remove(filepath.Join(configPath, "foo.yaml"))
 	fakeFile := "application.yml"
 	os.Remove(filepath.Join(configPath, fakeFile))
 	fakeContent :=

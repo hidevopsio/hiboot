@@ -1108,37 +1108,3 @@ func TestMiddlewareAnnotation(t *testing.T) {
 	})
 
 }
-
-// --- static file server
-
-type staticController struct {
-	at.RestController
-	at.RequestMapping `value:"/static"`
-}
-
-func init() {
-	app.Register(newStaticController)
-}
-
-func newStaticController() *staticController {
-	return &staticController{}
-}
-
-// static resource annotation
-func (c *staticController) SimpleUI(at struct {
-	at.GetMapping `value:"/simple/ui"`
-	at.FileServer `value:"./static"`
-}) {
-}
-
-
-func TestStandardHttpRequest(t *testing.T) {
-	testApp := web.NewTestApp(newCustomRouterController).
-		Run(t)
-
-	t.Run("should get /static/simple/ui/index.html ", func(t *testing.T) {
-		testApp.Get("/static/simple/ui").
-			Expect().Status(http.StatusOK).
-			Body().Contains("Hiboot Web Application Example")
-	})
-}
