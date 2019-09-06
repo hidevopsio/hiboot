@@ -7,6 +7,7 @@ require (
 	github.com/fatih/camelcase v1.0.0
 	github.com/go-openapi/loads v0.19.2
 	github.com/go-openapi/runtime v0.19.4
+	github.com/go-openapi/spec v0.19.2
 	github.com/go-openapi/swag v0.19.5
 	github.com/gojektech/valkyrie v0.0.0-20190210220504-8f62c1e7ba45
 	github.com/golang/mock v1.2.0
