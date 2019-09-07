@@ -217,9 +217,9 @@ func (d *Dispatcher) parseRestController(ctl *factory.MetaData) (restController 
 			cn = str.ToLowerCamel(controllerName)
 		}
 		contextPath := d.SystemServer.ContextPath
-		if contextPath == ContextPathRoot {
-			contextPath = ""
-		}
+		//if contextPath == ContextPathRoot {
+		//	contextPath = ""
+		//}
 		pathPrefix = fmt.Sprintf("%v/%v", contextPath, cn)
 	}
 	restController.pathPrefix = pathPrefix

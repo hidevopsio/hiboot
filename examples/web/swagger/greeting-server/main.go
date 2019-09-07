@@ -19,11 +19,15 @@ import (
 	"hidevops.io/hiboot/pkg/system"
 	"net/http"
 	"path"
+	"path/filepath"
 )
 
 type controller struct {
 	at.RestController
 	at.RequestMapping `value:"/"`
+
+	SystemApp *system.App
+	SystemServer *system.Server
 }
 
 func init() {
@@ -38,21 +42,17 @@ func (c controller) loadDoc() (retVal []byte, err error) {
 
 	swgSpec := &spec.Swagger{
 		SwaggerProps: spec.SwaggerProps{
-			ID:      "",
 			Swagger: "2.0",
 			Info: &spec.Info{
 				InfoProps: spec.InfoProps{
-					Description:    "",
-					Title:          "HiBoot Demo Application - Greeting Server",
-					TermsOfService: "",
-					Contact:        nil,
-					License:        nil,
-					Version:        "1.0.0",
+					Title:          c.SystemApp.Title,
+					Description:    c.SystemApp.Description,
+					Version:        c.SystemApp.Version,
 				},
 			},
-			Schemes:  []string{"http"},
-			Host:     "localhost:8080",
-			BasePath: "/api/greeting-server",
+			Schemes:  c.SystemServer.Schemes,
+			Host:     c.SystemServer.Host,
+			BasePath: c.SystemServer.ContextPath,
 			Paths: &spec.Paths{
 				Paths: map[string]spec.PathItem{
 					"/hello": spec.PathItem{
@@ -136,7 +136,7 @@ func (c *controller) serve(ctx context.Context, docsPath string) {
 	if err != nil {
 		return
 	}
-	basePath := c.RequestMapping.Value
+	basePath := filepath.Join(c.SystemServer.ContextPath, c.RequestMapping.Value)
 
 	handler := middleware.Redoc(middleware.RedocOpts{
 		BasePath: basePath,
@@ -175,14 +175,16 @@ type HelloQueryParam struct {
 }
 
 // Hello
-func (c *controller) Hello(at struct{ at.GetMapping `value:"/hello"` }, request *HelloQueryParam) (response string) {
+func (c *controller) Hello(at struct{
+	at.GetMapping `value:"/hello"`
+}, request *HelloQueryParam) (response string) {
 
 	response = "Hello, " + request.Name
 
 	return
 }
 
-//run http://localhost:8080/api/greeting-server/swagger-ui to open swagger ui
+//run http://localhost:8080/api/v1/greeting-server/swagger-ui to open swagger ui
 func main() {
 	web.NewApplication(newController).
 		SetProperty(app.ProfilesInclude, actuator.Profile, logging.Profile).
@@ -194,7 +196,7 @@ func main() {
 			Version:     "v1.0.1",
 		}).
 		SetProperty("server", &system.Server{
-			Schemes:     []string{"http,https"},
+			Schemes:     []string{"http", "https"},
 			Host:        "apps.hidevops.io",
 			ContextPath: "/api/v1/greeting-server",
 		}).

@@ -208,6 +208,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 		b.SetProperty(key, value)
 	}
 
+	os.Args = append(os.Args, "--logging.level=debug", "--foo.bar")
 	b.setCustomPropertiesFromArgs()
 
 	// iterate all and replace reference values or env
