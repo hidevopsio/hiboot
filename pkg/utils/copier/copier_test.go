@@ -572,3 +572,42 @@ func TestScanner(t *testing.T) {
 		t.Errorf("Field V should be copied")
 	}
 }
+
+func TestCopyMap(t *testing.T) {
+	src := map[string]interface{}{
+		"abc": map[string]interface{}{
+			"str": "string value",
+			"int": 123,
+			"int-slice": []int{1,2,3},
+			"str-slice": []string{"a","b","c"},
+			"str-ifc": []interface{}{"a",100,"c"},
+			"do-not-copy": nil,
+		},
+		"opq": map[string]interface{}{
+			"str": "str value",
+			"int": 666,
+			"int-slice": []int{1,2,3},
+			"str-slice": []string{"j","b","c"},
+			"str-ifc": []interface{}{"a",333,"c"},
+		},
+		"def": "define",
+		"nil": nil,
+		"empty": "",
+	}
+	dst := map[string]interface{}{
+		"abc": map[string]interface{}{
+			"str2": "hhh",
+			"int2": 456,
+			"int-slice": []int{1,2,3},
+			"str-slice": []string{"j","f","k"},
+			"str-ifc": []interface{}{"a",100,"c"},
+			"do-not-copy": []string{"x","y"},
+		},
+		"hi": "Hi all",
+		"nil": "Nil",
+	}
+
+	copier.CopyMap(dst, src, copier.IgnoreEmptyValue)
+	assert.Equal(t, 123, dst["abc"].(map[string]interface{})["int"])
+	assert.Equal(t, "define", dst["def"])
+}

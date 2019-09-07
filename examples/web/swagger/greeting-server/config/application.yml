@@ -1,0 +1,3 @@
+
+server:
+  context_path: /api/v2/greeting-server

@@ -121,10 +121,10 @@ func (f *configurableFactory) BuildProperties() (systemConfig *system.Configurat
 	if profile == "" {
 		profile = defaultProfileName
 	}
-	f.builder.SetProperty(PropAppProfilesActive, profile)
+	f.builder.SetDefaultProperty(PropAppProfilesActive, profile)
 
-	for prop, val := range f.CustomProperties() {
-		f.builder.SetProperty(prop, val)
+	for prop, val := range f.DefaultProperties() {
+		f.builder.SetDefaultProperty(prop, val)
 	}
 
 	_, err = f.builder.Build(profile)

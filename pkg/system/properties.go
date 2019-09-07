@@ -21,11 +21,11 @@ import "hidevops.io/hiboot/pkg/at"
 // .active active profile
 type Profiles struct {
 	// set to true or false to filter in included profiles or not
-	Filter bool `json:"filter" default:"false"`
+	Filter bool `json:"filter,omitempty" default:"false"`
 	// included profiles
-	Include []string `json:"include"`
+	Include []string `json:"include,omitempty"`
 	// active profile
-	Active string `json:"active" default:"${APP_PROFILES_ACTIVE:default}"`
+	Active string `json:"active,omitempty" default:"${APP_PROFILES_ACTIVE:default}"`
 }
 
 type banner struct {
@@ -33,40 +33,57 @@ type banner struct {
 	Disabled bool `default:"false"`
 }
 
+type ContactInfo struct {
+	Name  string `json:"name,omitempty"`
+	URL   string `json:"url,omitempty"`
+	Email string `json:"email,omitempty"`
+}
+
+type License struct {
+	Name string `json:"name,omitempty"`
+	URL  string `json:"url,omitempty"`
+}
+
 // App is the properties of the application, it hold the base info of the application
 type App struct {
 	// at.ConfigurationProperties annotation
-	at.ConfigurationProperties `value:"app" `
-
+	at.ConfigurationProperties `value:"app" json:"-"`
 	// project name
-	Project string `json:"project" default:"hidevopsio"`
+	Title string `json:"title,omitempty" default:"HiBoot Demo Application"`
+	// project name
+	Project string `json:"project,omitempty" default:"hidevopsio"`
 	// app name
-	Name string `json:"name" default:"${APP_NAME:hiboot-app}"`
+	Name string `json:"name,omitempty" default:"${APP_NAME:hiboot-app}"`
 	// app description
-	Description string `json:"description" default:"${app.name} is a Hiboot Application"`
+	Description string `json:"description,omitempty" default:"${app.name} is a Hiboot Application"`
 	// profiles
 	Profiles Profiles `json:"profiles"`
 	// banner
 	Banner banner
 	// Version
-	Version string `json:"version" default:"${APP_VERSION:v1}"`
+	Version string `json:"version,omitempty" default:"${APP_VERSION:v1}"`
+	// TermsOfService
+	TermsOfService string       `json:"termsOfService,omitempty"`
+	Contact        *ContactInfo `json:"contact,omitempty"`
+	License        *License     `json:"license,omitempty"`
 }
 
 // Server is the properties of http server
 type Server struct {
 	// annotation
-	at.ConfigurationProperties `value:"server" `
-
-	Port string `json:"port" default:"8080"`
-	PathPrefix string `json:"path_prefix"`
+	at.ConfigurationProperties `value:"server" json:"-"`
+	Schemes                    []string `json:"schemes,omitempty" default:"http"`
+	Host                       string   `json:"host,omitempty" default:"localhost:8080"`
+	Port                       string   `json:"port,omitempty" default:"8080"`
+	ContextPath                string   `json:"context_path,omitempty"`
 }
 
 // Logging is the properties of logging
 type Logging struct {
 	// annotation
-	at.ConfigurationProperties `value:"logging" `
+	at.ConfigurationProperties `value:"logging" json:"-"`
 
-	Level string `json:"level" default:"info"`
+	Level string `json:"level,omitempty" default:"info"`
 }
 
 // Env is the name value pair of environment variable

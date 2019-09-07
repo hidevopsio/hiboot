@@ -194,11 +194,11 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 		}
 
 		// set field object
-		var fieldObj reflect.Value
+		var fieldObjValue reflect.Value
 		if obj.IsValid() && obj.Kind() == reflect.Struct {
 			// TODO: consider embedded property
 			//log.Debugf("inject: %v.%v", obj.Type(), f.Name)
-			fieldObj = obj.FieldByName(f.Name)
+			fieldObjValue = obj.FieldByName(f.Name)
 		}
 
 		// TODO: assume that the f.Name of value and inject tag is not the same
@@ -214,10 +214,10 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 		}
 
 		// assign value to struct field
-		if injectedObject != nil && fieldObj.CanSet() {
+		if injectedObject != nil && fieldObjValue.CanSet() {
 			fov := i.convert(f, injectedObject)
-			if fov.Type().AssignableTo(fieldObj.Type()) {
-				fieldObj.Set(fov)
+			if fov.Type().AssignableTo(fieldObjValue.Type()) {
+				fieldObjValue.Set(fov)
 			//} else {
 			//	log.Errorf("unmatched type %v against %v", fov.Type(), fieldObj.Type())
 			}
@@ -225,12 +225,23 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 
 		//log.Debugf("- kind: %v, %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type(), f.Name)
 		//log.Debugf("isValid: %v, canSet: %v", fieldObj.IsValid(), fieldObj.CanSet())
-		filedObject := reflect.Indirect(fieldObj)
+		filedObject := reflect.Indirect(fieldObjValue)
 		filedKind := filedObject.Kind()
 		canNested := filedKind == reflect.Struct
-		if canNested && fieldObj.IsValid() && fieldObj.CanSet() && filedObject.Type() != obj.Type() {
-			err = i.IntoObjectValue(fieldObj, prop, tags...)
+		if canNested && fieldObjValue.IsValid() && fieldObjValue.CanSet() && filedObject.Type() != obj.Type() {
+			err = i.IntoObjectValue(fieldObjValue, prop, tags...)
 		}
+
+		// inject property set
+		//if annotation.Contains(fieldObjValue, at.ConfigurationProperties{}) {
+		//	if !fieldObjValue.IsNil() {
+		//		// load properties
+		//		fieldObj := fieldObjValue.Interface()
+		//		log.Debug(fieldObj)
+		//		err = i.factory.Builder().Load(fieldObj)
+		//		log.Debug(fieldObj)
+		//	}
+		//}
 	}
 	return err
 }
@@ -285,7 +296,7 @@ func (i *inject) IntoFunc(object interface{}) (retVal interface{}, err error) {
 
 			paramValue := reflect.Indirect(val)
 			if val.IsValid() && paramValue.IsValid() && paramValue.Kind() == reflect.Struct {
-				err = i.IntoObjectValue(val, "")
+				err = i.IntoObject(val.Interface())
 			}
 		}
 		results := fn.Call(inputs)
@@ -320,7 +331,7 @@ func (i *inject) IntoMethod(object interface{}, m interface{}) (retVal interface
 
 				paramObject := reflect.Indirect(val)
 				if val.IsValid() && paramObject.IsValid() && paramObject.Kind() == reflect.Struct {
-					err = i.IntoObjectValue(val, "")
+					err = i.IntoObject(val.Interface())
 				}
 			}
 			results := method.Func.Call(inputs)

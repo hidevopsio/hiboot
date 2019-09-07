@@ -162,7 +162,7 @@ func TestInstantiateFactory(t *testing.T) {
 	})
 
 	t.Run("should initialize factory", func(t *testing.T) {
-		cstProp := instFactory.CustomProperties()
+		cstProp := instFactory.DefaultProperties()
 		assert.NotEqual(t, 0, len(cstProp))
 	})
 

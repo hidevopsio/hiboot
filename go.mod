@@ -5,10 +5,9 @@ require (
 	github.com/deckarep/golang-set v1.7.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/camelcase v1.0.0
-	github.com/go-openapi/loads v0.19.2
 	github.com/go-openapi/runtime v0.19.4
 	github.com/go-openapi/spec v0.19.2
-	github.com/go-openapi/swag v0.19.5
+	github.com/go-openapi/swag v0.19.5 // indirect
 	github.com/gojektech/valkyrie v0.0.0-20190210220504-8f62c1e7ba45
 	github.com/golang/mock v1.2.0
 	github.com/golang/protobuf v1.2.0
@@ -31,8 +30,8 @@ require (
 	github.com/spf13/afero v1.1.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
+	github.com/spf13/viper v1.3.2
 	github.com/stretchr/testify v1.3.0
-	github.com/toqueteos/webbrowser v1.2.0
 	github.com/uber-go/atomic v1.3.2 // indirect
 	github.com/uber/jaeger-client-go v2.15.0+incompatible
 	github.com/uber/jaeger-lib v1.5.0+incompatible // indirect

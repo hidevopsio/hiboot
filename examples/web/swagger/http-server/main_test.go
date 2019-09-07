@@ -6,11 +6,6 @@ import (
 	"testing"
 )
 
-func TestRunMain(t *testing.T) {
-	go main()
-}
-
-
 func TestController(t *testing.T) {
 	testApp := web.NewTestApp(t).Run(t)
 

@@ -54,22 +54,23 @@ type instantiateFactory struct {
 	contextAwareInstance factory.Instance
 	components           []*factory.MetaData
 	resolved             []*factory.MetaData
-	customProperties     cmap.ConcurrentMap
+	defaultProperties    cmap.ConcurrentMap
 	categorized          map[string][]*factory.MetaData
 	inject               inject.Inject
 	builder              system.Builder
 }
 
 // NewInstantiateFactory the constructor of instantiateFactory
-func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory.MetaData, customProperties cmap.ConcurrentMap) factory.InstantiateFactory {
-	if customProperties == nil {
-		customProperties = cmap.New()
+func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory.MetaData, defaultProperties cmap.ConcurrentMap) factory.InstantiateFactory {
+	if defaultProperties == nil {
+		defaultProperties = cmap.New()
 	}
+
 	f := &instantiateFactory{
-		instance:         newInstance(instanceMap),
-		components:       components,
-		customProperties: customProperties,
-		categorized:      make(map[string][]*factory.MetaData),
+		instance:          newInstance(instanceMap),
+		components:        components,
+		defaultProperties: defaultProperties,
+		categorized:       make(map[string][]*factory.MetaData),
 	}
 	f.inject = inject.NewInject(f)
 
@@ -82,7 +83,7 @@ func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory
 	syscfg := system.NewConfiguration(sa, ss, sl)
 
 
-	customProps := customProperties.Items()
+	customProps := defaultProperties.Items()
 	f.builder = system.NewPropertyBuilder(
 		filepath.Join(workDir, config),
 		customProps,
@@ -277,8 +278,8 @@ func (f *instantiateFactory) Items() map[string]interface{} {
 }
 
 // Items return instance map
-func (f *instantiateFactory) CustomProperties() map[string]interface{} {
-	return f.customProperties.Items()
+func (f *instantiateFactory) DefaultProperties() map[string]interface{} {
+	return f.defaultProperties.Items()
 }
 
 // InjectIntoObject inject into object

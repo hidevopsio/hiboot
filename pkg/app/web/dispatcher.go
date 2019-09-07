@@ -25,6 +25,7 @@ import (
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/system"
 	"hidevops.io/hiboot/pkg/utils/copier"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"net/http"
@@ -56,8 +57,9 @@ type Dispatcher struct {
 	webApp *webApp
 	// inject context aware dependencies
 	configurableFactory factory.ConfigurableFactory
+	SystemApp    *system.App
+	SystemServer *system.Server
 
-	ContextPath       string `value:"${server.context_path:/}"`
 	ContextPathFormat string `value:"${server.context_path_format}" `
 }
 
@@ -186,7 +188,7 @@ func (d *Dispatcher) parseRestController(ctl *factory.MetaData) (restController 
 
 	// get context mapping
 	var customizedControllerPath bool
-	pathPrefix := d.ContextPath
+	pathPrefix := d.SystemServer.ContextPath
 	af, ok := annotation.GetField(controller, at.RequestMapping{})
 	if ok {
 		customizedControllerPath = true
@@ -214,7 +216,7 @@ func (d *Dispatcher) parseRestController(ctl *factory.MetaData) (restController 
 		case app.ContextPathFormatLowerCamel:
 			cn = str.ToLowerCamel(controllerName)
 		}
-		contextPath := d.ContextPath
+		contextPath := d.SystemServer.ContextPath
 		if contextPath == ContextPathRoot {
 			contextPath = ""
 		}

@@ -16,13 +16,14 @@ import (
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/starter/actuator"
 	"hidevops.io/hiboot/pkg/starter/logging"
+	"hidevops.io/hiboot/pkg/system"
 	"net/http"
 	"path"
 )
 
 type controller struct {
 	at.RestController
-	at.RequestMapping `value:"/api/greeting-server"`
+	at.RequestMapping `value:"/"`
 }
 
 func init() {
@@ -168,7 +169,7 @@ func (c *controller) SwaggerUI(at struct{ at.GetMapping `value:"/swagger-ui"` },
 	return
 }
 
-type HelloQueryParam struct{
+type HelloQueryParam struct {
 	at.RequestParams
 	Name string
 }
@@ -185,5 +186,17 @@ func (c *controller) Hello(at struct{ at.GetMapping `value:"/hello"` }, request 
 func main() {
 	web.NewApplication(newController).
 		SetProperty(app.ProfilesInclude, actuator.Profile, logging.Profile).
+		SetProperty("app", &system.App{
+			Title:       "HiBoot Swagger Demo Application - Greeting Server",
+			Project:     "hiboot",
+			Name:        "greeter-server",
+			Description: `Greeting Server is an application that demonstrate the usage of Swagger Annotations`,
+			Version:     "v1.0.1",
+		}).
+		SetProperty("server", &system.Server{
+			Schemes:     []string{"http,https"},
+			Host:        "apps.hidevops.io",
+			ContextPath: "/api/v1/greeting-server",
+		}).
 		Run()
 }

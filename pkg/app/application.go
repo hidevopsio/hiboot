@@ -26,7 +26,6 @@ import (
 	"hidevops.io/hiboot/pkg/system"
 	"hidevops.io/hiboot/pkg/utils/cmap"
 	"hidevops.io/hiboot/pkg/utils/io"
-	"os"
 	"reflect"
 	"strings"
 	"sync"
@@ -68,7 +67,7 @@ type BaseApplication struct {
 	configurableFactory factory.ConfigurableFactory
 	systemConfig        *system.Configuration
 	postProcessor       *postProcessor
-	properties          cmap.ConcurrentMap
+	defaultProperties   cmap.ConcurrentMap
 	mu                  sync.Mutex
 	// SetAddCommandLineProperties
 	addCommandLineProperties bool
@@ -112,21 +111,21 @@ func (a *BaseApplication) SetProperty(name string, value ...interface{}) Applica
 	if kind == reflect.String && strings.Contains(val.(string), ",") {
 		val = strings.SplitN(val.(string), ",", -1)
 	}
-	a.properties.Set(name, val)
+	a.defaultProperties.Set(name, val)
 
 	return a
 }
 
 // GetProperty get application property
 func (a *BaseApplication) GetProperty(name string) (value interface{}, ok bool) {
-	value, ok = a.properties.Get(name)
+	value, ok = a.defaultProperties.Get(name)
 	return
 }
 
 // Initialize init application
 func (a *BaseApplication) Initialize() (err error) {
 	log.SetLevel(log.InfoLevel)
-	a.properties = cmap.New()
+	a.defaultProperties = cmap.New()
 	a.configurations = cmap.New()
 	a.instances = cmap.New()
 	// set add command line properties to true as default
@@ -141,10 +140,7 @@ func (a *BaseApplication) Build() {
 
 	a.WorkDir = io.GetWorkDir()
 
-	// set custom properties from args
-	a.setCustomPropertiesFromArgs()
-
-	instantiateFactory := instantiate.NewInstantiateFactory(a.instances, componentContainer, a.properties)
+	instantiateFactory := instantiate.NewInstantiateFactory(a.instances, componentContainer, a.defaultProperties)
 	configurableFactory := autoconfigure.NewConfigurableFactory(instantiateFactory, a.configurations)
 	a.configurableFactory = configurableFactory
 
@@ -156,25 +152,6 @@ func (a *BaseApplication) Build() {
 }
 
 // SystemConfig returns application config
-func (a *BaseApplication) setCustomPropertiesFromArgs() {
-	//log.Println(os.Args)
-	if a.addCommandLineProperties {
-		for _, val := range os.Args {
-			prefix := val[:2]
-			if prefix == "--" {
-				kv := val[2:]
-				kvPair := strings.Split(kv, "=")
-				// --property equal to --property=true
-				if len(kvPair) == 1 {
-					kvPair = append(kvPair, "true")
-				}
-				a.SetProperty(kvPair[0], kvPair[1])
-			}
-		}
-	}
-}
-
-// SystemConfig returns application config
 func (a *BaseApplication) SystemConfig() *system.Configuration {
 	return a.systemConfig
 }
@@ -182,11 +159,6 @@ func (a *BaseApplication) SystemConfig() *system.Configuration {
 // BuildConfigurations get BuildConfigurations
 func (a *BaseApplication) BuildConfigurations() (err error) {
 	// build configurations
-	//for _, cfg := range componentContainer {
-	//	if annotation.Contains(cfg.MetaObject, at.AutoConfiguration{}) {
-	//		configContainer = append(configContainer, cfg)
-	//	}
-	//}
 	a.configurableFactory.Build(configContainer)
 	// build components
 	err = a.configurableFactory.BuildComponents()

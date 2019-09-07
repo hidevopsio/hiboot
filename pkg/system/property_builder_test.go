@@ -60,10 +60,13 @@ func TestPropertyBuilderBuild(t *testing.T) {
 
 	appProp := &App{}
 	t.Run("should build configuration properly", func(t *testing.T) {
+		projectName := "hidevopsio"
+		b.SetProperty("app.project", projectName)
+		appName := b.GetProperty("app.name")
 		err = b.Load(appProp)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, "hiboot-app", appProp.Name)
-		assert.Equal(t, testProject, appProp.Project)
+		assert.Equal(t, appName, appProp.Name)
+		assert.Equal(t, projectName, appProp.Project)
 	})
 
 	t.Run("should load properties", func(t *testing.T) {
@@ -115,6 +118,24 @@ func TestPropertyBuilderBuild(t *testing.T) {
 		b.SetProperty("plant.fruit", "banana")
 		assert.Equal(t, "banana", b.GetProperty("plant.fruit"))
 	})
+
+	t.Run("should overwrite with struct property", func(t *testing.T) {
+		b.SetProperty("server", Server{
+			Schemes:     []string{"https"},
+			Host:        "test.hidevops.io",
+			Port:        "9090",
+			ContextPath: "/api/foo/bar",
+		})
+		assert.Equal(t, "/api/foo/bar", b.GetProperty("server.context_path"))
+	})
+
+	//t.Run("test unmarshal", func(t *testing.T) {
+	//	allSettings := b.AllSettings()
+	//	settings := allSettings[prefix]
+	//	if settings != nil {
+	//		err = mapstruct.Decode(properties, settings)
+	//	}
+	//})
 
 	t.Run("should replace property", func(t *testing.T) {
 		b.SetProperty("app.name", "foo").

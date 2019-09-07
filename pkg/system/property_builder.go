@@ -17,16 +17,20 @@
 package system
 
 import (
+	"encoding/json"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/utils/copier"
 	"hidevops.io/hiboot/pkg/utils/mapstruct"
+	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/replacer"
 	"hidevops.io/hiboot/pkg/utils/sort"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"hidevops.io/viper"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 )
 
@@ -43,23 +47,41 @@ type propertyBuilder struct {
 	configuration    interface{}
 	customProperties map[string]interface{}
 	profiles         []string
+	merge            bool
 }
 
 
 // NewBuilder is the constructor of system.Builder
 func NewPropertyBuilder(path string, customProperties map[string]interface{}) Builder {
-	return &propertyBuilder{
+	b := &propertyBuilder{
 		ConfigFile: ConfigFile{path: path},
 		Viper:            viper.New(),
 		customProperties: customProperties,
+	}
+	return b
+}
+
+
+// setCustomPropertiesFromArgs returns application config
+func (b *propertyBuilder) setCustomPropertiesFromArgs() {
+	log.Println(os.Args)
+	for _, val := range os.Args {
+		prefix := val[:2]
+		if prefix == "--" {
+			kv := val[2:]
+			kvPair := strings.Split(kv, "=")
+			// --property equal to --property=true
+			if len(kvPair) == 1 {
+				kvPair = append(kvPair, "true")
+			}
+			b.Set(kvPair[0], kvPair[1])
+		}
 	}
 }
 
 // New create new viper instance
 func (b *propertyBuilder) readConfig(path, file, ext string) (err error) {
 	log.Debugf("file: %v%v.%v", path, file, ext)
-
-	viper.Reset()
 	b.AutomaticEnv()
 	viperReplacer := strings.NewReplacer(".", "_")
 	b.SetEnvKeyReplacer(viperReplacer)
@@ -67,8 +89,12 @@ func (b *propertyBuilder) readConfig(path, file, ext string) (err error) {
 	b.AddConfigPath(path)
 	b.SetConfigName(file)
 	b.SetConfigType(ext)
-
-	err = b.MergeInConfig()
+	if !b.merge {
+		b.merge = true
+		err = b.ReadInConfig()
+	} else {
+		err = b.MergeInConfig()
+	}
 	return
 }
 
@@ -182,6 +208,8 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 		b.SetProperty(key, value)
 	}
 
+	b.setCustomPropertiesFromArgs()
+
 	// iterate all and replace reference values or env
 	allKeys := b.AllKeys()
 	for _, key := range allKeys {
@@ -202,9 +230,17 @@ func (b *propertyBuilder) Load(properties interface{}) (err error) {
 	ann, ok := annotation.GetField(properties, at.ConfigurationProperties{})
 	if ok {
 		prefix := ann.StructField.Tag.Get("value")
+
+		//err = b.UnmarshalKey(prefix, properties, func(config *mapstructure.DecoderConfig) {
+		//	config.TagName = "json"
+		//	config.WeaklyTypedInput = true
+		//})
+
 		allSettings := b.AllSettings()
 		settings := allSettings[prefix]
-		err = mapstruct.Decode(properties, settings)
+		if settings != nil {
+			err = mapstruct.Decode(properties, settings)
+		}
 	}
 	return
 }
@@ -259,13 +295,35 @@ func (b *propertyBuilder) GetProperty(name string) (retVal interface{}) {
 	return
 }
 
+func (b *propertyBuilder) mergeProperty(name string, val interface{}) (retVal interface{})  {
+	retVal = val
+	original := b.Get(name)
+	if original != nil {
+		sv := reflector.IndirectValue(val)
+		switch original.(type) {
+		case map[string]interface{}:
+			if sv.Type().Kind() == reflect.Struct {
+				bs, err := json.Marshal(val)
+				var dm = make(map[string]interface{})
+				copier.CopyMap(dm, original.(map[string]interface{}))
+				var sm map[string]interface{}
+				err = json.Unmarshal(bs, &sm)
+				if err == nil {
+					copier.CopyMap(dm, sm, copier.IgnoreEmptyValue)
+					retVal = dm
+				}
+			}
+		}
+	}
+	return
+}
+
 func (b *propertyBuilder) SetProperty(name string, val interface{}) Builder {
-	b.Set(name, val)
+	b.Set(name, b.mergeProperty(name, val))
 	return b
 }
 
 func (b *propertyBuilder) SetDefaultProperty(name string, val interface{}) Builder {
-	// TODO: bug ...
-	b.SetDefault(name, val)
+	b.SetDefault(name, b.mergeProperty(name, val))
 	return b
 }

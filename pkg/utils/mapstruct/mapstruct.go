@@ -26,6 +26,7 @@ func Decode(to interface{}, from interface{}) error {
 	config := &mapstructure.DecoderConfig{
 		WeaklyTypedInput: true,
 		Result:           to,
+		TagName: 		  "json",
 	}
 
 	decoder, err := mapstructure.NewDecoder(config)

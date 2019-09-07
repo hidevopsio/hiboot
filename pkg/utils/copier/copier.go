@@ -41,6 +41,7 @@ import (
 	"database/sql"
 	"errors"
 	"hidevops.io/hiboot/pkg/utils/reflector"
+	"hidevops.io/hiboot/pkg/utils/str"
 	"reflect"
 )
 
@@ -234,4 +235,59 @@ func Copy(toValue interface{}, fromValue interface{}, opts ...func(*Config)) (er
 	}
 
 	return copy(toValue, fromValue, config)
+}
+
+func copyMap(dst, src map[string]interface{}, config *Config) {
+	for k, v := range src {
+		dv := dst[k]
+		if config.IgnoreEmptyValue && v == nil {
+			continue
+		}
+		switch v.(type) {
+		case map[string]interface{}:
+			var dm map[string]interface{}
+			if dv == nil {
+				dm = make(map[string]interface{})
+			} else {
+				dm = dv.(map[string]interface{})
+			}
+			copyMap(dm, v.(map[string]interface{}), config)
+			dst[k] = dm
+		case []string:
+			if dv == nil {
+				dst[k] = v
+			} else {
+				switch dv.(type) {
+				case []string:
+					sv := v.([]string)
+					dv := dv.([]string)
+					for _, svv := range sv {
+						if !str.InSlice(svv, dv) {
+							dv = append(dv, svv)
+						}
+					}
+					dst[k] = dv
+				}
+			}
+		case string:
+			if config.IgnoreEmptyValue && v == "" {
+				continue
+			}
+			dst[k] = v
+		default:
+			dst[k] = v
+		}
+	}
+	return
+}
+
+
+func CopyMap(dst, src map[string]interface{}, opts ...func(*Config)) {
+	config := &Config{}
+
+	for _, opt := range opts {
+		opt(config)
+	}
+
+	copyMap(dst, src, config)
 }
