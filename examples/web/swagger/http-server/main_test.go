@@ -4,6 +4,7 @@ import (
 	"hidevops.io/hiboot/pkg/app/web"
 	"net/http"
 	"testing"
+	"time"
 )
 
 func TestController(t *testing.T) {
@@ -18,4 +19,9 @@ func TestController(t *testing.T) {
 		testApp.Get("/public/ui/hello.txt").
 			Expect().Status(http.StatusOK)
 	})
+}
+
+func TestRunMain(t *testing.T) {
+	go main()
+	time.Sleep(100 * time.Millisecond)
 }
