@@ -42,6 +42,7 @@ type ConfigFile struct{
 
 
 type propertyBuilder struct {
+	at.Qualifier `value:"system.builder"`
 	*viper.Viper
 	ConfigFile
 	configuration    interface{}
@@ -293,21 +294,40 @@ func (b *propertyBuilder) GetProperty(name string) (retVal interface{}) {
 
 func (b *propertyBuilder) mergeProperty(name string, val interface{}) (retVal interface{})  {
 	retVal = val
+	// TODO: for debug only, TBD
+	if name == "swagger" {
+		log.Debug(name)
+	}
+	sv := reflector.IndirectValue(val)
 	original := b.Get(name)
 	if original != nil {
-		sv := reflector.IndirectValue(val)
 		switch original.(type) {
 		case map[string]interface{}:
 			if sv.Type().Kind() == reflect.Struct {
+				// convert object to []byte
 				bs, err := json.Marshal(val)
+				// make new map
 				var dm = make(map[string]interface{})
+				// copy original map to the new map
 				copier.CopyMap(dm, original.(map[string]interface{}))
 				var sm map[string]interface{}
+				// convert []bytes to map
 				err = json.Unmarshal(bs, &sm)
 				if err == nil {
+					// copy new src map to dest map
 					copier.CopyMap(dm, sm, copier.IgnoreEmptyValue)
+					// assign dest map to retVal
 					retVal = dm
 				}
+			}
+		}
+	} else {
+		if sv.Kind() == reflect.Struct {
+			var dm = make(map[string]interface{})
+			bs, err := json.Marshal(val)
+			if err == nil {
+				err = json.Unmarshal(bs, &dm)
+				retVal = dm
 			}
 		}
 	}

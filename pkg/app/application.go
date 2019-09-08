@@ -44,6 +44,7 @@ const (
 // Application is the base application interface
 type Application interface {
 	Initialize() error
+	// TODO: remove it from factory as system.build can be injected directly
 	SetProperty(name string, value ...interface{}) Application
 	GetProperty(name string) (value interface{}, ok bool)
 	SetAddCommandLineProperties(enabled bool) Application
