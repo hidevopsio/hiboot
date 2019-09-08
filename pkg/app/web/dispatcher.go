@@ -27,6 +27,7 @@ import (
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/system"
 	"hidevops.io/hiboot/pkg/utils/copier"
+	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"net/http"
 	"path/filepath"
@@ -61,6 +62,8 @@ type Dispatcher struct {
 	SystemServer *system.Server
 
 	ContextPathFormat string `value:"${server.context_path_format}" `
+
+	methodSubscribers []*factory.MetaData
 }
 
 type requestMapping struct {
@@ -70,7 +73,7 @@ type requestMapping struct {
 
 type injectableMethod struct {
 	method              *reflect.Method
-	annotations         *annotations
+	annotations         *Annotations
 	handler             iris.Handler
 	hasMethodAnnotation bool
 	requestMapping      *requestMapping
@@ -84,20 +87,21 @@ type injectableObject struct {
 	before      *injectableMethod
 	after       *injectableMethod
 	methods     []*injectableMethod
-	annotations *annotations
+	annotations *Annotations
 }
 
-type annotations struct {
-	index  int
-	fields []*annotation.Field
-	object interface{}
-	value  reflect.Value
+type Annotations struct {
+	Index  int
+	Fields []*annotation.Field
+	Object interface{}
+	Value  reflect.Value
 }
 
 func newDispatcher(webApp *webApp, configurableFactory factory.ConfigurableFactory) *Dispatcher {
 	d := &Dispatcher{
 		webApp:              webApp,
 		configurableFactory: configurableFactory,
+		methodSubscribers: configurableFactory.GetInstances(at.HttpMethodSubscriber{}),
 	}
 	return d
 }
@@ -106,21 +110,24 @@ func init() {
 	app.Register(newDispatcher)
 }
 
-func (d *Dispatcher) parseAnnotation(object interface{}, method *reflect.Method) (ma *annotations) {
-	ma = new(annotations)
+func (d *Dispatcher) parseAnnotation(object interface{}, method *reflect.Method) (ma *Annotations) {
+	ma = new(Annotations)
 	numIn := method.Type.NumIn()
 	inputs := make([]reflect.Value, numIn)
 	inputs[0] = reflect.ValueOf(object)
 	for n := 1; n < numIn; n++ {
 		typ := method.Type.In(n)
-		if typ.Name() == "" && typ.Kind() == reflect.Struct {
-			ma.value = reflect.New(typ)
-			ma.object = ma.value.Interface()
-			ma.fields = annotation.GetFields(ma.object)
-			ma.index = n
-			if len(ma.fields) != 0 {
-				_ = d.configurableFactory.InjectIntoObject(ma.object)
-				log.Debug(ma.object)
+		iTyp := reflector.IndirectType(typ)
+		//log.Debugf("in type name: %v type: %v", iTyp.Name(), iTyp)
+		//log.Debugf("in type name: %v type: %v", typ.Name(), typ)
+		if iTyp.Name() == "" && typ.Kind() == reflect.Struct {
+			ma.Value = reflect.New(typ)
+			ma.Object = ma.Value.Interface()
+			ma.Fields = annotation.GetFields(ma.Object)
+			ma.Index = n
+			if len(ma.Fields) != 0 {
+				_ = d.configurableFactory.InjectIntoObject(ma.Object)
+				//log.Debug(ma.object)
 				break
 			}
 		}
@@ -136,10 +143,10 @@ func (d *Dispatcher) parseMiddleware(m *factory.MetaData) (middleware *injectabl
 	middleware.object = mwi.Interface()
 
 	// set annotations
-	annotations := new(annotations)
-	annotations.fields = annotation.GetFields(middleware.object)
-	annotations.object = middleware.object
-	annotations.value = mwi
+	annotations := new(Annotations)
+	annotations.Fields = annotation.GetFields(middleware.object)
+	annotations.Object = middleware.object
+	annotations.Value = mwi
 	middleware.annotations = annotations
 
 	mwType := mwi.Type()
@@ -150,7 +157,7 @@ func (d *Dispatcher) parseMiddleware(m *factory.MetaData) (middleware *injectabl
 		methodHandler.method = &method
 		ma := d.parseAnnotation(mi, &method)
 		methodHandler.annotations = ma
-		mwh := annotation.Filter(ma.fields, at.MiddlewareHandler{})
+		mwh := annotation.Filter(ma.Fields, at.MiddlewareHandler{})
 		if len(mwh) > 0 {
 			methodHandler.hasMethodAnnotation = true
 			hdl := newHandler(d.configurableFactory, middleware, methodHandler, at.MiddlewareHandler{})
@@ -180,10 +187,10 @@ func (d *Dispatcher) parseRestController(ctl *factory.MetaData) (restController 
 	controller := field.Interface()
 	restController.object = controller
 	//log.Debug("controller: ", controller)
-	annotations := new(annotations)
-	annotations.fields = annotation.GetFields(controller)
-	annotations.object = controller
-	annotations.value = field
+	annotations := new(Annotations)
+	annotations.Fields = annotation.GetFields(controller)
+	annotations.Object = controller
+	annotations.Value = field
 	restController.annotations = annotations
 
 	// get context mapping
@@ -251,7 +258,7 @@ func (d *Dispatcher) parseRestController(ctl *factory.MetaData) (restController 
 		methodName := method.Name
 		restMethod.annotations = d.parseAnnotation(controller, &method)
 		restMethod.method = &method
-		httpMethodAnnotation := annotation.Filter(restMethod.annotations.fields, at.HttpMethod{})
+		httpMethodAnnotation := annotation.Filter(restMethod.annotations.Fields, at.HttpMethod{})
 		restMethod.hasMethodAnnotation = len(httpMethodAnnotation) > 0
 
 		reqMap := new(requestMapping)
@@ -260,13 +267,13 @@ func (d *Dispatcher) parseRestController(ctl *factory.MetaData) (restController 
 			_ = copier.Copy(reqMap, httpMethodAnnotation[0].Value.Interface())
 		}
 
-		beforeMethod := annotation.Filter(restMethod.annotations.fields, at.BeforeMethod{})
+		beforeMethod := annotation.Filter(restMethod.annotations.Fields, at.BeforeMethod{})
 		if len(beforeMethod) > 0 {
 			restMethod.method = &method
 			restController.before = restMethod
 			continue
 		}
-		afterMethod := annotation.Filter(restMethod.annotations.fields, at.AfterMethod{})
+		afterMethod := annotation.Filter(restMethod.annotations.Fields, at.AfterMethod{})
 		if len(afterMethod) > 0 {
 			restMethod.method = &method
 			restController.after = restMethod
@@ -377,11 +384,11 @@ func (d *Dispatcher) register(controllers []*factory.MetaData, middleware []*fac
 		}
 
 		// bind regular http method handlers with router
-		atCtl := annotation.Filter(restController.annotations.fields, at.UseMiddleware{})
+		atCtl := annotation.Filter(restController.annotations.Fields, at.UseMiddleware{})
 		for _, m := range restController.methods {
 			var handlers []iris.Handler
 
-			atCtlMth := annotation.Filter(m.annotations.fields, at.UseMiddleware{})
+			atCtlMth := annotation.Filter(m.annotations.Fields, at.UseMiddleware{})
 
 			// 1. pass all annotations to registered starter for further implementations, e.g. swagger
 
@@ -393,9 +400,9 @@ func (d *Dispatcher) register(controllers []*factory.MetaData, middleware []*fac
 			// set matched to true by default
 			if len(mws) > 0 {
 				for _, mw := range mws {
-					atMw := annotation.Filter(mw.annotations.fields, at.UseMiddleware{})
+					atMw := annotation.Filter(mw.annotations.Fields, at.UseMiddleware{})
 					for _, mth := range mw.methods {
-						atMwMth := annotation.Filter(mth.annotations.fields, at.UseMiddleware{})
+						atMwMth := annotation.Filter(mth.annotations.Fields, at.UseMiddleware{})
 						// check if middleware is used
 						// else skip to append this middleware
 						useMiddleware := d.useMiddleware(atMw, atMwMth, atCtl, atCtlMth)
@@ -418,7 +425,7 @@ func (d *Dispatcher) handleControllerMethod(restController *injectableObject, m 
 	hdl := newHandler(d.configurableFactory, restController, m, at.HttpMethod{})
 
 	var h iris.Handler
-	atFileServer, ok := annotation.GetField(m.annotations.fields, at.FileServer{})
+	atFileServer, ok := annotation.GetField(m.annotations.Fields, at.FileServer{})
 	if ok {
 		afs := atFileServer.Value.Interface().(at.FileServer)
 		path := restController.pathPrefix + afs.Value
@@ -448,5 +455,13 @@ func (d *Dispatcher) handleControllerMethod(restController *injectableObject, m 
 	} else {
 		route := party.Handle(m.requestMapping.Method, m.requestMapping.Value, handlers...)
 		route.MainHandlerName = fmt.Sprintf("%s/%s.%s", restController.pkgPath, restController.name, m.method.Name)
+	}
+
+	// publish to subscriber
+	for _, ms := range d.methodSubscribers {
+		// emit
+		// TODO: check if subscriber implements HttpMethodSubscriber
+		subscriber := ms.Instance.(HttpMethodSubscriber)
+		subscriber.Subscribe(restController.annotations, m.annotations)
 	}
 }

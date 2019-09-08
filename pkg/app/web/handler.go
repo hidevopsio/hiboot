@@ -199,7 +199,7 @@ func (h *handler) parseMethod(injectableObject *injectableObject, injectableMeth
 		// TODO: use annotation.Contains(request, at.Annotation{}) instead, need to test more cases
 		// check if it's annotation at.RequestMapping
 		if annotation.Contains(request, atType) {
-			h.requests[i].iVal = injectableMethod.annotations.value.Elem() //reflect.ValueOf(request).Elem()
+			h.requests[i].iVal = injectableMethod.annotations.Value.Elem() //reflect.ValueOf(request).Elem()
 			h.requests[i].isAnnotation = true
 			continue
 		}

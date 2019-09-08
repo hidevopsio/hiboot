@@ -146,7 +146,7 @@ func (i *inject) convert(f reflect.StructField, src interface{}) (fov reflect.Va
 			fov = reflect.ValueOf(sv)
 		}
 	}
-	log.Debugf("Injected slice %v.(%v) into %v.%v", src, fov.Type(), fov.Type(), f.Name)
+	//log.Debugf("Injected slice %v.(%v) into %v.%v", src, fov.Type(), fov.Type(), f.Name)
 	return
 }
 
@@ -231,17 +231,12 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 		if canNested && fieldObjValue.IsValid() && fieldObjValue.CanSet() && filedObject.Type() != obj.Type() {
 			err = i.IntoObjectValue(fieldObjValue, prop, tags...)
 		}
+	}
 
-		// inject property set
-		//if annotation.Contains(fieldObjValue, at.ConfigurationProperties{}) {
-		//	if !fieldObjValue.IsNil() {
-		//		// load properties
-		//		fieldObj := fieldObjValue.Interface()
-		//		log.Debug(fieldObj)
-		//		err = i.factory.Builder().Load(fieldObj)
-		//		log.Debug(fieldObj)
-		//	}
-		//}
+	//inject property set
+	if atFields := annotation.Find(object, at.ConfigurationProperties{}); len(atFields) > 0 {
+		obj := object.Interface()
+		err = i.factory.Builder().Load(obj)
 	}
 	return err
 }

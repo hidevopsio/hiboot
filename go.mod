@@ -14,6 +14,7 @@ require (
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.0
 	github.com/gorilla/websocket v1.4.0
+	github.com/hidevopsio/mapstructure v1.1.3-0.20190908102033-f8832fd9e307
 	github.com/iris-contrib/formBinder v0.0.0-20190104093907-fbd5963f41e1 // indirect
 	github.com/iris-contrib/go.uuid v2.0.0+incompatible
 	github.com/iris-contrib/httpexpect v0.0.0-20180314041918-ebe99fcebbce
@@ -21,7 +22,6 @@ require (
 	github.com/kataras/golog v0.0.0-20180321173939-03be10146386
 	github.com/kataras/iris v11.0.3+incompatible
 	github.com/kataras/pio v0.0.0-20180511174041-a9733b5b6b83
-	github.com/mitchellh/mapstructure v1.1.2
 	github.com/moul/http2curl v1.0.0 // indirect
 	github.com/opentracing/opentracing-go v1.0.2
 	github.com/pkg/errors v0.8.0
@@ -30,7 +30,6 @@ require (
 	github.com/spf13/afero v1.1.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
-	github.com/spf13/viper v1.3.2
 	github.com/stretchr/testify v1.3.0
 	github.com/uber-go/atomic v1.3.2 // indirect
 	github.com/uber/jaeger-client-go v2.15.0+incompatible

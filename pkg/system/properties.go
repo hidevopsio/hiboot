@@ -86,10 +86,3 @@ type Logging struct {
 	Level string `json:"level,omitempty" default:"info"`
 }
 
-// Env is the name value pair of environment variable
-type Env struct {
-	// env name
-	Name string
-	// env value
-	Value string
-}

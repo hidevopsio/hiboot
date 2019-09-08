@@ -137,10 +137,10 @@ func (f *configurableFactory) BuildProperties() (systemConfig *system.Configurat
 		f.systemConfig = systemConfig
 	}
 
-	allProperties := f.GetInstances(at.ConfigurationProperties{})
-	for _, properties := range allProperties {
-		_ = f.builder.Load(properties.MetaObject)
-	}
+	//allProperties := f.GetInstances(at.ConfigurationProperties{})
+	//for _, properties := range allProperties {
+	//	_ = f.builder.Load(properties.MetaObject)
+	//}
 	return
 }
 

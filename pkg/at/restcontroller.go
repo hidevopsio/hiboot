@@ -26,6 +26,10 @@ type JwtRestController struct {
 	UseJwt
 }
 
+type HttpMethodSubscriber struct{
+	Annotation
+}
+
 // ContextPath is the annotation that set the context path of a controller
 type ContextPath struct {
 	Annotation

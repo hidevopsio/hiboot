@@ -4,18 +4,20 @@ import (
 	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/inject/annotation"
+	"hidevops.io/hiboot/pkg/log"
 	"reflect"
 	"testing"
 )
 
 type AtBaz struct {
 	at.Annotation
-	Code int `value:"200"`
+	Code int `value:"200" json:"code"`
 }
 
 type AtFoo struct {
 	at.Annotation
-	Age int
+	ID int `json:"fooId"`
+	Age int `json:"age"`
 }
 
 type AtBar struct {
@@ -24,12 +26,12 @@ type AtBar struct {
 
 type AtFooBar struct {
 	AtFoo
-	Code int `value:"200"`
+	Code int `value:"200" json:"code"`
 }
 
 type AtFooBaz struct {
 	AtFoo
-	Code int `value:"400"`
+	Code int `value:"400" json:"code"`
 }
 
 type MyObj struct{
@@ -39,11 +41,10 @@ type MyObj struct{
 
 type foo struct {
 	AtBaz `value:"baz"`
-	AtFoo `value:"foo,option 1,option 2" age:"18"`
+	AtFoo `value:"foo,option 1,option 2" age:"18" fooId:"123"`
 	AtBar `value:"bar"`
 	AtFooBar `value:"foobar" age:"12"`
 	AtFooBaz `value:"foobaz" age:"22"`
-
 	MyObj
 }
 
@@ -52,9 +53,53 @@ type bar struct {
 	AtBar `value:"bar"`
 }
 
+type multipleBar struct {
+	AtFoo `value:"foo"`
+	Bar1 struct{
+		AtBar `value:"bar1"`
+	}
+	Bar2 struct{
+		AtBar `value:"bar2"`
+	}
+}
+
+type AtIntMap struct {
+	at.Annotation
+	FieldName string `value:"codes"`
+	Codes map[int]string
+}
+
+type AtStrMap struct {
+	at.Annotation
+	FieldName string `value:"messages"`
+	Messages map[string]string
+}
+
+type foobar struct {
+	AtIntMap `200:"success" 404:"not found" 403:"unauthorized"`
+	AtStrMap `ok:"successful" failed:"failed"`
+}
+
+type atApiOperation struct {
+	at.ApiOperation `value:"testApi" operationId:"getGreeting" description:"This is the Greeting api for demo"`
+}
+
 func TestImplementsAnnotation(t *testing.T) {
+	log.SetLevel("debug")
+
 	f := new(foo)
 	f.Value = "my object value"
+	t.Run("test api operation", func(t *testing.T) {
+		ao := &atApiOperation{}
+		err := annotation.InjectIntoFields(ao)
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("test map injection", func(t *testing.T) {
+		fb := &foobar{}
+		err := annotation.InjectIntoFields(fb)
+		assert.Equal(t, nil, err)
+	})
 
 	fields := annotation.GetFields(f)
 	t.Run("should check if object contains at.Annotation", func(t *testing.T) {
@@ -167,6 +212,15 @@ func TestImplementsAnnotation(t *testing.T) {
 		field, ok := annotation.GetField(ff, AtBaz{})
 		assert.Equal(t, true, ok)
 		err := annotation.InjectIntoField(field)
+		assert.Equal(t, nil, err)
+	})
+
+	t.Run("should get and inject into multiple sub annotations", func(t *testing.T) {
+		ma := &multipleBar{}
+		maf := annotation.GetFields(ma)
+		assert.Equal(t, 3, len(maf))
+
+		err := annotation.InjectIntoFields(ma)
 		assert.Equal(t, nil, err)
 	})
 }

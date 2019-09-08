@@ -232,11 +232,6 @@ func (b *propertyBuilder) Load(properties interface{}) (err error) {
 	if ok {
 		prefix := ann.StructField.Tag.Get("value")
 
-		//err = b.UnmarshalKey(prefix, properties, func(config *mapstructure.DecoderConfig) {
-		//	config.TagName = "json"
-		//	config.WeaklyTypedInput = true
-		//})
-
 		allSettings := b.AllSettings()
 		settings := allSettings[prefix]
 		if settings != nil {

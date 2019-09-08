@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/utils/mapstruct"
 	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"hidevops.io/hiboot/pkg/utils/structtag"
@@ -77,14 +78,23 @@ func GetFields(object interface{}) []*Field {
 			for i := 0; i < reflectType.NumField(); i++ {
 				field := new(Field)
 				f := reflectType.Field(i)
+				typ := f.Type
 				if f.Anonymous {
-					_, ok = reflector.GetEmbeddedFieldByType(f.Type, at.Annotation{}, reflect.Struct)
+					_, ok = reflector.GetEmbeddedFieldByType(typ, at.Annotation{}, reflect.Struct)
 					if ok {
 						if ov.IsValid() && ov.CanAddr() && ov.Type().Kind() == reflect.Struct{
 							field.Value = ov.FieldByName(f.Name)
 						}
 						field.StructField = f
 						fields = append(fields, field)
+					}
+				} else {
+					iTyp := reflector.IndirectType(typ)
+					if iTyp.Name() == "" && typ.Kind() == reflect.Struct {
+						// more annotations from child struct
+						fieldObjVal := ov.FieldByName(f.Name)
+						childFields := GetFields(fieldObjVal)
+						fields = append(fields, childFields...)
 					}
 				}
 			}
@@ -132,21 +142,7 @@ func Contains(object interface{}, at interface{}) (ok bool) {
 func InjectIntoField(field *Field) (err error) {
 	var tags *structtag.Tags
 	if field.Value.IsValid() {
-		tags, err = structtag.Parse(string(field.StructField.Tag))
-		if err != nil {
-			log.Errorf("%v of %v", err, field.StructField.Type)
-			return
-		}
-		// iterate over all tags
-		if tags != nil {
-			for _, tag := range tags.Tags() {
-				tagObjectValue := field.Value.FieldByName(str.ToCamel(tag.Key))
-				v := str.Convert(tag.Name, tagObjectValue.Kind())
-				if tagObjectValue.CanSet() {
-					tagObjectValue.Set(reflect.ValueOf(v))
-				}
-			}
-		}
+		err = injectIntoField(tags, field)
 	}
 	return
 }
@@ -170,21 +166,57 @@ func InjectIntoFields(object interface{}) (err error) {
 	var tags *structtag.Tags
 	for _, field := range fields {
 		if field.Value.IsValid() {
-			tags, err = structtag.Parse(string(field.StructField.Tag))
+			err = injectIntoField(tags, field)
 			if err != nil {
-				log.Errorf("%v of %v", err, ot)
-				return
+				break
 			}
-			// iterate over all tags
-			if tags != nil {
-				for _, tag := range tags.Tags() {
-					tagObjectValue := field.Value.FieldByName(str.ToCamel(tag.Key))
-					v := str.Convert(tag.Name, tagObjectValue.Kind())
-					if tagObjectValue.CanSet() {
-						tagObjectValue.Set(reflect.ValueOf(v))
+		}
+	}
+	return
+}
+
+func injectIntoField(tags *structtag.Tags, field *Field) (err error) {
+	tags, err = structtag.Parse(string(field.StructField.Tag))
+	if err != nil {
+		log.Errorf("%v of %v", err, field.StructField.Type)
+		return
+	}
+    fieldValue := field.Value
+	typeField, ok := fieldValue.Type().FieldByName("FieldName")
+	if ok {
+		valueFieldName := typeField.Tag.Get("value")
+		if valueFieldName != "" {
+			valueFieldValue := field.Value.FieldByName(str.ToCamel(valueFieldName))
+			if valueFieldValue.CanSet() {
+				switch valueFieldValue.Interface().(type) {
+				case map[int]string:
+					values := make( map[int]string)
+					for _, tag := range tags.Tags() {
+						k := str.Convert(tag.Key, reflect.Int).(int)
+						values[k] = tag.Name
 					}
+					valueFieldValue.Set(reflect.ValueOf(values))
+					return
+				case map[string]string:
+					values := make( map[string]string)
+					for _, tag := range tags.Tags() {
+						values[tag.Key] = tag.Name
+					}
+					valueFieldValue.Set(reflect.ValueOf(values))
+					return
 				}
 			}
+		}
+	}
+
+	// iterate over all tags
+	if tags != nil {
+		values := make( map[string]string)
+		for _, tag := range tags.Tags() {
+			values[tag.Key] = tag.Name
+		}
+		if len(values) != 0 {
+			err = mapstruct.Decode(fieldValue.Addr().Interface(), values)
 		}
 	}
 	return

@@ -17,16 +17,17 @@ package mapstruct
 
 import (
 	"fmt"
-	"github.com/mitchellh/mapstructure"
+	"github.com/hidevopsio/mapstructure"
 )
 
 // Decode decode (convert) map to struct
 func Decode(to interface{}, from interface{}) error {
 
 	config := &mapstructure.DecoderConfig{
+		Squash:           true,
 		WeaklyTypedInput: true,
 		Result:           to,
-		TagName: 		  "json",
+		TagName:          "json",
 	}
 
 	decoder, err := mapstructure.NewDecoder(config)
