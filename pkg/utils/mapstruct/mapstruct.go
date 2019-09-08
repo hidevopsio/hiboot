@@ -20,14 +20,24 @@ import (
 	"github.com/hidevopsio/mapstructure"
 )
 
-// Decode decode (convert) map to struct
-func Decode(to interface{}, from interface{}) error {
+func WithSquash(config *mapstructure.DecoderConfig) {
+	config.Squash = true
+}
 
+func WithWeaklyTypedInput(config *mapstructure.DecoderConfig) {
+	config.WeaklyTypedInput = true
+}
+
+// Decode decode (convert) map to struct
+func Decode(to interface{}, from interface{}, opts ...func (*mapstructure.DecoderConfig) ) error {
 	config := &mapstructure.DecoderConfig{
-		Squash:           true,
 		WeaklyTypedInput: true,
 		Result:           to,
 		TagName:          "json",
+	}
+
+	for _, opt := range opts {
+		opt(config)
 	}
 
 	decoder, err := mapstructure.NewDecoder(config)

@@ -216,7 +216,8 @@ func injectIntoField(tags *structtag.Tags, field *Field) (err error) {
 			values[tag.Key] = tag.Name
 		}
 		if len(values) != 0 {
-			err = mapstruct.Decode(fieldValue.Addr().Interface(), values)
+			// use mapstruct.WithSquash to decode embedded sub field
+			err = mapstruct.Decode(fieldValue.Addr().Interface(), values, mapstruct.WithSquash)
 		}
 	}
 	return
