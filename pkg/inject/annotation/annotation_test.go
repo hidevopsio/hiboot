@@ -81,7 +81,7 @@ type foobar struct {
 }
 
 type atApiOperation struct {
-	at.ApiOperation `value:"testApi" operationId:"getGreeting" description:"This is the Greeting api for demo"`
+	at.Operation `value:"testApi" operationId:"getGreeting" description:"This is the Greeting api for demo"`
 }
 
 func TestImplementsAnnotation(t *testing.T) {

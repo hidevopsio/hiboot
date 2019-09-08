@@ -5,17 +5,17 @@ import (
 	"hidevops.io/hiboot/pkg/at"
 )
 
-type helloController struct {
+type controller struct {
 	at.RestController
-	at.RequestMapping `value:"/hello"`
+	at.RequestMapping `value:"/"`
 }
 
 func init() {
 	app.Register(newHelloController)
 }
 
-func newHelloController() *helloController {
-	return &helloController{}
+func newHelloController() *controller {
+	return &controller{}
 }
 
 type HelloQueryParam struct {
@@ -25,22 +25,26 @@ type HelloQueryParam struct {
 }
 
 // Hello
-func (c *helloController) Hello(at struct {
-	at.GetMapping   `value:"/"`
-	at.ApiOperation `operationId:"getGreeting" description:"This is the Greeting api for demo"`
-	at.ApiParam     `value:"Path variable employee ID" required:"true"`
+func (c *controller) Hello(at struct {
+	at.GetMapping `value:"/hello"`
+	at.Operation  `operationId:"getGreeting" description:"This is the Greeting api for demo"`
+	at.Produces   `values:"text/plain"`
+	ParamName     struct {
+		at.Parameter `type:"string" name:"name" in:"query" description:"defaults to World if not given" `
+	}
 	Code200 struct {
-		at.ApiResponse `code:"200" description:"returns a greeting"`
-		at.ApiResponseSchema `code:"200" type:"string" description:"contains the actual greeting as plain text"`
+		at.Response       `code:"200" description:"returns a greeting"`
+		at.ResponseSchema `code:"200" type:"string" description:"contains the actual greeting as plain text"`
 	}
 	Code404 struct {
-		at.ApiResponse `code:"404" description:"greeter is not available"`
-		at.ApiResponseSchema `code:"404" type:"string" description:"Report 'not found' error message"`
+		at.Response       `code:"404" description:"greeter is not available"`
+		at.ResponseSchema `code:"404" type:"string" description:"Report 'not found' error message"`
 	}
-}, request *HelloQueryParam) (response string) {
-	if request.Name == "" {
-		request.Name = "world"
+	// Response MyResponse
+}, param *HelloQueryParam) (response string) {
+	if param.Name == "" {
+		param.Name = "world"
 	}
-	response = "Hello, " + request.Name
+	response = "Hello, " + param.Name
 	return
 }

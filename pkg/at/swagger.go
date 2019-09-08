@@ -7,15 +7,20 @@ type Swagger struct {
 	Annotation
 }
 
-// ApiOperation
+type DisableSwagger struct {
+	Annotation
+}
+
+
+// Operation
 // func (c *) CreateEmployee(at struct{
 //     at.PostMapping `value:"/"`
-//     at.ApiOperation `value:"createEmployee"`
+//     at.Operation `value:"createEmployee"`
 //   }, request EmployeeRequest) {
 //
 //   ...
 // }
-type ApiOperation struct {
+type Operation struct {
 	// Required Element Summary
 	Swagger
 
@@ -38,28 +43,45 @@ type Api struct {
 // ApiParam annotation to add additional meta-data for operation parameters
 // func (c *) CreateEmployee(at struct{
 //     at.PostMapping `value:"/"`
-//     at.ApiParam `value:"Employee object store in database table" required:"true"`
+//     at.Parameter `value:"Employee object store in database table" required:"true"`
 //   }, request EmployeeRequest) {
 //
 //   ...
 // }
-type ApiParam struct {
-	// Optional Element Summary
-	Swagger
 
-	Required bool
+// ParameterItem
+type ParameterItem struct {
+	Swagger
 }
 
-// ApiResponse annotation to document other responses, in addition to the regular HTTP 200 OK, like this.
+// Parameter
+type Parameter struct {
+	ParameterItem
+
+	Key string `json:"key" value:"parameters"`
+	
+	spec.Parameter
+}
+
+// Produces
+type Produces struct{
+	Swagger
+
+	Key string `json:"key" value:"produces"`
+
+	Values []string `json:"values"`
+}
+
+// Response annotation to document other responses, in addition to the regular HTTP 200 OK, like this.
 // func (c *) CreateEmployee(at struct{
 //     at.PostMapping  `value:"/"`
-//     at.ApiOperation `value:"Add an employee"`
-//     at.ApiResponse  `200:"Successfully retrieved list" 401:"You are not authorized to view the resource 403:"Accessing the resource you were trying to reach is forbidden" 404:"The resource you were trying to reach is not found"`
+//     at.Operation `value:"Add an employee"`
+//     at.Response  `200:"Successfully retrieved list" 401:"You are not authorized to view the resource 403:"Accessing the resource you were trying to reach is forbidden" 404:"The resource you were trying to reach is not found"`
 //   }, request EmployeeRequest) (response Response) {
 //
 //   ...
 // }
-type ApiResponse struct {
+type Response struct {
 	Swagger
 
 	Key string `json:"key" value:"responses"`
@@ -67,7 +89,7 @@ type ApiResponse struct {
 	spec.ResponseProps
 }
 
-type ApiResponseSchema struct {
+type ResponseSchema struct {
 	Swagger
 
 	Key string `value:"responses.${code}.schema"`

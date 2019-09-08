@@ -1,11 +1,23 @@
 package swagger
 
 import (
+	"errors"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
 )
+
+var (
+	// ErrHttpMethodNotFound method is not found error
+	ErrHttpMethodNotFound = errors.New("HTTP method is not found")
+)
+
+type HttpMethod interface {
+	GetMethod() string
+	GetPath() string
+}
 
 type httpMethodSubscriber struct {
 	at.HttpMethodSubscriber `value:"swagger"`
@@ -17,10 +29,59 @@ func newHttpMethodSubscriber() *httpMethodSubscriber {
 
 // TODO: use data instead of atController
 func (s *httpMethodSubscriber) Subscribe(atController *web.Annotations, atMethod *web.Annotations) {
-	log.Debug("==================================================")
-	log.Debug(atController)
-	log.Debug(atMethod)
-	log.Debug("==================================================")
+	if annotation.ContainsChild(atController.Fields, at.DisableSwagger{}) {
+		log.Debugf("swagger is disabled by user on controller %v", atController.Value.Type())
+		return
+	}
+
+	method, path, err := s.parseHttpMethod(atMethod)
+	if err == nil {
+		log.Debug("==================================================")
+		log.Debugf("%v:%v", method, path)
+	}
+}
+
+func (s *httpMethodSubscriber) parseHttpMethod(atMethod *web.Annotations) (method string, path string, err error) {
+	// parse http method
+	if atMethod.Object != nil {
+		hma := annotation.Filter(atMethod.Fields, at.HttpMethod{})
+		if len(hma) > 0 {
+			hm := hma[0].Value.Interface()
+			switch hm.(type) {
+			case at.GetMapping:
+				httpMethod := hm.(at.GetMapping)
+				method, path = httpMethod.Method, httpMethod.Value
+			case at.PostMapping:
+				httpMethod := hm.(at.PostMapping)
+				method, path = httpMethod.Method, httpMethod.Value
+			case at.PutMapping:
+				httpMethod := hm.(at.PutMapping)
+				method, path = httpMethod.Method, httpMethod.Value
+			case at.DeleteMapping:
+				httpMethod := hm.(at.DeleteMapping)
+				method, path = httpMethod.Method, httpMethod.Value
+			case at.PatchMapping:
+				httpMethod := hm.(at.PatchMapping)
+				method, path = httpMethod.Method, httpMethod.Value
+			case at.OptionsMapping:
+				httpMethod := hm.(at.OptionsMapping)
+				method, path = httpMethod.Method, httpMethod.Value
+			case at.AnyMapping:
+				httpMethod := hm.(at.AnyMapping)
+				method, path = httpMethod.Method, httpMethod.Value
+			case at.TraceMapping:
+				httpMethod := hm.(at.TraceMapping)
+				method, path = httpMethod.Method, httpMethod.Value
+			default:
+				err = ErrHttpMethodNotFound
+			}
+		} else {
+			err = ErrHttpMethodNotFound
+		}
+	} else {
+		err = ErrHttpMethodNotFound
+	}
+	return
 }
 
 func init() {

@@ -72,9 +72,9 @@ func (c *employeeController) BeforeMethod(at struct{at.BeforeMethod}, ctx contex
 // at.GetMapping is an annotation to define request mapping for http method GET,
 func (c *employeeController) GetEmployee(at struct {
 	at.PathVariable
-	at.GetMapping `value:"/{id:int}"`
-	at.ApiOperation `value:"Get an employee"`
-	at.ApiParam `value:"Path variable employee ID" required:"true"`
+	at.GetMapping     `value:"/{id:int}"`
+	at.Operation      `value:"Get an employee"`
+	at.Parameter      `value:"Path variable employee ID" required:"true"`
 	at.ApiResponse200 `value:"Successfully get an employee"`
 	at.ApiResponse404 `value:"The resource you were trying to reach is not found"`
 }, id int) (response *EmployeeResponse, err error) {
@@ -99,9 +99,9 @@ func (c *employeeController) GetEmployee(at struct {
 
 // ListEmployee
 func (c *employeeController) ListEmployee(at struct{
-	at.GetMapping `value:"/"`
-	at.ApiOperation `value:"List employees"`
-	at.ApiParam `value:"Path variable employee ID" required:"true"`
+	at.GetMapping     `value:"/"`
+	at.Operation      `value:"List employees"`
+	at.Parameter      `value:"Path variable employee ID" required:"true"`
 	at.ApiResponse200 `value:"Successfully list employee"`
 	at.ApiResponse404 `value:"The resource you were trying to reach is not found"`
 }) (response *ListEmployeeResponse, err error) {

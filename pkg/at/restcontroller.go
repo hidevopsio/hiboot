@@ -63,49 +63,49 @@ type AfterMethod struct {
 // GetMapping is the annotation that set the GetMapping of a controller
 type GetMapping struct {
 	RequestMapping
-	Method string `value:"GET" json:"-"`
+	Method string `value:"GET" json:"method"`
 }
 
 // PostMapping is the annotation that set the PostMapping of a controller
 type PostMapping struct {
 	RequestMapping
-	Method string  `value:"POST" json:"-"`
+	Method string  `value:"POST" json:"method"`
 }
 
 // PutMapping is the annotation that set the PutMapping of a controller
 type PutMapping struct {
 	RequestMapping
-	Method string  `value:"PUT" json:"-"`
+	Method string  `value:"PUT" json:"method"`
 }
 
 // PatchMapping is the annotation that set the PatchMapping of a controller
 type PatchMapping struct {
 	RequestMapping
-	Method string  `value:"PATCH" json:"-"`
+	Method string  `value:"PATCH" json:"method"`
 }
 
 // DeleteMapping is the annotation that set the DeleteMapping of a controller
 type DeleteMapping struct {
 	RequestMapping
-	Method string  `value:"DELETE" json:"-"`
+	Method string  `value:"DELETE" json:"method"`
 }
 
 // AnyMapping is the annotation that set the AnyMapping of a controller
 type AnyMapping struct {
 	RequestMapping
-	Method string  `value:"ANY" json:"-"`
+	Method string  `value:"ANY" json:"method"`
 }
 
 // OptionsMapping is the annotation that set the OptionsMapping of a controller
 type OptionsMapping struct {
 	RequestMapping
-	Method string  `value:"OPTIONS" json:"-"`
+	Method string  `value:"OPTIONS" json:"method"`
 }
 
 // TraceMapping is the annotation that set the TraceMapping of a controller
 type TraceMapping struct {
 	RequestMapping
-	Method string  `value:"TRACE" json:"-"`
+	Method string  `value:"TRACE" json:"method"`
 }
 
 // StaticResource is the annotation that set the StaticResource of a controller
