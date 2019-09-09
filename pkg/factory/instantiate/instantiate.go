@@ -89,7 +89,7 @@ func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory
 		customProps,
 	)
 
-	f.Append(syscfg, sa, ss, sl, f)
+	f.Append(syscfg, sa, ss, sl, f, f.builder)
 
 	return f
 }
@@ -279,7 +279,8 @@ func (f *instantiateFactory) Items() map[string]interface{} {
 
 // Items return instance map
 func (f *instantiateFactory) DefaultProperties() map[string]interface{} {
-	return f.defaultProperties.Items()
+	dp := f.defaultProperties.Items()
+	return dp
 }
 
 // InjectIntoObject inject into object

@@ -16,8 +16,11 @@
 package mapstruct
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/hidevopsio/mapstructure"
+	"hidevops.io/hiboot/pkg/utils/reflector"
+	"reflect"
 )
 
 func WithSquash(config *mapstructure.DecoderConfig) {
@@ -50,4 +53,21 @@ func Decode(to interface{}, from interface{}, opts ...func (*mapstructure.Decode
 	}
 
 	return decoder.Decode(from)
+}
+
+// DecodeStructToMap
+// TODO: should improve the performance
+func DecodeStructToMap(val interface{}) (sm map[string]interface{}, ok bool) {
+	sv := reflector.IndirectValue(val)
+	sk := sv.Kind()
+	if sk == reflect.Struct {
+		// convert object to []byte
+		bs, err := json.Marshal(val)
+		if err == nil {
+			// define new map sm, unmarshal bs to sm
+			err = json.Unmarshal(bs, &sm)
+			ok = true
+		}
+	}
+	return
 }

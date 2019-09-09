@@ -19,6 +19,7 @@ package system
 import (
 	"bytes"
 	"fmt"
+	"github.com/hidevopsio/mapstructure"
 	"gopkg.in/yaml.v2"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/io"
@@ -37,7 +38,7 @@ type Builder interface {
 	Init() error
 	Build(profiles ...string) (p interface{}, err error)
 	BuildWithProfile(profile string) (interface{}, error)
-	Load(properties interface{}) (err error)
+	Load(properties interface{}, opts ...func (*mapstructure.DecoderConfig)) (err error)
 	Save(p interface{}) (err error)
 	Replace(source string) (retVal interface{})
 	GetProperty(name string) (retVal interface{})
@@ -57,7 +58,7 @@ type builder struct {
 	profiles         []string
 }
 
-func (b *builder) Load(properties interface{}) (err error) {
+func (b *builder) Load(properties interface{}, opts ...func (*mapstructure.DecoderConfig)) (err error) {
 	return
 }
 

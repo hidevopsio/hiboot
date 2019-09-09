@@ -7,6 +7,8 @@ import (
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/system"
+	"strings"
 )
 
 var (
@@ -21,10 +23,13 @@ type HttpMethod interface {
 
 type httpMethodSubscriber struct {
 	at.HttpMethodSubscriber `value:"swagger"`
+	builder system.Builder
 }
 
-func newHttpMethodSubscriber() *httpMethodSubscriber {
-	return &httpMethodSubscriber{}
+func newHttpMethodSubscriber(builder  system.Builder) *httpMethodSubscriber {
+	return &httpMethodSubscriber{
+		builder: builder,
+	}
 }
 
 // TODO: use data instead of atController
@@ -38,6 +43,28 @@ func (s *httpMethodSubscriber) Subscribe(atController *web.Annotations, atMethod
 	if err == nil {
 		log.Debug("==================================================")
 		log.Debugf("%v:%v", method, path)
+		swAnn := annotation.Filter(atMethod.Fields, at.Swagger{})
+		for _, a := range swAnn {
+			ao := a.Value.Interface()
+			log.Debug(ao)
+
+			switch ao.(type) {
+			case at.Operation:
+				ann := ao.(at.Operation)
+				key := ann.Key
+				log.Debugf("key: %v", ann.Key)
+				key = strings.Replace(key, "${at.http.method}", method, -1)
+				key = strings.Replace(key, "${at.http.path}", path, -1)
+				log.Debugf("key: %v", key)
+				op := s.builder.GetProperty(key)
+				log.Debug(op)
+				//s.builder.SetProperty(key, ann.OperationProps)
+				//op = s.builder.GetProperty(key)
+				//log.Debug(op)
+			}
+
+		}
+
 	}
 }
 

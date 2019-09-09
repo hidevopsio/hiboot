@@ -24,7 +24,7 @@ type Operation struct {
 	// Required Element Summary
 	Swagger
 
-	Key string `value:"swagger.paths.${http.path}.${http.method}"`
+	Key string `value:"swagger.paths.${at.http.path}.${at.http.method}"`
 	// Optional Element Summary
 	spec.OperationProps `mapstructure:",squash"`
 }
@@ -84,7 +84,7 @@ type Produces struct{
 type Response struct {
 	Swagger
 
-	Key string `json:"key" value:"responses"`
+	Key string `json:"key" value:"responses.${at.response.code}"`
 	Code int `json:"code"`
 	spec.ResponseProps
 }
@@ -92,7 +92,7 @@ type Response struct {
 type ResponseSchema struct {
 	Swagger
 
-	Key string `value:"responses.${code}.schema"`
+	Key string `value:"responses.${at.response.code}.schema"`
 	Code int `json:"code"`
 
 	spec.Schema

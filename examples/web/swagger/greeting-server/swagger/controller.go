@@ -7,6 +7,8 @@ import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/system"
+	"hidevops.io/hiboot/pkg/utils/mapstruct"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -17,24 +19,23 @@ type controller struct {
 	at.RequestMapping `value:"/"`
 	at.DisableSwagger
 	openAPIDefinition *OpenAPIDefinition
+	builder system.Builder
 }
 
 func init() {
 	app.Register(newController)
 }
 
-func newController(openAPIDefinition *OpenAPIDefinition) *controller {
-	return &controller{openAPIDefinition: openAPIDefinition}
+func newController(builder system.Builder) *controller {
+	c := &controller{builder: builder}
+	c.openAPIDefinition = new(OpenAPIDefinition)
+	_ = c.builder.Load(c.openAPIDefinition, mapstruct.WithSquash)
+	return c
 }
 
 // TODO: add description 'Implemented by HiBoot Framework'
-func (c controller) loadDoc() (retVal []byte, err error) {
-	if c.openAPIDefinition != nil {
-		swgSpec := &c.openAPIDefinition.Swagger
-
-		retVal, err = json.MarshalIndent(swgSpec, "", "  ")
-	}
-
+func (c *controller) loadDoc() (retVal []byte, err error) {
+	retVal, err = json.MarshalIndent(c.openAPIDefinition.Swagger, "", "  ")
 	return
 }
 

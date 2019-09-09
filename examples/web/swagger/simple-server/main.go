@@ -10,6 +10,7 @@ import (
 	"hidevops.io/hiboot/pkg/model"
 	"hidevops.io/hiboot/pkg/starter/actuator"
 	"hidevops.io/hiboot/pkg/starter/swagger"
+	"net/http"
 )
 
 
@@ -75,22 +76,20 @@ func (c *employeeController) GetEmployee(at struct {
 	at.GetMapping     `value:"/{id:int}"`
 	at.Operation      `value:"Get an employee"`
 	at.Parameter      `value:"Path variable employee ID" required:"true"`
-	at.ApiResponse200 `value:"Successfully get an employee"`
-	at.ApiResponse404 `value:"The resource you were trying to reach is not found"`
 }, id int) (response *EmployeeResponse, err error) {
 	response = new(EmployeeResponse)
 	for _, e := range c.dummyData {
 		if id == e.Id {
-			response.Code = at.ApiResponse200.Code
-			response.Message = at.ApiResponse200.Value
+			response.Code = http.StatusOK
+			response.Message = "success"
 			response.Data = e
 			break
 		}
 	}
 
 	if response.Data == nil {
-		response.Code = at.ApiResponse404.Code
-		response.Message = at.ApiResponse404.Value
+		response.Code = http.StatusNotFound
+		response.Message = "Resource is not found"
 		err = fmt.Errorf("employee %v is not found", id)
 	}
 
@@ -102,12 +101,11 @@ func (c *employeeController) ListEmployee(at struct{
 	at.GetMapping     `value:"/"`
 	at.Operation      `value:"List employees"`
 	at.Parameter      `value:"Path variable employee ID" required:"true"`
-	at.ApiResponse200 `value:"Successfully list employee"`
-	at.ApiResponse404 `value:"The resource you were trying to reach is not found"`
+	at.Response 	   `value:"Successfully list employee"`
 }) (response *ListEmployeeResponse, err error) {
 	response = new(ListEmployeeResponse)
-	response.Code = at.ApiResponse200.Code
-	response.Message = at.ApiResponse200.Value
+	response.Code = http.StatusOK
+	response.Message = "success"
 	response.Data = c.dummyData
 	return
 }
