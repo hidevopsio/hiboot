@@ -28,16 +28,13 @@ func init() {
 
 func newController(builder system.Builder) *controller {
 	c := &controller{builder: builder}
+	c.openAPIDefinition = new(OpenAPIDefinition)
+	_ = c.builder.Load(c.openAPIDefinition, mapstruct.WithSquash)
 	return c
 }
 
 // TODO: add description 'Implemented by HiBoot Framework'
 func (c *controller) loadDoc() (retVal []byte, err error) {
-	c.openAPIDefinition = new(OpenAPIDefinition)
-	err = c.builder.Load(c.openAPIDefinition, mapstruct.WithSquash)
-	if err != nil {
-		return
-	}
 	retVal, err = json.MarshalIndent(c.openAPIDefinition.Swagger, "", "  ")
 	return
 }

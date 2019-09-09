@@ -17,21 +17,18 @@
 package system
 
 import (
-	"encoding/json"
 	"github.com/hidevopsio/mapstructure"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/copier"
 	"hidevops.io/hiboot/pkg/utils/mapstruct"
-	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/replacer"
 	"hidevops.io/hiboot/pkg/utils/sort"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"hidevops.io/viper"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 )
 
@@ -293,54 +290,38 @@ func (b *propertyBuilder) GetProperty(name string) (retVal interface{}) {
 	return
 }
 
-func (b *propertyBuilder) mergeProperty(name string, val interface{}) (retVal interface{})  {
-	retVal = val
+func (b *propertyBuilder) updateProperty(name string, val interface{}) (retVal interface{})  {
 	// TODO: for debug only, TBD
 	if name == "swagger" {
 		log.Debug(name)
 	}
-	sv := reflector.IndirectValue(val)
 	original := b.Get(name)
-	if original != nil {
-		switch original.(type) {
-		case map[string]interface{}:
-			if sv.Type().Kind() == reflect.Struct {
-				// convert object to []byte
-				bs, err := json.Marshal(val)
-				// make new map
-				var dm = make(map[string]interface{})
-				// copy original map to the new map
-				copier.CopyMap(dm, original.(map[string]interface{}))
-				var sm map[string]interface{}
-				// convert []bytes to map
-				err = json.Unmarshal(bs, &sm)
-				if err == nil {
-					// copy new src map to dest map
-					copier.CopyMap(dm, sm, copier.IgnoreEmptyValue)
-					// assign dest map to retVal
-					retVal = dm
-				}
-			}
+	// convert struct to map
+	var dm = make(map[string]interface{})
+	sm, ok := mapstruct.DecodeStructToMap(val)
+	if ok {
+		if original != nil {
+			// copy original map to the new map
+			copier.CopyMap(dm, original.(map[string]interface{}))
+			// copy new src map to dest map
+			copier.CopyMap(dm, sm, copier.IgnoreEmptyValue)
+			// assign dest map to retVal
+			retVal = dm
+		} else {
+			retVal = sm
 		}
-	//} else {
-	//	if sv.Kind() == reflect.Struct {
-	//		var dm = make(map[string]interface{})
-	//		bs, err := json.Marshal(val)
-	//		if err == nil {
-	//			err = json.Unmarshal(bs, &dm)
-	//			retVal = dm
-	//		}
-	//	}
+	} else {
+		retVal = val
 	}
 	return
 }
 
 func (b *propertyBuilder) SetProperty(name string, val interface{}) Builder {
-	b.Set(name, b.mergeProperty(name, val))
+	b.Set(name, b.updateProperty(name, val))
 	return b
 }
 
 func (b *propertyBuilder) SetDefaultProperty(name string, val interface{}) Builder {
-	b.SetDefault(name, b.mergeProperty(name, val))
+	b.SetDefault(name, b.updateProperty(name, val))
 	return b
 }
