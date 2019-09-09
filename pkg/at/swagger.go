@@ -7,11 +7,6 @@ type Swagger struct {
 	Annotation
 }
 
-type DisableSwagger struct {
-	Annotation
-}
-
-
 // Operation
 // func (c *) CreateEmployee(at struct{
 //     at.PostMapping `value:"/"`
@@ -26,19 +21,47 @@ type Operation struct {
 
 	Key string `value:"swagger.paths.${at.http.path}.${at.http.method}"`
 	// Optional Element Summary
-	spec.OperationProps `mapstructure:",squash"`
+	spec.Operation `mapstructure:",squash"`
 }
 
-// Api is the annotation for REST Endpoints
-// e.g.
-// type employeeController struct {
-//   at.RestController
-//   at.Api `value:"Employee Management System" description:"Operations pertaining to employee in Employee Management System"`
-// }
-type Api struct {
-	// Required Element Summary
+// OpenAPIDefinition is the annotation for swagger
+type OpenAPIDefinition struct {
 	Swagger
 }
+
+// Info is the annotation for Swagger Info
+type Info struct {
+	Swagger
+
+	Key string `json:"key" value:"swagger.info"`
+
+	spec.Info
+}
+
+
+// Host is the annotation for Swagger
+type Host struct {
+	Swagger
+
+	Key string `json:"key" value:"swagger.host"`
+}
+
+// BasePath is the annotation for Swagger
+type BasePath struct {
+	Swagger
+
+	Key string `json:"key" value:"swagger.basePath"`
+}
+
+// Schemes is the annotation for Swagger
+type Schemes struct {
+	Swagger
+
+	Key string `json:"key" value:"swagger.schemes"`
+
+	Values []string `json:"values"`
+}
+
 
 // ApiParam annotation to add additional meta-data for operation parameters
 // func (c *) CreateEmployee(at struct{
@@ -86,7 +109,7 @@ type Response struct {
 
 	Key string `json:"key" value:"responses.${at.response.code}"`
 	Code int `json:"code"`
-	spec.ResponseProps
+	spec.Response
 }
 
 type ResponseSchema struct {

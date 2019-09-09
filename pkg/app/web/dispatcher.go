@@ -101,7 +101,6 @@ func newDispatcher(webApp *webApp, configurableFactory factory.ConfigurableFacto
 	d := &Dispatcher{
 		webApp:              webApp,
 		configurableFactory: configurableFactory,
-		methodSubscribers: configurableFactory.GetInstances(at.HttpMethodSubscriber{}),
 	}
 	return d
 }
@@ -353,6 +352,9 @@ func (d *Dispatcher) useMiddleware(mw []*annotation.Field, mwMth []*annotation.F
 
 //TODO: scan apis and params to generate swagger api automatically by include swagger starter
 func (d *Dispatcher) register(controllers []*factory.MetaData, middleware []*factory.MetaData) (err error) {
+
+	d.methodSubscribers = d.configurableFactory.GetInstances(at.HttpMethodSubscriber{})
+
 	var mws []*injectableObject
 	for _, m := range middleware {
 		mw := d.parseMiddleware(m)

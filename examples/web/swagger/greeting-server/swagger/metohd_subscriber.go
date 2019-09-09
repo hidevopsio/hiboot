@@ -2,6 +2,7 @@ package swagger
 
 import (
 	"errors"
+	"github.com/go-openapi/spec"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/at"
@@ -34,37 +35,71 @@ func newHttpMethodSubscriber(builder  system.Builder) *httpMethodSubscriber {
 
 // TODO: use data instead of atController
 func (s *httpMethodSubscriber) Subscribe(atController *web.Annotations, atMethod *web.Annotations) {
-	if annotation.ContainsChild(atController.Fields, at.DisableSwagger{}) {
+	log.Debug("==================================================")
+
+	// TODO: no need to use builder anymore according to the performance ?
+	if !annotation.ContainsChild(atMethod.Fields, at.Operation{}) {
 		log.Debugf("swagger is disabled by user on controller %v", atController.Value.Type())
 		return
 	}
 
 	method, path, err := s.parseHttpMethod(atMethod)
 	if err == nil {
-		log.Debug("==================================================")
 		log.Debugf("%v:%v", method, path)
 		swAnn := annotation.Filter(atMethod.Fields, at.Swagger{})
-		for _, a := range swAnn {
-			ao := a.Value.Interface()
-			log.Debug(ao)
 
-			switch ao.(type) {
-			case at.Operation:
-				ann := ao.(at.Operation)
-				key := ann.Key
-				log.Debugf("key: %v", ann.Key)
-				key = strings.Replace(key, "${at.http.method}", method, -1)
-				key = strings.Replace(key, "${at.http.path}", path, -1)
-				log.Debugf("key: %v", key)
-				op := s.builder.GetProperty(key)
-				log.Debug(op)
-				//s.builder.SetProperty(key, ann.OperationProps)
-				//op = s.builder.GetProperty(key)
-				//log.Debug(op)
-			}
+		////for test only
+		//sw := s.builder.GetProperty("swagger")
+		//log.Debug(sw)
 
+		opAnn :=  annotation.Filter(atMethod.Fields, at.Operation{})
+		ao := opAnn[0].Value.Interface()
+		ann := ao.(at.Operation)
+		var key string
+		key = ann.Key
+		key = strings.Replace(key, "${at.http.method}", method, -1)
+		key = strings.Replace(key, "${at.http.path}", path, -1)
+		key = strings.ToLower(key)
+		pathItem := new(spec.PathItem)
+		ato := ao.(at.Operation)
+		operation := &ato.Operation
+
+		//TODO: to be optimized
+		switch method {
+		case "GET":
+			pathItem.Get = operation
+		case "POST":
+			pathItem.Post = operation
 		}
 
+		for _, a := range swAnn {
+			ao := a.Value.Interface()
+			switch ao.(type) {
+			case at.Parameter:
+				ann := ao.(at.Parameter)
+				operation.Parameters = append(operation.Parameters, ann.Parameter)
+			case at.Produces:
+				ann := ao.(at.Produces)
+				operation.Produces = append(operation.Produces, ann.Values...)
+			case at.Response:
+				ann := ao.(at.Response)
+				if operation.Responses == nil {
+					operation.Responses = new(spec.Responses)
+					operation.Responses.StatusCodeResponses = make(map[int]spec.Response)
+				}
+
+				rss := annotation.Filter(atMethod.Fields, at.ResponseSchema{})
+				for _, rs := range rss {
+					rso := rs.Value.Interface().(at.ResponseSchema)
+					if rso.Code == ann.Code {
+						ann.Response.Schema = &rso.Schema
+						break
+					}
+				}
+				operation.Responses.StatusCodeResponses[ann.Code] = ann.Response
+			}
+		}
+		s.builder.SetProperty(key, operation)
 	}
 }
 

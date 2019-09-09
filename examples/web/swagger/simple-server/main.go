@@ -38,7 +38,6 @@ type ListEmployeeResponse struct {
 type employeeController struct {
 	at.RestController
 	at.RequestMapping `value:"/employee"`
-	at.Api `value:"Employee Management System" description:"Operations pertaining to employee in Employee Management System"`
 
 	dummyData []*Employee
 }

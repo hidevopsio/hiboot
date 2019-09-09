@@ -3,6 +3,7 @@ package swagger
 import (
 	"encoding/json"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/go-openapi/spec"
 	"github.com/gorilla/handlers"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
@@ -17,9 +18,11 @@ import (
 type controller struct {
 	at.RestController
 	at.RequestMapping `value:"/"`
-	at.DisableSwagger
+
 	openAPIDefinition *OpenAPIDefinition
 	builder system.Builder
+
+	// should inject api builder
 }
 
 func init() {
@@ -28,13 +31,22 @@ func init() {
 
 func newController(builder system.Builder) *controller {
 	c := &controller{builder: builder}
-	c.openAPIDefinition = new(OpenAPIDefinition)
+
+	c.openAPIDefinition = OpenAPIDefinitionBuilder().(*OpenAPIDefinition)
 	_ = c.builder.Load(c.openAPIDefinition, mapstruct.WithSquash)
+
 	return c
 }
 
 // TODO: add description 'Implemented by HiBoot Framework'
 func (c *controller) loadDoc() (retVal []byte, err error) {
+	// TODO: move to api builder
+	paths := c.builder.GetProperty("swagger.paths").(map[string]interface{})
+	for k, p := range paths {
+		pi := spec.PathItem{}
+		err = mapstruct.Decode(&pi, p, mapstruct.WithSquash)
+		c.openAPIDefinition.Paths.Paths[k] = pi
+	}
 	retVal, err = json.MarshalIndent(c.openAPIDefinition.Swagger, "", "  ")
 	return
 }
@@ -44,7 +56,7 @@ func (c *controller) serve(ctx context.Context, docsPath string) {
 	if err != nil {
 		return
 	}
-	basePath := filepath.Join(c.openAPIDefinition.BasePath, c.RequestMapping.Value)
+	basePath := filepath.Join(c.openAPIDefinition.Swagger.BasePath, c.RequestMapping.Value)
 
 	handler := middleware.Redoc(middleware.RedocOpts{
 		BasePath: basePath,
