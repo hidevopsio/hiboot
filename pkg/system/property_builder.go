@@ -18,6 +18,7 @@ package system
 
 import (
 	"encoding/json"
+	"github.com/hidevopsio/mapstructure"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
@@ -228,7 +229,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 }
 
 // Read single file
-func (b *propertyBuilder) Load(properties interface{}) (err error) {
+func (b *propertyBuilder) Load(properties interface{}, opts ...func (*mapstructure.DecoderConfig)) (err error) {
 	ann, ok := annotation.GetField(properties, at.ConfigurationProperties{})
 	if ok {
 		prefix := ann.StructField.Tag.Get("value")
@@ -236,7 +237,7 @@ func (b *propertyBuilder) Load(properties interface{}) (err error) {
 		allSettings := b.AllSettings()
 		settings := allSettings[prefix]
 		if settings != nil {
-			err = mapstruct.Decode(properties, settings)
+			err = mapstruct.Decode(properties, settings, opts...)
 		}
 	}
 	return
@@ -321,15 +322,15 @@ func (b *propertyBuilder) mergeProperty(name string, val interface{}) (retVal in
 				}
 			}
 		}
-	} else {
-		if sv.Kind() == reflect.Struct {
-			var dm = make(map[string]interface{})
-			bs, err := json.Marshal(val)
-			if err == nil {
-				err = json.Unmarshal(bs, &dm)
-				retVal = dm
-			}
-		}
+	//} else {
+	//	if sv.Kind() == reflect.Struct {
+	//		var dm = make(map[string]interface{})
+	//		bs, err := json.Marshal(val)
+	//		if err == nil {
+	//			err = json.Unmarshal(bs, &dm)
+	//			retVal = dm
+	//		}
+	//	}
 	}
 	return
 }

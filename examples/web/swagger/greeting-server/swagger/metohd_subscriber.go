@@ -58,9 +58,9 @@ func (s *httpMethodSubscriber) Subscribe(atController *web.Annotations, atMethod
 				log.Debugf("key: %v", key)
 				op := s.builder.GetProperty(key)
 				log.Debug(op)
-				s.builder.SetProperty(key, ann.OperationProps)
-				op = s.builder.GetProperty(key)
-				log.Debug(op)
+				//s.builder.SetProperty(key, ann.OperationProps)
+				//op = s.builder.GetProperty(key)
+				//log.Debug(op)
 			}
 
 		}
