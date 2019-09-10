@@ -79,7 +79,7 @@ func NewInject(factory factory.InstantiateFactory) Inject {
 // InitTag init tag implements
 func InitTag(tag Tag) (t Tag) {
 	if annotation.Contains(tag, at.Tag{}) {
-		err := annotation.InjectIntoFields(tag)
+		err := annotation.InjectAll(tag)
 		if err == nil {
 			t = tag
 		}
@@ -108,23 +108,39 @@ func (i *inject) DefaultValue(object interface{}) error {
 	return i.IntoObjectValue(reflect.ValueOf(object), "", InitTag(new(defaultTag)))
 }
 
+func (i *inject) IntoAnnotations(annotations *annotation.Annotations) (err error) {
+	// inject annotation
+	for _, a := range annotations.Items {
+		err = annotation.Inject(a)
+		if err == nil {
+			err = i.IntoObjectValue(a.Field.Value.Addr(), "")
+		}
+	}
+
+	for _, c := range annotations.Children {
+		err = i.IntoAnnotations(c)
+		if err != nil {
+			log.Error(err)
+		}
+	}
+	return
+}
+
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
 func (i *inject) IntoObject(object interface{}) (err error) {
-	err = annotation.InjectIntoFields(object)
-	if err != nil {
-		log.Debug(err)
-	}
+	//
+	//err = annotation.InjectAll(object)
+	//if err != nil {
+	//	log.Debug(err)
+	//}
+
+	// inject into value
 	err = i.IntoObjectValue(reflect.ValueOf(object), "")
 
-	// inject annotation
+	// inject into annotations
 	if err == nil {
-		annotations := annotation.GetFields(object)
-		for _, a := range annotations {
-			err = annotation.InjectIntoField(a)
-			if err == nil {
-				err = i.IntoObjectValue(a.Value.Addr(), "")
-			}
-		}
+		annotations := annotation.GetAnnotations(object)
+		err = i.IntoAnnotations(annotations)
 	}
 	return
 }
@@ -234,7 +250,7 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 	}
 
 	//inject property set
-	if atFields := annotation.Find(object, at.ConfigurationProperties{}); len(atFields) > 0 {
+	if atFields := annotation.FindAll(object, at.ConfigurationProperties{}); len(atFields) > 0 {
 		obj := object.Interface()
 		err = i.factory.Builder().Load(obj)
 	}

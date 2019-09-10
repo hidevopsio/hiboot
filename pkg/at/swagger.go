@@ -19,9 +19,8 @@ type Operation struct {
 	// Required Element Summary
 	Swagger
 
-	Key string `value:"swagger.paths.${at.http.path}.${at.http.method}"`
 	// Optional Element Summary
-	spec.Operation `mapstructure:",squash"`
+	spec.Operation
 }
 
 // OpenAPIDefinition is the annotation for swagger
@@ -29,35 +28,9 @@ type OpenAPIDefinition struct {
 	Swagger
 }
 
-// Info is the annotation for Swagger Info
-type Info struct {
-	Swagger
-
-	Key string `json:"key" value:"swagger.info"`
-
-	spec.Info
-}
-
-
-// Host is the annotation for Swagger
-type Host struct {
-	Swagger
-
-	Key string `json:"key" value:"swagger.host"`
-}
-
-// BasePath is the annotation for Swagger
-type BasePath struct {
-	Swagger
-
-	Key string `json:"key" value:"swagger.basePath"`
-}
-
 // Schemes is the annotation for Swagger
 type Schemes struct {
 	Swagger
-
-	Key string `json:"key" value:"swagger.schemes"`
 
 	Values []string `json:"values"`
 }
@@ -81,16 +54,12 @@ type ParameterItem struct {
 type Parameter struct {
 	ParameterItem
 
-	Key string `json:"key" value:"parameters"`
-	
 	spec.Parameter
 }
 
 // Produces
 type Produces struct{
 	Swagger
-
-	Key string `json:"key" value:"produces"`
 
 	Values []string `json:"values"`
 }
@@ -107,16 +76,12 @@ type Produces struct{
 type Response struct {
 	Swagger
 
-	Key string `json:"key" value:"responses.${at.response.code}"`
 	Code int `json:"code"`
 	spec.Response
 }
 
-type ResponseSchema struct {
+type Schema struct {
 	Swagger
-
-	Key string `value:"responses.${at.response.code}.schema"`
-	Code int `json:"code"`
 
 	spec.Schema
 }

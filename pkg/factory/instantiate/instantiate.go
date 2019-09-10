@@ -161,10 +161,10 @@ func (f *instantiateFactory) injectDependency(item *factory.MetaData) (err error
 		// inject into object
 		err = f.inject.IntoObject(inst)
 		// TODO: remove duplicated code
-		qf, ok := annotation.GetField(inst, at.Qualifier{})
-		if ok {
-			name = qf.StructField.Tag.Get("value")
-			log.Debugf("name: %v, Qualifier: %v, ok: %v", item.Name, name, ok)
+		qf := annotation.GetAnnotation(inst, at.Qualifier{})
+		if qf != nil {
+			name = qf.Field.StructField.Tag.Get("value")
+			//log.Debugf("name: %v, Qualifier: %v", item.Name, name)
 		}
 
 		if name != "" {
@@ -233,17 +233,19 @@ func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 				obj = metaData.Instance
 			}
 
-			fields := annotation.GetFields(obj)
-			if len(fields) == 0 && (metaData.Kind == "func" || metaData.Kind == "Method") {
-				fields = annotation.GetFields(metaData.Type)
+			annotations := annotation.GetAnnotations(obj)
+			if annotations == nil && (metaData.Kind == "func" || metaData.Kind == "Method") {
+				annotations = annotation.GetAnnotations(metaData.Type)
 			}
-			for _, field := range fields {
-				typeName := reflector.GetLowerCamelFullNameByType(field.StructField.Type)
-				categorised, ok := f.categorized[typeName]
-				if !ok {
-					categorised = make([]*factory.MetaData, 0)
+			if annotations != nil {
+				for _, item := range annotations.Items {
+					typeName := reflector.GetLowerCamelFullNameByType(item.Field.StructField.Type)
+					categorised, ok := f.categorized[typeName]
+					if !ok {
+						categorised = make([]*factory.MetaData, 0)
+					}
+					f.categorized[typeName] = append(categorised, metaData)
 				}
-				f.categorized[typeName] = append(categorised, metaData)
 			}
 		}
 	}

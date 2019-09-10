@@ -1,15 +1,26 @@
+// Copyright 2018 ~ now John Deng (hi.devops.io@gmail.com).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package swagger
 
 import (
 	"encoding/json"
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/go-openapi/spec"
 	"github.com/gorilla/handlers"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
-	"hidevops.io/hiboot/pkg/system"
-	"hidevops.io/hiboot/pkg/utils/mapstruct"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -19,34 +30,20 @@ type controller struct {
 	at.RestController
 	at.RequestMapping `value:"/"`
 
-	openAPIDefinition *OpenAPIDefinition
-	builder system.Builder
+	openAPIDefinition *openAPIDefinition
+}
 
-	// should inject api builder
+func newController(openAPIDefinition *openAPIDefinition) *controller {
+	return &controller{openAPIDefinition: openAPIDefinition}
 }
 
 func init() {
 	app.Register(newController)
 }
 
-func newController(builder system.Builder) *controller {
-	c := &controller{builder: builder}
-
-	c.openAPIDefinition = OpenAPIDefinitionBuilder().(*OpenAPIDefinition)
-	_ = c.builder.Load(c.openAPIDefinition, mapstruct.WithSquash)
-
-	return c
-}
 
 // TODO: add description 'Implemented by HiBoot Framework'
 func (c *controller) loadDoc() (retVal []byte, err error) {
-	// TODO: move to api builder
-	paths := c.builder.GetProperty("swagger.paths").(map[string]interface{})
-	for k, p := range paths {
-		pi := spec.PathItem{}
-		err = mapstruct.Decode(&pi, p, mapstruct.WithSquash)
-		c.openAPIDefinition.Paths.Paths[k] = pi
-	}
 	retVal, err = json.MarshalIndent(c.openAPIDefinition.Swagger, "", "  ")
 	return
 }
@@ -63,9 +60,6 @@ func (c *controller) serve(ctx context.Context, docsPath string) {
 		SpecURL:  path.Join(basePath, "swagger.json"),
 		Path:     docsPath,
 	}, http.NotFoundHandler())
-
-	//visit := fmt.Sprintf("http://%s%s", ctx.Host(), ctx.Path())
-	//log.Debugf("visit: %v", visit)
 
 	handler = handlers.CORS()(middleware.Spec(basePath, b, handler))
 

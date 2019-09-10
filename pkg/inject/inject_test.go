@@ -708,9 +708,9 @@ func TestInjectAnnotation(t *testing.T) {
 		at.RequestMapping `value:"/parent/path"`
 		at.BeforeMethod
 	}
-	annotations := annotation.GetFields(&att)
+	annotations := annotation.GetAnnotations(&att)
 	for _, a := range annotations {
-		err := annotation.InjectIntoField(a)
+		err := annotation.Inject(a)
 		assert.Equal(t, nil, err)
 
 		err = injecting.IntoObjectValue(a.Value.Addr(), "")
@@ -722,7 +722,7 @@ func TestInjectAnnotation(t *testing.T) {
 	assert.Equal(t, "/parent/path", att.RequestMapping.Value)
 
 	t.Run("should find all annotations that inherit form at.HttpMethod{}", func(t *testing.T) {
-		found := annotation.Find(&struct{at.BeforeMethod}{}, at.HttpMethod{})
+		found := annotation.FindAll(&struct{at.BeforeMethod}{}, at.HttpMethod{})
 		assert.Equal(t, 1, len(found))
 		assert.Equal(t, "BeforeMethod", found[0].StructField.Name)
 	})

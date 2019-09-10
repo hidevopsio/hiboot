@@ -161,9 +161,9 @@ func ParseParams(params ...interface{}) (name string, object interface{}) {
 // GetObjectQualifierName get the qualifier's name of object
 func GetObjectQualifierName(object interface{}, name string) string {
 	// overwrite with qualifier's name
-	qf, ok := annotation.GetField(object, at.Qualifier{})
-	if ok {
-		name = qf.StructField.Tag.Get("value")
+	qf := annotation.GetAnnotation(object, at.Qualifier{})
+	if qf != nil {
+		name = qf.Field.StructField.Tag.Get("value")
 		//log.Debugf("Qualifier's name: %v", name)
 	}
 	return name

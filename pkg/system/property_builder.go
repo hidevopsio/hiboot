@@ -227,9 +227,9 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 
 // Read single file
 func (b *propertyBuilder) Load(properties interface{}, opts ...func (*mapstructure.DecoderConfig)) (err error) {
-	ann, ok := annotation.GetField(properties, at.ConfigurationProperties{})
-	if ok {
-		prefix := ann.StructField.Tag.Get("value")
+	ann := annotation.GetAnnotation(properties, at.ConfigurationProperties{})
+	if ann != nil {
+		prefix := ann.Field.StructField.Tag.Get("value")
 
 		allSettings := b.AllSettings()
 		settings := allSettings[prefix]

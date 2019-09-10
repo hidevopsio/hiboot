@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
+	"hidevops.io/hiboot/pkg/types"
 	"hidevops.io/hiboot/pkg/utils/mapstruct"
 	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/str"
@@ -31,25 +32,37 @@ type Field struct{
 	Value reflect.Value
 }
 
-// GetField is a function that get specific annotation field of an object.
-func GetField(object interface{}, att interface{}) (field *Field, ok bool) {
-	field = new(Field)
-	var structField reflect.StructField
-	atType := reflect.TypeOf(att)
+type Annotation struct{
+	Field *Field
+	Parent *types.ReflectObject
+}
 
+type Annotations struct{
+	Items    []*Annotation
+	Children []*Annotations
+}
+
+// GetAnnotation is a function that get specific annotation of an object.
+func GetAnnotation(object interface{}, att interface{}) (annotation *Annotation) {
+	if object == nil {
+		return
+	}
+	atType := reflect.TypeOf(att)
 	switch object.(type) {
-	case []*Field:
-		fields := object.([]*Field)
-		for _, f := range fields {
-			if f.StructField.Type == atType {
-				field = f
-				ok = true
+	case *Annotations:
+		ans := object.(*Annotations)
+		if ans == nil {
+			return
+		}
+		for _, item := range ans.Items {
+			if item.Field.StructField.Type == atType {
+				annotation = item
 				return
 			}
 		}
 	}
 
-	structField, ok = reflector.GetEmbeddedFieldType(object, att)
+	structField, ok := reflector.GetEmbeddedFieldType(object, att)
 	if ok {
 		fieldType := reflector.IndirectType(structField.Type)
 		if atType != reflect.TypeOf(at.Annotation{}) {
@@ -57,99 +70,151 @@ func GetField(object interface{}, att interface{}) (field *Field, ok bool) {
 		}
 		if ok {
 			ov := reflector.IndirectValue(object)
-			if ov.IsValid() && ov.CanAddr() && ov.Type().Kind() == reflect.Struct {
-				field.Value = ov.FieldByName(fieldType.Name())
+
+			reflectObject := &types.ReflectObject{
+				Interface: object,
+				Type:      fieldType,
+				Value:     ov,
 			}
-			field.StructField = structField
+			annotation = new(Annotation)
+			annotation.Field = new(Field)
+			if ov.IsValid() && ov.CanAddr() && ov.Type().Kind() == reflect.Struct {
+				annotation.Field.Value = ov.FieldByName(fieldType.Name())
+			}
+			annotation.Field.StructField = structField
+			annotation.Parent = reflectObject
 		}
 	}
 	return
 }
 
 // GetFields iterate annotations of a struct
-// TODO: get field at...
-func GetFields(object interface{}) []*Field {
-	var fields []*Field
+func GetAnnotations(object interface{}) (annotations *Annotations) {
 
 	reflectType, ok := reflector.GetObjectType(object)
 	if ok {
 		ov := reflector.IndirectValue(object)
+		reflectObject := &types.ReflectObject{
+			Interface: object,
+			Type:      reflectType,
+			Value:     ov,
+		}
 		if reflectType.Kind() == reflect.Struct {
+			annotations = new(Annotations)
 			for i := 0; i < reflectType.NumField(); i++ {
-				field := new(Field)
+				ann := new(Annotation)
+				ann.Field = new(Field)
 				f := reflectType.Field(i)
 				typ := f.Type
+				iTyp := reflector.IndirectType(typ)
+				//log.Debugf("%v %v", f.Name, iTyp.Name() )
 				if f.Anonymous {
 					_, ok = reflector.GetEmbeddedFieldByType(typ, at.Annotation{}, reflect.Struct)
 					if ok {
+						//log.Debugf("%v %v %v", ov.IsValid(), ov.CanAddr(), ov.Type().Kind())
 						if ov.IsValid() && ov.CanAddr() && ov.Type().Kind() == reflect.Struct{
-							field.Value = ov.FieldByName(f.Name)
+							ann.Field.Value = ov.FieldByName(f.Name)
 						}
-						field.StructField = f
-						fields = append(fields, field)
+						ann.Field.StructField = f
+						ann.Parent = reflectObject
+						annotations.Items = append(annotations.Items, ann)
 					}
 				} else {
-					iTyp := reflector.IndirectType(typ)
 					if iTyp.Name() == "" && typ.Kind() == reflect.Struct {
 						// more annotations from child struct
 						fieldObjVal := ov.FieldByName(f.Name)
-						childFields := GetFields(fieldObjVal)
-						fields = append(fields, childFields...)
+						childAnnotations := GetAnnotations(fieldObjVal.Addr().Interface())
+						annotations.Children = append(annotations.Children, childAnnotations)
 					}
 				}
 			}
 		}
 	}
-	return fields
-}
-
-// Filter is a function that filter specific annotations.
-func Filter(input []*Field, att interface{}) (fields []*Field) {
-	for _, f := range input {
-		if f.Value.IsValid() {
-			ok := f.StructField.Type == reflect.TypeOf(att)
-			ok =  ok || reflector.HasEmbeddedFieldType(f.Value.Interface(), att)
-			if ok {
-				fields = append(fields, f)
-			}
-		}
-	}
 	return
 }
 
+// Filter is a function that filter specific annotations.
+func FilterIn(input *Annotations, att interface{}) (annotations []*Annotation) {
+	var ok bool
+	if input != nil {
+		for _, item := range input.Items {
+			if item.Field.Value.IsValid() {
+				ok = item.Field.StructField.Type == reflect.TypeOf(att)
+				ok =  ok || reflector.HasEmbeddedFieldType(item.Field.Value.Interface(), att)
+				if ok {
+					annotations = append(annotations, item)
+				}
+			}
+		}
+
+		for _, child := range input.Children {
+			childAnnotations := FilterIn(child, att)
+			if childAnnotations != nil {
+				annotations = append(annotations, childAnnotations...)
+			}
+		}
+	}
+
+	return
+}
 
 // ContainsChild is a function that find specific annotations.
-func ContainsChild(input []*Field, att interface{}) (ok bool) {
-	f := Filter(input, att)
-	ok = len(f) > 0
+func ContainsChild(input *Annotations, att interface{}) (ok bool) {
+	items := FilterIn(input, att)
+	ok = len(items) > 0
+	return
+}
+
+func Find(input *Annotations, att interface{}) (annotation *Annotation) {
+	items := FilterIn(input, att)
+	if len(items) > 0 {
+		annotation = items[0]
+	}
 	return
 }
 
 // Find is a function that find specific annotation.
-func Find(object interface{}, att interface{}) (fields []*Field) {
-	allFields := GetFields(object)
-	fields = Filter(allFields, att)
+func FindAll(object interface{}, att interface{}) (annotations []*Annotation) {
+	ans := GetAnnotations(object)
+	annotations = FilterIn(ans, att)
 	return
 }
 
-// Has is a function that check if object is the implements of specific Annotation
+// Contains Has is a function that check if object is the implements of specific Annotation
 func Contains(object interface{}, at interface{}) (ok bool) {
-	_, ok = GetField(object, at)
+	ok = GetAnnotation(object, at) != nil
 	return
 }
 
-// InjectIntoField inject annotations into object
-func InjectIntoField(field *Field) (err error) {
+// Inject inject annotations into object
+func Inject(ann *Annotation) (err error) {
 	var tags *structtag.Tags
-	if field.Value.IsValid() {
-		err = injectIntoField(tags, field)
+	if ann.Field.Value.IsValid() {
+		err = injectIntoField(tags, ann.Field)
 	}
 	return
 }
 
+// InjectItems inject annotations into object
+func InjectItems(annotations *Annotations) (err error) {
+	var tags *structtag.Tags
+	for _, item := range annotations.Items {
+		if item.Field.Value.IsValid() {
+			err = injectIntoField(tags, item.Field)
+			if err != nil {
+				break
+			}
+		}
+	}
 
-// InjectIntoFields inject annotations into object
-func InjectIntoFields(object interface{}) (err error) {
+	for _, child := range annotations.Children {
+		err = InjectItems(child)
+	}
+	return
+}
+
+// InjectAll inject annotations into object
+func InjectAll(object interface{}) (err error) {
 	// convert to ptr if it is struct object
 	ot := reflect.TypeOf(object)
 	if ot == nil {
@@ -158,20 +223,12 @@ func InjectIntoFields(object interface{}) (err error) {
 	}
 	if ot.Kind() != reflect.Ptr {
 		err = fmt.Errorf("object %v is not the point of a struct", ot.Name())
-		//log.Error(err)
 		return
 	}
 
-	fields := GetFields(object)
-	var tags *structtag.Tags
-	for _, field := range fields {
-		if field.Value.IsValid() {
-			err = injectIntoField(tags, field)
-			if err != nil {
-				break
-			}
-		}
-	}
+	annotations := GetAnnotations(object)
+
+	err = InjectItems(annotations)
 	return
 }
 

@@ -1,8 +1,24 @@
+// Copyright 2018~now John Deng (hi.devops.io@gmail.com).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package swagger
 
-import "github.com/go-openapi/spec"
+import (
+	"github.com/go-openapi/spec"
+	"hidevops.io/hiboot/pkg/at"
+)
 
-// TODO: no need to use builder anymore according to the performance ?
 type OpenAPIDefinitionBuilderInterface interface {
 	Title(value string) OpenAPIDefinitionBuilderInterface
 	Description(value string) OpenAPIDefinitionBuilderInterface
@@ -20,8 +36,28 @@ type OpenAPIDefinitionBuilderInterface interface {
 	BasePath(values string) OpenAPIDefinitionBuilderInterface
 }
 
+const (
+	Profile = "swagger"
+)
+
+type Contact struct {
+	Name  string `json:"name,omitempty"`
+	URL   string `json:"url,omitempty"`
+	Email string `json:"email,omitempty"`
+}
+
+type License struct {
+	Name string `json:"name,omitempty"`
+	URL  string `json:"url,omitempty"`
+}
+
+type openAPIDefinition struct {
+	at.ConfigurationProperties `value:"swagger"`
+	spec.Swagger
+}
+
 func OpenAPIDefinitionBuilder() OpenAPIDefinitionBuilderInterface {
-	return &OpenAPIDefinition{
+	return &openAPIDefinition{
 		Swagger: spec.Swagger{
 			VendorExtensible: spec.VendorExtensible{},
 			SwaggerProps:     spec.SwaggerProps{
@@ -36,74 +72,74 @@ func OpenAPIDefinitionBuilder() OpenAPIDefinitionBuilderInterface {
 	}
 }
 
-func (b *OpenAPIDefinition) Title(value string) OpenAPIDefinitionBuilderInterface {
+func (b *openAPIDefinition) Title(value string) OpenAPIDefinitionBuilderInterface {
 	b.Swagger.SwaggerProps.Info.Title = value
 	return b
 }
 
-func (b *OpenAPIDefinition) Description(value string) OpenAPIDefinitionBuilderInterface {
+func (b *openAPIDefinition) Description(value string) OpenAPIDefinitionBuilderInterface {
 	b.Swagger.SwaggerProps.Info.Description = value
 	return b
 }
 
-func (b *OpenAPIDefinition) TermsOfServiceUrl(value string) OpenAPIDefinitionBuilderInterface {
+func (b *openAPIDefinition) TermsOfServiceUrl(value string) OpenAPIDefinitionBuilderInterface {
 	b.Swagger.SwaggerProps.Info.TermsOfService = value
 	return b
 }
 
-func (b *OpenAPIDefinition) Version(value string) OpenAPIDefinitionBuilderInterface {
+func (b *openAPIDefinition) Version(value string) OpenAPIDefinitionBuilderInterface {
 	b.Swagger.SwaggerProps.Info.Version = value
 	return b
 }
 
-func (b *OpenAPIDefinition) Host(values string) OpenAPIDefinitionBuilderInterface {
+func (b *openAPIDefinition) Host(values string) OpenAPIDefinitionBuilderInterface {
 	b.Swagger.SwaggerProps.Host = values
 	return b
 }
 
-func (b *OpenAPIDefinition) BasePath(values string) OpenAPIDefinitionBuilderInterface {
+func (b *openAPIDefinition) BasePath(values string) OpenAPIDefinitionBuilderInterface {
 	b.Swagger.SwaggerProps.BasePath = values
 	return b
 }
 
-func (b *OpenAPIDefinition) Schemes(values ...string) OpenAPIDefinitionBuilderInterface {
+func (b *openAPIDefinition) Schemes(values ...string) OpenAPIDefinitionBuilderInterface {
 	b.Swagger.SwaggerProps.Schemes = values
 	return b
 }
 
-func (b *OpenAPIDefinition) ContactName(value string) OpenAPIDefinitionBuilderInterface {
+func (b *openAPIDefinition) ContactName(value string) OpenAPIDefinitionBuilderInterface {
 	b.Swagger.SwaggerProps.Info.Contact.Name = value
 	return b
 }
 
-func (b *OpenAPIDefinition) ContactEmail(value string) OpenAPIDefinitionBuilderInterface {
+func (b *openAPIDefinition) ContactEmail(value string) OpenAPIDefinitionBuilderInterface {
 	b.Swagger.SwaggerProps.Info.Contact.Email = value
 	return b
 }
 
-func (b *OpenAPIDefinition) ContactURL(value string) OpenAPIDefinitionBuilderInterface {
+func (b *openAPIDefinition) ContactURL(value string) OpenAPIDefinitionBuilderInterface {
 	b.Swagger.SwaggerProps.Info.Contact.URL = value
 	return b
 }
 
-func (b *OpenAPIDefinition) Contact(value Contact) OpenAPIDefinitionBuilderInterface {
+func (b *openAPIDefinition) Contact(value Contact) OpenAPIDefinitionBuilderInterface {
 	b.Swagger.SwaggerProps.Info.Contact.Name = value.Name
 	b.Swagger.SwaggerProps.Info.Contact.Email = value.Email
 	b.Swagger.SwaggerProps.Info.Contact.URL = value.URL
 	return b
 }
 
-func (b *OpenAPIDefinition) LicenseName(value string) OpenAPIDefinitionBuilderInterface {
+func (b *openAPIDefinition) LicenseName(value string) OpenAPIDefinitionBuilderInterface {
 	b.Swagger.SwaggerProps.Info.License.Name = value
 	return b
 }
 
-func (b *OpenAPIDefinition) LicenseURL(value string) OpenAPIDefinitionBuilderInterface {
+func (b *openAPIDefinition) LicenseURL(value string) OpenAPIDefinitionBuilderInterface {
 	b.Swagger.SwaggerProps.Info.License.URL = value
 	return b
 }
 
-func (b *OpenAPIDefinition) License(value License) OpenAPIDefinitionBuilderInterface {
+func (b *openAPIDefinition) License(value License) OpenAPIDefinitionBuilderInterface {
 	b.Swagger.SwaggerProps.Info.License.Name = value.Name
 	b.Swagger.SwaggerProps.Info.License.URL = value.URL
 	return b
