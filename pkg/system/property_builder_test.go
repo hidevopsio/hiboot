@@ -119,25 +119,25 @@ func TestPropertyBuilderBuild(t *testing.T) {
 		assert.Equal(t, "banana", b.GetProperty("plant.fruit"))
 	})
 
-	t.Run("should overwrite with struct property", func(t *testing.T) {
-		b.SetProperty("server", Server{
-			Schemes:     []string{"https"},
-			Host:        "test.hidevops.io",
-			Port:        "9090",
-			ContextPath: "/api/foo/bar",
-		})
-		assert.Equal(t, "/api/foo/bar", b.GetProperty("server.context_path"))
-	})
+	//t.Run("should overwrite with struct property", func(t *testing.T) {
+	//	b.SetProperty("server", Server{
+	//		Schemes:     []string{"https"},
+	//		Host:        "test.hidevops.io",
+	//		Port:        "9090",
+	//		ContextPath: "/api/foo/bar",
+	//	})
+	//	assert.Equal(t, "/api/foo/bar", b.GetProperty("server.context_path"))
+	//})
 
-	t.Run("should set struct property directly", func(t *testing.T) {
-		b.SetProperty("server2", Server{
-			Schemes:     []string{"https"},
-			Host:        "test.hidevops.io",
-			Port:        "9090",
-			ContextPath: "/api/foo/bar",
-		})
-		assert.Equal(t, "/api/foo/bar", b.GetProperty("server2.context_path"))
-	})
+	//t.Run("should set struct property directly", func(t *testing.T) {
+	//	b.SetProperty("server2", Server{
+	//		Schemes:     []string{"https"},
+	//		Host:        "test.hidevops.io",
+	//		Port:        "9090",
+	//		ContextPath: "/api/foo/bar",
+	//	})
+	//	assert.Equal(t, "/api/foo/bar", b.GetProperty("server2.context_path"))
+	//})
 
 	t.Run("should replace property", func(t *testing.T) {
 		b.SetProperty("app.name", "foo").

@@ -21,7 +21,6 @@ import (
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
-	"hidevops.io/hiboot/pkg/utils/copier"
 	"hidevops.io/hiboot/pkg/utils/mapstruct"
 	"hidevops.io/hiboot/pkg/utils/replacer"
 	"hidevops.io/hiboot/pkg/utils/sort"
@@ -289,39 +288,39 @@ func (b *propertyBuilder) GetProperty(name string) (retVal interface{}) {
 	retVal = b.Get(name)
 	return
 }
-
-func (b *propertyBuilder) updateProperty(name string, val interface{}) (retVal interface{})  {
-	// TODO: for debug only, TBD
-	if name == "swagger" {
-		log.Debug(name)
-	}
-	original := b.Get(name)
-	// convert struct to map
-	var dm = make(map[string]interface{})
-	sm, ok := mapstruct.DecodeStructToMap(val)
-	if ok {
-		if original != nil {
-			// copy original map to the new map
-			copier.CopyMap(dm, original.(map[string]interface{}))
-			// copy new src map to dest map
-			copier.CopyMap(dm, sm, copier.IgnoreEmptyValue)
-			// assign dest map to retVal
-			retVal = dm
-		} else {
-			retVal = sm
-		}
-	} else {
-		retVal = val
-	}
-	return
-}
+//
+//func (b *propertyBuilder) updateProperty(name string, val interface{}) (retVal interface{})  {
+//	// TODO: for debug only, TBD
+//	if name == "swagger" {
+//		log.Debug(name)
+//	}
+//	original := b.Get(name)
+//	// convert struct to map
+//	var dm = make(map[string]interface{})
+//	sm, ok := mapstruct.DecodeStructToMap(val)
+//	if ok {
+//		if original != nil {
+//			// copy original map to the new map
+//			copier.CopyMap(dm, original.(map[string]interface{}))
+//			// copy new src map to dest map
+//			copier.CopyMap(dm, sm, copier.IgnoreEmptyValue)
+//			// assign dest map to retVal
+//			retVal = dm
+//		} else {
+//			retVal = sm
+//		}
+//	} else {
+//		retVal = val
+//	}
+//	return
+//}
 
 func (b *propertyBuilder) SetProperty(name string, val interface{}) Builder {
-	b.Set(name, b.updateProperty(name, val))
+	b.Set(name, val)
 	return b
 }
 
 func (b *propertyBuilder) SetDefaultProperty(name string, val interface{}) Builder {
-	b.SetDefault(name, b.updateProperty(name, val))
+	b.SetDefault(name, val)
 	return b
 }
