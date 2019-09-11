@@ -17,6 +17,7 @@ package swagger
 import (
 	"github.com/go-openapi/spec"
 	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/system"
 )
 
 type OpenAPIDefinitionBuilderInterface interface {
@@ -54,6 +55,9 @@ type License struct {
 type openAPIDefinition struct {
 	at.ConfigurationProperties `value:"swagger"`
 	spec.Swagger
+
+	SystemServer *system.Server
+	AppVersion string `value:"${app.version}"`
 }
 
 func OpenAPIDefinitionBuilder() OpenAPIDefinitionBuilderInterface {

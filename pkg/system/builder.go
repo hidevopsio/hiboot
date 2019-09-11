@@ -47,7 +47,7 @@ type Builder interface {
 	SetConfiguration(in interface{})
 }
 
-// use propertyBuilder instead
+// Deprecated, use propertyBuilder instead
 type builder struct {
 	*viper.Viper
 	path             string

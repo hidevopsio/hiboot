@@ -9,6 +9,7 @@ import (
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
 	"hidevops.io/hiboot/pkg/starter/actuator"
+	"hidevops.io/hiboot/pkg/starter/logging"
 	"hidevops.io/hiboot/pkg/starter/swagger"
 	"net/http"
 )
@@ -238,5 +239,6 @@ func main() {
 		SetProperty(app.ProfilesInclude,
 			actuator.Profile,
 			swagger.Profile,
+			logging.Profile,
 		).Run()
 }

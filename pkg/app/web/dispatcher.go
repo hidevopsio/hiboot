@@ -449,9 +449,9 @@ func (d *Dispatcher) handleControllerMethod(restController *injectableObject, m 
 
 	// publish to subscriber
 	for _, ms := range d.methodSubscribers {
-		// emit
-		// TODO: check if subscriber implements HttpMethodSubscriber
-		subscriber := ms.Instance.(HttpMethodSubscriber)
-		subscriber.Subscribe(restController.annotations, m.annotations)
+		if reflector.Implements(ms.Instance, new(HttpMethodSubscriber)) {
+			subscriber := ms.Instance.(HttpMethodSubscriber)
+			subscriber.Subscribe(restController.annotations, m.annotations)
+		}
 	}
 }

@@ -19,9 +19,23 @@ type pathsBuilder struct {
 }
 
 func newOpenAPIDefinitionBuilder(openAPIDefinition *openAPIDefinition) *pathsBuilder {
-	swgProp := openAPIDefinition.SwaggerProps
-	visit := fmt.Sprintf("%s://%s/swagger-ui", swgProp.Schemes[0], filepath.Join(swgProp.Host, swgProp.BasePath))
-	log.Infof("visit open api doc: %v", visit)
+	if openAPIDefinition.SystemServer != nil {
+		if openAPIDefinition.SwaggerProps.Host == "" {
+			openAPIDefinition.SwaggerProps.Host = openAPIDefinition.SystemServer.Host
+		}
+		if openAPIDefinition.SwaggerProps.BasePath == "" {
+			openAPIDefinition.SwaggerProps.BasePath = openAPIDefinition.SystemServer.ContextPath
+		}
+		if openAPIDefinition.SwaggerProps.Schemes == nil {
+			openAPIDefinition.SwaggerProps.Schemes = openAPIDefinition.SystemServer.Schemes
+		}
+	}
+	if openAPIDefinition.Info.Version == "" &&  openAPIDefinition.AppVersion != "" {
+		openAPIDefinition.Info.Version = openAPIDefinition.AppVersion
+	}
+
+	visit := fmt.Sprintf("%s://%s/swagger-ui", openAPIDefinition.SwaggerProps.Schemes[0], filepath.Join(openAPIDefinition.SwaggerProps.Host, openAPIDefinition.SwaggerProps.BasePath))
+	log.Infof("visit %v to open api doc", visit)
 
 	return &pathsBuilder{openAPIDefinition: openAPIDefinition}
 }
@@ -69,7 +83,7 @@ func (b *pathsBuilder) buildOperation(operation *spec.Operation, annotations *an
 func (b *pathsBuilder) Build(atController *annotation.Annotations, atMethod *annotation.Annotations) {
 
 	if !annotation.ContainsChild(atMethod, at.Operation{}) {
-		log.Debugf("does not found any swagger annotations in %v", atController.Items[0].Parent.Type)
+		//log.Debugf("does not found any swagger annotations in %v", atController.Items[0].Parent.Type)
 		return
 	}
 
@@ -80,7 +94,7 @@ func (b *pathsBuilder) Build(atController *annotation.Annotations, atMethod *ann
 			ann := atRequestMapping.Field.Value.Interface().(at.RequestMapping)
 			path = filepath.Join(ann.Value, path)
 		}
-		log.Debugf("%v:%v", method, path)
+		//log.Debugf("%v:%v", method, path)
 
 		pathItem := b.openAPIDefinition.Paths.Paths[path]
 
@@ -98,7 +112,7 @@ func (b *pathsBuilder) Build(atController *annotation.Annotations, atMethod *ann
 			// add new path item
 			//path = strings.ToLower(path)
 			b.openAPIDefinition.Paths.Paths[path] = pathItem
-			log.Debug(b.openAPIDefinition.Paths.Paths[path])
+			//log.Debug(b.openAPIDefinition.Paths.Paths[path])
 		}
 	}
 }
