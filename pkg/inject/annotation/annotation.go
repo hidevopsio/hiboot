@@ -168,6 +168,7 @@ func ContainsChild(input *Annotations, att interface{}) (ok bool) {
 	return
 }
 
+// Find is a function that find specific (child) annotation
 func Find(input *Annotations, att interface{}) (annotation *Annotation) {
 	items := FilterIn(input, att)
 	if len(items) > 0 {

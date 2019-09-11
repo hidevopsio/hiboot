@@ -14,15 +14,29 @@ import (
 	"net/http"
 )
 
+type Assert struct {
+	at.Schema    `description:"the assert that owned by employee"`
+	ID int `schema:"The assert ID" json:"id"`
+	Name string `schema:"The assert name" json:"name"`
+}
+
+type Manager struct {
+	at.Schema `schema:"The manager of the employee" json:"-"`
+	ID int `schema:"The manager ID" json:"id"`
+	Name string `schema:"The manager name of the employee" json:"name"`
+}
+
 type Employee struct {
-	Id        int    `schema:"The database generated employee ID" json:"id"`
+	at.Schema    `description:"contains the actual employee input"`
+	Id        int    `schema:"The auto generated employee ID" json:"id"`
 	FirstName string `schema:"The employee first name" json:"first_name"`
 	LastName  string `schema:"The employee last name" json:"last_name"`
+	Manger Manager `schema:"The manager" json:"manger"`
+	Asserts []Assert `schema:"The asserts list of the employee" json:"asserts"`
 }
 
 type CreateEmployeeRequest struct {
 	at.RequestBody
-
 	Employee
 }
 
@@ -31,7 +45,7 @@ type EmployeeResponse struct {
 	at.Schema     `description:"All details about the Employee. " json:"-"`
 
 	model.BaseResponseInfo
-	Data *Employee `json:"data,omitempty" api:"The employee data"`
+	Data *Employee `json:"data,omitempty" schema:"The employee data"`
 }
 
 type ListEmployeeResponse struct {
@@ -77,31 +91,54 @@ func (c *employeeController) BeforeMethod(at struct{ at.BeforeMethod }, ctx cont
 // GetEmployee
 // at.GetMapping is an annotation to define request mapping for http method GET,
 func (c *employeeController) CreateEmployee(at struct {
-	//at.PostMapping `value:"/"`
+	at.PostMapping `value:"/"`
 	at.Operation   `operationId:"Create Employee" description:"This is the employee creation api"`
 	at.Consumes    `values:"application/json"`
 	at.Produces    `values:"application/json"`
 	Parameters     struct {
-		ID struct {
-			at.Parameter `name:"body" in:"body" description:"Employee request body" required:"true"`
-			at.Schema    `type:"object" description:"contains the actual employee input"`
-			CreateEmployeeRequest
-		}
+		at.Parameter `name:"employee" in:"body" description:"Employee request body" `
+		CreateEmployeeRequest `type:"object"`
 	}
 	Responses struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"returns a employee with ID"`
-			at.Schema   `type:"object" description:"contains the actual employee value object"`
+			EmployeeResponse
 		}
 	}
-}, request *CreateEmployeeRequest) (response *EmployeeResponse, err error) {
-	response = new(EmployeeResponse)
+}, request *CreateEmployeeRequest) (response model.Response, err error) {
+	response = new(model.BaseResponse)
 
+	// Just for the demo purpose
 	request.Employee.Id = 654321
+	response.SetData(request.Employee)
 
-	response.Code = http.StatusOK
-	response.Message = "success"
-	response.Data = &request.Employee
+	return
+}
+
+
+// GetEmployee
+// at.GetMapping is an annotation to define request mapping for http method GET,
+func (c *employeeController) UpdateEmployee(at struct {
+	at.PutMapping `value:"/"`
+	at.Operation   `operationId:"Update Employee" description:"This is the employee update api"`
+	at.Consumes    `values:"application/json"`
+	at.Produces    `values:"application/json"`
+	Parameters     struct {
+		at.Parameter `name:"employee" in:"body" description:"Employee request body" `
+		CreateEmployeeRequest
+	}
+	Responses struct {
+		StatusOK struct {
+			at.Response `code:"200" description:"returns a employee with ID"`
+			EmployeeResponse
+		}
+	}
+}, request *CreateEmployeeRequest) (response model.Response, err error) {
+	response = new(model.BaseResponse)
+
+	// Just for the demo purpose
+	request.Employee.Id = 67890
+	response.SetData(request.Employee)
 
 	return
 }
@@ -117,12 +154,9 @@ func (c *employeeController) GetEmployee(at struct {
 		}
 	}
 	Responses struct {
-
-		EmployeeResponse
-
 		StatusOK struct {
 			at.Response `code:"200" description:"returns a employee"`
-			at.Schema   `type:"string" description:"contains the actual employee value object"`
+			EmployeeResponse
 		}
 		StatusNotFound struct {
 			at.Response `code:"404" description:"the employee you are looking for is not found"`
@@ -157,7 +191,7 @@ func (c *employeeController) ListEmployee(at struct {
 	Responses     struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"returns a set of employees"`
-			at.Schema   `type:"string" description:"contains the actual employee list"`
+			ListEmployeeResponse
 		}
 		StatusNotFound struct {
 			at.Response `code:"404" description:"the employees you are looking for is not found"`

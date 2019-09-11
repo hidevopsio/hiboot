@@ -57,19 +57,19 @@ type openAPIDefinition struct {
 	spec.Swagger
 
 	SystemServer *system.Server
-	AppVersion string `value:"${app.version}"`
+	AppVersion   string `value:"${app.version}"`
 }
 
 func OpenAPIDefinitionBuilder() OpenAPIDefinitionBuilderInterface {
 	return &openAPIDefinition{
 		Swagger: spec.Swagger{
 			VendorExtensible: spec.VendorExtensible{},
-			SwaggerProps:     spec.SwaggerProps{
-				Swagger:             "2.0",
-				Info:                &spec.Info{},
-				Paths:               &spec.Paths{
+			SwaggerProps: spec.SwaggerProps{
+				Swagger: "2.0",
+				Info:    &spec.Info{},
+				Paths: &spec.Paths{
 					VendorExtensible: spec.VendorExtensible{},
-					Paths: make(map[string]spec.PathItem),
+					Paths:            make(map[string]spec.PathItem),
 				},
 			},
 		},

@@ -1,6 +1,11 @@
 package main
 
 import (
+	"bytes"
+	"encoding/gob"
+	"encoding/json"
+	"github.com/go-openapi/spec"
+	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/app/web"
 	"net/http"
 	"testing"
@@ -30,4 +35,26 @@ func TestController(t *testing.T) {
 			Expect().Status(http.StatusOK)
 	})
 
+}
+
+func TestCloneRef(t *testing.T) {
+	var b bytes.Buffer
+	src := spec.MustCreateRef("#/definitions/test")
+	err := gob.NewEncoder(&b).Encode(&src)
+	if !assert.NoError(t, err) {
+		t.FailNow()
+	}
+
+	var dst spec.Ref
+	err = gob.NewDecoder(&b).Decode(&dst)
+	if !assert.NoError(t, err) {
+		t.FailNow()
+	}
+
+	jazon, err := json.Marshal(dst)
+	if !assert.NoError(t, err) {
+		t.FailNow()
+	}
+
+	assert.Equal(t, `{"$ref":"#/definitions/test"}`, string(jazon))
 }
