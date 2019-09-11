@@ -312,7 +312,40 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 		ctx.JSON(respVal)
 	default:
 		if h.responses[0].isResponseBody {
-			ctx.JSON(respVal)
+			if reflector.Implements(respVal, new(model.ResponseInfo)) {
+				response := respVal.(model.ResponseInfo)
+				if numOut >= 2 {
+					var respErr error
+					errVal := results[1]
+					if errVal.IsNil() {
+						respErr = nil
+					} else if errVal.Type().Name() == "error" {
+						respErr = results[1].Interface().(error)
+					}
+
+					if respErr == nil {
+						log.Debug(response.GetCode())
+						if response.GetCode() == 0 {
+							response.SetCode(http.StatusOK)
+						}
+						if response.GetMessage() == "" {
+							response.SetMessage(ctx.Translate(success))
+						}
+					} else {
+						if response.GetCode() == 0 {
+							response.SetCode(http.StatusInternalServerError)
+						}
+						// TODO: output error message directly? how about i18n
+						response.SetMessage(ctx.Translate(respErr.Error()))
+
+						// TODO: configurable status code in application.yml
+					}
+				}
+				ctx.StatusCode(response.GetCode())
+				ctx.JSON(response)
+			} else {
+				ctx.JSON(respVal)
+			}
 		} else {
 			ctx.ResponseError("response type is not implemented!", http.StatusInternalServerError)
 		}

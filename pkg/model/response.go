@@ -15,7 +15,7 @@
 package model
 
 // Response is the interface of rest controller's Response
-type Response interface {
+type ResponseInfo interface {
 	// Set error code
 	SetCode(code int)
 	// Get error code
@@ -24,37 +24,46 @@ type Response interface {
 	SetMessage(message string)
 	// Get message
 	GetMessage() string
+}
+
+type Response interface {
+	ResponseInfo
 	// Set data, the data will be serialized to json string
 	SetData(data interface{})
 	// Get data
 	GetData() interface{}
 }
 
-// BaseResponse is the implementation of rest controller's Response
-type BaseResponse struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+// BaseResponseInfo is the implementation of rest controller's Response
+type BaseResponseInfo struct {
+	Code    int         `json:"code" schema:"HTTP response code"`
+	Message string      `json:"message" schema:"HTTP response message"`
 }
 
 // SetCode set error code
-func (r *BaseResponse) SetCode(code int) {
+func (r *BaseResponseInfo) SetCode(code int) {
 	r.Code = code
 }
 
 // GetCode get error code
-func (r *BaseResponse) GetCode() int {
+func (r *BaseResponseInfo) GetCode() int {
 	return r.Code
 }
 
 // SetMessage set message
-func (r *BaseResponse) SetMessage(message string) {
+func (r *BaseResponseInfo) SetMessage(message string) {
 	r.Message = message
 }
 
 // GetMessage get message
-func (r *BaseResponse) GetMessage() string {
+func (r *BaseResponseInfo) GetMessage() string {
 	return r.Message
+}
+
+// BaseResponse is the implementation of rest controller's Response
+type BaseResponse struct {
+	BaseResponseInfo
+	Data    interface{} `json:"data" schema:"HTTP response data"`
 }
 
 // SetData the data will be serialized to json string

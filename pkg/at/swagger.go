@@ -64,6 +64,13 @@ type Produces struct{
 	Values []string `json:"values"`
 }
 
+// Consumes
+type Consumes struct{
+	Swagger
+
+	Values []string `json:"values"`
+}
+
 // Response annotation to document other responses, in addition to the regular HTTP 200 OK, like this.
 // func (c *) CreateEmployee(at struct{
 //     at.PostMapping  `value:"/"`
@@ -84,17 +91,4 @@ type Schema struct {
 	Swagger
 
 	spec.Schema
-}
-
-// ApiModel annotation to describe the properties of the  Employee  model.
-//type Employee struct {
-//	ApiModel `description:"All details about the Employee. "`
-//
-//	Id int `api:"The database generated employee ID"`
-//	FirstName string `api:"The employee first name"`
-//	LastName string `api:"The employee last name"`
-//}
-type ApiModel struct {
-	Swagger
-	Description string
 }

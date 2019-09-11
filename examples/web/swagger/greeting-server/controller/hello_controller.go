@@ -20,7 +20,7 @@ func newHelloController() *controller {
 
 type HelloQueryParam struct {
 	at.RequestParams
-	at.ApiModel `value:""`
+	at.Schema
 	Name        string `api:"defaults to World if not given"`
 }
 

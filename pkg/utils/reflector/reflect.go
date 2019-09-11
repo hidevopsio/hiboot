@@ -546,3 +546,13 @@ func IsValidObjectType(inst interface{}) bool {
 	}
 	return false
 }
+
+// Implements
+func Implements(object interface{}, interfaceType interface{}) (ok bool) {
+	s := reflect.ValueOf(object)
+	typ := s.Type()
+	modelType := reflect.TypeOf(interfaceType).Elem()
+	ok = typ.Implements(modelType)
+
+	return
+}

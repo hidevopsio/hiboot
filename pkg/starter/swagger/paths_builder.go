@@ -19,28 +19,8 @@ type pathsBuilder struct {
 }
 
 func newOpenAPIDefinitionBuilder(openAPIDefinition *openAPIDefinition) *pathsBuilder {
-	if openAPIDefinition == nil {
-		log.Fatal(`
-
-// Please register swagger.OpenAPIDefinitionBuilder(), see below code snippet for reference
-
-func init() {
-	app.Register(swagger.OpenAPIDefinitionBuilder().
-		Version("1.0.0").
-		Title("HiBoot Swagger Demo Application - Greeting Server").
-		Description("Greeting Server is an application that demonstrate the usage of Swagger Annotations").
-		Schemes("http", "https").
-		Host("apps.hidevops.io").
-		BasePath("/api/v1/greeting-server"),
-	)
-}
-
-`)
-		return nil
-	}
-
 	swgProp := openAPIDefinition.SwaggerProps
-	visit := fmt.Sprintf("%s://%s%s/swagger-ui", swgProp.Schemes[0], swgProp.Host, swgProp.BasePath)
+	visit := fmt.Sprintf("%s://%s/swagger-ui", swgProp.Schemes[0], filepath.Join(swgProp.Host, swgProp.BasePath))
 	log.Infof("visit open api doc: %v", visit)
 
 	return &pathsBuilder{openAPIDefinition: openAPIDefinition}
@@ -57,6 +37,9 @@ func (b *pathsBuilder) buildOperation(operation *spec.Operation, annotations *an
 		case at.Parameter:
 			ann := ao.(at.Parameter)
 			operation.Parameters = append(operation.Parameters, ann.Parameter)
+		case at.Consumes:
+			ann := ao.(at.Consumes)
+			operation.Consumes = append(operation.Consumes, ann.Values...)
 		case at.Produces:
 			ann := ao.(at.Produces)
 			operation.Produces = append(operation.Produces, ann.Values...)
@@ -92,8 +75,6 @@ func (b *pathsBuilder) Build(atController *annotation.Annotations, atMethod *ann
 
 	method, path := webutils.GetHttpMethod(atMethod)
 	if method != "" {
-		pathItem := spec.PathItem{}
-
 		atRequestMapping := annotation.GetAnnotation(atController, at.RequestMapping{})
 		if atRequestMapping != nil {
 			ann := atRequestMapping.Field.Value.Interface().(at.RequestMapping)
@@ -101,18 +82,23 @@ func (b *pathsBuilder) Build(atController *annotation.Annotations, atMethod *ann
 		}
 		log.Debugf("%v:%v", method, path)
 
+		pathItem := b.openAPIDefinition.Paths.Paths[path]
+
 		atOperation :=  annotation.GetAnnotation(atMethod, at.Operation{})
 
 		atOperationInterface := atOperation.Field.Value.Interface()
 		atOperationObject := atOperationInterface.(at.Operation)
 		operation := &atOperationObject.Operation
 
-		err := reflector.SetFieldValue(&pathItem, strings.Title(strings.ToLower(method)), operation)
+		method = strings.Title(strings.ToLower(method))
+		err := reflector.SetFieldValue(&pathItem, method, operation)
 		if err == nil {
 			b.buildOperation(operation, atMethod)
 
 			// add new path item
-			b.openAPIDefinition.Paths.Paths[strings.ToLower(path)] = pathItem
+			//path = strings.ToLower(path)
+			b.openAPIDefinition.Paths.Paths[path] = pathItem
+			log.Debug(b.openAPIDefinition.Paths.Paths[path])
 		}
 	}
 }

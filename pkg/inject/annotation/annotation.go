@@ -24,6 +24,7 @@ import (
 	"hidevops.io/hiboot/pkg/utils/str"
 	"hidevops.io/hiboot/pkg/utils/structtag"
 	"reflect"
+	"strings"
 )
 
 // annotation field
@@ -123,8 +124,10 @@ func GetAnnotations(object interface{}) (annotations *Annotations) {
 					if iTyp.Name() == "" && typ.Kind() == reflect.Struct {
 						// more annotations from child struct
 						fieldObjVal := ov.FieldByName(f.Name)
-						childAnnotations := GetAnnotations(fieldObjVal.Addr().Interface())
-						annotations.Children = append(annotations.Children, childAnnotations)
+						if f.Name == strings.Title(f.Name) {
+							childAnnotations := GetAnnotations(fieldObjVal.Addr().Interface())
+							annotations.Children = append(annotations.Children, childAnnotations)
+						}
 					}
 				}
 			}

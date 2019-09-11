@@ -11,14 +11,19 @@ import (
 	"hidevops.io/hiboot/pkg/starter/swagger"
 )
 
+const (
+	version = "1.0.3"
+	basePath = "/api/v1/greeting-server"
+)
+
 func init() {
 	app.Register(swagger.OpenAPIDefinitionBuilder().
-		Version("1.0.0").
+		Version(version).
 		Title("HiBoot Swagger Demo Application - Greeting Server").
 		Description("Greeting Server is an application that demonstrate the usage of Swagger Annotations").
 		Schemes("http", "https").
 		Host("localhost:8080").
-		BasePath("/api/v1/greeting-server"),
+		BasePath(basePath),
 	)
 }
 
@@ -26,6 +31,7 @@ func init() {
 func main() {
 	web.NewApplication().
 		SetProperty(app.ProfilesInclude, actuator.Profile, logging.Profile, swagger.Profile).
-		SetProperty("server.context_path", "/api/v1/greeting-server").
+		SetProperty("app.version", version).
+		SetProperty("server.context_path", basePath).
 		Run()
 }

@@ -12,17 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package model
+package model_test
+
 
 import (
 	"github.com/stretchr/testify/assert"
+	"hidevops.io/hiboot/pkg/model"
+	"hidevops.io/hiboot/pkg/utils/reflector"
 	"testing"
 )
 
 func TestResponse(t *testing.T) {
-	var response Response
+	var response model.Response
 
-	response = new(BaseResponse)
+	response = new(model.BaseResponse)
 
 	response.SetCode(200)
 	assert.Equal(t, 200, response.GetCode())
@@ -32,4 +35,22 @@ func TestResponse(t *testing.T) {
 
 	response.SetData("example")
 	assert.Equal(t, "example", response.GetData())
+
+	t.Run("should check implements specific interface", func(t *testing.T) {
+		respInfo := new(model.BaseResponseInfo)
+		ok := reflector.Implements(respInfo, new(model.ResponseInfo))
+		assert.True(t, ok)
+	})
+
+	t.Run("should check implements specific interface", func(t *testing.T) {
+		resp := new(model.BaseResponse)
+		ok := reflector.Implements(resp, new(model.ResponseInfo))
+		assert.True(t, ok)
+	})
+
+	t.Run("should check implements specific interface", func(t *testing.T) {
+		resp := new(model.BaseResponseInfo)
+		ok := reflector.Implements(resp, new(model.Response))
+		assert.False(t, ok)
+	})
 }

@@ -43,19 +43,19 @@ type propertyBuilder struct {
 	at.Qualifier `value:"system.builder"`
 	*viper.Viper
 	ConfigFile
-	configuration    interface{}
-	customProperties map[string]interface{}
-	profiles         []string
-	merge            bool
+	configuration     interface{}
+	defaultProperties map[string]interface{}
+	profiles          []string
+	merge             bool
 }
 
 
 // NewBuilder is the constructor of system.Builder
 func NewPropertyBuilder(path string, customProperties map[string]interface{}) Builder {
 	b := &propertyBuilder{
-		ConfigFile: ConfigFile{path: path},
-		Viper:            viper.New(),
-		customProperties: customProperties,
+		ConfigFile:        ConfigFile{path: path},
+		Viper:             viper.New(),
+		defaultProperties: customProperties,
 	}
 	return b
 }
@@ -203,8 +203,8 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 	}
 
 	// set custom properties
-	for key, value := range b.customProperties {
-		b.SetProperty(key, value)
+	for key, value := range b.defaultProperties {
+		b.SetDefaultProperty(key, value)
 	}
 
 	os.Args = append(os.Args, "--logging.level=debug", "--foo.bar")
