@@ -94,7 +94,6 @@ func (c *employeeController) BeforeMethod(at struct{ at.BeforeMethod }, ctx cont
 }
 
 // GetEmployee
-// at.GetMapping is an annotation to define request mapping for http method GET,
 func (c *employeeController) CreateEmployee(at struct {
 	at.PostMapping `value:"/"`
 	at.Operation   `operationId:"Create Employee" description:"This is the employee creation api"`
@@ -122,7 +121,6 @@ func (c *employeeController) CreateEmployee(at struct {
 
 
 // GetEmployee
-// at.GetMapping is an annotation to define request mapping for http method GET,
 func (c *employeeController) UpdateEmployee(at struct {
 	at.PutMapping `value:"/"`
 	at.Operation   `operationId:"Update Employee" description:"This is the employee update api"`

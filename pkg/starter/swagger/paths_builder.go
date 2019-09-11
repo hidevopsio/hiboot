@@ -75,33 +75,50 @@ func (b *pathsBuilder) buildSchema(definition *spec.Schema, typ reflect.Type)  {
 				ps := spec.Schema{}
 				ps.Title = f.Name
 				ps.Description = desc
-				if f.Type.Kind() == reflect.Slice {
+				fieldKind := f.Type.Kind()
+
+				switch fieldKind {
+				case reflect.Slice:
 					b.buildSchemaArray(&ps, f.Type)
-				} else if f.Type.Kind() == reflect.Struct {
-					ps.Type = spec.StringOrArray{"object"}
-					childSchema := annotation.GetAnnotation(f.Type, at.Schema{})
-					if childSchema != nil {
-						b.buildSchema(&ps, f.Type)
+				case reflect.Struct:
+					b.buildSchemaObject(&ps, f.Type)
+				case reflect.Ptr:
+					iTyp := reflector.IndirectType(f.Type)
+					if iTyp.Kind() == reflect.Struct {
+						b.buildSchemaObject(&ps, iTyp)
 					}
-				} else {
+				default:
 					ps.Type = spec.StringOrArray{f.Type.Name()}
 				}
 
 				// assign schema
-				tags, err := structtag.Parse(string(f.Tag))
-				var fieldName string
-				if err == nil {
-					tag, err := tags.Get("json")
-					if err == nil {
-						fieldName = tag.Name
-					} else {
-						fieldName = str.ToLowerCamel(f.Name)
-					}
-				}
+				fieldName := b.getFieldName(f)
 				definition.Properties[fieldName] = ps
 			}
 		}
 	}
+}
+
+func (b *pathsBuilder) buildSchemaObject(ps *spec.Schema, typ reflect.Type) {
+	ps.Type = spec.StringOrArray{"object"}
+	childSchema := annotation.GetAnnotation(typ, at.Schema{})
+	if childSchema != nil {
+		b.buildSchema(ps, typ)
+	}
+}
+
+func (b *pathsBuilder) getFieldName(f reflect.StructField) string {
+	tags, err := structtag.Parse(string(f.Tag))
+	var fieldName string
+	if err == nil {
+		tag, err := tags.Get("json")
+		if err == nil {
+			fieldName = tag.Name
+		} else {
+			fieldName = str.ToLowerCamel(f.Name)
+		}
+	}
+	return fieldName
 }
 
 func (b *pathsBuilder) buildSchemaBody(body *annotation.Annotation,) (schema *spec.Schema) {
@@ -162,14 +179,14 @@ func (b *pathsBuilder) buildOperation(operation *spec.Operation, annotations *an
 	for _, a := range annotations.Items {
 		ao := a.Field.Value.Interface()
 		switch ao.(type) {
-		case at.Parameter:
-			b.buildParameter(operation, annotations, a)
 		case at.Consumes:
 			ann := ao.(at.Consumes)
 			operation.Consumes = append(operation.Consumes, ann.Values...)
 		case at.Produces:
 			ann := ao.(at.Produces)
 			operation.Produces = append(operation.Produces, ann.Values...)
+		case at.Parameter:
+			b.buildParameter(operation, annotations, a)
 		case at.Response:
 			b.buildResponse(operation, annotations, a)
 		}
