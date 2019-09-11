@@ -35,6 +35,11 @@ type Employee struct {
 	Asserts []Assert `schema:"The asserts list of the employee" json:"asserts"`
 }
 
+type ErrorResponse struct {
+	at.Schema     `description:"Failed" json:"-"`
+	model.BaseResponseInfo
+}
+
 type CreateEmployeeRequest struct {
 	at.RequestBody
 	Employee
@@ -97,7 +102,7 @@ func (c *employeeController) CreateEmployee(at struct {
 	at.Produces    `values:"application/json"`
 	Parameters     struct {
 		at.Parameter `name:"employee" in:"body" description:"Employee request body" `
-		CreateEmployeeRequest `type:"object"`
+		CreateEmployeeRequest
 	}
 	Responses struct {
 		StatusOK struct {
@@ -160,7 +165,7 @@ func (c *employeeController) GetEmployee(at struct {
 		}
 		StatusNotFound struct {
 			at.Response `code:"404" description:"the employee you are looking for is not found"`
-			at.Schema   `type:"string" description:"Report 'not found' error message"`
+			ErrorResponse
 		}
 	}
 }, id int) (response *EmployeeResponse, err error) {
@@ -195,7 +200,7 @@ func (c *employeeController) ListEmployee(at struct {
 		}
 		StatusNotFound struct {
 			at.Response `code:"404" description:"the employees you are looking for is not found"`
-			at.Schema   `type:"string" description:"Report 'not found' error message"`
+			ErrorResponse
 		}
 	}
 }) (response *ListEmployeeResponse, err error) {
@@ -220,11 +225,11 @@ func (c *employeeController) DeleteEmployee(at struct {
 	Responses struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"returns success message"`
-			at.Schema   `type:"string" description:"contains the success message"`
+			ErrorResponse
 		}
 		StatusNotFound struct {
 			at.Response `code:"404" description:"the employee is not found"`
-			at.Schema   `type:"string" description:"Report 'not found' error message"`
+			ErrorResponse
 		}
 	}
 }, id int) (response *EmployeeResponse, err error) {
