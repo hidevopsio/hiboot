@@ -16,9 +16,9 @@ import (
 	"strings"
 )
 
-
 type pathsBuilder struct {
 	openAPIDefinition *openAPIDefinition
+	primitiveTypes map[string]string
 }
 
 func newOpenAPIDefinitionBuilder(openAPIDefinition *openAPIDefinition) *pathsBuilder {
@@ -40,7 +40,28 @@ func newOpenAPIDefinitionBuilder(openAPIDefinition *openAPIDefinition) *pathsBui
 	visit := fmt.Sprintf("%s://%s/swagger-ui", openAPIDefinition.SwaggerProps.Schemes[0], filepath.Join(openAPIDefinition.SwaggerProps.Host, openAPIDefinition.SwaggerProps.BasePath))
 	log.Infof("visit %v to open api doc", visit)
 
-	return &pathsBuilder{openAPIDefinition: openAPIDefinition}
+	return &pathsBuilder{
+		openAPIDefinition: openAPIDefinition,
+		primitiveTypes: map[string]string{
+			// array, boolean, integer, number, object, string
+			"string": "string",
+			"int": "integer",
+			"int8": "integer",
+			"int16": "integer",
+			"int32": "integer",
+			"int64": "integer",
+			"uint": "integer",
+			"uint8": "integer",
+			"uint16": "integer",
+			"uint32": "integer",
+			"uint64": "integer",
+			"float32": "number",
+			"float64": "number",
+			"struct": "object",
+			"slice": "array",
+			"bool": "boolean",
+		},
+	}
 }
 
 func init() {
@@ -72,9 +93,11 @@ func (b *pathsBuilder) buildSchema(definition *spec.Schema, typ reflect.Type)  {
 		for _, f := range reflector.DeepFields(typ) {
 			desc, ok := f.Tag.Lookup("schema")
 			if ok {
+				typName := f.Type.Name()
 				ps := spec.Schema{}
 				ps.Title = f.Name
 				ps.Description = desc
+				ps.Format = typName
 				fieldKind := f.Type.Kind()
 
 				switch fieldKind {
@@ -88,7 +111,9 @@ func (b *pathsBuilder) buildSchema(definition *spec.Schema, typ reflect.Type)  {
 						b.buildSchemaObject(&ps, iTyp)
 					}
 				default:
-					ps.Type = spec.StringOrArray{f.Type.Name()}
+					// convert primitive types
+					swgTypName := b.primitiveTypes[typName]
+					ps.Type = spec.StringOrArray{swgTypName}
 				}
 
 				// assign schema

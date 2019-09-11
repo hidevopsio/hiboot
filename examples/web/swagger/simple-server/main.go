@@ -15,19 +15,19 @@ import (
 )
 
 type Assert struct {
-	at.Schema    `description:"the assert that owned by employee"`
+	at.Schema    `json:"-"`
 	ID int `schema:"The assert ID" json:"id"`
 	Name string `schema:"The assert name" json:"name"`
 }
 
 type Manager struct {
-	at.Schema `schema:"The manager of the employee" json:"-"`
+	at.Schema `json:"-"`
 	ID int `schema:"The manager ID" json:"id"`
 	Name string `schema:"The manager name of the employee" json:"name"`
 }
 
 type Employee struct {
-	at.Schema    `description:"contains the actual employee input"`
+	at.Schema    `json:"-"`
 	Id        int    `schema:"The auto generated employee ID" json:"id"`
 	FirstName string `schema:"The employee first name" json:"first_name"`
 	LastName  string `schema:"The employee last name" json:"last_name"`
@@ -36,7 +36,7 @@ type Employee struct {
 }
 
 type ErrorResponse struct {
-	at.Schema     `description:"Failed" json:"-"`
+	at.Schema     `json:"-"`
 	model.BaseResponseInfo
 }
 
@@ -47,7 +47,7 @@ type CreateEmployeeRequest struct {
 
 type EmployeeResponse struct {
 	at.ResponseBody `json:"-"`
-	at.Schema     `description:"All details about the Employee. " json:"-"`
+	at.Schema     `json:"-"`
 
 	model.BaseResponseInfo
 	Data *Employee `json:"data,omitempty" schema:"The employee data"`
@@ -55,7 +55,7 @@ type EmployeeResponse struct {
 
 type ListEmployeeResponse struct {
 	at.ResponseBody `json:"-"`
-	at.Schema     `description:"All details about the Employee. " json:"-"`
+	at.Schema     `json:"-"`
 	model.BaseResponse
 	Data []*Employee `json:"data,omitempty" schema:"The employee data list"`
 }
@@ -213,7 +213,7 @@ func (c *employeeController) ListEmployee(at struct {
 // at.DeleteEmployee is an annotation to define request mapping for http method DELETE,
 func (c *employeeController) DeleteEmployee(at struct {
 	at.DeleteMapping `value:"/{id:int}"`
-	at.Operation     `operationId:"Delte Employee" description:"This is delete employees api"`
+	at.Operation     `operationId:"Delete Employee" description:"This is delete employees api"`
 	at.Produces      `values:"application/json"`
 	Parameters       struct {
 		ID struct {
