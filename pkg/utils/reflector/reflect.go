@@ -461,6 +461,9 @@ func GetPkgPath(object interface{}) string {
 
 // GetObjectType get the function output data type
 func GetObjectType(object interface{}) (typ reflect.Type, ok bool) {
+	if object == nil {
+		return nil, false
+	}
 	var reflectType reflect.Type
 	var reflectValue reflect.Value
 	switch object.(type) {
