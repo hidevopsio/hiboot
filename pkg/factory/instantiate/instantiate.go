@@ -234,9 +234,6 @@ func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 			}
 
 			annotations := annotation.GetAnnotations(obj)
-			if annotations == nil && (metaData.Kind == "func" || metaData.Kind == "Method") {
-				annotations = annotation.GetAnnotations(metaData.Type)
-			}
 			if annotations != nil {
 				for _, item := range annotations.Items {
 					typeName := reflector.GetLowerCamelFullNameByType(item.Field.StructField.Type)

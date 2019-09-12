@@ -262,5 +262,16 @@ func TestImplementsAnnotation(t *testing.T) {
 		a := annotation.GetAnnotation(nil, AtFoo{})
 		assert.True(t, nil == a)
 	})
+	t.Run("should get nil from nil", func(t *testing.T) {
+		a := annotation.GetAnnotations(nil)
+		assert.True(t, nil == a)
+	})
+
+	t.Run("should get annotation from function return object", func(t *testing.T) {
+		a := annotation.GetAnnotation(func() *multipleBar {
+			return &multipleBar{}
+		}, AtFoo{})
+		assert.Equal(t, "AtFoo", a.Field.StructField.Name)
+	})
 }
 

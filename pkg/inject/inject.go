@@ -52,6 +52,8 @@ var (
 	// ErrFactoryIsNil factory is invalid
 	ErrFactoryIsNil = errors.New("[inject] factory is nil")
 
+	ErrAnnotationsIsNil = fmt.Errorf("err: annotations is nil")
+
 	tagsContainer []Tag
 
 	//instancesMap cmap.ConcurrentMap
@@ -65,6 +67,7 @@ type Inject interface {
 	IntoObjectValue(object reflect.Value, property string, tags ...Tag) error
 	IntoMethod(object interface{}, m interface{}) (retVal interface{}, err error)
 	IntoFunc(object interface{}) (retVal interface{}, err error)
+	IntoAnnotations(annotations *annotation.Annotations) (err error)
 }
 
 type inject struct {
@@ -109,6 +112,11 @@ func (i *inject) DefaultValue(object interface{}) error {
 }
 
 func (i *inject) IntoAnnotations(annotations *annotation.Annotations) (err error) {
+	if annotations == nil {
+		err = ErrAnnotationsIsNil
+		return
+	}
+
 	// inject annotation
 	for _, a := range annotations.Items {
 		err = annotation.Inject(a)
@@ -119,9 +127,6 @@ func (i *inject) IntoAnnotations(annotations *annotation.Annotations) (err error
 
 	for _, c := range annotations.Children {
 		err = i.IntoAnnotations(c)
-		if err != nil {
-			log.Error(err)
-		}
 	}
 	return
 }

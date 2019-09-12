@@ -707,19 +707,27 @@ func TestInjectAnnotation(t *testing.T) {
 		at.GetMapping `value:"/path/to/api"`
 		at.RequestMapping `value:"/parent/path"`
 		at.BeforeMethod
+		Children struct{
+			at.Parameter `description:"testing params"`
+		}
 	}
-	annotations := annotation.GetAnnotations(&att)
-	for _, item := range annotations.Items {
-		err := annotation.Inject(item)
-		assert.Equal(t, nil, err)
 
-		err = injecting.IntoObjectValue(item.Field.Value.Addr(), "")
+	t.Run("should inject into annotations", func(t *testing.T) {
+		annotations := annotation.GetAnnotations(&att)
+		err := injecting.IntoAnnotations(annotations)
 		assert.Equal(t, nil, err)
-	}
-	log.Debugf("final result: %v", att)
-	assert.Equal(t, "GET", att.Method)
-	assert.Equal(t, "/path/to/api", att.GetMapping.Value)
-	assert.Equal(t, "/parent/path", att.RequestMapping.Value)
+		assert.Equal(t, nil, err)
+		log.Debugf("final result: %v", att)
+		assert.Equal(t, "GET", att.Method)
+		assert.Equal(t, "/path/to/api", att.GetMapping.Value)
+		assert.Equal(t, "/parent/path", att.RequestMapping.Value)
+	})
+
+	t.Run("should report error when inject into nil", func(t *testing.T) {
+		annotations := annotation.GetAnnotations(nil)
+		err := injecting.IntoAnnotations(annotations)
+		assert.Equal(t, inject.ErrAnnotationsIsNil, err)
+	})
 
 	t.Run("should find all annotations that inherit form at.HttpMethod{}", func(t *testing.T) {
 		found := annotation.FindAll(&struct{at.BeforeMethod}{}, at.HttpMethod{})

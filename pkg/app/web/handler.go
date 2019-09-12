@@ -166,7 +166,7 @@ func (h *handler) parseMethod(injectableObject *injectableObject, injectableMeth
 	//h.requests[0].val = objVal
 
 	lenOfPathParams := len(h.pathVariable)
-	pathIdx := lenOfPathParams
+	pathIdx := 0
 	// parse request
 	for i := 1; i < h.numIn; i++ {
 		typ := method.Type.In(i)
@@ -208,12 +208,12 @@ func (h *handler) parseMethod(injectableObject *injectableObject, injectableMeth
 		}
 
 		// parse path variable
-		if pathIdx != 0 {
-			pathIdx = pathIdx - 1
-			h.requests[i].name = pp[pathIdx][1]
+		if pathIdx < lenOfPathParams {
 			for idx, pv := range pps {
 				if pv == pp[pathIdx][0] {
+					h.requests[i].name = pp[pathIdx][1]
 					h.requests[i].pathIdx = idx
+					pathIdx = pathIdx + 1
 					break
 				}
 			}
@@ -329,7 +329,6 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 				}
 
 				if respErr == nil {
-					log.Debug(response.GetCode())
 					if response.GetCode() == 0 {
 						response.SetCode(http.StatusOK)
 					}

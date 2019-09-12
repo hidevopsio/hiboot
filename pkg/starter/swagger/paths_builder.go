@@ -16,6 +16,8 @@ import (
 	"strings"
 )
 
+const refPrefix = "#/definitions/"
+
 type pathsBuilder struct {
 	openAPIDefinition *openAPIDefinition
 	primitiveTypes map[string]string
@@ -155,7 +157,7 @@ func (b *pathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect.St
 	err := annotation.Inject(atSchema)
 	if err == nil {
 		s := atSchema.Field.Value.Interface().(at.Schema)
-		ref := "#/definitions/" + field.Name
+		ref := refPrefix + field.Name
 		s.Ref = spec.MustCreateRef(ref)
 
 		// parse body schema and assign to definitions

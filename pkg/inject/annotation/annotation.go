@@ -91,7 +91,9 @@ func GetAnnotation(object interface{}, att interface{}) (annotation *Annotation)
 
 // GetFields iterate annotations of a struct
 func GetAnnotations(object interface{}) (annotations *Annotations) {
-
+	if object == nil {
+		return
+	}
 	reflectType, ok := reflector.GetObjectType(object)
 	if ok {
 		ov := reflector.IndirectValue(object)

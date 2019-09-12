@@ -25,6 +25,7 @@ import (
 	"hidevops.io/hiboot/pkg/app/web/context"
 	_ "hidevops.io/hiboot/pkg/app/web/statik"
 	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
 	//_ "hidevops.io/hiboot/pkg/starter/actuator"
@@ -959,8 +960,7 @@ func (m *fooMiddleware) Logging( at struct{at.MiddlewareHandler `value:"/" `}, c
 
 type CustomResponse struct {
 	at.ResponseBody
-	Code int `json:"code"`
-	Message string `json:"message"`
+	model.BaseResponseInfo
 	Data interface{} `json:"data"`
 }
 
@@ -977,14 +977,23 @@ func newCustomRouterController() *customRouterController {
 func (c *customRouterController) PathVariable(
 	at struct {
 	// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
-	at.GetMapping `value:"/{id}/and/{name}"`
+	at.GetMapping `value:"/{id}/name/{name}"`
 }, id int, name string) (response *CustomResponse, err error) {
 	response = new(CustomResponse)
 	log.Infof("PathParamIdAndName: %v", at.Value)
+	switch id {
+	case 0:
+		response.Code = http.StatusNotFound
+		err = fmt.Errorf("not found")
+	case 1:
+		err = fmt.Errorf("wrong id")
+	case 2:
+	default:
+		response.Code = http.StatusOK
+		response.Message = "Success"
+		response.Data = fmt.Sprintf("https://hidevops.io/%v/%v", id, name)
+	}
 
-	response.Code = http.StatusOK
-	response.Message = "Success"
-	response.Data = fmt.Sprintf("https://hidevops.io/%v/%v", id, name)
 	return
 }
 
@@ -1058,7 +1067,23 @@ func TestCustomRouter(t *testing.T) {
 		SetProperty("server.context_path", "/test").
 		Run(t)
 
-	testApp.Get("/test/custom/123/and/hiboot").Expect().Status(http.StatusOK)
+	testApp.Get("/test/custom/123/name/hiboot").Expect().Status(http.StatusOK)
+	testApp.Get("/test/custom/0/name/hiboot").Expect().Status(http.StatusNotFound)
+	testApp.Get("/test/custom/1/name/hiboot").Expect().Status(http.StatusInternalServerError)
+	testApp.Get("/test/custom/2/name/hiboot").Expect().Status(http.StatusOK)
+}
+
+// test HttpMethodSubscriber
+type fakeSubscriber struct {
+	at.HttpMethodSubscriber
+}
+
+func newFakeSubscriber() *fakeSubscriber {
+	return &fakeSubscriber{}
+}
+
+func (s *fakeSubscriber) Subscribe(atc *annotation.Annotations, atm *annotation.Annotations)  {
+	log.Debug("subscribe")
 }
 
 func TestMiddlewareAnnotation(t *testing.T) {
@@ -1068,12 +1093,13 @@ func TestMiddlewareAnnotation(t *testing.T) {
 		newConditionalFakeJwtMiddleware,
 		newJwtAuthTestController,
 		newRegularTestController,
-		newMethodConditionalFakeJwtMiddleware)
+		newMethodConditionalFakeJwtMiddleware,
+		newFakeSubscriber)
 	testApp := web.NewTestApp(newCustomRouterController).
 		Run(t)
 
 	t.Run("should get resource from custom controller", func(t *testing.T) {
-		testApp.Get("/custom/123/and/hiboot").
+		testApp.Get("/custom/123/name/hiboot").
 			Expect().Status(http.StatusOK)
 	})
 
