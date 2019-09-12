@@ -11,25 +11,35 @@ import (
 
 type AtBaz struct {
 	at.Annotation
+
+	at.BaseAnnotation
 	Code int `value:"200" json:"code"`
 }
 
 type AtFoo struct {
 	at.Annotation
+
+	at.BaseAnnotation
 	ID int `json:"fooId"`
 	Age int `json:"age"`
 }
 
 type AtBar struct {
 	at.Annotation
+
+	at.BaseAnnotation
 }
 
 type AtFooBar struct {
+	at.Annotation
+
 	AtFoo
 	Code int `value:"200" json:"code"`
 }
 
 type AtFooBaz struct {
+	at.Annotation
+
 	AtFoo
 	Code int `value:"400" json:"code"`
 }
@@ -68,12 +78,16 @@ type multipleBar struct {
 
 type AtIntMap struct {
 	at.Annotation
+
+	at.BaseAnnotation
 	FieldName string `value:"codes"`
 	Codes map[int]string
 }
 
 type AtStrMap struct {
 	at.Annotation
+
+	at.BaseAnnotation
 	FieldName string `value:"messages"`
 	Messages map[string]string
 }

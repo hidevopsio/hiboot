@@ -18,92 +18,126 @@ package at
 // RestController is the annotation that declare current controller is the RESTful Controller
 type RestController struct {
 	Annotation
+
+	BaseAnnotation
 }
 
 // JwtRestController is the annotation that declare current controller is the RESTful Controller with JWT support
 type JwtRestController struct {
+	Annotation
+
 	RestController
 	UseJwt
 }
 
 type HttpMethodSubscriber struct{
 	Annotation
+
+	BaseAnnotation
 }
 
 // ContextPath is the annotation that set the context path of a controller
 type ContextPath struct {
 	Annotation
+
+	BaseAnnotation
 }
 
 // RequestMapping is the annotation that set the RequestMapping of a controller
 type RequestMapping struct {
+	Annotation
+
 	HttpMethod
 }
 
 // Method is the annotation that set the RequestMethod of a controller
 type Method struct {
 	Annotation
+
+	BaseAnnotation
 }
 
 // HttpMethod is the annotation that the http method of a controller
 type HttpMethod struct {
 	Annotation
+
+	BaseAnnotation
 }
 
 // BeforeMethod is the annotation that set the called before the http method of a controller
 type BeforeMethod struct {
+	Annotation
+
 	HttpMethod
 }
 
 // AfterMethod is the annotation that set the called after the http method of a controller
 type AfterMethod struct {
+	Annotation
+
 	HttpMethod
 }
 
 // GetMapping is the annotation that set the GetMapping of a controller
 type GetMapping struct {
+	Annotation
+
 	RequestMapping
 	Method string `value:"GET" json:"method"`
 }
 
 // PostMapping is the annotation that set the PostMapping of a controller
 type PostMapping struct {
+	Annotation
+
 	RequestMapping
 	Method string  `value:"POST" json:"method"`
 }
 
 // PutMapping is the annotation that set the PutMapping of a controller
 type PutMapping struct {
+	Annotation
+
 	RequestMapping
 	Method string  `value:"PUT" json:"method"`
 }
 
 // PatchMapping is the annotation that set the PatchMapping of a controller
 type PatchMapping struct {
+	Annotation
+
 	RequestMapping
 	Method string  `value:"PATCH" json:"method"`
 }
 
 // DeleteMapping is the annotation that set the DeleteMapping of a controller
 type DeleteMapping struct {
+	Annotation
+
 	RequestMapping
 	Method string  `value:"DELETE" json:"method"`
 }
 
 // AnyMapping is the annotation that set the AnyMapping of a controller
 type AnyMapping struct {
+	Annotation
+
 	RequestMapping
 	Method string  `value:"ANY" json:"method"`
 }
 
 // OptionsMapping is the annotation that set the OptionsMapping of a controller
 type OptionsMapping struct {
+	Annotation
+
 	RequestMapping
 	Method string  `value:"OPTIONS" json:"method"`
 }
 
 // TraceMapping is the annotation that set the TraceMapping of a controller
 type TraceMapping struct {
+	Annotation
+
 	RequestMapping
 	Method string  `value:"TRACE" json:"method"`
 }
@@ -111,5 +145,7 @@ type TraceMapping struct {
 // StaticResource is the annotation that set the StaticResource of a controller
 // value: static resource dir
 type FileServer struct {
+	Annotation
+
 	RequestMapping
 }

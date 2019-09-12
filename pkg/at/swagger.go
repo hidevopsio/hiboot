@@ -5,6 +5,8 @@ import "github.com/go-openapi/spec"
 // Swagger annotation to declare swagger config
 type Swagger struct {
 	Annotation
+
+	BaseAnnotation
 }
 
 // Operation
@@ -16,6 +18,8 @@ type Swagger struct {
 //   ...
 // }
 type Operation struct {
+	Annotation
+
 	// Required Element Summary
 	Swagger
 
@@ -25,11 +29,15 @@ type Operation struct {
 
 // OpenAPIDefinition is the annotation for swagger
 type OpenAPIDefinition struct {
+	Annotation
+
 	Swagger
 }
 
 // Schemes is the annotation for Swagger
 type Schemes struct {
+	Annotation
+
 	Swagger
 
 	Values []string `json:"values"`
@@ -47,11 +55,15 @@ type Schemes struct {
 
 // ParameterItem
 type ParameterItem struct {
+	Annotation
+
 	Swagger
 }
 
 // Parameter
 type Parameter struct {
+	Annotation
+
 	ParameterItem
 
 	spec.Parameter
@@ -59,6 +71,8 @@ type Parameter struct {
 
 // Produces
 type Produces struct{
+	Annotation
+
 	Swagger
 
 	Values []string `json:"values"`
@@ -66,6 +80,8 @@ type Produces struct{
 
 // Consumes
 type Consumes struct{
+	Annotation
+
 	Swagger
 
 	Values []string `json:"values"`
@@ -81,6 +97,8 @@ type Consumes struct{
 //   ...
 // }
 type Response struct {
+	Annotation
+
 	Swagger
 
 	Code int `json:"code"`
@@ -88,6 +106,8 @@ type Response struct {
 }
 
 type Schema struct {
+	Annotation
+
 	Swagger
 
 	spec.Schema

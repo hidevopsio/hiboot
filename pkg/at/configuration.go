@@ -17,9 +17,13 @@ package at
 // AutoConfiguration is the annotation of auto configuration
 type AutoConfiguration struct {
 	Annotation
+
+	BaseAnnotation
 }
 
 // ConfigurationProperties is the annotation that annotate configuration properties
 type ConfigurationProperties struct {
 	Annotation
+
+	BaseAnnotation
 }
