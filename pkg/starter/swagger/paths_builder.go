@@ -18,12 +18,12 @@ import (
 
 const refPrefix = "#/definitions/"
 
-type pathsBuilder struct {
-	openAPIDefinition *openAPIDefinition
+type apiPathsBuilder struct {
+	apiInfoBuilder *apiInfoBuilder
 	primitiveTypes map[string]string
 }
 
-func newOpenAPIDefinitionBuilder(openAPIDefinition *openAPIDefinition) *pathsBuilder {
+func newApiPathsBuilder(openAPIDefinition *apiInfoBuilder) *apiPathsBuilder {
 	if openAPIDefinition.SystemServer != nil {
 		if openAPIDefinition.SwaggerProps.Host == "" && openAPIDefinition.SystemServer.Host != "" {
 			openAPIDefinition.SwaggerProps.Host = openAPIDefinition.SystemServer.Host
@@ -42,8 +42,8 @@ func newOpenAPIDefinitionBuilder(openAPIDefinition *openAPIDefinition) *pathsBui
 	visit := fmt.Sprintf("%s://%s/swagger-ui", openAPIDefinition.SwaggerProps.Schemes[0], filepath.Join(openAPIDefinition.SwaggerProps.Host, openAPIDefinition.SwaggerProps.BasePath))
 	log.Infof("visit %v to open api doc", visit)
 
-	return &pathsBuilder{
-		openAPIDefinition: openAPIDefinition,
+	return &apiPathsBuilder{
+		apiInfoBuilder: openAPIDefinition,
 		primitiveTypes: map[string]string{
 			// array, boolean, integer, number, object, string
 			"string": "string",
@@ -67,10 +67,10 @@ func newOpenAPIDefinitionBuilder(openAPIDefinition *openAPIDefinition) *pathsBui
 }
 
 func init() {
-	app.Register(newOpenAPIDefinitionBuilder)
+	app.Register(newApiPathsBuilder)
 }
 
-func (b *pathsBuilder) buildSchemaArray(definition *spec.Schema, typ reflect.Type)  {
+func (b *apiPathsBuilder) buildSchemaArray(definition *spec.Schema, typ reflect.Type)  {
 	definition.Type = spec.StringOrArray{"array"}
 	// array items
 	arrSchema := spec.Schema{}
@@ -79,7 +79,7 @@ func (b *pathsBuilder) buildSchemaArray(definition *spec.Schema, typ reflect.Typ
 	definition.Items = &spec.SchemaOrArray{Schema: &arrSchema}
 }
 
-func (b *pathsBuilder) buildSchemaProperty(definition *spec.Schema, typ reflect.Type)  {
+func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ reflect.Type)  {
 	kind := typ.Kind()
 	if kind == reflect.Ptr {
 		typ = reflector.IndirectType(typ)
@@ -126,7 +126,7 @@ func (b *pathsBuilder) buildSchemaProperty(definition *spec.Schema, typ reflect.
 	}
 }
 
-func (b *pathsBuilder) buildSchemaObject(ps *spec.Schema, typ reflect.Type) {
+func (b *apiPathsBuilder) buildSchemaObject(ps *spec.Schema, typ reflect.Type) {
 	ps.Type = spec.StringOrArray{"object"}
 	childSchema := annotation.GetAnnotation(typ, at.Schema{})
 	if childSchema != nil {
@@ -134,7 +134,7 @@ func (b *pathsBuilder) buildSchemaObject(ps *spec.Schema, typ reflect.Type) {
 	}
 }
 
-func (b *pathsBuilder) getFieldName(f reflect.StructField) string {
+func (b *apiPathsBuilder) getFieldName(f reflect.StructField) string {
 	tags, err := structtag.Parse(string(f.Tag))
 	var fieldName string
 	if err == nil {
@@ -148,7 +148,7 @@ func (b *pathsBuilder) getFieldName(f reflect.StructField) string {
 	return fieldName
 }
 
-func (b *pathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect.StructField) (schema *spec.Schema) {
+func (b *apiPathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect.StructField) (schema *spec.Schema) {
 	if field == nil {
 		field = &ann.Field.StructField
 	}
@@ -161,21 +161,21 @@ func (b *pathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect.St
 		s.Ref = spec.MustCreateRef(ref)
 
 		// parse body schema and assign to definitions
-		if b.openAPIDefinition.Definitions == nil {
+		if b.apiInfoBuilder.Definitions == nil {
 			def := make(spec.Definitions)
-			b.openAPIDefinition.Definitions = def
+			b.apiInfoBuilder.Definitions = def
 		}
 
 		definition := spec.Schema{}
 		b.buildSchemaProperty(&definition, field.Type)
-		b.openAPIDefinition.Definitions[field.Name] = definition
+		b.apiInfoBuilder.Definitions[field.Name] = definition
 
 		schema = &s.Schema
 	}
 	return
 }
 
-func (b *pathsBuilder) buildParameter(operation *spec.Operation, annotations *annotation.Annotations, a *annotation.Annotation) {
+func (b *apiPathsBuilder) buildParameter(operation *spec.Operation, annotations *annotation.Annotations, a *annotation.Annotation) {
 	ao := a.Field.Value.Interface()
 	atParam := ao.(at.Parameter)
 	if atParam.In == "body" || atParam.In == "array" {
@@ -195,7 +195,7 @@ func (b *pathsBuilder) buildParameter(operation *spec.Operation, annotations *an
 	return
 }
 
-func (b *pathsBuilder) findArrayField(schema *annotation.Annotation) (field *reflect.StructField) {
+func (b *apiPathsBuilder) findArrayField(schema *annotation.Annotation) (field *reflect.StructField) {
 	parentType := schema.Parent.Type
 	var foundSchema bool
 	for i := 0; i < parentType.NumField(); i++ {
@@ -216,7 +216,7 @@ func (b *pathsBuilder) findArrayField(schema *annotation.Annotation) (field *ref
 	return field
 }
 
-func (b *pathsBuilder) buildResponse(operation *spec.Operation, annotations *annotation.Annotations, a *annotation.Annotation) {
+func (b *apiPathsBuilder) buildResponse(operation *spec.Operation, annotations *annotation.Annotations, a *annotation.Annotation) {
 	ao := a.Field.Value.Interface()
 	atResp := ao.(at.Response)
 	if operation.Responses == nil {
@@ -235,7 +235,7 @@ func (b *pathsBuilder) buildResponse(operation *spec.Operation, annotations *ann
 	return
 }
 
-func (b *pathsBuilder) buildOperation(operation *spec.Operation, annotations *annotation.Annotations)  {
+func (b *apiPathsBuilder) buildOperation(operation *spec.Operation, annotations *annotation.Annotations)  {
 	for _, a := range annotations.Items {
 		ao := a.Field.Value.Interface()
 		switch ao.(type) {
@@ -258,7 +258,7 @@ func (b *pathsBuilder) buildOperation(operation *spec.Operation, annotations *an
 }
 
 
-func (b *pathsBuilder) Build(atController *annotation.Annotations, atMethod *annotation.Annotations) {
+func (b *apiPathsBuilder) Build(atController *annotation.Annotations, atMethod *annotation.Annotations) {
 
 	if !annotation.ContainsChild(atMethod, at.Operation{}) {
 		//log.Debugf("does not found any swagger annotations in %v", atController.Items[0].Parent.Type)
@@ -274,7 +274,7 @@ func (b *pathsBuilder) Build(atController *annotation.Annotations, atMethod *ann
 		}
 		//log.Debugf("%v:%v", method, path)
 
-		pathItem := b.openAPIDefinition.Paths.Paths[path]
+		pathItem := b.apiInfoBuilder.Paths.Paths[path]
 
 		atOperation :=  annotation.GetAnnotation(atMethod, at.Operation{})
 
@@ -289,7 +289,7 @@ func (b *pathsBuilder) Build(atController *annotation.Annotations, atMethod *ann
 
 			// add new path item
 			//path = strings.ToLower(path)
-			b.openAPIDefinition.Paths.Paths[path] = pathItem
+			b.apiInfoBuilder.Paths.Paths[path] = pathItem
 			//log.Debug(b.openAPIDefinition.Paths.Paths[path])
 		}
 	}
