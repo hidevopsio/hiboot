@@ -61,9 +61,9 @@ func newApiPathsBuilder(openAPIDefinition *apiInfoBuilder) *apiPathsBuilder {
 			"float32": "number",
 			"float64": "number",
 			"struct": "object",
-			"slice": "array", // TBD
+			"slice": "array",
 			"bool": "boolean",
-			"Time": "dateTime",
+			"Time": "string",
 		},
 	}
 }
@@ -141,6 +141,7 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 			} else {
 				descName = str.ToKebab(f.Name)
 				descName = strings.Replace(descName, "-", " ", -1)
+				descName = str.UpperFirst(descName)
 			}
 
 			// assign schema

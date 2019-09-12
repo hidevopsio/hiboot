@@ -169,7 +169,7 @@ func (c *employeeController) UpdateEmployee(at struct {
 
 // GetEmployee
 func (c *employeeController) GetEmployee(at struct {
-	at.GetMapping `value:"/{id:int}"`
+	at.GetMapping `value:"/{id}"`
 	at.Operation  `operationId:"Get Employee" description:"This is get employees api"`
 	at.Produces   `values:"application/json"`
 	Parameters    struct {
@@ -259,7 +259,7 @@ func (c *employeeController) ListEmployee(at struct {
 // DeleteEmployee
 // at.DeleteEmployee is an annotation to define request mapping for http method DELETE,
 func (c *employeeController) DeleteEmployee(at struct {
-	at.DeleteMapping `value:"/{id:int}"`
+	at.DeleteMapping `value:"/{id}"`
 	at.Operation     `operationId:"Delete Employee" description:"This is delete employees api"`
 	at.Produces      `values:"application/json"`
 	Parameters       struct {
