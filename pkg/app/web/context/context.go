@@ -3,6 +3,7 @@ package context
 import (
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
+	"net/http"
 )
 
 // ExtendedContext extended context
@@ -13,6 +14,8 @@ type ExtendedContext interface {
 	ResponseString(s string)
 	ResponseBody(message string, data interface{})
 	ResponseError(message string, code int)
+	WrapHandler(h http.Handler)
+	//StaticResource(system http.FileSystem)
 }
 
 // Context is the interface of web app context

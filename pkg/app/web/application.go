@@ -212,6 +212,6 @@ func NewApplication(controllers ...interface{}) app.Application {
 	a := new(application)
 	app.Register(a)
 	a.startUpTime = time.Now()
-	a.initialize(controllers...)
+	_ = a.initialize(controllers...)
 	return a
 }

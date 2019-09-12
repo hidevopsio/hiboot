@@ -854,3 +854,26 @@ func TestHasEmbeddedFieldByInterface(t *testing.T) {
 		assert.Equal(t, true, ok)
 	})
 }
+
+type Model interface {
+	m()
+}
+
+type Company struct{}
+
+func (c *Company) m() {}
+
+type MyNewCompany struct {
+	Company
+
+	Name string
+}
+
+func TestImplements(t *testing.T) {
+
+	c := new(MyNewCompany)
+
+	ok := Implements(c, new(Model))
+	assert.True(t, ok)
+
+}

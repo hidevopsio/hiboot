@@ -1,4 +1,4 @@
-// Copyright 2018 John Deng (hi.devops.io@gmail.com).
+// Copyright 2018 ~ now John Deng (hi.devops.io@gmail.com).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,28 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package swagger provides the hiboot starter for swagger
+// package swagger auto serve open api doc with swagger 2.0 annotations
 package swagger
 
-import (
-	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/at"
-)
-
-const (
-	Profile = "swagger"
-)
-
-type configuration struct {
-	at.AutoConfiguration
-
-	Properties *properties
-}
-
-func newConfiguration(properties *properties) *configuration {
-	return &configuration{Properties: properties}
-}
+/*
 
 func init() {
-	app.Register(newConfiguration, new(properties))
+	app.Register(swagger.OpenAPIDefinitionBuilder().
+		Version("1.0.0").
+		Title("HiBoot Swagger Demo Application - Greeting Server").
+		Description("Greeting Server is an application that demonstrate the usage of Swagger Annotations").
+		Schemes("http", "https").
+		Host("localhost:8080").
+		BasePath("/api/v1/greeting-server"),
+	)
 }
+
+*/

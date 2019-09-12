@@ -117,7 +117,7 @@ func TestInstantiateFactory(t *testing.T) {
 
 		item := instFactory.Items()
 		// should have 1 instance (of system.Configuration)
-		assert.Equal(t, 5, len(item))
+		assert.Equal(t, 6, len(item))
 	})
 
 	hello := newHelloService()
@@ -162,7 +162,7 @@ func TestInstantiateFactory(t *testing.T) {
 	})
 
 	t.Run("should initialize factory", func(t *testing.T) {
-		cstProp := instFactory.CustomProperties()
+		cstProp := instFactory.DefaultProperties()
 		assert.NotEqual(t, 0, len(cstProp))
 	})
 

@@ -52,6 +52,8 @@ var (
 	// ErrFactoryIsNil factory is invalid
 	ErrFactoryIsNil = errors.New("[inject] factory is nil")
 
+	ErrAnnotationsIsNil = fmt.Errorf("err: annotations is nil")
+
 	tagsContainer []Tag
 
 	//instancesMap cmap.ConcurrentMap
@@ -65,6 +67,7 @@ type Inject interface {
 	IntoObjectValue(object reflect.Value, property string, tags ...Tag) error
 	IntoMethod(object interface{}, m interface{}) (retVal interface{}, err error)
 	IntoFunc(object interface{}) (retVal interface{}, err error)
+	IntoAnnotations(annotations *annotation.Annotations) (err error)
 }
 
 type inject struct {
@@ -79,7 +82,7 @@ func NewInject(factory factory.InstantiateFactory) Inject {
 // InitTag init tag implements
 func InitTag(tag Tag) (t Tag) {
 	if annotation.Contains(tag, at.Tag{}) {
-		err := annotation.InjectIntoFields(tag)
+		err := annotation.InjectAll(tag)
 		if err == nil {
 			t = tag
 		}
@@ -108,23 +111,41 @@ func (i *inject) DefaultValue(object interface{}) error {
 	return i.IntoObjectValue(reflect.ValueOf(object), "", InitTag(new(defaultTag)))
 }
 
-// IntoObject injects instance into the tagged field with `inject:"instanceName"`
-func (i *inject) IntoObject(object interface{}) (err error) {
-	err = annotation.InjectIntoFields(object)
-	if err != nil {
-		log.Debug(err)
+func (i *inject) IntoAnnotations(annotations *annotation.Annotations) (err error) {
+	if annotations == nil {
+		err = ErrAnnotationsIsNil
+		return
 	}
-	err = i.IntoObjectValue(reflect.ValueOf(object), "")
 
 	// inject annotation
-	if err == nil {
-		annotations := annotation.GetFields(object)
-		for _, a := range annotations {
-			err = annotation.InjectIntoField(a)
-			if err == nil {
-				err = i.IntoObjectValue(a.Value.Addr(), "")
-			}
+	for _, a := range annotations.Items {
+		err = annotation.Inject(a)
+		if err == nil {
+			err = i.IntoObjectValue(a.Field.Value.Addr(), "")
 		}
+	}
+
+	for _, c := range annotations.Children {
+		err = i.IntoAnnotations(c)
+	}
+	return
+}
+
+// IntoObject injects instance into the tagged field with `inject:"instanceName"`
+func (i *inject) IntoObject(object interface{}) (err error) {
+	//
+	//err = annotation.InjectAll(object)
+	//if err != nil {
+	//	log.Debug(err)
+	//}
+
+	// inject into value
+	err = i.IntoObjectValue(reflect.ValueOf(object), "")
+
+	// inject into annotations
+	if err == nil {
+		annotations := annotation.GetAnnotations(object)
+		err = i.IntoAnnotations(annotations)
 	}
 	return
 }
@@ -146,7 +167,7 @@ func (i *inject) convert(f reflect.StructField, src interface{}) (fov reflect.Va
 			fov = reflect.ValueOf(sv)
 		}
 	}
-	log.Debugf("Injected slice %v.(%v) into %v.%v", src, fov.Type(), fov.Type(), f.Name)
+	//log.Debugf("Injected slice %v.(%v) into %v.%v", src, fov.Type(), fov.Type(), f.Name)
 	return
 }
 
@@ -194,11 +215,11 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 		}
 
 		// set field object
-		var fieldObj reflect.Value
+		var fieldObjValue reflect.Value
 		if obj.IsValid() && obj.Kind() == reflect.Struct {
 			// TODO: consider embedded property
 			//log.Debugf("inject: %v.%v", obj.Type(), f.Name)
-			fieldObj = obj.FieldByName(f.Name)
+			fieldObjValue = obj.FieldByName(f.Name)
 		}
 
 		// TODO: assume that the f.Name of value and inject tag is not the same
@@ -214,10 +235,10 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 		}
 
 		// assign value to struct field
-		if injectedObject != nil && fieldObj.CanSet() {
+		if injectedObject != nil && fieldObjValue.CanSet() {
 			fov := i.convert(f, injectedObject)
-			if fov.Type().AssignableTo(fieldObj.Type()) {
-				fieldObj.Set(fov)
+			if fov.Type().AssignableTo(fieldObjValue.Type()) {
+				fieldObjValue.Set(fov)
 			//} else {
 			//	log.Errorf("unmatched type %v against %v", fov.Type(), fieldObj.Type())
 			}
@@ -225,12 +246,18 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 
 		//log.Debugf("- kind: %v, %v, %v, %v", obj.Kind(), object.Type(), fieldObj.Type(), f.Name)
 		//log.Debugf("isValid: %v, canSet: %v", fieldObj.IsValid(), fieldObj.CanSet())
-		filedObject := reflect.Indirect(fieldObj)
+		filedObject := reflect.Indirect(fieldObjValue)
 		filedKind := filedObject.Kind()
 		canNested := filedKind == reflect.Struct
-		if canNested && fieldObj.IsValid() && fieldObj.CanSet() && filedObject.Type() != obj.Type() {
-			err = i.IntoObjectValue(fieldObj, prop, tags...)
+		if canNested && fieldObjValue.IsValid() && fieldObjValue.CanSet() && filedObject.Type() != obj.Type() {
+			err = i.IntoObjectValue(fieldObjValue, prop, tags...)
 		}
+	}
+
+	//inject property set
+	if atFields := annotation.FindAll(object, at.ConfigurationProperties{}); len(atFields) > 0 {
+		obj := object.Interface()
+		err = i.factory.Builder().Load(obj)
 	}
 	return err
 }
@@ -285,7 +312,7 @@ func (i *inject) IntoFunc(object interface{}) (retVal interface{}, err error) {
 
 			paramValue := reflect.Indirect(val)
 			if val.IsValid() && paramValue.IsValid() && paramValue.Kind() == reflect.Struct {
-				err = i.IntoObjectValue(val, "")
+				err = i.IntoObject(val.Interface())
 			}
 		}
 		results := fn.Call(inputs)
@@ -320,7 +347,7 @@ func (i *inject) IntoMethod(object interface{}, m interface{}) (retVal interface
 
 				paramObject := reflect.Indirect(val)
 				if val.IsValid() && paramObject.IsValid() && paramObject.Kind() == reflect.Struct {
-					err = i.IntoObjectValue(val, "")
+					err = i.IntoObject(val.Interface())
 				}
 			}
 			results := method.Func.Call(inputs)

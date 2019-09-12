@@ -268,7 +268,7 @@ func TestBuilderInit(t *testing.T) {
 
 func TestBuilderSave(t *testing.T) {
 	b := NewBuilder(nil,
-		filepath.Join(os.TempDir(), "config"),
+		filepath.Join(os.TempDir(), "test-save"),
 		"foo",
 		"yaml",
 		customProps)

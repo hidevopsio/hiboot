@@ -368,7 +368,6 @@ func setFactory(t *testing.T, configDir string, customProperties cmap.Concurrent
 	io.ChangeWorkDir(os.TempDir())
 
 	configPath := filepath.Join(os.TempDir(), "config")
-	os.Remove(filepath.Join(configPath, "foo.yaml"))
 	fakeFile := "application.yml"
 	os.Remove(filepath.Join(configPath, fakeFile))
 	fakeContent :=
@@ -401,8 +400,8 @@ func setFactory(t *testing.T, configDir string, customProperties cmap.Concurrent
 }
 
 func TestConfigurableFactory(t *testing.T) {
-	customProperties := cmap.New()
-	f := setFactory(t, "mercury", customProperties)
+	defaultProperties := cmap.New()
+	f := setFactory(t, "mercury", defaultProperties)
 
 	var err error
 
@@ -417,12 +416,12 @@ func TestConfigurableFactory(t *testing.T) {
 		os.Setenv(autoconfigure.EnvAppProfilesActive, profile)
 	})
 
-	os.Setenv(autoconfigure.EnvAppProfilesActive, profile)
-	customProperties.Set(autoconfigure.PropAppProfilesActive, "dev")
+	err = os.Setenv(autoconfigure.EnvAppProfilesActive, profile)
+	assert.Equal(t, nil, err)
 	t.Run("should build app config", func(t *testing.T) {
 		sc, err := f.BuildProperties()
 		assert.Equal(t, nil, err)
-		assert.Equal(t, "dev", sc.App.Profiles.Active)
+		assert.Equal(t, profile, sc.App.Profiles.Active)
 		// restore profile
 		os.Setenv(autoconfigure.EnvAppProfilesActive, profile)
 	})

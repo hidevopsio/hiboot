@@ -121,10 +121,10 @@ func (f *configurableFactory) BuildProperties() (systemConfig *system.Configurat
 	if profile == "" {
 		profile = defaultProfileName
 	}
-	f.builder.SetProperty(PropAppProfilesActive, profile)
+	f.builder.SetDefaultProperty(PropAppProfilesActive, profile)
 
-	for prop, val := range f.CustomProperties() {
-		f.builder.SetProperty(prop, val)
+	for prop, val := range f.DefaultProperties() {
+		f.builder.SetDefaultProperty(prop, val)
 	}
 
 	_, err = f.builder.Build(profile)
@@ -137,7 +137,9 @@ func (f *configurableFactory) BuildProperties() (systemConfig *system.Configurat
 		f.systemConfig = systemConfig
 	}
 
+	//load system properties
 	allProperties := f.GetInstances(at.ConfigurationProperties{})
+	log.Debug(len(allProperties))
 	for _, properties := range allProperties {
 		_ = f.builder.Load(properties.MetaObject)
 	}
@@ -158,7 +160,9 @@ func (f *configurableFactory) Build(configs []*factory.MetaData) {
 
 	f.build(f.configureContainer)
 
+	// load properties again
 	allProperties := f.GetInstances(at.ConfigurationProperties{})
+	log.Debug(len(allProperties))
 	for _, properties := range allProperties {
 		_ = f.builder.Load(properties.MetaObject)
 	}

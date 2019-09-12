@@ -11,7 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//go:generate statik -src=./static
 
+// package web_test provides web uint tests
 package web_test
 
 import (
@@ -21,7 +23,9 @@ import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/app/web/context"
+	_ "hidevops.io/hiboot/pkg/app/web/statik"
 	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
 	//_ "hidevops.io/hiboot/pkg/starter/actuator"
@@ -661,7 +665,7 @@ func TestWebApplication(t *testing.T) {
 
 	t.Run("should parse request body GET /foo/err", func(t *testing.T) {
 		testApp.Get("/foo/err").
-			Expect().Status(http.StatusInternalServerError)
+			Expect().Status(http.StatusOK)
 	})
 
 	t.Run("should get magic number GET /foo/magic", func(t *testing.T) {
@@ -826,17 +830,17 @@ func TestWebApplication(t *testing.T) {
 
 	t.Run("should return integer", func(t *testing.T) {
 		testApp.Get("/foo/integer").
-			Expect().Status(http.StatusInternalServerError)
+			Expect().Status(http.StatusOK)
 	})
 
 	t.Run("should return integer pointer", func(t *testing.T) {
 		testApp.Get("/foo/intPointer").
-			Expect().Status(http.StatusInternalServerError)
+			Expect().Status(http.StatusOK)
 	})
 
 	t.Run("should return integer nil pointer", func(t *testing.T) {
 		testApp.Get("/foo/intNilPointer").
-			Expect().Status(http.StatusInternalServerError)
+			Expect().Status(http.StatusOK)
 	})
 
 	t.Run("should return error message", func(t *testing.T) {
@@ -956,8 +960,7 @@ func (m *fooMiddleware) Logging( at struct{at.MiddlewareHandler `value:"/" `}, c
 
 type CustomResponse struct {
 	at.ResponseBody
-	Code int `json:"code"`
-	Message string `json:"message"`
+	model.BaseResponseInfo
 	Data interface{} `json:"data"`
 }
 
@@ -974,14 +977,23 @@ func newCustomRouterController() *customRouterController {
 func (c *customRouterController) PathVariable(
 	at struct {
 	// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
-	at.GetMapping `value:"/{id}/and/{name}"`
+	at.GetMapping `value:"/{id}/name/{name}"`
 }, id int, name string) (response *CustomResponse, err error) {
 	response = new(CustomResponse)
 	log.Infof("PathParamIdAndName: %v", at.Value)
+	switch id {
+	case 0:
+		response.Code = http.StatusNotFound
+		err = fmt.Errorf("not found")
+	case 1:
+		err = fmt.Errorf("wrong id")
+	case 2:
+	default:
+		response.Code = http.StatusOK
+		response.Message = "Success"
+		response.Data = fmt.Sprintf("https://hidevops.io/%v/%v", id, name)
+	}
 
-	response.Code = http.StatusOK
-	response.Message = "Success"
-	response.Data = fmt.Sprintf("https://hidevops.io/%v/%v", id, name)
 	return
 }
 
@@ -1055,7 +1067,23 @@ func TestCustomRouter(t *testing.T) {
 		SetProperty("server.context_path", "/test").
 		Run(t)
 
-	testApp.Get("/test/custom/123/and/hiboot").Expect().Status(http.StatusOK)
+	testApp.Get("/test/custom/123/name/hiboot").Expect().Status(http.StatusOK)
+	testApp.Get("/test/custom/0/name/hiboot").Expect().Status(http.StatusNotFound)
+	testApp.Get("/test/custom/1/name/hiboot").Expect().Status(http.StatusInternalServerError)
+	testApp.Get("/test/custom/2/name/hiboot").Expect().Status(http.StatusOK)
+}
+
+// test HttpMethodSubscriber
+type fakeSubscriber struct {
+	at.HttpMethodSubscriber
+}
+
+func newFakeSubscriber() *fakeSubscriber {
+	return &fakeSubscriber{}
+}
+
+func (s *fakeSubscriber) Subscribe(atc *annotation.Annotations, atm *annotation.Annotations)  {
+	log.Debug("subscribe")
 }
 
 func TestMiddlewareAnnotation(t *testing.T) {
@@ -1065,12 +1093,13 @@ func TestMiddlewareAnnotation(t *testing.T) {
 		newConditionalFakeJwtMiddleware,
 		newJwtAuthTestController,
 		newRegularTestController,
-		newMethodConditionalFakeJwtMiddleware)
+		newMethodConditionalFakeJwtMiddleware,
+		newFakeSubscriber)
 	testApp := web.NewTestApp(newCustomRouterController).
 		Run(t)
 
 	t.Run("should get resource from custom controller", func(t *testing.T) {
-		testApp.Get("/custom/123/and/hiboot").
+		testApp.Get("/custom/123/name/hiboot").
 			Expect().Status(http.StatusOK)
 	})
 
@@ -1107,4 +1136,48 @@ func TestMiddlewareAnnotation(t *testing.T) {
 			Expect().Status(http.StatusUnauthorized)
 	})
 
+}
+
+// --- test file server
+type publicTestController struct {
+	at.RestController
+	at.RequestMapping `value:"/public"`
+}
+
+func newPublicTestController() *publicTestController {
+	return &publicTestController{}
+}
+
+// UI serve static resource via context StaticResource method
+func (c *publicTestController) UI(at struct{ at.GetMapping `value:"/ui/*"`; at.FileServer `value:"/ui"` }, ctx context.Context) {
+	return
+}
+
+// UI serve static resource via context StaticResource method
+func (c *publicTestController) UIIndex(at struct{ at.GetMapping `value:"/ui"`; at.FileServer `value:"/ui"` }, ctx context.Context) {
+	return
+}
+
+// UI serve static resource via context StaticResource method
+func (c *publicTestController) NotFound(at struct{ at.GetMapping `value:"/foo"`; at.FileServer `value:"/ui"` }, ctx context.Context) {
+	ctx.WrapHandler( http.NotFoundHandler() )
+}
+
+func TestController(t *testing.T) {
+	testApp := web.NewTestApp(t, newPublicTestController).Run(t)
+
+	t.Run("should get index.html ", func(t *testing.T) {
+		testApp.Get("/public/ui").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should get hello.txt ", func(t *testing.T) {
+		testApp.Get("/public/ui/hello.txt").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should report not found ", func(t *testing.T) {
+		testApp.Get("/public/foo").
+			Expect().Status(http.StatusNotFound)
+	})
 }

@@ -17,6 +17,7 @@
 package system
 
 import (
+	"github.com/hidevopsio/mapstructure"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
@@ -38,28 +39,47 @@ type ConfigFile struct{
 
 
 type propertyBuilder struct {
+	at.Qualifier `value:"system.builder"`
 	*viper.Viper
 	ConfigFile
-	configuration    interface{}
-	customProperties map[string]interface{}
-	profiles         []string
+	configuration     interface{}
+	defaultProperties map[string]interface{}
+	profiles          []string
+	merge             bool
 }
 
 
 // NewBuilder is the constructor of system.Builder
 func NewPropertyBuilder(path string, customProperties map[string]interface{}) Builder {
-	return &propertyBuilder{
-		ConfigFile: ConfigFile{path: path},
-		Viper:            viper.New(),
-		customProperties: customProperties,
+	b := &propertyBuilder{
+		ConfigFile:        ConfigFile{path: path},
+		Viper:             viper.New(),
+		defaultProperties: customProperties,
+	}
+	return b
+}
+
+
+// setCustomPropertiesFromArgs returns application config
+func (b *propertyBuilder) setCustomPropertiesFromArgs() {
+	log.Println(os.Args)
+	for _, val := range os.Args {
+		prefix := val[:2]
+		if prefix == "--" {
+			kv := val[2:]
+			kvPair := strings.Split(kv, "=")
+			// --property equal to --property=true
+			if len(kvPair) == 1 {
+				kvPair = append(kvPair, "true")
+			}
+			b.Set(kvPair[0], kvPair[1])
+		}
 	}
 }
 
 // New create new viper instance
 func (b *propertyBuilder) readConfig(path, file, ext string) (err error) {
 	log.Debugf("file: %v%v.%v", path, file, ext)
-
-	viper.Reset()
 	b.AutomaticEnv()
 	viperReplacer := strings.NewReplacer(".", "_")
 	b.SetEnvKeyReplacer(viperReplacer)
@@ -67,8 +87,12 @@ func (b *propertyBuilder) readConfig(path, file, ext string) (err error) {
 	b.AddConfigPath(path)
 	b.SetConfigName(file)
 	b.SetConfigType(ext)
-
-	err = b.MergeInConfig()
+	if !b.merge {
+		b.merge = true
+		err = b.ReadInConfig()
+	} else {
+		err = b.MergeInConfig()
+	}
 	return
 }
 
@@ -178,9 +202,12 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 	}
 
 	// set custom properties
-	for key, value := range b.customProperties {
-		b.SetProperty(key, value)
+	for key, value := range b.defaultProperties {
+		b.SetDefaultProperty(key, value)
 	}
+
+	os.Args = append(os.Args, "--logging.level=debug", "--foo.bar")
+	b.setCustomPropertiesFromArgs()
 
 	// iterate all and replace reference values or env
 	allKeys := b.AllKeys()
@@ -198,13 +225,16 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 }
 
 // Read single file
-func (b *propertyBuilder) Load(properties interface{}) (err error) {
-	ann, ok := annotation.GetField(properties, at.ConfigurationProperties{})
-	if ok {
-		prefix := ann.StructField.Tag.Get("value")
+func (b *propertyBuilder) Load(properties interface{}, opts ...func (*mapstructure.DecoderConfig)) (err error) {
+	ann := annotation.GetAnnotation(properties, at.ConfigurationProperties{})
+	if ann != nil {
+		prefix := ann.Field.StructField.Tag.Get("value")
+
 		allSettings := b.AllSettings()
 		settings := allSettings[prefix]
-		err = mapstruct.Decode(properties, settings)
+		if settings != nil {
+			err = mapstruct.Decode(properties, settings, opts...)
+		}
 	}
 	return
 }
@@ -258,6 +288,32 @@ func (b *propertyBuilder) GetProperty(name string) (retVal interface{}) {
 	retVal = b.Get(name)
 	return
 }
+//
+//func (b *propertyBuilder) updateProperty(name string, val interface{}) (retVal interface{})  {
+//	// TODO: for debug only, TBD
+//	if name == "swagger" {
+//		log.Debug(name)
+//	}
+//	original := b.Get(name)
+//	// convert struct to map
+//	var dm = make(map[string]interface{})
+//	sm, ok := mapstruct.DecodeStructToMap(val)
+//	if ok {
+//		if original != nil {
+//			// copy original map to the new map
+//			copier.CopyMap(dm, original.(map[string]interface{}))
+//			// copy new src map to dest map
+//			copier.CopyMap(dm, sm, copier.IgnoreEmptyValue)
+//			// assign dest map to retVal
+//			retVal = dm
+//		} else {
+//			retVal = sm
+//		}
+//	} else {
+//		retVal = val
+//	}
+//	return
+//}
 
 func (b *propertyBuilder) SetProperty(name string, val interface{}) Builder {
 	b.Set(name, val)
@@ -265,7 +321,6 @@ func (b *propertyBuilder) SetProperty(name string, val interface{}) Builder {
 }
 
 func (b *propertyBuilder) SetDefaultProperty(name string, val interface{}) Builder {
-	// TODO: bug ...
 	b.SetDefault(name, val)
 	return b
 }

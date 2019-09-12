@@ -706,28 +706,32 @@ func TestInjectAnnotation(t *testing.T) {
 	var att struct{
 		at.GetMapping `value:"/path/to/api"`
 		at.RequestMapping `value:"/parent/path"`
-		at.ApiResponse200 `value:"successfully get resource"`
-		at.ApiResponse404 `value:"resource is not found"`
 		at.BeforeMethod
+		Children struct{
+			at.Parameter `description:"testing params"`
+		}
 	}
-	annotations := annotation.GetFields(&att)
-	for _, a := range annotations {
-		err := annotation.InjectIntoField(a)
-		assert.Equal(t, nil, err)
 
-		err = injecting.IntoObjectValue(a.Value.Addr(), "")
+	t.Run("should inject into annotations", func(t *testing.T) {
+		annotations := annotation.GetAnnotations(&att)
+		err := injecting.IntoAnnotations(annotations)
 		assert.Equal(t, nil, err)
-	}
-	log.Debugf("final result: %v", att)
-	assert.Equal(t, "GET", att.Method)
-	assert.Equal(t, "/path/to/api", att.GetMapping.Value)
-	assert.Equal(t, "/parent/path", att.RequestMapping.Value)
-	assert.Equal(t, 200, att.ApiResponse200.Code)
-	assert.Equal(t, 404, att.ApiResponse404.Code)
+		assert.Equal(t, nil, err)
+		log.Debugf("final result: %v", att)
+		assert.Equal(t, "GET", att.Method)
+		assert.Equal(t, "/path/to/api", att.GetMapping.Value)
+		assert.Equal(t, "/parent/path", att.RequestMapping.Value)
+	})
+
+	t.Run("should report error when inject into nil", func(t *testing.T) {
+		annotations := annotation.GetAnnotations(nil)
+		err := injecting.IntoAnnotations(annotations)
+		assert.Equal(t, inject.ErrAnnotationsIsNil, err)
+	})
 
 	t.Run("should find all annotations that inherit form at.HttpMethod{}", func(t *testing.T) {
-		found := annotation.Find(&struct{at.BeforeMethod}{}, at.HttpMethod{})
+		found := annotation.FindAll(&struct{at.BeforeMethod}{}, at.HttpMethod{})
 		assert.Equal(t, 1, len(found))
-		assert.Equal(t, "BeforeMethod", found[0].StructField.Name)
+		assert.Equal(t, "BeforeMethod", found[0].Field.StructField.Name)
 	})
 }

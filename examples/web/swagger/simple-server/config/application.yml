@@ -1,0 +1,9 @@
+# config file for testing
+# filename should be application.yml
+
+app:
+  project: examples-swagger
+  name: simple-server
+
+logging:
+  level: info

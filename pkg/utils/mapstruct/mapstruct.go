@@ -16,16 +16,31 @@
 package mapstruct
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/mitchellh/mapstructure"
+	"github.com/hidevopsio/mapstructure"
+	"hidevops.io/hiboot/pkg/utils/reflector"
+	"reflect"
 )
 
-// Decode decode (convert) map to struct
-func Decode(to interface{}, from interface{}) error {
+func WithSquash(config *mapstructure.DecoderConfig) {
+	config.Squash = true
+}
 
+func WithWeaklyTypedInput(config *mapstructure.DecoderConfig) {
+	config.WeaklyTypedInput = true
+}
+
+// Decode decode (convert) map to struct
+func Decode(to interface{}, from interface{}, opts ...func (*mapstructure.DecoderConfig) ) error {
 	config := &mapstructure.DecoderConfig{
 		WeaklyTypedInput: true,
 		Result:           to,
+		TagName:          "json",
+	}
+
+	for _, opt := range opts {
+		opt(config)
 	}
 
 	decoder, err := mapstructure.NewDecoder(config)
@@ -38,4 +53,21 @@ func Decode(to interface{}, from interface{}) error {
 	}
 
 	return decoder.Decode(from)
+}
+
+// DecodeStructToMap
+// TODO: should improve the performance
+func DecodeStructToMap(val interface{}) (sm map[string]interface{}, ok bool) {
+	sv := reflector.IndirectValue(val)
+	sk := sv.Kind()
+	if sk == reflect.Struct {
+		// convert object to []byte
+		bs, err := json.Marshal(val)
+		if err == nil {
+			// define new map sm, unmarshal bs to sm
+			err = json.Unmarshal(bs, &sm)
+			ok = true
+		}
+	}
+	return
 }
