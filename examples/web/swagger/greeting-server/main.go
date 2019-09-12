@@ -18,7 +18,7 @@ const (
 )
 
 func init() {
-	app.Register(swagger.OpenAPIDefinitionBuilder().
+	app.Register(swagger.ApiInfoBuilder().
 		Title("HiBoot Swagger Demo Application - Greeting Server").
 		Description("Greeting Server is an application that demonstrate the usage of Swagger Annotations"),
 		// alternatively, you can set below properties by using SetProperty() in main, config/application.yml or program arguments to take advantage of HiBoot DI

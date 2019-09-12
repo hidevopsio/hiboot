@@ -20,21 +20,21 @@ import (
 	"hidevops.io/hiboot/pkg/system"
 )
 
-type OpenAPIDefinitionBuilderInterface interface {
-	Title(value string) OpenAPIDefinitionBuilderInterface
-	Description(value string) OpenAPIDefinitionBuilderInterface
-	TermsOfServiceUrl(value string) OpenAPIDefinitionBuilderInterface
-	Version(value string) OpenAPIDefinitionBuilderInterface
-	ContactName(value string) OpenAPIDefinitionBuilderInterface
-	ContactEmail(value string) OpenAPIDefinitionBuilderInterface
-	ContactURL(value string) OpenAPIDefinitionBuilderInterface
-	Contact(value Contact) OpenAPIDefinitionBuilderInterface
-	LicenseName(value string) OpenAPIDefinitionBuilderInterface
-	LicenseURL(value string) OpenAPIDefinitionBuilderInterface
-	License(value License) OpenAPIDefinitionBuilderInterface
-	Schemes(values ...string) OpenAPIDefinitionBuilderInterface
-	Host(values string) OpenAPIDefinitionBuilderInterface
-	BasePath(values string) OpenAPIDefinitionBuilderInterface
+type ApiInfoBuilderInterface interface {
+	Title(value string) ApiInfoBuilderInterface
+	Description(value string) ApiInfoBuilderInterface
+	TermsOfServiceUrl(value string) ApiInfoBuilderInterface
+	Version(value string) ApiInfoBuilderInterface
+	ContactName(value string) ApiInfoBuilderInterface
+	ContactEmail(value string) ApiInfoBuilderInterface
+	ContactURL(value string) ApiInfoBuilderInterface
+	Contact(value Contact) ApiInfoBuilderInterface
+	LicenseName(value string) ApiInfoBuilderInterface
+	LicenseURL(value string) ApiInfoBuilderInterface
+	License(value License) ApiInfoBuilderInterface
+	Schemes(values ...string) ApiInfoBuilderInterface
+	Host(values string) ApiInfoBuilderInterface
+	BasePath(values string) ApiInfoBuilderInterface
 }
 
 const (
@@ -52,7 +52,7 @@ type License struct {
 	URL  string `json:"url,omitempty"`
 }
 
-type openAPIDefinition struct {
+type apiInfoBuilder struct {
 	at.ConfigurationProperties `value:"swagger"`
 	spec.Swagger
 
@@ -60,8 +60,8 @@ type openAPIDefinition struct {
 	AppVersion   string `value:"${app.version}"`
 }
 
-func OpenAPIDefinitionBuilder() OpenAPIDefinitionBuilderInterface {
-	return &openAPIDefinition{
+func ApiInfoBuilder() ApiInfoBuilderInterface {
+	return &apiInfoBuilder{
 		Swagger: spec.Swagger{
 			VendorExtensible: spec.VendorExtensible{},
 			SwaggerProps: spec.SwaggerProps{
@@ -76,92 +76,92 @@ func OpenAPIDefinitionBuilder() OpenAPIDefinitionBuilderInterface {
 	}
 }
 
-func (b *openAPIDefinition) Title(value string) OpenAPIDefinitionBuilderInterface {
+func (b *apiInfoBuilder) Title(value string) ApiInfoBuilderInterface {
 	b.Swagger.SwaggerProps.Info.Title = value
 	return b
 }
 
-func (b *openAPIDefinition) Description(value string) OpenAPIDefinitionBuilderInterface {
+func (b *apiInfoBuilder) Description(value string) ApiInfoBuilderInterface {
 	b.Swagger.SwaggerProps.Info.Description = value
 	return b
 }
 
-func (b *openAPIDefinition) TermsOfServiceUrl(value string) OpenAPIDefinitionBuilderInterface {
+func (b *apiInfoBuilder) TermsOfServiceUrl(value string) ApiInfoBuilderInterface {
 	b.Swagger.SwaggerProps.Info.TermsOfService = value
 	return b
 }
 
-func (b *openAPIDefinition) Version(value string) OpenAPIDefinitionBuilderInterface {
+func (b *apiInfoBuilder) Version(value string) ApiInfoBuilderInterface {
 	b.Swagger.SwaggerProps.Info.Version = value
 	return b
 }
 
-func (b *openAPIDefinition) Host(values string) OpenAPIDefinitionBuilderInterface {
+func (b *apiInfoBuilder) Host(values string) ApiInfoBuilderInterface {
 	b.Swagger.SwaggerProps.Host = values
 	return b
 }
 
-func (b *openAPIDefinition) BasePath(values string) OpenAPIDefinitionBuilderInterface {
+func (b *apiInfoBuilder) BasePath(values string) ApiInfoBuilderInterface {
 	b.Swagger.SwaggerProps.BasePath = values
 	return b
 }
 
-func (b *openAPIDefinition) Schemes(values ...string) OpenAPIDefinitionBuilderInterface {
+func (b *apiInfoBuilder) Schemes(values ...string) ApiInfoBuilderInterface {
 	b.Swagger.SwaggerProps.Schemes = values
 	return b
 }
 
 
-func (b *openAPIDefinition) ContactName(value string) OpenAPIDefinitionBuilderInterface {
+func (b *apiInfoBuilder) ContactName(value string) ApiInfoBuilderInterface {
 	b.ensureContact()
 	b.Swagger.SwaggerProps.Info.Contact.Name = value
 	return b
 }
 
-func (b *openAPIDefinition) ensureContact() {
+func (b *apiInfoBuilder) ensureContact() {
 	if b.Swagger.SwaggerProps.Info.Contact == nil {
 		b.Swagger.SwaggerProps.Info.Contact = &spec.ContactInfo{}
 	}
 }
 
-func (b *openAPIDefinition) ContactEmail(value string) OpenAPIDefinitionBuilderInterface {
+func (b *apiInfoBuilder) ContactEmail(value string) ApiInfoBuilderInterface {
 	b.ensureContact()
 	b.Swagger.SwaggerProps.Info.Contact.Email = value
 	return b
 }
 
-func (b *openAPIDefinition) ContactURL(value string) OpenAPIDefinitionBuilderInterface {
+func (b *apiInfoBuilder) ContactURL(value string) ApiInfoBuilderInterface {
 	b.ensureContact()
 	b.Swagger.SwaggerProps.Info.Contact.URL = value
 	return b
 }
 
-func (b *openAPIDefinition) Contact(value Contact) OpenAPIDefinitionBuilderInterface {
+func (b *apiInfoBuilder) Contact(value Contact) ApiInfoBuilderInterface {
 	b.ContactName(value.Name)
 	b.ContactEmail(value.Email)
 	b.ContactURL(value.URL)
 	return b
 }
 
-func (b *openAPIDefinition) ensureLicense() {
+func (b *apiInfoBuilder) ensureLicense() {
 	if b.Swagger.SwaggerProps.Info.License == nil {
 		b.Swagger.SwaggerProps.Info.License = &spec.License{}
 	}
 }
 
-func (b *openAPIDefinition) LicenseName(value string) OpenAPIDefinitionBuilderInterface {
+func (b *apiInfoBuilder) LicenseName(value string) ApiInfoBuilderInterface {
 	b.ensureLicense()
 	b.Swagger.SwaggerProps.Info.License.Name = value
 	return b
 }
 
-func (b *openAPIDefinition) LicenseURL(value string) OpenAPIDefinitionBuilderInterface {
+func (b *apiInfoBuilder) LicenseURL(value string) ApiInfoBuilderInterface {
 	b.ensureLicense()
 	b.Swagger.SwaggerProps.Info.License.URL = value
 	return b
 }
 
-func (b *openAPIDefinition) License(value License) OpenAPIDefinitionBuilderInterface {
+func (b *apiInfoBuilder) License(value License) ApiInfoBuilderInterface {
 	b.LicenseName(value.Name)
 	b.LicenseURL(value.URL)
 	return b

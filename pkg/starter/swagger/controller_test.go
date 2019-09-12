@@ -281,7 +281,7 @@ func (c *employeeController) AfterMethod(at struct{ at.AfterMethod }, ctx contex
 func TestController(t *testing.T) {
 	app.Register(
 		newEmployeeController,
-		swagger.OpenAPIDefinitionBuilder().
+		swagger.ApiInfoBuilder().
 			Title("HiBoot Swagger Demo Application - Simple CRUD Demo Application - 演示代码").
 			Description("Simple Server is an application that demonstrate the usage of Swagger Annotations"),
 	)
@@ -293,7 +293,7 @@ func TestController(t *testing.T) {
 		Run(t)
 
 	app.Register(
-		swagger.OpenAPIDefinitionBuilder().
+		swagger.ApiInfoBuilder().
 			Version("1.1.0").
 			Title("HiBoot Swagger Demo Application - Simple CRUD Demo Application - 演示代码").
 			Description("Simple Server is an application that demonstrate the usage of Swagger Annotations").

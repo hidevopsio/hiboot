@@ -13,16 +13,16 @@ type HttpMethod interface {
 
 type httpMethodSubscriber struct {
 	at.HttpMethodSubscriber `value:"swagger"`
-	pathsBuilder            *pathsBuilder
+	apiPathsBuilder         *apiPathsBuilder
 }
 
-func newHttpMethodSubscriber(openAPIDefinitionBuilder *pathsBuilder) *httpMethodSubscriber {
-	return &httpMethodSubscriber{pathsBuilder: openAPIDefinitionBuilder}
+func newHttpMethodSubscriber(openAPIDefinitionBuilder *apiPathsBuilder) *httpMethodSubscriber {
+	return &httpMethodSubscriber{apiPathsBuilder: openAPIDefinitionBuilder}
 }
 
 // TODO: use data instead of atController
 func (s *httpMethodSubscriber) Subscribe(atController *annotation.Annotations, atMethod *annotation.Annotations) {
-	s.pathsBuilder.Build(atController, atMethod)
+	s.apiPathsBuilder.Build(atController, atMethod)
 }
 
 func init() {
