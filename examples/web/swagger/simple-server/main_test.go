@@ -20,6 +20,11 @@ func TestController(t *testing.T) {
 			Expect().Status(http.StatusOK)
 	})
 
+	t.Run("should get employee ", func(t *testing.T) {
+		testApp.Get("/employee/999/name").
+			Expect().Status(http.StatusOK)
+	})
+
 	t.Run("should delete employee ", func(t *testing.T) {
 		testApp.Delete("/employee/333").
 			Expect().Status(http.StatusOK)

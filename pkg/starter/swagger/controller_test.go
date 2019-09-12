@@ -167,7 +167,7 @@ func (c *employeeController) UpdateEmployee(at struct {
 
 // GetEmployee
 func (c *employeeController) GetEmployee(at struct {
-	at.GetMapping `value:"/{id:int}"`
+	at.GetMapping `value:"/{id}"`
 	at.Operation  `operationId:"Get Employee" description:"This is get employees api"`
 	at.Produces   `values:"application/json"`
 	Parameters    struct {
@@ -205,6 +205,31 @@ func (c *employeeController) GetEmployee(at struct {
 	return
 }
 
+// GetEmployeeName
+func (c *employeeController) GetEmployeeName(at struct {
+	at.GetMapping `value:"/{id}/name"`
+	at.Operation  `operationId:"Get Employee Name" description:"This is the api that get employee name"`
+	at.Produces   `values:"text/plain"`
+	Parameters    struct {
+		ID struct {
+			at.Parameter `type:"integer" name:"id" in:"path" description:"Path variable employee ID" required:"true"`
+		}
+	}
+	Responses struct {
+		StatusOK struct {
+			at.Response `code:"200" description:"returns the employee name"`
+			at.Schema   `type:"string" description:"contains the actual employee name as plain text"`
+		}
+		StatusNotFound struct {
+			at.Response `code:"404" description:"employee is not found"`
+			at.Schema   `type:"string" description:"Report 'not found' error message"`
+		}
+	}
+}, id int) (name string) {
+	return "Donald Trump"
+}
+
+
 // ListEmployee
 func (c *employeeController) ListEmployee(at struct {
 	at.GetMapping `value:"/"`
@@ -231,7 +256,7 @@ func (c *employeeController) ListEmployee(at struct {
 // DeleteEmployee
 // at.DeleteEmployee is an annotation to define request mapping for http method DELETE,
 func (c *employeeController) DeleteEmployee(at struct {
-	at.DeleteMapping `value:"/{id:int}"`
+	at.DeleteMapping `value:"/{id}"`
 	at.Operation     `operationId:"Delete Employee" description:"This is delete employees api"`
 	at.Produces      `values:"application/json"`
 	Parameters       struct {
@@ -352,6 +377,14 @@ limitations under the License.
 		testApp.Get("/employee/123").
 			Expect().Status(http.StatusOK)
 	})
+
+
+	t.Run("should get employee ", func(t *testing.T) {
+		testApp.Get("/employee/123/name").
+			Expect().Status(http.StatusOK)
+	})
+
+
 
 	t.Run("should delete employee ", func(t *testing.T) {
 		testApp.Delete("/employee/333").
