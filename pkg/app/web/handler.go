@@ -62,6 +62,8 @@ type response struct {
 	kind     reflect.Kind
 	typ      reflect.Type
 	isResponseBody bool
+	implementsResponse bool
+	implementsResponseInfo bool
 }
 
 type handler struct {
@@ -243,6 +245,10 @@ func (h *handler) parseMethod(injectableObject *injectableObject, injectableMeth
 		if annotation.Contains(typ, at.ResponseBody{}) {
 			h.responses[i].isResponseBody = true
 		}
+		modelType := reflect.TypeOf(new(model.Response)).Elem()
+		h.responses[i].implementsResponse = typ.Implements(modelType)
+		modelType = reflect.TypeOf(new(model.ResponseInfo)).Elem()
+		h.responses[i].implementsResponseInfo = typ.Implements(modelType)
 	}
 
 	// check if configured annotation for starters
@@ -311,43 +317,39 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 	case map[string]interface{}:
 		ctx.JSON(respVal)
 	default:
-		if h.responses[0].isResponseBody {
-			if reflector.Implements(respVal, new(model.ResponseInfo)) {
-				response := respVal.(model.ResponseInfo)
-				if numOut >= 2 {
-					var respErr error
-					errVal := results[1]
-					if errVal.IsNil() {
-						respErr = nil
-					} else if errVal.Type().Name() == "error" {
-						respErr = results[1].Interface().(error)
-					}
-
-					if respErr == nil {
-						log.Debug(response.GetCode())
-						if response.GetCode() == 0 {
-							response.SetCode(http.StatusOK)
-						}
-						if response.GetMessage() == "" {
-							response.SetMessage(ctx.Translate(success))
-						}
-					} else {
-						if response.GetCode() == 0 {
-							response.SetCode(http.StatusInternalServerError)
-						}
-						// TODO: output error message directly? how about i18n
-						response.SetMessage(ctx.Translate(respErr.Error()))
-
-						// TODO: configurable status code in application.yml
-					}
+		if h.responses[0].implementsResponseInfo {
+			response := respVal.(model.ResponseInfo)
+			if numOut >= 2 {
+				var respErr error
+				errVal := results[1]
+				if errVal.IsNil() {
+					respErr = nil
+				} else if errVal.Type().Name() == "error" {
+					respErr = results[1].Interface().(error)
 				}
-				ctx.StatusCode(response.GetCode())
-				ctx.JSON(response)
-			} else {
-				ctx.JSON(respVal)
+
+				if respErr == nil {
+					log.Debug(response.GetCode())
+					if response.GetCode() == 0 {
+						response.SetCode(http.StatusOK)
+					}
+					if response.GetMessage() == "" {
+						response.SetMessage(ctx.Translate(success))
+					}
+				} else {
+					if response.GetCode() == 0 {
+						response.SetCode(http.StatusInternalServerError)
+					}
+					// TODO: output error message directly? how about i18n
+					response.SetMessage(ctx.Translate(respErr.Error()))
+
+					// TODO: configurable status code in application.yml
+				}
 			}
+			ctx.StatusCode(response.GetCode())
+			ctx.JSON(response)
 		} else {
-			ctx.ResponseError("response type is not implemented!", http.StatusInternalServerError)
+			ctx.JSON(respVal)
 		}
 	}
 	return
@@ -401,7 +403,7 @@ func (h *handler) call(ctx context.Context) {
 				inst = runtimeInstance.Get(req.fullName)
 			}
 			if inst == nil {
-				inst = h.factory.GetInstance(req.fullName)
+				inst = h.factory.GetInstance(req.fullName)  // TODO: primitive types does not need to get instance for the sake of performance
 			}
 			if inst != nil {
 				inputs[i] = reflect.ValueOf(inst)

@@ -664,7 +664,7 @@ func TestWebApplication(t *testing.T) {
 
 	t.Run("should parse request body GET /foo/err", func(t *testing.T) {
 		testApp.Get("/foo/err").
-			Expect().Status(http.StatusInternalServerError)
+			Expect().Status(http.StatusOK)
 	})
 
 	t.Run("should get magic number GET /foo/magic", func(t *testing.T) {
@@ -829,17 +829,17 @@ func TestWebApplication(t *testing.T) {
 
 	t.Run("should return integer", func(t *testing.T) {
 		testApp.Get("/foo/integer").
-			Expect().Status(http.StatusInternalServerError)
+			Expect().Status(http.StatusOK)
 	})
 
 	t.Run("should return integer pointer", func(t *testing.T) {
 		testApp.Get("/foo/intPointer").
-			Expect().Status(http.StatusInternalServerError)
+			Expect().Status(http.StatusOK)
 	})
 
 	t.Run("should return integer nil pointer", func(t *testing.T) {
 		testApp.Get("/foo/intNilPointer").
-			Expect().Status(http.StatusInternalServerError)
+			Expect().Status(http.StatusOK)
 	})
 
 	t.Run("should return error message", func(t *testing.T) {

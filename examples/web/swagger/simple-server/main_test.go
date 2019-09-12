@@ -1,11 +1,6 @@
 package main
 
 import (
-	"bytes"
-	"encoding/gob"
-	"encoding/json"
-	"github.com/go-openapi/spec"
-	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/app/web"
 	"net/http"
 	"testing"
@@ -25,6 +20,11 @@ func TestController(t *testing.T) {
 			Expect().Status(http.StatusOK)
 	})
 
+	t.Run("should delete employee ", func(t *testing.T) {
+		testApp.Delete("/employee/333").
+			Expect().Status(http.StatusOK)
+	})
+
 	t.Run("should report 404 when employee does not exist", func(t *testing.T) {
 		testApp.Get("/employee/100").
 			Expect().Status(http.StatusNotFound)
@@ -35,26 +35,78 @@ func TestController(t *testing.T) {
 			Expect().Status(http.StatusOK)
 	})
 
-}
+	t.Run("should update employee", func(t *testing.T) {
+		testApp.Put("/employee").
+			WithJSON(&UpdateEmployeeRequest{
+			Employee: Employee{
+				Id:        12345,
+				FirstName: "foo",
+				LastName:  "bar",
+				Manger: Manager{
+					ID:   23345,
+					Name: "baz",
+				},
+				Assets: []Asset{
+					{
+						ID:   1234,
+						Name: "abc",
+					},
+					{
+						ID:   5678,
+						Name: "def",
+					},
+				},
+			},
+		}).Expect().Status(http.StatusOK)
+	})
 
-func TestCloneRef(t *testing.T) {
-	var b bytes.Buffer
-	src := spec.MustCreateRef("#/definitions/test")
-	err := gob.NewEncoder(&b).Encode(&src)
-	if !assert.NoError(t, err) {
-		t.FailNow()
-	}
+	t.Run("should create employee by post /employee", func(t *testing.T) {
+		testApp.Post("/employee").
+			WithJSON(&CreateEmployeeRequest{
+			Employee: Employee{
+				Id:        12345,
+				FirstName: "foo",
+				LastName:  "bar",
+				Manger: Manager{
+					ID:   23345,
+					Name: "baz",
+				},
+				Assets: []Asset{
+					{
+						ID:   1234,
+						Name: "abc",
+					},
+					{
+						ID:   5678,
+						Name: "def",
+					},
+				},
+			},
+		}).Expect().Status(http.StatusOK)
+	})
 
-	var dst spec.Ref
-	err = gob.NewDecoder(&b).Decode(&dst)
-	if !assert.NoError(t, err) {
-		t.FailNow()
-	}
+	t.Run("should add asset", func(t *testing.T) {
+		testApp.Post("/employee/add-assets").
+			WithJSON([]*Asset{
+				{
+					ID: 1,
+					Name: "foo",
+				},
+				{
+					ID: 2,
+					Name: "bar",
+				},
+			}).Expect().Status(http.StatusOK)
+	})
 
-	jazon, err := json.Marshal(dst)
-	if !assert.NoError(t, err) {
-		t.FailNow()
-	}
+	t.Run("should report 500 error if create employee without request body", func(t *testing.T) {
+		testApp.Post("/employee").
+			Expect().Status(http.StatusInternalServerError)
+	})
 
-	assert.Equal(t, `{"$ref":"#/definitions/test"}`, string(jazon))
+	t.Run("should get employees", func(t *testing.T) {
+		testApp.Get("/employee").
+			Expect().Status(http.StatusOK)
+	})
+
 }

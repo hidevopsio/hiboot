@@ -23,17 +23,17 @@ type pathsBuilder struct {
 
 func newOpenAPIDefinitionBuilder(openAPIDefinition *openAPIDefinition) *pathsBuilder {
 	if openAPIDefinition.SystemServer != nil {
-		if openAPIDefinition.SwaggerProps.Host == "" {
+		if openAPIDefinition.SwaggerProps.Host == "" && openAPIDefinition.SystemServer.Host != "" {
 			openAPIDefinition.SwaggerProps.Host = openAPIDefinition.SystemServer.Host
 		}
-		if openAPIDefinition.SwaggerProps.BasePath == "" {
+		if openAPIDefinition.SwaggerProps.BasePath == "" && openAPIDefinition.SystemServer.ContextPath != "" {
 			openAPIDefinition.SwaggerProps.BasePath = openAPIDefinition.SystemServer.ContextPath
 		}
-		if openAPIDefinition.SwaggerProps.Schemes == nil {
+		if len(openAPIDefinition.SwaggerProps.Schemes) == 0 && len(openAPIDefinition.SystemServer.Schemes) > 0 {
 			openAPIDefinition.SwaggerProps.Schemes = openAPIDefinition.SystemServer.Schemes
 		}
 	}
-	if openAPIDefinition.Info.Version == "" &&  openAPIDefinition.AppVersion != "" {
+	if openAPIDefinition.Info.Version == "" && openAPIDefinition.AppVersion != "" {
 		openAPIDefinition.Info.Version = openAPIDefinition.AppVersion
 	}
 
@@ -73,11 +73,11 @@ func (b *pathsBuilder) buildSchemaArray(definition *spec.Schema, typ reflect.Typ
 	// array items
 	arrSchema := spec.Schema{}
 	arrType := typ.Elem()
-	b.buildSchema(&arrSchema, arrType)
+	b.buildSchemaProperty(&arrSchema, arrType)
 	definition.Items = &spec.SchemaOrArray{Schema: &arrSchema}
 }
 
-func (b *pathsBuilder) buildSchema(definition *spec.Schema, typ reflect.Type)  {
+func (b *pathsBuilder) buildSchemaProperty(definition *spec.Schema, typ reflect.Type)  {
 	kind := typ.Kind()
 	if kind == reflect.Ptr {
 		typ = reflector.IndirectType(typ)
@@ -128,7 +128,7 @@ func (b *pathsBuilder) buildSchemaObject(ps *spec.Schema, typ reflect.Type) {
 	ps.Type = spec.StringOrArray{"object"}
 	childSchema := annotation.GetAnnotation(typ, at.Schema{})
 	if childSchema != nil {
-		b.buildSchema(ps, typ)
+		b.buildSchemaProperty(ps, typ)
 	}
 }
 
@@ -146,12 +146,16 @@ func (b *pathsBuilder) getFieldName(f reflect.StructField) string {
 	return fieldName
 }
 
-func (b *pathsBuilder) buildSchemaBody(body *annotation.Annotation,) (schema *spec.Schema) {
-	atSchema := annotation.GetAnnotation(body.Parent.Interface, at.Schema{})
+func (b *pathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect.StructField) (schema *spec.Schema) {
+	if field == nil {
+		field = &ann.Field.StructField
+	}
+
+	atSchema := annotation.GetAnnotation(ann.Parent.Interface, at.Schema{})
 	err := annotation.Inject(atSchema)
 	if err == nil {
 		s := atSchema.Field.Value.Interface().(at.Schema)
-		ref := "#/definitions/" + body.Field.StructField.Name
+		ref := "#/definitions/" + field.Name
 		s.Ref = spec.MustCreateRef(ref)
 
 		// parse body schema and assign to definitions
@@ -161,8 +165,8 @@ func (b *pathsBuilder) buildSchemaBody(body *annotation.Annotation,) (schema *sp
 		}
 
 		definition := spec.Schema{}
-		b.buildSchema(&definition, body.Field.StructField.Type)
-		b.openAPIDefinition.Definitions[body.Field.StructField.Name] = definition
+		b.buildSchemaProperty(&definition, field.Type)
+		b.openAPIDefinition.Definitions[field.Name] = definition
 
 		schema = &s.Schema
 	}
@@ -172,16 +176,42 @@ func (b *pathsBuilder) buildSchemaBody(body *annotation.Annotation,) (schema *sp
 func (b *pathsBuilder) buildParameter(operation *spec.Operation, annotations *annotation.Annotations, a *annotation.Annotation) {
 	ao := a.Field.Value.Interface()
 	atParam := ao.(at.Parameter)
-	switch atParam.In {
-	case "body":
-		log.Debug("body")
-		body := annotation.Find(annotations, at.Schema{})
+	if atParam.In == "body" || atParam.In == "array" {
 
-		atParam.Parameter.Schema = b.buildSchemaBody(body)
+		schema := annotation.Find(annotations, at.Schema{})
+
+		if schema != nil {
+
+			field := b.findArrayField(schema)
+
+			atParam.Parameter.Schema = b.buildSchema(schema, field)
+		}
+
 	}
 
 	operation.Parameters = append(operation.Parameters, atParam.Parameter)
 	return
+}
+
+func (b *pathsBuilder) findArrayField(schema *annotation.Annotation) (field *reflect.StructField) {
+	parentType := schema.Parent.Type
+	var foundSchema bool
+	for i := 0; i < parentType.NumField(); i++ {
+		f := parentType.Field(i)
+		if f.Type == reflect.TypeOf(at.Schema{}) {
+			foundSchema = true
+			schemaField := schema.Parent.Value.FieldByName(f.Name)
+			atSchema := schemaField.Interface().(at.Schema)
+			foundSchema = atSchema.Value == "array"
+			continue
+		}
+
+		if foundSchema && f.Type.Kind() == reflect.Slice {
+			field = &f
+			break
+		}
+	}
+	return field
 }
 
 func (b *pathsBuilder) buildResponse(operation *spec.Operation, annotations *annotation.Annotations, a *annotation.Annotation) {
@@ -191,9 +221,12 @@ func (b *pathsBuilder) buildResponse(operation *spec.Operation, annotations *ann
 		operation.Responses = new(spec.Responses)
 		operation.Responses.StatusCodeResponses = make(map[int]spec.Response)
 	}
-	body := annotation.Find(annotations, at.Schema{})
-	if body != nil {
-		atResp.Response.Schema = b.buildSchemaBody(body)
+	schema := annotation.Find(annotations, at.Schema{})
+
+	if schema != nil {
+		field := b.findArrayField(schema)
+
+		atResp.Response.Schema = b.buildSchema(schema, field)
 	}
 
 	operation.Responses.StatusCodeResponses[atResp.Code] = atResp.Response

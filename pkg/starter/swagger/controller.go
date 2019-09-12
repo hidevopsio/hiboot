@@ -50,29 +50,27 @@ func (c *controller) loadDoc() (retVal []byte, err error) {
 
 func (c *controller) serve(ctx context.Context, docsPath string) {
 	b, err := c.loadDoc()
-	if err != nil {
-		return
+	if err == nil {
+		basePath := filepath.Join(c.openAPIDefinition.Swagger.BasePath, c.RequestMapping.Value)
+
+		handler := middleware.Redoc(middleware.RedocOpts{
+			BasePath: basePath,
+			SpecURL:  path.Join(basePath, "swagger.json"),
+			Path:     docsPath,
+		}, http.NotFoundHandler())
+
+		handler = handlers.CORS()(middleware.Spec(basePath, b, handler))
+
+		ctx.WrapHandler(handler)
 	}
-	basePath := filepath.Join(c.openAPIDefinition.Swagger.BasePath, c.RequestMapping.Value)
-
-	handler := middleware.Redoc(middleware.RedocOpts{
-		BasePath: basePath,
-		SpecURL:  path.Join(basePath, "swagger.json"),
-		Path:     docsPath,
-	}, http.NotFoundHandler())
-
-	handler = handlers.CORS()(middleware.Spec(basePath, b, handler))
-
-	ctx.WrapHandler(handler)
 }
 
 // UI serve static resource via context StaticResource method
 func (c *controller) Swagger(at struct{ at.GetMapping `value:"/swagger.json"` }) (response string) {
 	b, err := c.loadDoc()
-	if err != nil {
-		return
+	if err == nil {
+		response = string(b)
 	}
-	response = string(b)
 	return
 }
 

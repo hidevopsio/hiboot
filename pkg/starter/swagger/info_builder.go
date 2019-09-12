@@ -111,40 +111,58 @@ func (b *openAPIDefinition) Schemes(values ...string) OpenAPIDefinitionBuilderIn
 	return b
 }
 
+
 func (b *openAPIDefinition) ContactName(value string) OpenAPIDefinitionBuilderInterface {
+	b.ensureContact()
 	b.Swagger.SwaggerProps.Info.Contact.Name = value
 	return b
 }
 
+func (b *openAPIDefinition) ensureContact() {
+	if b.Swagger.SwaggerProps.Info.Contact == nil {
+		b.Swagger.SwaggerProps.Info.Contact = &spec.ContactInfo{}
+	}
+}
+
 func (b *openAPIDefinition) ContactEmail(value string) OpenAPIDefinitionBuilderInterface {
+	b.ensureContact()
 	b.Swagger.SwaggerProps.Info.Contact.Email = value
 	return b
 }
 
 func (b *openAPIDefinition) ContactURL(value string) OpenAPIDefinitionBuilderInterface {
+	b.ensureContact()
 	b.Swagger.SwaggerProps.Info.Contact.URL = value
 	return b
 }
 
 func (b *openAPIDefinition) Contact(value Contact) OpenAPIDefinitionBuilderInterface {
-	b.Swagger.SwaggerProps.Info.Contact.Name = value.Name
-	b.Swagger.SwaggerProps.Info.Contact.Email = value.Email
-	b.Swagger.SwaggerProps.Info.Contact.URL = value.URL
+	b.ContactName(value.Name)
+	b.ContactEmail(value.Email)
+	b.ContactURL(value.URL)
 	return b
 }
 
+func (b *openAPIDefinition) ensureLicense() {
+	if b.Swagger.SwaggerProps.Info.License == nil {
+		b.Swagger.SwaggerProps.Info.License = &spec.License{}
+	}
+}
+
 func (b *openAPIDefinition) LicenseName(value string) OpenAPIDefinitionBuilderInterface {
+	b.ensureLicense()
 	b.Swagger.SwaggerProps.Info.License.Name = value
 	return b
 }
 
 func (b *openAPIDefinition) LicenseURL(value string) OpenAPIDefinitionBuilderInterface {
+	b.ensureLicense()
 	b.Swagger.SwaggerProps.Info.License.URL = value
 	return b
 }
 
 func (b *openAPIDefinition) License(value License) OpenAPIDefinitionBuilderInterface {
-	b.Swagger.SwaggerProps.Info.License.Name = value.Name
-	b.Swagger.SwaggerProps.Info.License.URL = value.URL
+	b.LicenseName(value.Name)
+	b.LicenseURL(value.URL)
 	return b
 }

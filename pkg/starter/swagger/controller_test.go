@@ -1,26 +1,28 @@
-package main
+package swagger_test
 
 import (
 	"fmt"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/app/web/context"
+	"hidevops.io/hiboot/pkg/app/web/server"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
-	"hidevops.io/hiboot/pkg/starter/actuator"
-	"hidevops.io/hiboot/pkg/starter/logging"
 	"hidevops.io/hiboot/pkg/starter/swagger"
 	"net/http"
+	"testing"
+	"time"
 )
 
 type Asset struct {
-	at.Schema    `json:"-"`
-	ID int `schema:"The assert ID" json:"id"`
-	Name string `schema:"The assert name" json:"name"`
+	at.Schema `json:"-"`
+	ID        int    `schema:"The asset ID" json:"id"`
+	Name      string `schema:"The asset name" json:"name"`
 }
 
-type AddAssetsResponse struct {
+
+type AddAssertsResponse struct {
 	at.ResponseBody `json:"-"`
 	at.Schema       `json:"-"`
 
@@ -28,10 +30,11 @@ type AddAssetsResponse struct {
 	Data []*Asset `json:"data,omitempty" schema:"The employee data"`
 }
 
+
 type Manager struct {
 	at.Schema `json:"-"`
-	ID int `schema:"The manager ID" json:"id"`
-	Name string `schema:"The manager name of the employee" json:"name"`
+	ID        int    `schema:"The manager ID" json:"id"`
+	Name      string `schema:"The manager name of the employee" json:"name"`
 }
 
 type Employee struct {
@@ -39,15 +42,15 @@ type Employee struct {
 	Id        int     `schema:"The auto generated employee ID" json:"id"`
 	FirstName string  `schema:"The employee first name" json:"first_name"`
 	LastName  string  `schema:"The employee last name" json:"last_name"`
+	Email     string  `schema:"The email of the employee"`
 	Manger    Manager `schema:"The manager" json:"manger"`
 	Assets    []Asset `schema:"The assets list of the employee" json:"assets"`
 }
 
 type ErrorResponse struct {
-	at.Schema     `json:"-"`
+	at.Schema `json:"-"`
 	model.BaseResponseInfo
 }
-
 
 type UpdateEmployeeRequest struct {
 	at.RequestBody
@@ -61,7 +64,7 @@ type CreateEmployeeRequest struct {
 
 type EmployeeResponse struct {
 	at.ResponseBody `json:"-"`
-	at.Schema     `json:"-"`
+	at.Schema       `json:"-"`
 
 	model.BaseResponseInfo
 	Data *Employee `json:"data,omitempty" schema:"The employee data"`
@@ -69,7 +72,7 @@ type EmployeeResponse struct {
 
 type ListEmployeeResponse struct {
 	at.ResponseBody `json:"-"`
-	at.Schema     `json:"-"`
+	at.Schema       `json:"-"`
 	model.BaseResponse
 	Data []*Employee `json:"data,omitempty" schema:"The employee data list"`
 }
@@ -102,7 +105,7 @@ func newEmployeeController() *employeeController {
 
 // Before
 func (c *employeeController) BeforeMethod(at struct{ at.BeforeMethod }, ctx context.Context) {
-	log.Debugf("%v %v before method", ctx.GetCurrentRoute().Method(), ctx.GetCurrentRoute().Path())
+	log.Debug("before method")
 	ctx.Next()
 	return
 }
@@ -123,27 +126,23 @@ func (c *employeeController) CreateEmployee(at struct {
 			EmployeeResponse
 		}
 	}
-}, request *CreateEmployeeRequest) (response *EmployeeResponse, err error) {
-	response = new(EmployeeResponse)
+}, request *CreateEmployeeRequest) (response model.Response, err error) {
+	response = new(model.BaseResponse)
 
 	// Just for the demo purpose
 	request.Employee.Id = 654321
-	response.SetCode(http.StatusOK)
-	response.Data = &request.Employee
+	response.SetData(request.Employee)
 
-
-	log.Info(">>> employeeController.CreateEmployee() is called ...")
 	return
 }
-
 
 // GetEmployee
 func (c *employeeController) UpdateEmployee(at struct {
 	at.PutMapping `value:"/"`
-	at.Operation   `operationId:"Update Employee" description:"This is the employee update api"`
-	at.Consumes    `values:"application/json"`
-	at.Produces    `values:"application/json"`
-	Parameters     struct {
+	at.Operation  `operationId:"Update Employee" description:"This is the employee update api"`
+	at.Consumes   `values:"application/json"`
+	at.Produces   `values:"application/json"`
+	Parameters    struct {
 		at.Parameter `name:"employee" in:"body" description:"Employee request body" `
 		UpdateEmployeeRequest
 	}
@@ -247,11 +246,6 @@ func (c *employeeController) DeleteEmployee(at struct {
 	}
 }, id int) (response model.ResponseInfo, err error) {
 	response = new(model.BaseResponseInfo)
-	//for _, e := range c.dummyData {
-	//	if id == e.Id {
-	//		break
-	//	}
-	//}
 	return
 }
 
@@ -269,7 +263,7 @@ func (c *employeeController) AddEmployeeAsserts(at struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"returns a employee with ID"`
 			at.Schema `value:"array" description:"The assets response"`
-			assets []*Asset
+			Assets []*Asset
 		}
 	}
 }) (response model.ResponseInfo, err error) {
@@ -279,31 +273,129 @@ func (c *employeeController) AddEmployeeAsserts(at struct {
 
 // After
 func (c *employeeController) AfterMethod(at struct{ at.AfterMethod }, ctx context.Context) {
-	log.Debugf("%v %v after method", ctx.GetCurrentRoute().Method(), ctx.GetCurrentRoute().Path())
+	log.Debug("before method")
 	ctx.Next()
 	return
 }
 
-func init() {
+func TestController(t *testing.T) {
 	app.Register(
 		newEmployeeController,
+		swagger.OpenAPIDefinitionBuilder().
+			Title("HiBoot Swagger Demo Application - Simple CRUD Demo Application - 演示代码").
+			Description("Simple Server is an application that demonstrate the usage of Swagger Annotations"),
+	)
+	web.NewTestApp(t).
+		SetProperty(server.Schemes, "http,https").
+		SetProperty(server.Host, "localhost:8080").
+		SetProperty(server.ContextPath, "/v2").
+		SetProperty(app.Version, "v2").
+		Run(t)
+
+	app.Register(
 		swagger.OpenAPIDefinitionBuilder().
 			Version("1.1.0").
 			Title("HiBoot Swagger Demo Application - Simple CRUD Demo Application - 演示代码").
 			Description("Simple Server is an application that demonstrate the usage of Swagger Annotations").
 			Schemes("http").
 			Host("localhost:8080").
-			BasePath("/"),
-	)
-}
+			BasePath("/").Contact(swagger.Contact{
+			Name:  "foo",
+			URL:   "http://bar.com",
+			Email: "foo@bar.com",
+		}).License(swagger.License{
+			Name: "foo-lic",
+			URL:  "http://bar.com",
+		}).TermsOfServiceUrl(`
+Copyright 2018 John Deng (hi.devops.io@gmail.com).
 
-// Hiboot main function
-func main() {
-	// create new web application and run it
-	web.NewApplication().
-		SetProperty(app.ProfilesInclude,
-			actuator.Profile,
-			swagger.Profile,
-			logging.Profile,
-		).Run()
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+`),
+	)
+
+	time.Sleep(time.Second)
+	testApp := web.NewTestApp(t).Run(t)
+	employee := Employee{
+		Id:        12345,
+		FirstName: "foo",
+		LastName:  "bar",
+		Manger: Manager{
+			ID:   23345,
+			Name: "baz",
+		},
+		Assets: []Asset{
+			{
+				ID:   1234,
+				Name: "abc",
+			},
+			{
+				ID:   5678,
+				Name: "def",
+			},
+		},
+	}
+
+	t.Run("should get employee ", func(t *testing.T) {
+		testApp.Get("/employee/123").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should delete employee ", func(t *testing.T) {
+		testApp.Delete("/employee/333").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should report 404 when employee does not exist", func(t *testing.T) {
+		testApp.Get("/employee/100").
+			Expect().Status(http.StatusNotFound)
+	})
+
+	t.Run("should list employee", func(t *testing.T) {
+		testApp.Get("/employee").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should update employee", func(t *testing.T) {
+		testApp.Put("/employee").
+			WithJSON(&UpdateEmployeeRequest{
+				Employee: employee,
+			}).Expect().Status(http.StatusOK)
+	})
+	t.Run("should create employee", func(t *testing.T) {
+		testApp.Post("/employee").
+			WithJSON(&CreateEmployeeRequest{
+				Employee: employee,
+			}).Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should report 500 error if create employee without request body", func(t *testing.T) {
+		testApp.Post("/employee").
+			Expect().Status(http.StatusInternalServerError)
+	})
+
+	t.Run("should get employees", func(t *testing.T) {
+		testApp.Get("/employee").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should get swagger-ui", func(t *testing.T) {
+		testApp.Get("/swagger-ui").
+			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should get swagger.json", func(t *testing.T) {
+		testApp.Get("/swagger.json").
+			Expect().Status(http.StatusOK)
+	})
+
 }

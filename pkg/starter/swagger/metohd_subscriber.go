@@ -4,7 +4,6 @@ import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/inject/annotation"
-	"hidevops.io/hiboot/pkg/system"
 )
 
 type HttpMethod interface {
@@ -17,7 +16,7 @@ type httpMethodSubscriber struct {
 	pathsBuilder            *pathsBuilder
 }
 
-func newHttpMethodSubscriber(builder system.Builder, openAPIDefinitionBuilder *pathsBuilder) *httpMethodSubscriber {
+func newHttpMethodSubscriber(openAPIDefinitionBuilder *pathsBuilder) *httpMethodSubscriber {
 	return &httpMethodSubscriber{pathsBuilder: openAPIDefinitionBuilder}
 }
 
