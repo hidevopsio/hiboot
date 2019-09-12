@@ -8,5 +8,5 @@ type Annotation struct {
 type BaseAnnotation struct {
 	Annotation
 
-	Value string `json:"value"`
+	Value string `json:"value" atf:""`
 }

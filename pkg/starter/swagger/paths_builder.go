@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"time"
 )
 
 const refPrefix = "#/definitions/"
@@ -60,8 +61,9 @@ func newApiPathsBuilder(openAPIDefinition *apiInfoBuilder) *apiPathsBuilder {
 			"float32": "number",
 			"float64": "number",
 			"struct": "object",
-			"slice": "array",
+			"slice": "array", // TBD
 			"bool": "boolean",
+			"Time": "dateTime",
 		},
 	}
 }
@@ -69,6 +71,32 @@ func newApiPathsBuilder(openAPIDefinition *apiInfoBuilder) *apiPathsBuilder {
 func init() {
 	app.Register(newApiPathsBuilder)
 }
+
+func deepFields(reflectType reflect.Type) []reflect.StructField {
+	var fields []reflect.StructField
+
+	if reflectType = reflector.IndirectType(reflectType); reflectType.Kind() == reflect.Struct {
+		for i := 0; i < reflectType.NumField(); i++ {
+			v := reflectType.Field(i)
+
+			if annotation.IsAnnotation(v.Type) {
+				continue
+			}
+
+			if v.Anonymous {
+				vk :=  reflector.IndirectType(v.Type).Kind()
+				if vk == reflect.Struct || vk == reflect.Interface {
+					fields = append(fields, deepFields(v.Type)...)
+				}
+			} else {
+				fields = append(fields, v)
+			}
+		}
+	}
+
+	return fields
+}
+
 
 func (b *apiPathsBuilder) buildSchemaArray(definition *spec.Schema, typ reflect.Type)  {
 	definition.Type = spec.StringOrArray{"array"}
@@ -92,36 +120,66 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 		definition.Properties = make(map[string]spec.Schema)
 		definition.Type = spec.StringOrArray{"object"}
 
-		for _, f := range reflector.DeepFields(typ) {
-			desc, ok := f.Tag.Lookup("schema")
-			if ok {
-				typName := f.Type.Name()
-				ps := spec.Schema{}
-				ps.Title = f.Name
-				ps.Description = desc
-				ps.Format = typName
-				fieldKind := f.Type.Kind()
+		for _, f := range deepFields(typ) {
+			var jsonName string
+			var fieldName string
+			var descName string
 
-				switch fieldKind {
-				case reflect.Slice:
-					b.buildSchemaArray(&ps, f.Type)
-				case reflect.Struct:
-					b.buildSchemaObject(&ps, f.Type)
-				case reflect.Ptr:
-					iTyp := reflector.IndirectType(f.Type)
-					if iTyp.Kind() == reflect.Struct {
-						b.buildSchemaObject(&ps, iTyp)
-					}
-				default:
-					// convert primitive types
+			tags, _ := structtag.Parse(string(f.Tag))
+
+			jsonTag, err := tags.Get("json")
+			if err == nil {
+				jsonName = jsonTag.Name
+			}
+
+			desc, err := tags.Get("schema")
+			if err != nil {
+				desc = jsonTag
+			}
+			if desc != nil {
+				descName = desc.Name
+			} else {
+				descName = str.ToKebab(f.Name)
+				descName = strings.Replace(descName, "-", " ", -1)
+			}
+
+			// assign schema
+			if jsonName != "" {
+				fieldName = jsonName
+			} else {
+				fieldName = str.ToLowerCamel(f.Name)
+			}
+
+			typName := f.Type.Name()
+			ps := spec.Schema{}
+			ps.Title = f.Name
+			ps.Description = descName
+			ps.Format = typName
+			fieldKind := f.Type.Kind()
+
+			switch fieldKind {
+			case reflect.Slice:
+				b.buildSchemaArray(&ps, f.Type)
+			case reflect.Struct:
+				if f.Type == reflect.TypeOf(time.Time{}) {
 					swgTypName := b.primitiveTypes[typName]
 					ps.Type = spec.StringOrArray{swgTypName}
+				} else {
+					b.buildSchemaObject(&ps, f.Type)
 				}
 
-				// assign schema
-				fieldName := b.getFieldName(f)
-				definition.Properties[fieldName] = ps
+			case reflect.Ptr:
+				iTyp := reflector.IndirectType(f.Type)
+				if iTyp.Kind() == reflect.Struct {
+					b.buildSchemaObject(&ps, iTyp)
+				}
+			default:
+				// convert primitive types
+				swgTypName := b.primitiveTypes[typName]
+				ps.Type = spec.StringOrArray{swgTypName}
 			}
+
+			definition.Properties[fieldName] = ps
 		}
 	}
 }
@@ -134,44 +192,38 @@ func (b *apiPathsBuilder) buildSchemaObject(ps *spec.Schema, typ reflect.Type) {
 	}
 }
 
-func (b *apiPathsBuilder) getFieldName(f reflect.StructField) string {
-	tags, err := structtag.Parse(string(f.Tag))
-	var fieldName string
-	if err == nil {
-		tag, err := tags.Get("json")
-		if err == nil {
-			fieldName = tag.Name
-		} else {
-			fieldName = str.ToLowerCamel(f.Name)
-		}
-	}
-	return fieldName
-}
-
 func (b *apiPathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect.StructField) (schema *spec.Schema) {
 	if field == nil {
 		field = &ann.Field.StructField
 	}
 
 	atSchema := annotation.GetAnnotation(ann.Parent.Interface, at.Schema{})
-	err := annotation.Inject(atSchema)
-	if err == nil {
-		s := atSchema.Field.Value.Interface().(at.Schema)
-		ref := refPrefix + field.Name
-		s.Ref = spec.MustCreateRef(ref)
 
-		// parse body schema and assign to definitions
-		if b.apiInfoBuilder.Definitions == nil {
-			def := make(spec.Definitions)
-			b.apiInfoBuilder.Definitions = def
-		}
-
-		definition := spec.Schema{}
-		b.buildSchemaProperty(&definition, field.Type)
-		b.apiInfoBuilder.Definitions[field.Name] = definition
-
-		schema = &s.Schema
+	s := atSchema.Field.Value.Interface().(at.Schema)
+	var primitiveTypes string
+	if len(s.Type) > 0 {
+		schemaType := s.Type[0]
+		primitiveTypes = b.primitiveTypes[schemaType]
 	}
+	if primitiveTypes == "" {
+		err := annotation.Inject(atSchema)
+		if err == nil {
+			ref := refPrefix + field.Name
+			s.Ref = spec.MustCreateRef(ref)
+
+			// parse body schema and assign to definitions
+			if b.apiInfoBuilder.Definitions == nil {
+				def := make(spec.Definitions)
+				b.apiInfoBuilder.Definitions = def
+			}
+
+			definition := spec.Schema{}
+			b.buildSchemaProperty(&definition, field.Type)
+			b.apiInfoBuilder.Definitions[field.Name] = definition
+		}
+	}
+
+	schema = &s.Schema
 	return
 }
 

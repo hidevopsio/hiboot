@@ -12,12 +12,16 @@ import (
 	"hidevops.io/hiboot/pkg/starter/logging"
 	"hidevops.io/hiboot/pkg/starter/swagger"
 	"net/http"
+	"time"
 )
 
 type Asset struct {
-	at.Schema    `json:"-"`
-	ID int `schema:"The assert ID" json:"id"`
-	Name string `schema:"The assert name" json:"name"`
+	at.Schema  `json:"-"`
+	ID         int    `schema:"The asset ID" json:"id"`
+	Name       string `schema:"The asset name" json:"name"`
+	Amount     float64
+	Type       string `schema:"The asset type"`
+	ExpirationTime time.Time
 }
 
 type AddAssetsResponse struct {

@@ -5,7 +5,6 @@ import (
 	"hidevops.io/hiboot/pkg/app/web/server"
 	"net/http"
 	"testing"
-	"time"
 )
 
 func TestRunMain(t *testing.T) {
@@ -13,7 +12,6 @@ func TestRunMain(t *testing.T) {
 }
 
 func TestController(t *testing.T) {
-	time.Sleep(time.Second)
 	testApp := web.NewTestApp(t).SetProperty(server.ContextPath, basePath).Run(t)
 
 	t.Run("should get employee ", func(t *testing.T) {

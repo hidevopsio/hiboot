@@ -16,11 +16,13 @@ import (
 )
 
 type Asset struct {
-	at.Schema `json:"-"`
-	ID        int    `schema:"The asset ID" json:"id"`
-	Name      string `schema:"The asset name" json:"name"`
+	at.Schema  `json:"-"`
+	ID         int    `schema:"The asset ID" json:"id"`
+	Name       string `schema:"The asset name" json:"name"`
+	Amount     float64
+	Type       string `schema:"The asset type"`
+	ExpirationTime time.Time
 }
-
 
 type AddAssertsResponse struct {
 	at.ResponseBody `json:"-"`
@@ -30,7 +32,6 @@ type AddAssertsResponse struct {
 	Data []*Asset `json:"data,omitempty" schema:"The employee data"`
 }
 
-
 type Manager struct {
 	at.Schema `json:"-"`
 	ID        int    `schema:"The manager ID" json:"id"`
@@ -38,13 +39,15 @@ type Manager struct {
 }
 
 type Employee struct {
-	at.Schema `json:"-"`
-	Id        int     `schema:"The auto generated employee ID" json:"id"`
-	FirstName string  `schema:"The employee first name" json:"first_name"`
-	LastName  string  `schema:"The employee last name" json:"last_name"`
-	Email     string  `schema:"The email of the employee"`
-	Manger    Manager `schema:"The manager" json:"manger"`
-	Assets    []Asset `schema:"The assets list of the employee" json:"assets"`
+	at.Schema   `json:"-"`
+	Id          int     `schema:"The auto generated employee ID" json:"id"`
+	FirstName   string  `schema:"The employee first name" json:"first_name"`
+	LastName    string  `schema:"The employee last name" json:"last_name"`
+	Email       string  `schema:"The email of the employee"`
+	Address     string  `schema:"The address of the employee"`
+	PhoneNumber string  `json:"phone_number"`
+	Manger      Manager `schema:"The manager" json:"manger"`
+	Assets      []Asset `schema:"The assets list of the employee" json:"assets"`
 }
 
 type ErrorResponse struct {
@@ -252,18 +255,18 @@ func (c *employeeController) DeleteEmployee(at struct {
 // AddEmployeeAsserts
 func (c *employeeController) AddEmployeeAsserts(at struct {
 	at.PostMapping `value:"/add-assets"`
-	at.Operation     `operationId:"Add Employee's Assets" description:"This is the api that adding assets for employees"`
-	at.Produces      `values:"application/json"`
-	Parameters    struct {
+	at.Operation   `operationId:"Add Employee's Assets" description:"This is the api that adding assets for employees"`
+	at.Produces    `values:"application/json"`
+	Parameters     struct {
 		at.Parameter `name:"assets" in:"body" description:"Employee request body" `
-		at.Schema `value:"array" description:"The assets parameter"`
-		assets []*Asset
+		at.Schema    `value:"array" description:"The assets parameter"`
+		assets       []*Asset
 	}
 	Responses struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"returns a employee with ID"`
-			at.Schema `value:"array" description:"The assets response"`
-			Assets []*Asset
+			at.Schema   `value:"array" description:"The assets response"`
+			Assets      []*Asset
 		}
 	}
 }) (response model.ResponseInfo, err error) {
