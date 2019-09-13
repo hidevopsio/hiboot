@@ -23,6 +23,11 @@ import (
 	"reflect"
 )
 
+
+func WithAnnotation(config *mapstructure.DecoderConfig) {
+	config.TagName = "at"
+}
+
 func WithSquash(config *mapstructure.DecoderConfig) {
 	config.Squash = true
 }

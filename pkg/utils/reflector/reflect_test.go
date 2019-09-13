@@ -621,6 +621,11 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 		assert.Equal(t, "Foo", typ.Name())
 	})
 
+	t.Run("should get object type", func(t *testing.T) {
+		_, ok := GetObjectType(nil)
+		assert.Equal(t, false, ok)
+	})
+
 	t.Run("should get method out type", func(t *testing.T) {
 		foo := new(Foo)
 		expectedTyp := reflect.TypeOf(foo)

@@ -179,6 +179,16 @@ func (c *FooController) GetByOptions(options []string) (response model.Response)
 	return
 }
 
+
+// GET /foo/fs
+func (c *FooController) GetFs(fs []*Foo) (response model.Response) {
+	response = new(model.BaseResponse)
+	response.SetCode(http.StatusOK)
+	response.SetMessage("success")
+	response.SetData(fs)
+	return
+}
+
 // GET /name/{name}
 func (c *FooController) GetByName(name string) (response model.Response) {
 	type user struct {
@@ -777,6 +787,20 @@ func TestWebApplication(t *testing.T) {
 		testApp.Get("/foo/id/{id}").
 			WithPath("id", 123).
 			Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should Get by options", func(t *testing.T) {
+		testApp.Get("/foo/fs").
+			WithJSON([]*Foo{
+				{
+					Name: "foo",
+				},
+				{
+					Name: "bar",
+				},
+		}).
+			Expect().Status(http.StatusOK).
+			Body().Contains("foo")
 	})
 
 	t.Run("should Get by options", func(t *testing.T) {

@@ -8,4 +8,6 @@ package at
 // }
 type ContextAware struct {
 	Annotation
+
+	BaseAnnotation
 }

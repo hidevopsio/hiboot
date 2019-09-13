@@ -28,6 +28,7 @@ require (
 	github.com/rakyll/statik v0.1.6
 	github.com/sony/sonyflake v0.0.0-20160530021500-fa881fb1052b
 	github.com/spf13/afero v1.1.2
+	github.com/spf13/cast v1.3.0
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
 	github.com/stretchr/testify v1.3.0

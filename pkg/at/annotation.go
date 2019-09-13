@@ -1,6 +1,12 @@
 package at
 
-// Annotation is the abstract annotation
+// Annotation is an empty struct that indicates the struct as an annotation
 type Annotation struct {
-	Value string `json:"value"`
+}
+
+// BaseAnnotation is the base of an annotation
+type BaseAnnotation struct {
+	Annotation `json:"-"`
+
+	Value string `json:"-" at:"value"`
 }

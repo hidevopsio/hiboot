@@ -16,11 +16,13 @@ import (
 )
 
 type Asset struct {
-	at.Schema `json:"-"`
-	ID        int    `schema:"The asset ID" json:"id"`
-	Name      string `schema:"The asset name" json:"name"`
+	at.Schema  `json:"-"`
+	ID         int    `schema:"The asset ID" json:"id"`
+	Name       string `schema:"The asset name" json:"name"`
+	Amount     float64
+	Type       string `schema:"The asset type"`
+	ExpirationTime time.Time
 }
-
 
 type AddAssertsResponse struct {
 	at.ResponseBody `json:"-"`
@@ -30,7 +32,6 @@ type AddAssertsResponse struct {
 	Data []*Asset `json:"data,omitempty" schema:"The employee data"`
 }
 
-
 type Manager struct {
 	at.Schema `json:"-"`
 	ID        int    `schema:"The manager ID" json:"id"`
@@ -38,13 +39,15 @@ type Manager struct {
 }
 
 type Employee struct {
-	at.Schema `json:"-"`
-	Id        int     `schema:"The auto generated employee ID" json:"id"`
-	FirstName string  `schema:"The employee first name" json:"first_name"`
-	LastName  string  `schema:"The employee last name" json:"last_name"`
-	Email     string  `schema:"The email of the employee"`
-	Manger    Manager `schema:"The manager" json:"manger"`
-	Assets    []Asset `schema:"The assets list of the employee" json:"assets"`
+	at.Schema   `json:"-"`
+	Id          int     `schema:"The auto generated employee ID" json:"id"`
+	FirstName   string  `schema:"The employee first name" json:"first_name"`
+	LastName    string  `schema:"The employee last name" json:"last_name"`
+	Email       string  `schema:"The email of the employee"`
+	Address     string  `schema:"The address of the employee"`
+	PhoneNumber string  `json:"phone_number"`
+	Manger      Manager `schema:"The manager" json:"manger"`
+	Assets      []Asset `schema:"The assets list of the employee" json:"assets"`
 }
 
 type ErrorResponse struct {
@@ -113,7 +116,7 @@ func (c *employeeController) BeforeMethod(at struct{ at.BeforeMethod }, ctx cont
 // GetEmployee
 func (c *employeeController) CreateEmployee(at struct {
 	at.PostMapping `value:"/"`
-	at.Operation   `operationId:"Create Employee" description:"This is the employee creation api"`
+	at.Operation   `id:"Create Employee" description:"This is the employee creation api"`
 	at.Consumes    `values:"application/json"`
 	at.Produces    `values:"application/json"`
 	Parameters     struct {
@@ -139,7 +142,7 @@ func (c *employeeController) CreateEmployee(at struct {
 // GetEmployee
 func (c *employeeController) UpdateEmployee(at struct {
 	at.PutMapping `value:"/"`
-	at.Operation  `operationId:"Update Employee" description:"This is the employee update api"`
+	at.Operation  `id:"Update Employee" description:"This is the employee update api"`
 	at.Consumes   `values:"application/json"`
 	at.Produces   `values:"application/json"`
 	Parameters    struct {
@@ -164,8 +167,8 @@ func (c *employeeController) UpdateEmployee(at struct {
 
 // GetEmployee
 func (c *employeeController) GetEmployee(at struct {
-	at.GetMapping `value:"/{id:int}"`
-	at.Operation  `operationId:"Get Employee" description:"This is get employees api"`
+	at.GetMapping `value:"/{id}"`
+	at.Operation  `id:"Get Employee" description:"This is get employees api"`
 	at.Produces   `values:"application/json"`
 	Parameters    struct {
 		ID struct {
@@ -202,10 +205,35 @@ func (c *employeeController) GetEmployee(at struct {
 	return
 }
 
+// GetEmployeeName
+func (c *employeeController) GetEmployeeName(at struct {
+	at.GetMapping `value:"/{id}/name"`
+	at.Operation  `id:"Get Employee Name" description:"This is the api that get employee name"`
+	at.Produces   `values:"text/plain"`
+	Parameters    struct {
+		ID struct {
+			at.Parameter `type:"integer" name:"id" in:"path" description:"Path variable employee ID" required:"true"`
+		}
+	}
+	Responses struct {
+		StatusOK struct {
+			at.Response `code:"200" description:"returns the employee name"`
+			at.Schema   `type:"string" description:"contains the actual employee name as plain text"`
+		}
+		StatusNotFound struct {
+			at.Response `code:"404" description:"employee is not found"`
+			at.Schema   `type:"string" description:"Report 'not found' error message"`
+		}
+	}
+}, id int) (name string) {
+	return "Donald Trump"
+}
+
+
 // ListEmployee
 func (c *employeeController) ListEmployee(at struct {
 	at.GetMapping `value:"/"`
-	at.Operation  `operationId:"List Employee" description:"This is employees list api"`
+	at.Operation  `id:"List Employee" description:"This is employees list api"`
 	at.Produces   `values:"application/json"`
 	Responses     struct {
 		StatusOK struct {
@@ -228,8 +256,8 @@ func (c *employeeController) ListEmployee(at struct {
 // DeleteEmployee
 // at.DeleteEmployee is an annotation to define request mapping for http method DELETE,
 func (c *employeeController) DeleteEmployee(at struct {
-	at.DeleteMapping `value:"/{id:int}"`
-	at.Operation     `operationId:"Delete Employee" description:"This is delete employees api"`
+	at.DeleteMapping `value:"/{id}"`
+	at.Operation     `id:"Delete Employee" description:"This is delete employees api"`
 	at.Produces      `values:"application/json"`
 	Parameters       struct {
 		at.Parameter `type:"integer" name:"id" in:"path" description:"Path variable employee ID" required:"true"`
@@ -252,18 +280,18 @@ func (c *employeeController) DeleteEmployee(at struct {
 // AddEmployeeAsserts
 func (c *employeeController) AddEmployeeAsserts(at struct {
 	at.PostMapping `value:"/add-assets"`
-	at.Operation     `operationId:"Add Employee's Assets" description:"This is the api that adding assets for employees"`
-	at.Produces      `values:"application/json"`
-	Parameters    struct {
+	at.Operation   `id:"Add Employee's Assets" description:"This is the api that adding assets for employees"`
+	at.Produces    `values:"application/json"`
+	Parameters     struct {
 		at.Parameter `name:"assets" in:"body" description:"Employee request body" `
-		at.Schema `value:"array" description:"The assets parameter"`
-		assets []*Asset
+		at.Schema    `value:"array" description:"The assets parameter"`
+		assets       []*Asset
 	}
 	Responses struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"returns a employee with ID"`
-			at.Schema `value:"array" description:"The assets response"`
-			Assets []*Asset
+			at.Schema   `value:"array" description:"The assets response"`
+			Assets      []*Asset
 		}
 	}
 }) (response model.ResponseInfo, err error) {
@@ -349,6 +377,14 @@ limitations under the License.
 		testApp.Get("/employee/123").
 			Expect().Status(http.StatusOK)
 	})
+
+
+	t.Run("should get employee ", func(t *testing.T) {
+		testApp.Get("/employee/123/name").
+			Expect().Status(http.StatusOK)
+	})
+
+
 
 	t.Run("should delete employee ", func(t *testing.T) {
 		testApp.Delete("/employee/333").

@@ -11,25 +11,35 @@ import (
 
 type AtBaz struct {
 	at.Annotation
+
+	at.BaseAnnotation
 	Code int `value:"200" json:"code"`
 }
 
 type AtFoo struct {
 	at.Annotation
+
+	at.BaseAnnotation
 	ID int `json:"fooId"`
 	Age int `json:"age"`
 }
 
 type AtBar struct {
 	at.Annotation
+
+	at.BaseAnnotation
 }
 
 type AtFooBar struct {
+	at.Annotation
+
 	AtFoo
 	Code int `value:"200" json:"code"`
 }
 
 type AtFooBaz struct {
+	at.Annotation
+
 	AtFoo
 	Code int `value:"400" json:"code"`
 }
@@ -68,12 +78,16 @@ type multipleBar struct {
 
 type AtIntMap struct {
 	at.Annotation
+
+	at.BaseAnnotation
 	FieldName string `value:"codes"`
 	Codes map[int]string
 }
 
 type AtStrMap struct {
 	at.Annotation
+
+	at.BaseAnnotation
 	FieldName string `value:"messages"`
 	Messages map[string]string
 }
@@ -83,8 +97,45 @@ type foobar struct {
 	AtStrMap `ok:"successful" failed:"failed"`
 }
 
+type AtLevel1 struct {
+	at.Annotation
+
+	at.BaseAnnotation
+}
+
+type AtLevel2 struct {
+	at.Annotation
+
+	AtLevel1
+}
+
+type AtLevel3 struct {
+	at.Annotation
+
+	AtLevel2
+}
+
+
+type AtLevel4 struct {
+	at.Annotation
+
+	AtLevel3
+}
+
+type AtLevel5 struct {
+	at.Annotation
+
+	AtLevel4
+}
+
+type testData struct {
+	AtLevel5
+
+	Name string `value:"foo"`
+}
+
 type atApiOperation struct {
-	at.Operation `value:"testApi" operationId:"getGreeting" description:"This is the Greeting api for demo"`
+	at.Operation `value:"testApi" id:"getGreeting" description:"This is the Greeting api for demo"`
 }
 
 func TestImplementsAnnotation(t *testing.T) {
@@ -272,6 +323,66 @@ func TestImplementsAnnotation(t *testing.T) {
 			return &multipleBar{}
 		}, AtFoo{})
 		assert.Equal(t, "AtFoo", a.Field.StructField.Name)
+	})
+
+	t.Run("should find each annotation deeply", func(t *testing.T) {
+		td := &testData{}
+
+		assert.Equal(t, false, annotation.IsAnnotation(nil))
+
+		assert.Equal(t, false, annotation.IsAnnotation(123))
+
+		assert.Equal(t, false, annotation.IsAnnotation("abc"))
+
+		assert.Equal(t, false, annotation.IsAnnotation(true))
+
+		assert.Equal(t, false, annotation.IsAnnotation([]string{"abc"}))
+
+		assert.Equal(t, false, annotation.IsAnnotation(td))
+
+		l5 := annotation.GetAnnotation(td, AtLevel5{})
+		assert.Equal(t, "AtLevel5", l5.Field.StructField.Name)
+		assert.Equal(t, true, annotation.IsAnnotation(l5.Field.Value))
+
+		l4 := annotation.GetAnnotation(td, AtLevel4{})
+		assert.Equal(t, "AtLevel4", l4.Field.StructField.Name)
+		assert.Equal(t, true, annotation.IsAnnotation(l4.Field.Value))
+
+		l3 := annotation.GetAnnotation(td, AtLevel3{})
+		assert.Equal(t, "AtLevel3", l3.Field.StructField.Name)
+		assert.Equal(t, true, annotation.IsAnnotation(l3.Field.Value))
+
+		l2 := annotation.GetAnnotation(td, AtLevel2{})
+		assert.Equal(t, "AtLevel2", l2.Field.StructField.Name)
+		assert.Equal(t, true, annotation.IsAnnotation(l2.Field.Value))
+
+		l1 := annotation.GetAnnotation(td, AtLevel1{})
+		assert.Equal(t, "AtLevel1", l1.Field.StructField.Name)
+		assert.Equal(t, true, annotation.IsAnnotation(l1.Field.Value))
+
+		base := annotation.GetAnnotation(td, at.BaseAnnotation{})
+		assert.Equal(t, "BaseAnnotation", base.Field.StructField.Name)
+		assert.Equal(t, true, annotation.IsAnnotation(base.Field.Value))
+
+		ann := annotation.GetAnnotation(td, at.Annotation{})
+		assert.Equal(t, "Annotation", ann.Field.StructField.Name)
+		assert.Equal(t, true, annotation.IsAnnotation(ann.Field.Value))
+	})
+
+	t.Run("should inject into annotation", func(t *testing.T) {
+		type foo struct {
+			at.Schema `value:"array" type:"string" description:"This is a test parameter"`
+
+			Name string `json:"name"`
+		}
+		f := &foo{Name: "foo"}
+		a := annotation.GetAnnotation(f, at.Schema{})
+		err := annotation.Inject(a)
+		assert.Equal(t, nil, err)
+		ao := a.Field.Value.Interface().(at.Schema)
+		assert.Equal(t, "array", ao.Value)
+		assert.Equal(t, "string", ao.Type)
+		assert.Equal(t, "This is a test parameter", ao.Description)
 	})
 }
 

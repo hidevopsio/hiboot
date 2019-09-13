@@ -43,6 +43,32 @@ type Annotations struct{
 	Children []*Annotations
 }
 
+func IsAnnotation(object interface{}) (yes bool)  {
+	typ, ok := reflector.GetObjectType(object)
+	if !ok {
+		return
+	}
+	annTyp := reflect.TypeOf(at.Annotation{})
+	if typ == annTyp {
+		yes = true
+		return
+	}
+	k := typ.Kind()
+	if k == reflect.Struct {
+		numField := typ.NumField()
+		for i := 0; i < numField; i++ {
+			v := typ.Field(i)
+			if v.Anonymous {
+				if v.Type == annTyp {
+					yes = true
+					break
+				}
+			}
+		}
+	}
+	return
+}
+
 // GetAnnotation is a function that get specific annotation of an object.
 func GetAnnotation(object interface{}, att interface{}) (annotation *Annotation) {
 	if object == nil {
@@ -89,7 +115,7 @@ func GetAnnotation(object interface{}, att interface{}) (annotation *Annotation)
 	return
 }
 
-// GetFields iterate annotations of a struct
+// GetAnnotations iterate annotations of a struct
 func GetAnnotations(object interface{}) (annotations *Annotations) {
 	if object == nil {
 		return
@@ -280,7 +306,7 @@ func injectIntoField(tags *structtag.Tags, field *Field) (err error) {
 		}
 		if len(values) != 0 {
 			// use mapstruct.WithSquash to decode embedded sub field
-			err = mapstruct.Decode(fieldValue.Addr().Interface(), values, mapstruct.WithSquash)
+			err = mapstruct.Decode(fieldValue.Addr().Interface(), values, mapstruct.WithSquash, mapstruct.WithAnnotation)
 		}
 	}
 	return

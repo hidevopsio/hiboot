@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"time"
 )
 
 const refPrefix = "#/definitions/"
@@ -62,6 +63,7 @@ func newApiPathsBuilder(openAPIDefinition *apiInfoBuilder) *apiPathsBuilder {
 			"struct": "object",
 			"slice": "array",
 			"bool": "boolean",
+			"Time": "string",
 		},
 	}
 }
@@ -69,6 +71,32 @@ func newApiPathsBuilder(openAPIDefinition *apiInfoBuilder) *apiPathsBuilder {
 func init() {
 	app.Register(newApiPathsBuilder)
 }
+
+func deepFields(reflectType reflect.Type) []reflect.StructField {
+	var fields []reflect.StructField
+
+	if reflectType = reflector.IndirectType(reflectType); reflectType.Kind() == reflect.Struct {
+		for i := 0; i < reflectType.NumField(); i++ {
+			v := reflectType.Field(i)
+
+			if annotation.IsAnnotation(v.Type) {
+				continue
+			}
+
+			if v.Anonymous {
+				vk :=  reflector.IndirectType(v.Type).Kind()
+				if vk == reflect.Struct || vk == reflect.Interface {
+					fields = append(fields, deepFields(v.Type)...)
+				}
+			} else {
+				fields = append(fields, v)
+			}
+		}
+	}
+
+	return fields
+}
+
 
 func (b *apiPathsBuilder) buildSchemaArray(definition *spec.Schema, typ reflect.Type)  {
 	definition.Type = spec.StringOrArray{"array"}
@@ -92,36 +120,67 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 		definition.Properties = make(map[string]spec.Schema)
 		definition.Type = spec.StringOrArray{"object"}
 
-		for _, f := range reflector.DeepFields(typ) {
-			desc, ok := f.Tag.Lookup("schema")
-			if ok {
-				typName := f.Type.Name()
-				ps := spec.Schema{}
-				ps.Title = f.Name
-				ps.Description = desc
-				ps.Format = typName
-				fieldKind := f.Type.Kind()
+		for _, f := range deepFields(typ) {
+			var jsonName string
+			var fieldName string
+			var descName string
 
-				switch fieldKind {
-				case reflect.Slice:
-					b.buildSchemaArray(&ps, f.Type)
-				case reflect.Struct:
-					b.buildSchemaObject(&ps, f.Type)
-				case reflect.Ptr:
-					iTyp := reflector.IndirectType(f.Type)
-					if iTyp.Kind() == reflect.Struct {
-						b.buildSchemaObject(&ps, iTyp)
-					}
-				default:
-					// convert primitive types
+			tags, _ := structtag.Parse(string(f.Tag))
+
+			jsonTag, err := tags.Get("json")
+			if err == nil {
+				jsonName = jsonTag.Name
+			}
+
+			desc, err := tags.Get("schema")
+			if err != nil {
+				desc = jsonTag
+			}
+			if desc != nil {
+				descName = desc.Name
+			} else {
+				descName = str.ToKebab(f.Name)
+				descName = strings.Replace(descName, "-", " ", -1)
+				descName = str.UpperFirst(descName)
+			}
+
+			// assign schema
+			if jsonName != "" {
+				fieldName = jsonName
+			} else {
+				fieldName = str.ToLowerCamel(f.Name)
+			}
+
+			typName := f.Type.Name()
+			ps := spec.Schema{}
+			ps.Title = f.Name
+			ps.Description = descName
+			ps.Format = typName
+			fieldKind := f.Type.Kind()
+
+			switch fieldKind {
+			case reflect.Slice:
+				b.buildSchemaArray(&ps, f.Type)
+			case reflect.Struct:
+				if f.Type == reflect.TypeOf(time.Time{}) {
 					swgTypName := b.primitiveTypes[typName]
 					ps.Type = spec.StringOrArray{swgTypName}
+				} else {
+					b.buildSchemaObject(&ps, f.Type)
 				}
 
-				// assign schema
-				fieldName := b.getFieldName(f)
-				definition.Properties[fieldName] = ps
+			case reflect.Ptr:
+				iTyp := reflector.IndirectType(f.Type)
+				if iTyp.Kind() == reflect.Struct {
+					b.buildSchemaObject(&ps, iTyp)
+				}
+			default:
+				// convert primitive types
+				swgTypName := b.primitiveTypes[typName]
+				ps.Type = spec.StringOrArray{swgTypName}
 			}
+
+			definition.Properties[fieldName] = ps
 		}
 	}
 }
@@ -134,64 +193,66 @@ func (b *apiPathsBuilder) buildSchemaObject(ps *spec.Schema, typ reflect.Type) {
 	}
 }
 
-func (b *apiPathsBuilder) getFieldName(f reflect.StructField) string {
-	tags, err := structtag.Parse(string(f.Tag))
-	var fieldName string
-	if err == nil {
-		tag, err := tags.Get("json")
-		if err == nil {
-			fieldName = tag.Name
-		} else {
-			fieldName = str.ToLowerCamel(f.Name)
-		}
-	}
-	return fieldName
-}
-
 func (b *apiPathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect.StructField) (schema *spec.Schema) {
 	if field == nil {
 		field = &ann.Field.StructField
 	}
 
 	atSchema := annotation.GetAnnotation(ann.Parent.Interface, at.Schema{})
-	err := annotation.Inject(atSchema)
-	if err == nil {
-		s := atSchema.Field.Value.Interface().(at.Schema)
-		ref := refPrefix + field.Name
-		s.Ref = spec.MustCreateRef(ref)
 
-		// parse body schema and assign to definitions
-		if b.apiInfoBuilder.Definitions == nil {
-			def := make(spec.Definitions)
-			b.apiInfoBuilder.Definitions = def
+	s := atSchema.Field.Value.Interface().(at.Schema)
+	schemaType := s.Type
+	primitiveTypes := b.primitiveTypes[schemaType]
+
+	schema = &spec.Schema{}
+	if primitiveTypes == "" {
+		err := annotation.Inject(atSchema)
+		if err == nil {
+			ref := refPrefix + field.Name
+			// parse body schema and assign to definitions
+			schema.Ref = spec.MustCreateRef(ref)
+
+			if b.apiInfoBuilder.Definitions == nil {
+				def := make(spec.Definitions)
+				b.apiInfoBuilder.Definitions = def
+			}
+
+			definition := spec.Schema{}
+			b.buildSchemaProperty(&definition, field.Type)
+			b.apiInfoBuilder.Definitions[field.Name] = definition
 		}
-
-		definition := spec.Schema{}
-		b.buildSchemaProperty(&definition, field.Type)
-		b.apiInfoBuilder.Definitions[field.Name] = definition
-
-		schema = &s.Schema
+	} else {
+		schema.Type = spec.StringOrArray{s.Type}
+		schema.Description = s.Description
 	}
+
 	return
 }
 
 func (b *apiPathsBuilder) buildParameter(operation *spec.Operation, annotations *annotation.Annotations, a *annotation.Annotation) {
 	ao := a.Field.Value.Interface()
-	atParam := ao.(at.Parameter)
-	if atParam.In == "body" || atParam.In == "array" {
+	atParameter := ao.(at.Parameter)
+	// copy values
+	parameter := spec.Parameter{}
+	parameter.Name = atParameter.Name
+	parameter.Type = atParameter.Type
+	parameter.In = atParameter.In
+	parameter.Description = atParameter.Description
 
-		schema := annotation.Find(annotations, at.Schema{})
+	if atParameter.In == "body" || atParameter.In == "array" {
 
-		if schema != nil {
+		atSchema := annotation.Find(annotations, at.Schema{})
 
-			field := b.findArrayField(schema)
+		if atSchema != nil {
 
-			atParam.Parameter.Schema = b.buildSchema(schema, field)
+			field := b.findArrayField(atSchema)
+
+			parameter.Schema = b.buildSchema(atSchema, field)
 		}
 
 	}
 
-	operation.Parameters = append(operation.Parameters, atParam.Parameter)
+	operation.Parameters = append(operation.Parameters, parameter)
 	return
 }
 
@@ -218,20 +279,22 @@ func (b *apiPathsBuilder) findArrayField(schema *annotation.Annotation) (field *
 
 func (b *apiPathsBuilder) buildResponse(operation *spec.Operation, annotations *annotation.Annotations, a *annotation.Annotation) {
 	ao := a.Field.Value.Interface()
-	atResp := ao.(at.Response)
+	atResponse := ao.(at.Response)
 	if operation.Responses == nil {
 		operation.Responses = new(spec.Responses)
 		operation.Responses.StatusCodeResponses = make(map[int]spec.Response)
 	}
-	schema := annotation.Find(annotations, at.Schema{})
+	atSchema := annotation.Find(annotations, at.Schema{})
 
-	if schema != nil {
-		field := b.findArrayField(schema)
+	response := spec.Response{}
+	response.Description = atResponse.Description
+	if atSchema != nil {
+		field := b.findArrayField(atSchema)
 
-		atResp.Response.Schema = b.buildSchema(schema, field)
+		response.Schema = b.buildSchema(atSchema, field)
 	}
 
-	operation.Responses.StatusCodeResponses[atResp.Code] = atResp.Response
+	operation.Responses.StatusCodeResponses[atResponse.Code] = response
 	return
 }
 
@@ -276,11 +339,15 @@ func (b *apiPathsBuilder) Build(atController *annotation.Annotations, atMethod *
 
 		pathItem := b.apiInfoBuilder.Paths.Paths[path]
 
-		atOperation :=  annotation.GetAnnotation(atMethod, at.Operation{})
+		ann :=  annotation.GetAnnotation(atMethod, at.Operation{})
 
-		atOperationInterface := atOperation.Field.Value.Interface()
-		atOperationObject := atOperationInterface.(at.Operation)
-		operation := &atOperationObject.Operation
+		atOperationInterface := ann.Field.Value.Interface()
+		atOperation := atOperationInterface.(at.Operation)
+
+		// copy values
+		operation := &spec.Operation{}
+		operation.ID = atOperation.ID
+		operation.Description = atOperation.Description
 
 		method = strings.Title(strings.ToLower(method))
 		err := reflector.SetFieldValue(&pathItem, method, operation)
