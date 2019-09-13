@@ -454,10 +454,9 @@ func (h *handler) decodeSlice(ctx context.Context, iTyp reflect.Type, input refl
 		item := reflect.New(iTyp).Interface()
 		// TODO: Known issue - time.Time is not decoded
 		err = mapstruct.Decode(item, v, mapstruct.WithSquash, mapstruct.WithWeaklyTypedInput)
-		if err != nil {
-			return
+		if err == nil {
+			input = reflect.Append(input, reflect.ValueOf(item))
 		}
-		input = reflect.Append(input, reflect.ValueOf(item))
 	}
 	retVal = input
 	return

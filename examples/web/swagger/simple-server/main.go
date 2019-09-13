@@ -301,7 +301,9 @@ func (c *employeeController) AddEmployeeAsserts(at struct {
 			Assets []*Asset
 		}
 	}
-}, assets []*Asset) (response model.Response, err error) {
+}, ctx context.Context) (response model.Response, err error) {
+	var assets []*Asset
+	_ = ctx.ReadJSON(&assets)
 	response = new(model.BaseResponse)
 	response.SetData(assets)
 	return
