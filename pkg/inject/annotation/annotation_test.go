@@ -135,7 +135,7 @@ type testData struct {
 }
 
 type atApiOperation struct {
-	at.Operation `value:"testApi" operationId:"getGreeting" description:"This is the Greeting api for demo"`
+	at.Operation `value:"testApi" id:"getGreeting" description:"This is the Greeting api for demo"`
 }
 
 func TestImplementsAnnotation(t *testing.T) {
@@ -367,6 +367,22 @@ func TestImplementsAnnotation(t *testing.T) {
 		ann := annotation.GetAnnotation(td, at.Annotation{})
 		assert.Equal(t, "Annotation", ann.Field.StructField.Name)
 		assert.Equal(t, true, annotation.IsAnnotation(ann.Field.Value))
+	})
+
+	t.Run("should inject into annotation", func(t *testing.T) {
+		type foo struct {
+			at.Schema `value:"array" type:"string" description:"This is a test parameter"`
+
+			Name string `json:"name"`
+		}
+		f := &foo{Name: "foo"}
+		a := annotation.GetAnnotation(f, at.Schema{})
+		err := annotation.Inject(a)
+		assert.Equal(t, nil, err)
+		ao := a.Field.Value.Interface().(at.Schema)
+		assert.Equal(t, "array", ao.Value)
+		assert.Equal(t, "string", ao.Type)
+		assert.Equal(t, "This is a test parameter", ao.Description)
 	})
 }
 

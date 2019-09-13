@@ -116,7 +116,7 @@ func (c *employeeController) BeforeMethod(at struct{ at.BeforeMethod }, ctx cont
 // GetEmployee
 func (c *employeeController) CreateEmployee(at struct {
 	at.PostMapping `value:"/"`
-	at.Operation   `operationId:"Create Employee" description:"This is the employee creation api"`
+	at.Operation   `id:"Create Employee" description:"This is the employee creation api"`
 	at.Consumes    `values:"application/json"`
 	at.Produces    `values:"application/json"`
 	Parameters     struct {
@@ -142,7 +142,7 @@ func (c *employeeController) CreateEmployee(at struct {
 // GetEmployee
 func (c *employeeController) UpdateEmployee(at struct {
 	at.PutMapping `value:"/"`
-	at.Operation  `operationId:"Update Employee" description:"This is the employee update api"`
+	at.Operation  `id:"Update Employee" description:"This is the employee update api"`
 	at.Consumes   `values:"application/json"`
 	at.Produces   `values:"application/json"`
 	Parameters    struct {
@@ -168,7 +168,7 @@ func (c *employeeController) UpdateEmployee(at struct {
 // GetEmployee
 func (c *employeeController) GetEmployee(at struct {
 	at.GetMapping `value:"/{id}"`
-	at.Operation  `operationId:"Get Employee" description:"This is get employees api"`
+	at.Operation  `id:"Get Employee" description:"This is get employees api"`
 	at.Produces   `values:"application/json"`
 	Parameters    struct {
 		ID struct {
@@ -208,7 +208,7 @@ func (c *employeeController) GetEmployee(at struct {
 // GetEmployeeName
 func (c *employeeController) GetEmployeeName(at struct {
 	at.GetMapping `value:"/{id}/name"`
-	at.Operation  `operationId:"Get Employee Name" description:"This is the api that get employee name"`
+	at.Operation  `id:"Get Employee Name" description:"This is the api that get employee name"`
 	at.Produces   `values:"text/plain"`
 	Parameters    struct {
 		ID struct {
@@ -233,7 +233,7 @@ func (c *employeeController) GetEmployeeName(at struct {
 // ListEmployee
 func (c *employeeController) ListEmployee(at struct {
 	at.GetMapping `value:"/"`
-	at.Operation  `operationId:"List Employee" description:"This is employees list api"`
+	at.Operation  `id:"List Employee" description:"This is employees list api"`
 	at.Produces   `values:"application/json"`
 	Responses     struct {
 		StatusOK struct {
@@ -257,7 +257,7 @@ func (c *employeeController) ListEmployee(at struct {
 // at.DeleteEmployee is an annotation to define request mapping for http method DELETE,
 func (c *employeeController) DeleteEmployee(at struct {
 	at.DeleteMapping `value:"/{id}"`
-	at.Operation     `operationId:"Delete Employee" description:"This is delete employees api"`
+	at.Operation     `id:"Delete Employee" description:"This is delete employees api"`
 	at.Produces      `values:"application/json"`
 	Parameters       struct {
 		at.Parameter `type:"integer" name:"id" in:"path" description:"Path variable employee ID" required:"true"`
@@ -280,7 +280,7 @@ func (c *employeeController) DeleteEmployee(at struct {
 // AddEmployeeAsserts
 func (c *employeeController) AddEmployeeAsserts(at struct {
 	at.PostMapping `value:"/add-assets"`
-	at.Operation   `operationId:"Add Employee's Assets" description:"This is the api that adding assets for employees"`
+	at.Operation   `id:"Add Employee's Assets" description:"This is the api that adding assets for employees"`
 	at.Produces    `values:"application/json"`
 	Parameters     struct {
 		at.Parameter `name:"assets" in:"body" description:"Employee request body" `

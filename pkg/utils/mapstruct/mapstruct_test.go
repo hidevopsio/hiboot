@@ -59,6 +59,23 @@ func TestDecode(t *testing.T) {
 	}
 
 	t.Run("should decode map to struct", func(t *testing.T) {
+		type Foo struct {
+			Name string `json:"-" at:"name"`
+		}
+
+		foo := &Foo{}
+
+
+		err := Decode(foo, src)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "", foo.Name)
+
+		err = Decode(foo, src, WithAnnotation)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "foo", foo.Name)
+	})
+
+	t.Run("should decode map to struct", func(t *testing.T) {
 		err := Decode(&foo, src, WithSquash, WithWeaklyTypedInput)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, "foo", foo.Name)

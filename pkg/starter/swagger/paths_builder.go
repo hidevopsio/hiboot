@@ -201,18 +201,17 @@ func (b *apiPathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect
 	atSchema := annotation.GetAnnotation(ann.Parent.Interface, at.Schema{})
 
 	s := atSchema.Field.Value.Interface().(at.Schema)
-	var primitiveTypes string
-	if len(s.Type) > 0 {
-		schemaType := s.Type[0]
-		primitiveTypes = b.primitiveTypes[schemaType]
-	}
+	schemaType := s.Type
+	primitiveTypes := b.primitiveTypes[schemaType]
+
+	schema = &spec.Schema{}
 	if primitiveTypes == "" {
 		err := annotation.Inject(atSchema)
 		if err == nil {
 			ref := refPrefix + field.Name
-			s.Ref = spec.MustCreateRef(ref)
-
 			// parse body schema and assign to definitions
+			schema.Ref = spec.MustCreateRef(ref)
+
 			if b.apiInfoBuilder.Definitions == nil {
 				def := make(spec.Definitions)
 				b.apiInfoBuilder.Definitions = def
@@ -222,29 +221,38 @@ func (b *apiPathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect
 			b.buildSchemaProperty(&definition, field.Type)
 			b.apiInfoBuilder.Definitions[field.Name] = definition
 		}
+	} else {
+		schema.Type = spec.StringOrArray{s.Type}
+		schema.Description = s.Description
 	}
 
-	schema = &s.Schema
 	return
 }
 
 func (b *apiPathsBuilder) buildParameter(operation *spec.Operation, annotations *annotation.Annotations, a *annotation.Annotation) {
 	ao := a.Field.Value.Interface()
-	atParam := ao.(at.Parameter)
-	if atParam.In == "body" || atParam.In == "array" {
+	atParameter := ao.(at.Parameter)
+	// copy values
+	parameter := spec.Parameter{}
+	parameter.Name = atParameter.Name
+	parameter.Type = atParameter.Type
+	parameter.In = atParameter.In
+	parameter.Description = atParameter.Description
 
-		schema := annotation.Find(annotations, at.Schema{})
+	if atParameter.In == "body" || atParameter.In == "array" {
 
-		if schema != nil {
+		atSchema := annotation.Find(annotations, at.Schema{})
 
-			field := b.findArrayField(schema)
+		if atSchema != nil {
 
-			atParam.Parameter.Schema = b.buildSchema(schema, field)
+			field := b.findArrayField(atSchema)
+
+			parameter.Schema = b.buildSchema(atSchema, field)
 		}
 
 	}
 
-	operation.Parameters = append(operation.Parameters, atParam.Parameter)
+	operation.Parameters = append(operation.Parameters, parameter)
 	return
 }
 
@@ -271,20 +279,22 @@ func (b *apiPathsBuilder) findArrayField(schema *annotation.Annotation) (field *
 
 func (b *apiPathsBuilder) buildResponse(operation *spec.Operation, annotations *annotation.Annotations, a *annotation.Annotation) {
 	ao := a.Field.Value.Interface()
-	atResp := ao.(at.Response)
+	atResponse := ao.(at.Response)
 	if operation.Responses == nil {
 		operation.Responses = new(spec.Responses)
 		operation.Responses.StatusCodeResponses = make(map[int]spec.Response)
 	}
-	schema := annotation.Find(annotations, at.Schema{})
+	atSchema := annotation.Find(annotations, at.Schema{})
 
-	if schema != nil {
-		field := b.findArrayField(schema)
+	response := spec.Response{}
+	response.Description = atResponse.Description
+	if atSchema != nil {
+		field := b.findArrayField(atSchema)
 
-		atResp.Response.Schema = b.buildSchema(schema, field)
+		response.Schema = b.buildSchema(atSchema, field)
 	}
 
-	operation.Responses.StatusCodeResponses[atResp.Code] = atResp.Response
+	operation.Responses.StatusCodeResponses[atResponse.Code] = response
 	return
 }
 
@@ -329,11 +339,15 @@ func (b *apiPathsBuilder) Build(atController *annotation.Annotations, atMethod *
 
 		pathItem := b.apiInfoBuilder.Paths.Paths[path]
 
-		atOperation :=  annotation.GetAnnotation(atMethod, at.Operation{})
+		ann :=  annotation.GetAnnotation(atMethod, at.Operation{})
 
-		atOperationInterface := atOperation.Field.Value.Interface()
-		atOperationObject := atOperationInterface.(at.Operation)
-		operation := &atOperationObject.Operation
+		atOperationInterface := ann.Field.Value.Interface()
+		atOperation := atOperationInterface.(at.Operation)
+
+		// copy values
+		operation := &spec.Operation{}
+		operation.ID = atOperation.ID
+		operation.Description = atOperation.Description
 
 		method = strings.Title(strings.ToLower(method))
 		err := reflector.SetFieldValue(&pathItem, method, operation)

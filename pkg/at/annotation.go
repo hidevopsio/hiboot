@@ -6,7 +6,7 @@ type Annotation struct {
 
 // BaseAnnotation is the base of an annotation
 type BaseAnnotation struct {
-	Annotation
+	Annotation `json:"-"`
 
-	Value string `json:"value" atf:""`
+	Value string `json:"-" at:"value"`
 }

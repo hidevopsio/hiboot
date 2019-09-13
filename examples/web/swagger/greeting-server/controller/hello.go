@@ -27,7 +27,7 @@ type HelloQueryParam struct {
 // Hello
 func (c *controller) Hello(at struct {
 	at.GetMapping `value:"/hello"`
-	at.Operation  `operationId:"hello" description:"This is the Greeting api for demo"`
+	at.Operation  `id:"hello" description:"This is the Greeting api for demo"`
 	at.Produces   `values:"text/plain"`
 	Parameters     struct {
 		Name struct{
@@ -57,7 +57,7 @@ func (c *controller) Hello(at struct {
 // Hey
 func (c *controller) Hey(at struct {
 	at.GetMapping `value:"/hey"`
-	at.Operation  `operationId:"hey" description:"This is the another Greeting api for demo"`
+	at.Operation  `id:"hey" description:"This is the another Greeting api for demo"`
 	at.Produces   `values:"text/plain"`
 	Parameters     struct {
 		Name struct{

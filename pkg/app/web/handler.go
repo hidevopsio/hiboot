@@ -17,19 +17,19 @@ package web
 import (
 	"errors"
 	"fmt"
-	"hidevops.io/hiboot/pkg/inject/annotation"
-	"net/http"
-	"reflect"
-	"strings"
-
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
+	"hidevops.io/hiboot/pkg/utils/mapstruct"
 	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/replacer"
 	"hidevops.io/hiboot/pkg/utils/str"
+	"net/http"
+	"reflect"
+	"strings"
 )
 
 const (
@@ -49,7 +49,7 @@ type request struct {
 	genKind      reflect.Kind // e.g. convert int16 to int
 	typ          reflect.Type
 	iTyp         reflect.Type
-	//val          reflect.Value
+	obj          interface{}
 	iVal         reflect.Value
 	pathIdx      int
 	callback     func(ctx context.Context, data interface{}) error
@@ -192,6 +192,7 @@ func (h *handler) parseMethod(injectableObject *injectableObject, injectableMeth
 		}
 		//h.requests[i].val = reflect.New(typ)
 		h.requests[i].iVal = reflect.New(iTyp)
+		h.requests[i].obj = h.requests[i].iVal.Interface()
 		h.requests[i].typeName = iTyp.Name()
 		h.requests[i].genKind = reflector.GetKindByValue(h.requests[i].iVal) // TODO:
 		h.requests[i].fullName = reflector.GetLowerCamelFullNameByType(iTyp)
@@ -221,11 +222,18 @@ func (h *handler) parseMethod(injectableObject *injectableObject, injectableMeth
 
 		// request params, body, form
 		if iTyp.Kind() == reflect.Struct {
-			for _, tn := range requestSets {
-				if field, ok := iTyp.FieldByName(tn.name); ok && field.Anonymous {
-					h.requests[i].typeName = tn.name
-					h.requests[i].callback = tn.callback
-					break
+			if typ.Kind() == reflect.Slice {
+				//h.requests[i].obj = h.requests[i].iVal.Interface()
+				h.requests[i].iVal = reflect.MakeSlice(typ, 0, 0)
+				h.requests[i].typeName = "RequestBody"
+				h.requests[i].callback = RequestBody
+			} else {
+				for _, tn := range requestSets {
+					if field, ok := iTyp.FieldByName(tn.name); ok && field.Anonymous {
+						h.requests[i].typeName = tn.name
+						h.requests[i].callback = tn.callback
+						break
+					}
 				}
 			}
 		}
@@ -379,10 +387,19 @@ func (h *handler) call(ctx context.Context) {
 	lenOfPathParams := h.lenOfPathParams
 	for i := 1; i < h.numIn; i++ {
 		req := h.requests[i]
-		input = reflect.New(req.iTyp).Interface()
+		input = h.requests[i].obj
 
 		// inject params
-		if req.callback != nil {
+		//log.Debugf("%v, %v", i, h.requests[i].iVal.Type())
+		if req.kind == reflect.Slice {
+			var res reflect.Value
+			if lenOfPathParams != 0 {
+				res = h.decodePathVariable(&lenOfPathParams, pvs, req, req.kind)
+			} else {
+				res, reqErr = h.decodeSlice(ctx, h.requests[i].iTyp, h.requests[i].iVal)
+			}
+			inputs[i] = res
+		} else if req.callback != nil {
 			_ = h.factory.InjectDefaultValue(input) // support default value injection for request body/params/form
 			reqErr = req.callback(ctx, input)
 			inputs[i] = reflect.ValueOf(input)
@@ -391,10 +408,9 @@ func (h *handler) call(ctx context.Context) {
 			inputs[i] = reflect.ValueOf(input)
 		} else if lenOfPathParams != 0 && !req.isAnnotation {
 			// allow inject other dependencies after number of lenOfPathParams
-			lenOfPathParams = lenOfPathParams - 1
-			strVal := pvs[req.pathIdx]
-			val := str.Convert(strVal, req.kind)
-			inputs[i] = reflect.ValueOf(val)
+			res := h.decodePathVariable(&lenOfPathParams, pvs, req, req.kind)
+
+			inputs[i] = res
 		} else {
 			// inject instances
 			var inst interface{}
@@ -402,7 +418,7 @@ func (h *handler) call(ctx context.Context) {
 				inst = runtimeInstance.Get(req.fullName)
 			}
 			if inst == nil {
-				inst = h.factory.GetInstance(req.fullName)  // TODO: primitive types does not need to get instance for the sake of performance
+				inst = h.factory.GetInstance(req.fullName) // TODO: primitive types does not need to get instance for the sake of performance
 			}
 			if inst != nil {
 				inputs[i] = reflect.ValueOf(inst)
@@ -421,4 +437,28 @@ func (h *handler) call(ctx context.Context) {
 			_ = h.responseData(ctx, h.numOut, results)
 		}
 	}
+}
+
+func (h *handler) decodePathVariable(lenOfPathParams *int, pvs []string, req request, kind reflect.Kind) reflect.Value {
+	*lenOfPathParams = *lenOfPathParams - 1
+	strVal := pvs[req.pathIdx]
+	val := str.Convert(strVal, kind)
+	res := reflect.ValueOf(val)
+	return res
+}
+
+func (h *handler) decodeSlice(ctx context.Context, iTyp reflect.Type, input reflect.Value) (retVal reflect.Value, err error) {
+	var m []interface{}
+	err = ctx.ReadJSON(&m)
+	for _, v := range m {
+		item := reflect.New(iTyp).Interface()
+		// TODO: Known issue - time.Time is not decoded
+		err = mapstruct.Decode(item, v, mapstruct.WithSquash, mapstruct.WithWeaklyTypedInput)
+		if err != nil {
+			return
+		}
+		input = reflect.Append(input, reflect.ValueOf(item))
+	}
+	retVal = input
+	return
 }
