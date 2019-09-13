@@ -36,10 +36,6 @@ func WithWeaklyTypedInput(config *mapstructure.DecoderConfig) {
 	config.WeaklyTypedInput = true
 }
 
-func WithStringToTimeHookFunc(config *mapstructure.DecoderConfig) {
-	config.DecodeHook = mapstructure.StringToTimeHookFunc
-}
-
 // Decode decode (convert) map to struct
 func Decode(to interface{}, from interface{}, opts ...func (*mapstructure.DecoderConfig) ) error {
 	config := &mapstructure.DecoderConfig{
