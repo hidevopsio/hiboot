@@ -327,6 +327,9 @@ func init() {
 			//Version("1.1.0").
 			//Host("localhost:8080").
 			//BasePath("/").
+			ContactName("John Deng").
+			ContactEmail("john.deng@outlook.com").
+			ContactURL("https://hidevops.io").
 			Title("HiBoot Swagger Demo Application - Simple CRUD Demo Application - 演示代码").
 			Description("Simple Server is an application that demonstrate the usage of Swagger Annotations"),
 	)

@@ -19,6 +19,9 @@ const (
 
 func init() {
 	app.Register(swagger.ApiInfoBuilder().
+		ContactName("John Deng").
+		ContactEmail("john.deng@outlook.com").
+		ContactURL("https://hidevops.io").
 		Title("HiBoot Swagger Demo Application - Greeting Server").
 		Description("Greeting Server is an application that demonstrate the usage of Swagger Annotations"),
 		// alternatively, you can set below properties by using SetProperty() in main, config/application.yml or program arguments to take advantage of HiBoot DI
