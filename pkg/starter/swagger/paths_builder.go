@@ -26,17 +26,17 @@ type apiPathsBuilder struct {
 
 func newApiPathsBuilder(openAPIDefinition *apiInfoBuilder) *apiPathsBuilder {
 	if openAPIDefinition.SystemServer != nil {
-		if openAPIDefinition.SwaggerProps.Host == "" && openAPIDefinition.SystemServer.Host != "" {
+		if openAPIDefinition.SystemServer.Host != "" {
 			openAPIDefinition.SwaggerProps.Host = openAPIDefinition.SystemServer.Host
 		}
-		if openAPIDefinition.SwaggerProps.BasePath == "" && openAPIDefinition.SystemServer.ContextPath != "" {
+		if openAPIDefinition.SystemServer.ContextPath != "" {
 			openAPIDefinition.SwaggerProps.BasePath = openAPIDefinition.SystemServer.ContextPath
 		}
-		if len(openAPIDefinition.SwaggerProps.Schemes) == 0 && len(openAPIDefinition.SystemServer.Schemes) > 0 {
+		if len(openAPIDefinition.SystemServer.Schemes) > 0 {
 			openAPIDefinition.SwaggerProps.Schemes = openAPIDefinition.SystemServer.Schemes
 		}
 	}
-	if openAPIDefinition.Info.Version == "" && openAPIDefinition.AppVersion != "" {
+	if openAPIDefinition.AppVersion != "" {
 		openAPIDefinition.Info.Version = openAPIDefinition.AppVersion
 	}
 

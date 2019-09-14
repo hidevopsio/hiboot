@@ -320,12 +320,15 @@ func init() {
 	app.Register(
 		newEmployeeController,
 		swagger.ApiInfoBuilder().
-			Version("1.1.0").
+			// Schemes, Version, Host, BasePath use default settings from server properties instead
+			// they will be replaced with program arguments as highest priority,
+			// for example: my-app --app.version=v.1.0.0  --server.schemes=http, --server.host=example.com --server.context_path=/api/v1/my-app
+			//Schemes("http").
+			//Version("1.1.0").
+			//Host("localhost:8080").
+			//BasePath("/").
 			Title("HiBoot Swagger Demo Application - Simple CRUD Demo Application - 演示代码").
-			Description("Simple Server is an application that demonstrate the usage of Swagger Annotations").
-			Schemes("http").
-			Host("localhost:8080").
-			BasePath("/"),
+			Description("Simple Server is an application that demonstrate the usage of Swagger Annotations"),
 	)
 }
 
@@ -337,5 +340,9 @@ func main() {
 			actuator.Profile,
 			swagger.Profile,
 			logging.Profile,
-		).Run()
+		).
+		//SetProperty(app.Version, "v1.1.1").
+		//SetProperty(server.Host, "hiboot-demo.apps.hidevops.io").
+		//SetProperty(server.ContextPath, "/api/v1/simple-server").
+		Run()
 }
