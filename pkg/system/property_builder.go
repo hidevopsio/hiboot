@@ -72,7 +72,15 @@ func (b *propertyBuilder) setCustomPropertiesFromArgs() {
 			if len(kvPair) == 1 {
 				kvPair = append(kvPair, "true")
 			}
-			b.Set(kvPair[0], kvPair[1])
+			var v interface{}
+			v = kvPair[1]
+			switch v.(type) {
+			case string:
+				if strings.Contains(v.(string), ",") {
+					v = strings.SplitN(v.(string), ",", -1)
+				}
+			}
+			b.Set(kvPair[0], v)
 		}
 	}
 }
@@ -206,7 +214,6 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 		b.SetDefaultProperty(key, value)
 	}
 
-	os.Args = append(os.Args, "--logging.level=debug", "--foo.bar")
 	b.setCustomPropertiesFromArgs()
 
 	// iterate all and replace reference values or env

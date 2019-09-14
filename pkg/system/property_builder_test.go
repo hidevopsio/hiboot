@@ -40,6 +40,8 @@ type StarProperties struct {
 }
 
 func TestPropertyBuilderBuild(t *testing.T) {
+	os.Args = append(os.Args, "--logging.level=debug", "--foo.bar",  "--foobar=foo,bar")
+
 	err := os.Setenv("APP_NAME", "hiboot-app")
 
 	testProject := "system-configuration-test"
