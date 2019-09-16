@@ -265,20 +265,16 @@ func (b *apiPathsBuilder) buildParameter(operation *spec.Operation, annotations 
 
 func (b *apiPathsBuilder) findArrayField(schema *annotation.Annotation) (field *reflect.StructField) {
 	parentType := schema.Parent.Type
-	var foundSchema bool
-	for i := 0; i < parentType.NumField(); i++ {
+	numField := parentType.NumField()
+	for i := 0; i < numField; i++ {
 		f := parentType.Field(i)
-		if f.Type == reflect.TypeOf(at.Schema{}) {
-			foundSchema = true
-			schemaField := schema.Parent.Value.FieldByName(f.Name)
-			atSchema := schemaField.Interface().(at.Schema)
-			foundSchema = atSchema.Value == "array"
-			continue
-		}
-
-		if foundSchema && f.Type.Kind() == reflect.Slice {
-			field = &f
-			break
+		nextIndex := f.Index[0] + 1
+		if f.Type == reflect.TypeOf(at.Schema{}) && nextIndex < numField {
+			nextField := parentType.Field(f.Index[0] + 1)
+			if nextField.Type.Kind() == reflect.Slice {
+				field = &nextField
+				break
+			}
 		}
 	}
 	return field

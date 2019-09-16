@@ -277,13 +277,13 @@ func (c *employeeController) AddEmployeeAsserts(at struct {
 	at.Produces      `values:"application/json"`
 	Parameters    struct {
 		at.Parameter `in:"body" description:"Employee request body" `
-		at.Schema `value:"array"`
+		at.Schema
 		Assets []*Asset
 	}
 	Responses struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"returns a employee with ID"`
-			at.Schema `value:"array"`
+			at.Schema
 			Assets []*Asset
 		}
 	}
@@ -602,13 +602,13 @@ func (c *employeeController) AddEmployeeAsserts(at struct {
 	at.Produces      `+ "`" +`values:"application/json"`+ "`" +`
 	Parameters    struct {
 		at.Parameter `+ "`" +`in:"body" description:"Employee request body" `+ "`" +`
-		at.Schema `+ "`" +`value:"array"`+ "`" +`
+		at.Schema
 		Assets []*Asset
 	}
 	Responses struct {
 		StatusOK struct {
 			at.Response `+ "`" +`code:"200" description:"returns a employee with ID"`+ "`" +`
-			at.Schema `+ "`" +`value:"array"`+ "`" +`
+			at.Schema
 			Assets []*Asset
 		}
 	}
