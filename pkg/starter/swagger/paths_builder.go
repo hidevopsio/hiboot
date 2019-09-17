@@ -97,7 +97,6 @@ func deepFields(reflectType reflect.Type) []reflect.StructField {
 	return fields
 }
 
-
 func (b *apiPathsBuilder) buildSchemaArray(definition *spec.Schema, typ reflect.Type)  {
 	definition.Type = spec.StringOrArray{"array"}
 	// array items
@@ -124,6 +123,7 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 			var jsonName string
 			var fieldName string
 			var descName string
+			var descTag *structtag.Tag
 
 			tags, _ := structtag.Parse(string(f.Tag))
 
@@ -132,32 +132,40 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 				jsonName = jsonTag.Name
 			}
 
-			desc, err := tags.Get("schema")
-			if err != nil {
-				desc = jsonTag
-			}
-			if desc != nil {
-				descName = desc.Name
+			// first, check if field tag schema is presented
+			schemaTag, err := tags.Get("schema")
+			if err == nil {
+				descTag = schemaTag
 			} else {
-				descName = str.ToKebab(f.Name)
-				descName = strings.Replace(descName, "-", " ", -1)
-				descName = str.UpperFirst(descName)
+				// assign field tag json to desc
+				descTag = jsonTag
 			}
 
-			// assign schema
-			if jsonName != "" {
-				fieldName = jsonName
-			} else {
-				fieldName = str.ToLowerCamel(f.Name)
-			}
-
+			// assign schema properties
 			typName := f.Type.Name()
 			ps := spec.Schema{}
-			ps.Title = f.Name
-			ps.Description = descName
-			ps.Format = typName
-			fieldKind := f.Type.Kind()
+			if descTag != nil {
+				// assign schema
+				if jsonName != "" {
+					fieldName = jsonName
+				} else {
+					fieldName = str.ToLowerCamel(f.Name)
+				}
 
+				if schemaTag == nil {
+					descName = str.ToKebab(f.Name)
+					descName = strings.Replace(descName, "-", " ", -1)
+					descName = str.UpperFirst(descName)
+				} else {
+					descName = schemaTag.Name
+				}
+
+				ps.Title = f.Name
+				ps.Description = descName
+				ps.Format = typName
+			}
+
+			fieldKind := f.Type.Kind()
 			switch fieldKind {
 			case reflect.Slice:
 				b.buildSchemaArray(&ps, f.Type)
@@ -180,17 +188,16 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 				ps.Type = spec.StringOrArray{swgTypName}
 			}
 
-			definition.Properties[fieldName] = ps
+			if descTag != nil {
+				definition.Properties[fieldName] = ps
+			}
 		}
 	}
 }
 
 func (b *apiPathsBuilder) buildSchemaObject(ps *spec.Schema, typ reflect.Type) {
 	ps.Type = spec.StringOrArray{"object"}
-	childSchema := annotation.GetAnnotation(typ, at.Schema{})
-	if childSchema != nil {
-		b.buildSchemaProperty(ps, typ)
-	}
+	b.buildSchemaProperty(ps, typ)
 }
 
 func (b *apiPathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect.StructField) (schema *spec.Schema) {
@@ -258,20 +265,16 @@ func (b *apiPathsBuilder) buildParameter(operation *spec.Operation, annotations 
 
 func (b *apiPathsBuilder) findArrayField(schema *annotation.Annotation) (field *reflect.StructField) {
 	parentType := schema.Parent.Type
-	var foundSchema bool
-	for i := 0; i < parentType.NumField(); i++ {
+	numField := parentType.NumField()
+	for i := 0; i < numField; i++ {
 		f := parentType.Field(i)
-		if f.Type == reflect.TypeOf(at.Schema{}) {
-			foundSchema = true
-			schemaField := schema.Parent.Value.FieldByName(f.Name)
-			atSchema := schemaField.Interface().(at.Schema)
-			foundSchema = atSchema.Value == "array"
-			continue
-		}
-
-		if foundSchema && f.Type.Kind() == reflect.Slice {
-			field = &f
-			break
+		nextIndex := f.Index[0] + 1
+		if f.Type == reflect.TypeOf(at.Schema{}) && nextIndex < numField {
+			nextField := parentType.Field(f.Index[0] + 1)
+			if nextField.Type.Kind() == reflect.Slice {
+				field = &nextField
+				break
+			}
 		}
 	}
 	return field
@@ -320,7 +323,6 @@ func (b *apiPathsBuilder) buildOperation(operation *spec.Operation, annotations 
 	}
 }
 
-
 func (b *apiPathsBuilder) Build(atController *annotation.Annotations, atMethod *annotation.Annotations) {
 
 	if !annotation.ContainsChild(atMethod, at.Operation{}) {
@@ -355,7 +357,6 @@ func (b *apiPathsBuilder) Build(atController *annotation.Annotations, atMethod *
 			b.buildOperation(operation, atMethod)
 
 			// add new path item
-			//path = strings.ToLower(path)
 			b.apiInfoBuilder.Paths.Paths[path] = pathItem
 			//log.Debug(b.openAPIDefinition.Paths.Paths[path])
 		}

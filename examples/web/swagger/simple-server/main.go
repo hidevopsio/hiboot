@@ -16,30 +16,19 @@ import (
 )
 
 type Asset struct {
-	at.Schema
 	ID         int    `schema:"The asset ID" json:"id"`
 	Name       string `schema:"The asset name" json:"name"`
-	Amount     float64
-	Type       string `schema:"The asset type"`
-	ExpirationTime time.Time
-}
-
-type AddAssetsResponse struct {
-	at.ResponseBody `json:"-"`
-	at.Schema
-
-	model.BaseResponseInfo
-	Data []*Asset `json:"data,omitempty" schema:"The employee data"`
+	Amount     float64 `json:"amount"`
+	Type       string `schema:"The asset type" json:"type"`
+	ExpirationTime time.Time `json:"expiration_time"`
 }
 
 type Manager struct {
-	at.Schema
 	ID int `schema:"The manager ID" json:"id"`
 	Name string `schema:"The manager name of the employee" json:"name"`
 }
 
 type Employee struct {
-	at.Schema
 	Id        int     `schema:"The auto generated employee ID" json:"id"`
 	FirstName string  `schema:"The employee first name" json:"first_name"`
 	LastName  string  `schema:"The employee last name" json:"last_name"`
@@ -47,7 +36,7 @@ type Employee struct {
 	Assets    []Asset `schema:"The assets list of the employee" json:"assets"`
 }
 
-type ErrorResponse struct {
+type ResponseInfo struct {
 	at.Schema
 	model.BaseResponseInfo
 }
@@ -55,11 +44,13 @@ type ErrorResponse struct {
 
 type UpdateEmployeeRequest struct {
 	at.RequestBody
+	at.Schema
 	Employee
 }
 
 type CreateEmployeeRequest struct {
 	at.RequestBody
+	at.Schema
 	Employee
 }
 
@@ -182,7 +173,7 @@ func (c *employeeController) GetEmployee(at struct {
 		}
 		StatusNotFound struct {
 			at.Response `code:"404" description:"the employee you are looking for is not found"`
-			ErrorResponse
+			ResponseInfo
 		}
 	}
 }, id int) (response *EmployeeResponse, err error) {
@@ -243,7 +234,7 @@ func (c *employeeController) ListEmployee(at struct {
 		}
 		StatusNotFound struct {
 			at.Response `code:"404" description:"the employees you are looking for is not found"`
-			ErrorResponse
+			ResponseInfo
 		}
 	}
 }) (response *ListEmployeeResponse, err error) {
@@ -266,11 +257,11 @@ func (c *employeeController) DeleteEmployee(at struct {
 	Responses struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"returns success message"`
-			ErrorResponse
+			ResponseInfo
 		}
 		StatusNotFound struct {
 			at.Response `code:"404" description:"the employee is not found"`
-			ErrorResponse
+			ResponseInfo
 		}
 	}
 }, id int) (response model.ResponseInfo, err error) {
@@ -286,13 +277,13 @@ func (c *employeeController) AddEmployeeAsserts(at struct {
 	at.Produces      `values:"application/json"`
 	Parameters    struct {
 		at.Parameter `in:"body" description:"Employee request body" `
-		at.Schema `value:"array"`
+		at.Schema
 		Assets []*Asset
 	}
 	Responses struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"returns a employee with ID"`
-			at.Schema `value:"array"`
+			at.Schema
 			Assets []*Asset
 		}
 	}
@@ -350,30 +341,19 @@ import (
 )
 
 type Asset struct {
-	at.Schema
 	ID         int    `+ "`" +`schema:"The asset ID" json:"id"`+ "`" +`
 	Name       string `+ "`" +`schema:"The asset name" json:"name"`+ "`" +`
-	Amount     float64
-	Type       string `+ "`" +`schema:"The asset type"`+ "`" +`
-	ExpirationTime time.Time
-}
-
-type AddAssetsResponse struct {
-	at.ResponseBody `+ "`" +`json:"-"`+ "`" +`
-	at.Schema
-
-	model.BaseResponseInfo
-	Data []*Asset `+ "`" +`json:"data,omitempty" schema:"The employee data"`+ "`" +`
+	Amount     float64 `+ "`" +`json:"amount"`+ "`" +`
+	Type       string `+ "`" +`schema:"The asset type" json:"type"`+ "`" +`
+	ExpirationTime time.Time `+ "`" +`json:"expiration_time"`+ "`" +`
 }
 
 type Manager struct {
-	at.Schema
 	ID int `+ "`" +`schema:"The manager ID" json:"id"`+ "`" +`
 	Name string `+ "`" +`schema:"The manager name of the employee" json:"name"`+ "`" +`
 }
 
 type Employee struct {
-	at.Schema
 	Id        int     `+ "`" +`schema:"The auto generated employee ID" json:"id"`+ "`" +`
 	FirstName string  `+ "`" +`schema:"The employee first name" json:"first_name"`+ "`" +`
 	LastName  string  `+ "`" +`schema:"The employee last name" json:"last_name"`+ "`" +`
@@ -381,7 +361,7 @@ type Employee struct {
 	Assets    []Asset `+ "`" +`schema:"The assets list of the employee" json:"assets"`+ "`" +`
 }
 
-type ErrorResponse struct {
+type ResponseInfo struct {
 	at.Schema
 	model.BaseResponseInfo
 }
@@ -389,11 +369,13 @@ type ErrorResponse struct {
 
 type UpdateEmployeeRequest struct {
 	at.RequestBody
+	at.Schema
 	Employee
 }
 
 type CreateEmployeeRequest struct {
 	at.RequestBody
+	at.Schema
 	Employee
 }
 
@@ -516,7 +498,7 @@ func (c *employeeController) GetEmployee(at struct {
 		}
 		StatusNotFound struct {
 			at.Response `+ "`" +`code:"404" description:"the employee you are looking for is not found"`+ "`" +`
-			ErrorResponse
+			ResponseInfo
 		}
 	}
 }, id int) (response *EmployeeResponse, err error) {
@@ -577,7 +559,7 @@ func (c *employeeController) ListEmployee(at struct {
 		}
 		StatusNotFound struct {
 			at.Response `+ "`" +`code:"404" description:"the employees you are looking for is not found"`+ "`" +`
-			ErrorResponse
+			ResponseInfo
 		}
 	}
 }) (response *ListEmployeeResponse, err error) {
@@ -600,11 +582,11 @@ func (c *employeeController) DeleteEmployee(at struct {
 	Responses struct {
 		StatusOK struct {
 			at.Response `+ "`" +`code:"200" description:"returns success message"`+ "`" +`
-			ErrorResponse
+			ResponseInfo
 		}
 		StatusNotFound struct {
 			at.Response `+ "`" +`code:"404" description:"the employee is not found"`+ "`" +`
-			ErrorResponse
+			ResponseInfo
 		}
 	}
 }, id int) (response model.ResponseInfo, err error) {
@@ -620,13 +602,13 @@ func (c *employeeController) AddEmployeeAsserts(at struct {
 	at.Produces      `+ "`" +`values:"application/json"`+ "`" +`
 	Parameters    struct {
 		at.Parameter `+ "`" +`in:"body" description:"Employee request body" `+ "`" +`
-		at.Schema `+ "`" +`value:"array"`+ "`" +`
+		at.Schema
 		Assets []*Asset
 	}
 	Responses struct {
 		StatusOK struct {
 			at.Response `+ "`" +`code:"200" description:"returns a employee with ID"`+ "`" +`
-			at.Schema `+ "`" +`value:"array"`+ "`" +`
+			at.Schema
 			Assets []*Asset
 		}
 	}
@@ -651,9 +633,7 @@ func init() {
 		swagger.ApiInfoBuilder().
 			// Schemes, Version, Host, BasePath use default settings from server properties instead
 			// they will be replaced with program arguments as highest priority,
-			// for example, run below command to start your web application: 
-			//     simple-server --app.version=v2.0.0  --server.schemes=https, --server.host=hiboot-demo.apps.hidevops.io --server.context_path=/api/v2/simple-server
-			// you can visit https://hiboot-demo.apps.hidevops.io/api/v2/simple-server/swagger-ui to open api doc
+			// for example: my-app --app.version=v.1.0.0  --server.schemes=http, --server.host=example.com --server.context_path=/api/v1/my-app
 			//Schemes("http").
 			//Version("1.1.0").
 			//Host("localhost:8080").
@@ -662,11 +642,12 @@ func init() {
 			ContactEmail("john.deng@outlook.com").
 			ContactURL("https://hidevops.io").
 			Title("HiBoot Swagger Demo Application - Simple CRUD Demo Application - 演示代码").
-			Description("
-## Description
+			Description(`+ "`" +`
+	## Description
 
-  Simple Server is an application that demonstrate the usage of Swagger Annotations
-"),
+	Simple Server is an application that demonstrate the usage of Swagger Annotations, see below example code for more details
+
+	`+ "`" +`),
 	)
 }
 
