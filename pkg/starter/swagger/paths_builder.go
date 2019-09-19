@@ -169,19 +169,16 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 			switch fieldKind {
 			case reflect.Slice:
 				b.buildSchemaArray(&ps, f.Type)
+
 			case reflect.Struct:
-				if f.Type == reflect.TypeOf(time.Time{}) {
-					swgTypName := b.primitiveTypes[typName]
-					ps.Type = spec.StringOrArray{swgTypName}
-				} else {
-					b.buildSchemaObject(&ps, f.Type)
-				}
+				b.buildSchemaObject(&ps, f.Type)
 
 			case reflect.Ptr:
 				iTyp := reflector.IndirectType(f.Type)
 				if iTyp.Kind() == reflect.Struct {
 					b.buildSchemaObject(&ps, iTyp)
 				}
+
 			default:
 				// convert primitive types
 				swgTypName := b.primitiveTypes[typName]
@@ -196,8 +193,13 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 }
 
 func (b *apiPathsBuilder) buildSchemaObject(ps *spec.Schema, typ reflect.Type) {
-	ps.Type = spec.StringOrArray{"object"}
-	b.buildSchemaProperty(ps, typ)
+	if typ == reflect.TypeOf(time.Time{}) {
+		swgTypName := b.primitiveTypes[typ.Name()]
+		ps.Type = spec.StringOrArray{swgTypName}
+	} else {
+		ps.Type = spec.StringOrArray{"object"}
+		b.buildSchemaProperty(ps, typ)
+	}
 }
 
 func (b *apiPathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect.StructField) (schema *spec.Schema) {

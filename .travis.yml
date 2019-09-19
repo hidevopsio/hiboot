@@ -9,6 +9,7 @@ git:
 branches:
   only:
   - master
+  - v2
 
 go_import_path: hidevops.io/hiboot
 
