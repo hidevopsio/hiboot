@@ -226,9 +226,12 @@ func (b *apiPathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect
 				b.apiInfoBuilder.Definitions = def
 			}
 
-			definition := spec.Schema{}
-			b.buildSchemaProperty(&definition, field.Type)
-			b.apiInfoBuilder.Definitions[field.Name] = definition
+			definition, ok := b.apiInfoBuilder.Definitions[field.Name]
+			if !ok {
+				definition = spec.Schema{}
+				b.buildSchemaProperty(&definition, field.Type)
+				b.apiInfoBuilder.Definitions[field.Name] = definition
+			}
 		}
 	} else {
 		schema.Type = spec.StringOrArray{s.Type}
