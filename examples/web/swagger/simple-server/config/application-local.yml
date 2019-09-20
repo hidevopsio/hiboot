@@ -1,4 +1,4 @@
 # config file for testing
 
-logging:
-  level: debug
+#logging:
+#  level: debug

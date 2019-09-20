@@ -37,10 +37,6 @@ type ApiInfoBuilderInterface interface {
 	BasePath(values string) ApiInfoBuilderInterface
 }
 
-const (
-	Profile = "swagger"
-)
-
 type Contact struct {
 	Name  string `json:"name,omitempty"`
 	URL   string `json:"url,omitempty"`
@@ -63,7 +59,6 @@ type apiInfoBuilder struct {
 func ApiInfoBuilder() ApiInfoBuilderInterface {
 	return &apiInfoBuilder{
 		Swagger: spec.Swagger{
-			VendorExtensible: spec.VendorExtensible{},
 			SwaggerProps: spec.SwaggerProps{
 				Swagger: "2.0",
 				Info:    &spec.Info{},

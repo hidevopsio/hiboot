@@ -3,7 +3,6 @@ package swagger
 import (
 	"fmt"
 	"github.com/go-openapi/spec"
-	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/webutils"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/inject/annotation"
@@ -24,27 +23,27 @@ type apiPathsBuilder struct {
 	primitiveTypes map[string]string
 }
 
-func newApiPathsBuilder(openAPIDefinition *apiInfoBuilder) *apiPathsBuilder {
-	if openAPIDefinition.SystemServer != nil {
-		if openAPIDefinition.SystemServer.Host != "" {
-			openAPIDefinition.SwaggerProps.Host = openAPIDefinition.SystemServer.Host
+func newApiPathsBuilder(builder *apiInfoBuilder) *apiPathsBuilder {
+	if builder.SystemServer != nil {
+		if builder.SystemServer.Host != "" {
+			builder.SwaggerProps.Host = builder.SystemServer.Host
 		}
-		if openAPIDefinition.SystemServer.ContextPath != "" {
-			openAPIDefinition.SwaggerProps.BasePath = openAPIDefinition.SystemServer.ContextPath
+		if builder.SystemServer.ContextPath != "" {
+			builder.SwaggerProps.BasePath = builder.SystemServer.ContextPath
 		}
-		if len(openAPIDefinition.SystemServer.Schemes) > 0 {
-			openAPIDefinition.SwaggerProps.Schemes = openAPIDefinition.SystemServer.Schemes
+		if len(builder.SystemServer.Schemes) > 0 {
+			builder.SwaggerProps.Schemes = builder.SystemServer.Schemes
 		}
 	}
-	if openAPIDefinition.AppVersion != "" {
-		openAPIDefinition.Info.Version = openAPIDefinition.AppVersion
+	if builder.AppVersion != "" {
+		builder.Info.Version = builder.AppVersion
 	}
 
-	visit := fmt.Sprintf("%s://%s/swagger-ui", openAPIDefinition.SwaggerProps.Schemes[0], filepath.Join(openAPIDefinition.SwaggerProps.Host, openAPIDefinition.SwaggerProps.BasePath))
+	visit := fmt.Sprintf("%s://%s/swagger-ui", builder.SwaggerProps.Schemes[0], filepath.Join(builder.SwaggerProps.Host, builder.SwaggerProps.BasePath))
 	log.Infof("visit %v to open api doc", visit)
 
 	return &apiPathsBuilder{
-		apiInfoBuilder: openAPIDefinition,
+		apiInfoBuilder: builder,
 		primitiveTypes: map[string]string{
 			// array, boolean, integer, number, object, string
 			"string": "string",
@@ -66,10 +65,6 @@ func newApiPathsBuilder(openAPIDefinition *apiInfoBuilder) *apiPathsBuilder {
 			"Time": "string",
 		},
 	}
-}
-
-func init() {
-	app.Register(newApiPathsBuilder)
 }
 
 func deepFields(reflectType reflect.Type) []reflect.StructField {

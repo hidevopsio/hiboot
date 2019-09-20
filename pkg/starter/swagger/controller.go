@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/handlers"
-	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 	"net/http"
@@ -36,11 +35,6 @@ type controller struct {
 func newController(openAPIDefinition *apiInfoBuilder) *controller {
 	return &controller{apiInfoBuilder: openAPIDefinition}
 }
-
-func init() {
-	app.Register(newController)
-}
-
 
 // TODO: add description 'Implemented by HiBoot Framework'
 func (c *controller) loadDoc() (retVal []byte, err error) {

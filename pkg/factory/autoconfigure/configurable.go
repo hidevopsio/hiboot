@@ -224,23 +224,20 @@ func (f *configurableFactory) parseName(item *factory.MetaData) string {
 }
 
 func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
-
 	for _, item := range cfgContainer {
 		name := f.parseName(item)
 		config := item.MetaObject
 
 		isContextAware := annotation.Contains(item.MetaObject, at.ContextAware{})
-		// TODO: should check if profiles is enabled str.InSlice(name, sysconf.App.Profiles.Include)
-		filter := f.GetProperty("app.profiles.filter")
-		if filter != nil {
-			pf := filter.(bool)
-			if pf &&
+		if f.systemConfig != nil {
+			if f.systemConfig.App.Profiles.Filter &&
 				!isContextAware &&
 				f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
+				log.Infof("Filter auto configuration %v out", name)
 				continue
 			}
 		}
-		log.Infof("Auto configure %v starter on %v", item.PkgName, item.Type)
+		log.Infof("Auto configure %v on %v", item.PkgName, item.Type)
 
 		// inject into func
 		var cf interface{}
