@@ -6,7 +6,8 @@ app:
   name: hiboot
   profiles:
     include:
-    - foo
+    - mock
+    - file
 
 logging:
   level: debug

@@ -1,0 +1,11 @@
+# config file for testing
+
+logging:
+  level: debug
+
+mock:
+  name: hiboot-mock-dev
+  username: ${app.name}-user-dev
+
+star:
+  name: Jupiter

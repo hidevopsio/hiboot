@@ -368,25 +368,25 @@ func setFactory(t *testing.T, configDir string, customProperties cmap.Concurrent
 	io.ChangeWorkDir(os.TempDir())
 
 	configPath := filepath.Join(os.TempDir(), "config")
-	fakeFile := "application.yml"
-	os.Remove(filepath.Join(configPath, fakeFile))
+	defaultConfigFile := "application.yml"
+	os.Remove(filepath.Join(configPath, defaultConfigFile))
 	fakeContent :=
 		"app:\n" +
 			"  project: hidevopsio\n" +
 			"  name: hiboot-test\n" +
 			"  version: 0.0.1\n"
-	n, err := io.WriterFile(configPath, fakeFile, []byte(fakeContent))
+	n, err := io.WriterFile(configPath, defaultConfigFile, []byte(fakeContent))
 	assert.Equal(t, nil, err)
 	assert.Equal(t, n, len(fakeContent))
 
-	fooFile := "application-foo.yml"
-	os.Remove(filepath.Join(configPath, fooFile))
+	fooConfigFile := "application-foo.yml"
+	os.Remove(filepath.Join(configPath, fooConfigFile))
 	fooContent :=
 		"foo:\n" +
 			"  name: foo\n" +
 			"  nickname: ${app.name} ${foo.name}\n" +
 			"  username: ${unknown.name:bar}\n"
-	_, err = io.WriterFile(configPath, fooFile, []byte(fooContent))
+	_, err = io.WriterFile(configPath, fooConfigFile, []byte(fooContent))
 	assert.Equal(t, nil, err)
 
 	configContainers := cmap.New()
@@ -503,8 +503,8 @@ func TestReplacer(t *testing.T) {
 	f := setFactory(t, "jupiter", customProperties)
 	var err error
 
+	_, err = f.BuildProperties()
 	t.Run("should build app config", func(t *testing.T) {
-		_, err = f.BuildProperties()
 		assert.Equal(t, nil, err)
 	})
 
