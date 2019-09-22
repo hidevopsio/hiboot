@@ -254,15 +254,17 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 func CloneMetaData(src *MetaData) (dst *MetaData) {
 	dst = &MetaData{
 		Kind:         src.Kind,
-		PkgName:      src.PkgName,
-		TypeName:     src.TypeName,
 		Name:         src.Name,
 		ShortName:    src.ShortName,
+		TypeName:     src.TypeName,
+		PkgName:      src.PkgName,
 		ObjectOwner:  src.ObjectOwner,
 		MetaObject:   src.MetaObject,
 		Type:         src.Type,
 		DepNames:     src.DepNames,
+		DepMetaData:  src.DepMetaData,
 		ContextAware: src.ContextAware,
+		Instance:     src.Instance,
 	}
 	return dst
 }
