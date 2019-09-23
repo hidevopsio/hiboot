@@ -28,6 +28,8 @@ import (
 	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
+	"hidevops.io/hiboot/pkg/starter/locale"
+
 	//_ "hidevops.io/hiboot/pkg/starter/actuator"
 	"hidevops.io/hiboot/pkg/starter/jwt"
 	_ "hidevops.io/hiboot/pkg/starter/locale"
@@ -576,7 +578,9 @@ func TestApplicationWithCircularDI(t *testing.T) {
 func TestWebApplication(t *testing.T) {
 	foo := &Foo{Name: "test injection"}
 	app.Register(foo)
-	testApp := web.RunTestApplication(t, newHelloController, newFooController, newBarController, newFoobarController)
+	testApp := web.NewTestApp(newHelloController, newFooController, newBarController, newFoobarController).
+		SetProperty(app.ProfilesInclude, jwt.Profile, locale.Profile, logging.Profile).
+		Run(t)
 
 	t.Run("should response 200 when GET /hello/all", func(t *testing.T) {
 		testApp.

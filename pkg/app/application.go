@@ -99,7 +99,7 @@ func (a *BaseApplication) PrintStartupMessages() {
 }
 
 // SetProperty set application property
-// TODO: should set property from source by SetProperty or accept from program argument, e.g. myapp --app.profiles.active=dev
+// should be able to set property from source code by SetProperty, it can be override by program argument, e.g. myapp --app.profiles.active=dev
 func (a *BaseApplication) SetProperty(name string, value ...interface{}) Application {
 	var val interface{}
 	if len(value) == 1 {

@@ -230,14 +230,13 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 
 		isContextAware := annotation.Contains(item.MetaObject, at.ContextAware{})
 		if f.systemConfig != nil {
-			if f.systemConfig.App.Profiles.Filter &&
-				!isContextAware &&
+			if !isContextAware &&
 				f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
-				log.Infof("Filter auto configuration %v out", name)
+				log.Warnf("Auto configuration %v is filtered out! Just ignore this warning if you intended to do so.", name)
 				continue
 			}
 		}
-		log.Infof("Auto configure %v on %v", item.PkgName, item.Type)
+		log.Infof("Auto configuration %v is configured on %v.", item.PkgName, item.Type)
 
 		// inject into func
 		var cf interface{}

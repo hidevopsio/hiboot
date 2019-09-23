@@ -318,6 +318,7 @@ func TestController(t *testing.T) {
 		SetProperty(server.Host, "localhost:8080").
 		SetProperty(server.ContextPath, "/v2").
 		SetProperty(app.Version, "v2").
+		SetProperty(app.ProfilesInclude, web.Profile, swagger.Profile).
 		Run(t)
 
 	app.Register(
@@ -352,7 +353,7 @@ limitations under the License.
 	)
 
 	time.Sleep(time.Second)
-	testApp := web.NewTestApp(t).Run(t)
+	testApp := web.NewTestApp(t).SetProperty(app.ProfilesInclude, web.Profile, swagger.Profile).Run(t)
 	employee := Employee{
 		Id:        12345,
 		FirstName: "foo",

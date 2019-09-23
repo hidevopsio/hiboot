@@ -20,8 +20,6 @@ import "hidevops.io/hiboot/pkg/at"
 // .include auto configuration starter should be included inside this slide
 // .active active profile
 type Profiles struct {
-	// set to true or false to filter in included profiles or not
-	Filter bool `json:"filter,omitempty" default:"false"`
 	// included profiles
 	Include []string `json:"include,omitempty"`
 	// active profile

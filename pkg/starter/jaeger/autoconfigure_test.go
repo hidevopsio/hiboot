@@ -118,6 +118,7 @@ func TestController(t *testing.T) {
 
 	testApp := web.NewTestApp().
 		SetProperty("jaeger.config.serviceName", "test").
+		SetProperty(app.ProfilesInclude, "web,jaeger").
 		Run(t)
 
 	t.Run("should response 200 when GET /foo/{foo}", func(t *testing.T) {

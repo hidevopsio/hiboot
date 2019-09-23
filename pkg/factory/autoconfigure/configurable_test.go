@@ -370,11 +370,23 @@ func setFactory(t *testing.T, configDir string, customProperties cmap.Concurrent
 	configPath := filepath.Join(os.TempDir(), "config")
 	defaultConfigFile := "application.yml"
 	os.Remove(filepath.Join(configPath, defaultConfigFile))
-	fakeContent :=
-		"app:\n" +
-			"  project: hidevopsio\n" +
-			"  name: hiboot-test\n" +
-			"  version: 0.0.1\n"
+	fakeContent := `
+app:
+  project: hidevopsio
+  name: hiboot-test
+  version: 0.0.1
+  profiles:
+    include:
+    - fake
+    - foo
+    - autoconfigure_test
+    - bar
+    - mars
+    - jupiter
+    - mercury
+    - foobar
+    - earth
+`
 	n, err := io.WriterFile(configPath, defaultConfigFile, []byte(fakeContent))
 	assert.Equal(t, nil, err)
 	assert.Equal(t, n, len(fakeContent))
@@ -418,6 +430,7 @@ func TestConfigurableFactory(t *testing.T) {
 
 	err = os.Setenv(autoconfigure.EnvAppProfilesActive, profile)
 	assert.Equal(t, nil, err)
+
 	t.Run("should build app config", func(t *testing.T) {
 		sc, err := f.BuildProperties()
 		assert.Equal(t, nil, err)

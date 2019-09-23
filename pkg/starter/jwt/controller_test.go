@@ -118,7 +118,7 @@ func (c *barController) Options() {
 }
 
 func TestJwtController(t *testing.T) {
-	testApp := web.RunTestApplication(t, newFooController, newBarController)
+	testApp := web.NewTestApp(newFooController, newBarController).SetProperty(app.ProfilesInclude, web.Profile, jwt.Profile).Run(t)
 	appContext := testApp.(app.ApplicationContext)
 
 	fc := appContext.GetInstance(fooController{})

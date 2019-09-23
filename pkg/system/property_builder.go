@@ -31,12 +31,13 @@ import (
 	"strings"
 )
 
+const ( appProfilesInclude  = "app.profiles.include")
+
 type ConfigFile struct{
 	path             string
 	name             string
 	fileType         string
 }
-
 
 type propertyBuilder struct {
 	at.Qualifier `value:"system.builder"`
@@ -218,7 +219,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 	}
 
 	var includeProfiles []string
-	ip := b.Get("app.profiles.include")
+	ip := b.Get(appProfilesInclude)
 	if ip != nil {
 		switch ip.(type) {
 		case []string:
@@ -230,6 +231,8 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 			}
 		case string:
 			includeProfiles = append(includeProfiles, ip.(string))
+			// set []string back to property appProfilesInclude if it is a string
+			b.SetDefaultProperty(appProfilesInclude, includeProfiles)
 		}
 	}
 
