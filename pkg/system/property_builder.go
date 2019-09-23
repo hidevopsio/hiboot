@@ -218,23 +218,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 		err = b.readConfig(defaultProfileConfigFile.path, defaultProfileConfigFile.name, defaultProfileConfigFile.fileType)
 	}
 
-	var includeProfiles []string
-	ip := b.Get(appProfilesInclude)
-	if ip != nil {
-		switch ip.(type) {
-		case []string:
-			includeProfiles = ip.([]string)
-		case []interface{}:
-			ipi := ip.([]interface{})
-			for _, value := range ipi {
-				includeProfiles = append(includeProfiles, value.(string))
-			}
-		case string:
-			includeProfiles = append(includeProfiles, ip.(string))
-			// set []string back to property appProfilesInclude if it is a string
-			b.SetDefaultProperty(appProfilesInclude, includeProfiles)
-		}
-	}
+	includeProfiles := b.GetStringSlice(appProfilesInclude)
 
 	// read all config files
 	//log.Debug("after ...")
@@ -244,7 +228,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 			for _, file := range files {
 				p := strings.Split(file, "-")
 				np := len(p)
-				if  np > 0 && str.InSlice(p[np - 1], includeProfiles) {
+				if np > 0 && str.InSlice(p[np-1], includeProfiles) {
 					err = b.readConfig(path, file, ext)
 				}
 			}
@@ -335,32 +319,6 @@ func (b *propertyBuilder) GetProperty(name string) (retVal interface{}) {
 	retVal = b.Get(name)
 	return
 }
-//
-//func (b *propertyBuilder) updateProperty(name string, val interface{}) (retVal interface{})  {
-//	// TODO: for debug only, TBD
-//	if name == "swagger" {
-//		log.Debug(name)
-//	}
-//	original := b.Get(name)
-//	// convert struct to map
-//	var dm = make(map[string]interface{})
-//	sm, ok := mapstruct.DecodeStructToMap(val)
-//	if ok {
-//		if original != nil {
-//			// copy original map to the new map
-//			copier.CopyMap(dm, original.(map[string]interface{}))
-//			// copy new src map to dest map
-//			copier.CopyMap(dm, sm, copier.IgnoreEmptyValue)
-//			// assign dest map to retVal
-//			retVal = dm
-//		} else {
-//			retVal = sm
-//		}
-//	} else {
-//		retVal = val
-//	}
-//	return
-//}
 
 func (b *propertyBuilder) SetProperty(name string, val interface{}) Builder {
 	b.Set(name, val)
