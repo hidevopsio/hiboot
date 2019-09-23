@@ -267,7 +267,7 @@ func (i *inject) parseFuncOrMethodInput(inType reflect.Type) (paramValue reflect
 	inst := i.getInstance(inType)
 	ok = true
 	if inst == nil {
-		log.Debug(inType.Kind())
+		//log.Debug(inType.Kind())
 		switch inType.Kind() {
 		// interface and slice creation is not supported
 		case reflect.Interface, reflect.Slice:
