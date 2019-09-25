@@ -256,7 +256,6 @@ func (b *apiPathsBuilder) buildParameter(operation *spec.Operation, annotations 
 
 			parameter.Schema = b.buildSchema(atSchema, field)
 		}
-
 	}
 
 	operation.Parameters = append(operation.Parameters, parameter)

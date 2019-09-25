@@ -44,7 +44,7 @@ type Parameter struct {
 	Swagger
 
 	AtName string `at:"name" json:"-"`
-	AtType string `at:"type:" json:"-"`
+	AtType string `at:"type" json:"-"`
 	AtIn string `at:"in" json:"-"`
 	AtDescription string `at:"description" json:"-"`
 }

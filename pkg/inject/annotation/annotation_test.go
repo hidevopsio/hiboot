@@ -384,5 +384,19 @@ func TestImplementsAnnotation(t *testing.T) {
 		assert.Equal(t, "string", ao.AtType)
 		assert.Equal(t, "This is a test parameter", ao.AtDescription)
 	})
+
+	t.Run("should inject into annotation", func(t *testing.T) {
+		type foo struct {
+			at.Parameter `value:"foo" in:"path" type:"integer" description:"This is a test parameter"`
+		}
+		f := &foo{}
+		a := annotation.GetAnnotation(f, at.Parameter{})
+		err := annotation.Inject(a)
+		assert.Equal(t, nil, err)
+		ao := a.Field.Value.Interface().(at.Parameter)
+		assert.Equal(t, "integer", ao.AtType)
+		assert.Equal(t, "path", ao.AtIn)
+		assert.Equal(t, "This is a test parameter", ao.AtDescription)
+	})
 }
 
