@@ -31,7 +31,7 @@ type defaultTag struct {
 //}
 
 func (t *defaultTag) Decode(object reflect.Value, field reflect.StructField, property string) (retVal interface{}) {
-	tag, ok := field.Tag.Lookup(t.Tag.Value)
+	tag, ok := field.Tag.Lookup(t.Tag.AtValue)
 	if ok {
 		//log.Debug(valueTag)
 

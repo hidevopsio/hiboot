@@ -1008,7 +1008,7 @@ func (c *customRouterController) PathVariable(
 	at.GetMapping `value:"/{id}/name/{name}"`
 }, id int, name string) (response *CustomResponse, err error) {
 	response = new(CustomResponse)
-	log.Infof("PathParamIdAndName: %v", at.Value)
+	log.Infof("PathParamIdAndName: %v", at.AtValue)
 	switch id {
 	case 0:
 		response.Code = http.StatusNotFound
@@ -1033,7 +1033,7 @@ func (c *customRouterController) Delete(
 	at.UseJwt
 }, id int,) (response *CustomResponse, err error) {
 	response = new(CustomResponse)
-	log.Infof("Delete: %v", at.DeleteMapping.Value)
+	log.Infof("Delete: %v", at.DeleteMapping.AtValue)
 
 	response.Code = http.StatusOK
 	response.Message = "Success"

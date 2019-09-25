@@ -83,7 +83,7 @@ type GetMapping struct {
 	Annotation
 
 	RequestMapping
-	Method string `value:"GET" json:"method"`
+	AtMethod string `method:"GET" at:"method" json:"-"`
 }
 
 // PostMapping is the annotation that set the PostMapping of a controller
@@ -91,7 +91,7 @@ type PostMapping struct {
 	Annotation
 
 	RequestMapping
-	Method string  `value:"POST" json:"method"`
+	AtMethod string  `method:"POST" at:"method" json:"-"`
 }
 
 // PutMapping is the annotation that set the PutMapping of a controller
@@ -99,7 +99,7 @@ type PutMapping struct {
 	Annotation
 
 	RequestMapping
-	Method string  `value:"PUT" json:"method"`
+	AtMethod string  `method:"PUT" at:"method" json:"-"`
 }
 
 // PatchMapping is the annotation that set the PatchMapping of a controller
@@ -107,7 +107,7 @@ type PatchMapping struct {
 	Annotation
 
 	RequestMapping
-	Method string  `value:"PATCH" json:"method"`
+	AtMethod string  `method:"PATCH" at:"method" json:"-"`
 }
 
 // DeleteMapping is the annotation that set the DeleteMapping of a controller
@@ -115,7 +115,7 @@ type DeleteMapping struct {
 	Annotation
 
 	RequestMapping
-	Method string  `value:"DELETE" json:"method"`
+	AtMethod string  `method:"DELETE" at:"method" json:"-"`
 }
 
 // AnyMapping is the annotation that set the AnyMapping of a controller
@@ -123,7 +123,7 @@ type AnyMapping struct {
 	Annotation
 
 	RequestMapping
-	Method string  `value:"ANY" json:"method"`
+	AtMethod string  `value:"ANY" at:"method" json:"-"`
 }
 
 // OptionsMapping is the annotation that set the OptionsMapping of a controller
@@ -131,7 +131,7 @@ type OptionsMapping struct {
 	Annotation
 
 	RequestMapping
-	Method string  `value:"OPTIONS" json:"method"`
+	AtMethod string  `method:"OPTIONS" at:"method" json:"-"`
 }
 
 // TraceMapping is the annotation that set the TraceMapping of a controller
@@ -139,7 +139,7 @@ type TraceMapping struct {
 	Annotation
 
 	RequestMapping
-	Method string  `value:"TRACE" json:"method"`
+	AtMethod string  `method:"TRACE" at:"method" json:"-"`
 }
 
 // StaticResource is the annotation that set the StaticResource of a controller

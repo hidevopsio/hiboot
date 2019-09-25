@@ -205,7 +205,7 @@ func (b *apiPathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect
 	atSchema := annotation.GetAnnotation(ann.Parent.Interface, at.Schema{})
 
 	s := atSchema.Field.Value.Interface().(at.Schema)
-	schemaType := s.Type
+	schemaType := s.AtType
 	primitiveTypes := b.primitiveTypes[schemaType]
 
 	schema = &spec.Schema{}
@@ -229,8 +229,8 @@ func (b *apiPathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect
 			}
 		}
 	} else {
-		schema.Type = spec.StringOrArray{s.Type}
-		schema.Description = s.Description
+		schema.Type = spec.StringOrArray{s.AtType}
+		schema.Description = s.AtDescription
 	}
 
 	return
@@ -241,12 +241,12 @@ func (b *apiPathsBuilder) buildParameter(operation *spec.Operation, annotations 
 	atParameter := ao.(at.Parameter)
 	// copy values
 	parameter := spec.Parameter{}
-	parameter.Name = atParameter.Name
-	parameter.Type = atParameter.Type
-	parameter.In = atParameter.In
-	parameter.Description = atParameter.Description
+	parameter.Name = atParameter.AtName
+	parameter.Type = atParameter.AtType
+	parameter.In = atParameter.AtIn
+	parameter.Description = atParameter.AtDescription
 
-	if atParameter.In == "body" || atParameter.In == "array" {
+	if atParameter.AtIn == "body" || atParameter.AtIn == "array" {
 
 		atSchema := annotation.Find(annotations, at.Schema{})
 
@@ -290,14 +290,14 @@ func (b *apiPathsBuilder) buildResponse(operation *spec.Operation, annotations *
 	atSchema := annotation.Find(annotations, at.Schema{})
 
 	response := spec.Response{}
-	response.Description = atResponse.Description
+	response.Description = atResponse.AtDescription
 	if atSchema != nil {
 		field := b.findArrayField(atSchema)
 
 		response.Schema = b.buildSchema(atSchema, field)
 	}
 
-	operation.Responses.StatusCodeResponses[atResponse.Code] = response
+	operation.Responses.StatusCodeResponses[atResponse.AtCode] = response
 	return
 }
 
@@ -307,10 +307,10 @@ func (b *apiPathsBuilder) buildOperation(operation *spec.Operation, annotations 
 		switch ao.(type) {
 		case at.Consumes:
 			ann := ao.(at.Consumes)
-			operation.Consumes = append(operation.Consumes, ann.Values...)
+			operation.Consumes = append(operation.Consumes, ann.AtValues...)
 		case at.Produces:
 			ann := ao.(at.Produces)
-			operation.Produces = append(operation.Produces, ann.Values...)
+			operation.Produces = append(operation.Produces, ann.AtValues...)
 		case at.Parameter:
 			b.buildParameter(operation, annotations, a)
 		case at.Response:
@@ -335,7 +335,7 @@ func (b *apiPathsBuilder) Build(atController *annotation.Annotations, atMethod *
 		atRequestMapping := annotation.GetAnnotation(atController, at.RequestMapping{})
 		if atRequestMapping != nil {
 			ann := atRequestMapping.Field.Value.Interface().(at.RequestMapping)
-			path = filepath.Join(ann.Value, path)
+			path = filepath.Join(ann.AtValue, path)
 		}
 		//log.Debugf("%v:%v", method, path)
 
@@ -348,8 +348,8 @@ func (b *apiPathsBuilder) Build(atController *annotation.Annotations, atMethod *
 
 		// copy values
 		operation := &spec.Operation{}
-		operation.ID = atOperation.ID
-		operation.Description = atOperation.Description
+		operation.ID = atOperation.AtID
+		operation.Description = atOperation.AtDescription
 
 		method = strings.Title(strings.ToLower(method))
 		err := reflector.SetFieldValue(&pathItem, method, operation)

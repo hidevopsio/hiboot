@@ -187,7 +187,7 @@ func (d *Dispatcher) parseRestController(ctl *factory.MetaData) (restController 
 	if af != nil {
 		customizedControllerPath = true
 		ann := af.Field.Value.Interface().(at.RequestMapping)
-		pathPrefix = filepath.Join(pathPrefix, ann.Value)
+		pathPrefix = filepath.Join(pathPrefix, ann.AtValue)
 	}
 
 	// parse method
@@ -418,7 +418,7 @@ func (d *Dispatcher) handleControllerMethod(restController *injectableObject, m 
 	atFileServer := annotation.GetAnnotation(m.annotations, at.FileServer{})
 	if atFileServer != nil {
 		afs := atFileServer.Field.Value.Interface().(at.FileServer)
-		path := restController.pathPrefix + afs.Value
+		path := restController.pathPrefix + afs.AtValue
 		h = Handler(func(c context.Context) {
 			// call controller method first
 			hdl.call(c)

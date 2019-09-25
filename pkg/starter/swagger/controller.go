@@ -45,7 +45,7 @@ func (c *controller) loadDoc() (retVal []byte, err error) {
 func (c *controller) serve(ctx context.Context, docsPath string) {
 	b, err := c.loadDoc()
 	if err == nil {
-		basePath := filepath.Join(c.apiInfoBuilder.Swagger.BasePath, c.RequestMapping.Value)
+		basePath := filepath.Join(c.apiInfoBuilder.Swagger.BasePath, c.RequestMapping.AtValue)
 
 		handler := middleware.Redoc(middleware.RedocOpts{
 			BasePath: basePath,
@@ -70,7 +70,7 @@ func (c *controller) Swagger(at struct{ at.GetMapping `value:"/swagger.json"` })
 
 // UI serve static resource via context StaticResource method
 func (c *controller) SwaggerUI(at struct{ at.GetMapping `value:"/swagger-ui"` }, ctx context.Context) {
-	c.serve(ctx, at.GetMapping.Value)
+	c.serve(ctx, at.GetMapping.AtValue)
 	return
 }
 

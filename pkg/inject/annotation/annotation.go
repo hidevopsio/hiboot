@@ -220,19 +220,17 @@ func Contains(object interface{}, at interface{}) (ok bool) {
 
 // Inject inject annotations into object
 func Inject(ann *Annotation) (err error) {
-	var tags *structtag.Tags
 	if ann.Field.Value.IsValid() {
-		err = injectIntoField(tags, ann.Field)
+		err = injectIntoField(ann.Field)
 	}
 	return
 }
 
 // InjectItems inject annotations into object
 func InjectItems(annotations *Annotations) (err error) {
-	var tags *structtag.Tags
 	for _, item := range annotations.Items {
 		if item.Field.Value.IsValid() {
-			err = injectIntoField(tags, item.Field)
+			err = injectIntoField(item.Field)
 			if err != nil {
 				break
 			}
@@ -264,12 +262,30 @@ func InjectAll(object interface{}) (err error) {
 	return
 }
 
-func injectIntoField(tags *structtag.Tags, field *Field) (err error) {
+func addTags(tags *structtag.Tags, typ reflect.Type) () {
+	for _, f := range reflector.DeepFields(typ) {
+		tgs, e := structtag.Parse(string(f.Tag))
+		if e == nil {
+			atTag, e := tgs.Get("at")
+			if e == nil {
+				t, e := tgs.Get(atTag.Name)
+				if e == nil {
+					_ = tags.Set(t)
+				}
+			}
+		}
+	}
+}
+
+func injectIntoField(field *Field) (err error) {
+	var tags *structtag.Tags
 	tags, err = structtag.Parse(string(field.StructField.Tag))
 	if err != nil {
 		log.Errorf("%v of %v", err, field.StructField.Type)
 		return
 	}
+	addTags(tags, field.StructField.Type)
+
     fieldValue := field.Value
 	typeField, ok := fieldValue.Type().FieldByName("FieldName")
 	if ok {

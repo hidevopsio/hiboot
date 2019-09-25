@@ -13,15 +13,15 @@ type AtBaz struct {
 	at.Annotation
 
 	at.BaseAnnotation
-	Code int `value:"200" json:"code"`
+	AtCode int `value:"200" at:"code" json:"-"`
 }
 
 type AtFoo struct {
 	at.Annotation
 
 	at.BaseAnnotation
-	ID int `json:"fooId"`
-	Age int `json:"age"`
+	AtID int `at:"fooId" json:"-"`
+	AtAge int `at:"age" json:"-"`
 }
 
 type AtBar struct {
@@ -34,14 +34,14 @@ type AtFooBar struct {
 	at.Annotation
 
 	AtFoo
-	Code int `value:"200" json:"code"`
+	Code int `value:"200" at:"code" json:"-"`
 }
 
 type AtFooBaz struct {
 	at.Annotation
 
 	AtFoo
-	Code int `value:"400" json:"code"`
+	Code int `value:"400" at:"code" json:"-"`
 }
 
 type MyObj struct{
@@ -210,14 +210,14 @@ func TestImplementsAnnotation(t *testing.T) {
 	})
 
 	t.Run("should inject all annotations", func(t *testing.T) {
-		assert.Equal(t, "", f.AtFoo.Value)
-		assert.Equal(t, 0, f.AtFoo.Age)
+		assert.Equal(t, "", f.AtFoo.AtValue)
+		assert.Equal(t, 0, f.AtFoo.AtAge)
 		err := annotation.InjectAll(f)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, "foo", f.AtFoo.Value)
-		assert.Equal(t, 18, f.AtFoo.Age)
+		assert.Equal(t, "foo", f.AtFoo.AtValue)
+		assert.Equal(t, 18, f.AtFoo.AtAge)
 
-		assert.Equal(t, "bar", f.AtBar.Value)
+		assert.Equal(t, "bar", f.AtBar.AtValue)
 		assert.Equal(t, "my object value", f.Value)
 	})
 
@@ -251,7 +251,7 @@ func TestImplementsAnnotation(t *testing.T) {
 	})
 
 	t.Run("should inject annotation into sub struct", func(t *testing.T) {
-		var fb struct{at.GetMapping `value:"/path/to/api"`}
+		var fb struct{at.GetMapping `value:"/path/to/api" foo:"bar"`}
 		err := annotation.InjectAll(&fb)
 		assert.Equal(t, nil, err)
 	})
@@ -291,12 +291,12 @@ func TestImplementsAnnotation(t *testing.T) {
 
 		err := annotation.InjectAll(ma)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, "bar1", ma.Bar1.AtBar.Value)
-		assert.Equal(t, "bar2", ma.Bar2.AtBar.Value)
-		assert.Equal(t, "baz", ma.Bar1.AtBaz.Value)
+		assert.Equal(t, "bar1", ma.Bar1.AtBar.AtValue)
+		assert.Equal(t, "bar2", ma.Bar2.AtBar.AtValue)
+		assert.Equal(t, "baz", ma.Bar1.AtBaz.AtValue)
 
 		fa := annotation.Find(maf, AtFoo{})
-		assert.Equal(t, "foo", fa.Field.Value.Interface().(AtFoo).Value)
+		assert.Equal(t, "foo", fa.Field.Value.Interface().(AtFoo).AtValue)
 	})
 
 	t.Run("should get from nil interface", func(t *testing.T) {
@@ -380,9 +380,9 @@ func TestImplementsAnnotation(t *testing.T) {
 		err := annotation.Inject(a)
 		assert.Equal(t, nil, err)
 		ao := a.Field.Value.Interface().(at.Schema)
-		assert.Equal(t, "array", ao.Value)
-		assert.Equal(t, "string", ao.Type)
-		assert.Equal(t, "This is a test parameter", ao.Description)
+		assert.Equal(t, "array", ao.AtValue)
+		assert.Equal(t, "string", ao.AtType)
+		assert.Equal(t, "This is a test parameter", ao.AtDescription)
 	})
 }
 
