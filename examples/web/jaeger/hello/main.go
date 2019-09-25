@@ -120,7 +120,7 @@ func main() {
 		SetProperty(app.ProfilesInclude,
 			logging.Profile,
 			web.Profile,
-			//jaeger.Profile,
+			jaeger.Profile,
 			httpclient.Profile).
 		Run()
 }
