@@ -23,12 +23,12 @@ type Profiles struct {
 	// included profiles
 	Include []string `json:"include,omitempty"`
 	// active profile
-	Active string `json:"active,omitempty" default:"${APP_PROFILES_ACTIVE:default}"`
+	Active string `json:"active,omitempty" default:"default"`
 }
 
 type banner struct {
 	// disable banner
-	Disabled bool `default:"false"`
+	Disabled bool `json:"disabled" default:"false"`
 }
 
 type ContactInfo struct {
@@ -51,7 +51,7 @@ type App struct {
 	// project name
 	Project string `json:"project,omitempty" default:"hidevopsio"`
 	// app name
-	Name string `json:"name,omitempty" default:"${APP_NAME:hiboot-app}"`
+	Name string `json:"name,omitempty" default:"hiboot-app"`
 	// app description
 	Description string `json:"description,omitempty" default:"${app.name} is a Hiboot Application"`
 	// profiles
@@ -73,7 +73,7 @@ type Server struct {
 	Schemes                    []string `json:"schemes,omitempty" default:"http"`
 	Host                       string   `json:"host,omitempty" default:"localhost:8080"`
 	Port                       string   `json:"port,omitempty" default:"8080"`
-	ContextPath                string   `json:"context_path,omitempty"`
+	ContextPath                string   `json:"context_path,omitempty" default:"/"`
 }
 
 // Logging is the properties of logging
