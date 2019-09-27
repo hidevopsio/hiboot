@@ -45,16 +45,22 @@ func (c *controller) loadDoc() (retVal []byte, err error) {
 func (c *controller) serve(ctx context.Context, docsPath string) {
 	b, err := c.loadDoc()
 	if err == nil {
+		// read host dynamically
+		c.apiInfoBuilder.Swagger.Host = ctx.Host()
+		// concat path
 		basePath := filepath.Join(c.apiInfoBuilder.Swagger.BasePath, c.RequestMapping.AtValue)
 
+		// get handler
 		handler := middleware.Redoc(middleware.RedocOpts{
 			BasePath: basePath,
 			SpecURL:  path.Join(basePath, "swagger.json"),
 			Path:     docsPath,
 		}, http.NotFoundHandler())
 
+		// handle cors
 		handler = handlers.CORS()(middleware.Spec(basePath, b, handler))
 
+		// wrap handler
 		ctx.WrapHandler(handler)
 	}
 }
