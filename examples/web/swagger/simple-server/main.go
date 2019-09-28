@@ -102,6 +102,43 @@ func (c *employeeController) BeforeMethod(at struct{ at.BeforeMethod }, ctx cont
 	return
 }
 
+
+type Foo struct {
+	at.Schema
+
+	Name string `json:"name"`
+	Child *Foo `json:"child"`
+	Children []*Foo `json:"children"`
+	GradChildren []Foo `json:"grad_children"`
+}
+
+// Foo
+func (c *employeeController) Foo(at struct {
+	at.PostMapping `value:"/foo"`
+	at.Operation   `id:"Foo" description:"This is the foo test api"`
+	at.Consumes    `values:"application/json"`
+	at.Produces    `values:"application/json"`
+	Parameters     struct {
+		at.Parameter `name:"foo" in:"body" description:"foo request body" `
+		Foo
+	}
+	Responses struct {
+		StatusOK struct {
+			at.Response `code:"200" description:"returns foo"`
+			Foo
+		}
+	}
+}, request *Foo) (response model.Response, err error) {
+	response = new(model.BaseResponse)
+
+	// Just for the demo purpose
+	response.SetData(&Foo{Name: "foo", Child: &Foo{
+		Name: "foo1",
+	}})
+
+	return
+}
+
 // GetEmployee
 func (c *employeeController) CreateEmployee(at struct {
 	at.PostMapping `value:"/"`
@@ -109,8 +146,13 @@ func (c *employeeController) CreateEmployee(at struct {
 	at.Consumes    `values:"application/json"`
 	at.Produces    `values:"application/json"`
 	Parameters     struct {
-		at.Parameter `name:"employee" in:"body" description:"Employee request body" `
-		CreateEmployeeRequest
+		Token struct {
+			at.Parameter `name:"token" in:"header" type:"string" description:"JWT token (fake token - for demo only)" `
+		}
+		Body struct {
+			at.Parameter `name:"employee" in:"body" description:"Employee request body" `
+			CreateEmployeeRequest
+		}
 	}
 	Responses struct {
 		StatusOK struct {

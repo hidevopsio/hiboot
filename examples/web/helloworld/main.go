@@ -37,7 +37,7 @@ type Controller struct {
 func (c *Controller) Get(at struct {
 	at.GetMapping `value:"/"`
 	at.Operation  `id:"helloWorld" description:"This is hello world API"`
-	at.Produces   `values:"plain/text"`
+	at.Produces   `values:"text/plain"`
 	Responses struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"response status OK"`

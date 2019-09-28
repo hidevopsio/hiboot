@@ -92,16 +92,16 @@ func deepFields(reflectType reflect.Type) []reflect.StructField {
 	return fields
 }
 
-func (b *apiPathsBuilder) buildSchemaArray(definition *spec.Schema, typ reflect.Type)  {
+func (b *apiPathsBuilder) buildSchemaArray(definition *spec.Schema, typ reflect.Type, recursive bool)  {
 	definition.Type = spec.StringOrArray{"array"}
 	// array items
 	arrSchema := spec.Schema{}
 	arrType := typ.Elem()
-	b.buildSchemaProperty(&arrSchema, arrType)
+	b.buildSchemaProperty(&arrSchema, arrType, recursive)
 	definition.Items = &spec.SchemaOrArray{Schema: &arrSchema}
 }
 
-func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ reflect.Type)  {
+func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ reflect.Type, recursive bool)  {
 	kind := typ.Kind()
 	if kind == reflect.Ptr {
 		typ = reflector.IndirectType(typ)
@@ -109,7 +109,7 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 	}
 
 	if kind == reflect.Slice {
-		b.buildSchemaArray(definition, typ)
+		b.buildSchemaArray(definition, typ, recursive)
 	} else if kind == reflect.Struct {
 		definition.Properties = make(map[string]spec.Schema)
 		definition.Type = spec.StringOrArray{"object"}
@@ -161,17 +161,30 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 			}
 
 			fieldKind := f.Type.Kind()
+			iTyp := reflector.IndirectType(f.Type)
 			switch fieldKind {
 			case reflect.Slice:
-				b.buildSchemaArray(&ps, f.Type)
+				if recursive && typ == iTyp {
+					swgTypName := "array"
+					ps.Type = spec.StringOrArray{swgTypName}
+				} else {
+					b.buildSchemaArray(&ps, f.Type, typ == iTyp)
+				}
 
 			case reflect.Struct:
-				b.buildSchemaObject(&ps, f.Type)
+				b.buildSchemaObject(&ps, f.Type, typ == iTyp)
 
 			case reflect.Ptr:
-				iTyp := reflector.IndirectType(f.Type)
-				if iTyp.Kind() == reflect.Struct {
-					b.buildSchemaObject(&ps, iTyp)
+				if recursive && typ == iTyp {
+					swgTypName := b.primitiveTypes[typName]
+					if swgTypName == "" {
+						swgTypName = "object"
+					}
+					ps.Type = spec.StringOrArray{swgTypName}
+				} else {
+					if iTyp.Kind() == reflect.Struct {
+						b.buildSchemaObject(&ps, iTyp, typ == iTyp)
+					}
 				}
 
 			default:
@@ -187,13 +200,13 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 	}
 }
 
-func (b *apiPathsBuilder) buildSchemaObject(ps *spec.Schema, typ reflect.Type) {
+func (b *apiPathsBuilder) buildSchemaObject(ps *spec.Schema, typ reflect.Type, recursive bool) {
 	if typ == reflect.TypeOf(time.Time{}) {
 		swgTypName := b.primitiveTypes[typ.Name()]
 		ps.Type = spec.StringOrArray{swgTypName}
 	} else {
 		ps.Type = spec.StringOrArray{"object"}
-		b.buildSchemaProperty(ps, typ)
+		b.buildSchemaProperty(ps, typ, recursive)
 	}
 }
 
@@ -224,7 +237,7 @@ func (b *apiPathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect
 			definition, ok := b.apiInfoBuilder.Definitions[field.Name]
 			if !ok {
 				definition = spec.Schema{}
-				b.buildSchemaProperty(&definition, field.Type)
+				b.buildSchemaProperty(&definition, field.Type, false)
 				b.apiInfoBuilder.Definitions[field.Name] = definition
 			}
 		}
