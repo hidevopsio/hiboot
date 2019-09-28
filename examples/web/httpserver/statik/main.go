@@ -3,7 +3,7 @@
 package main
 
 import (
-	_ "hidevops.io/hiboot/examples/web/httpserver/statiktik/statik"
+	_ "hidevops.io/hiboot/examples/web/httpserver/statik/statik"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/app/web/context"
