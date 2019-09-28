@@ -38,7 +38,7 @@ func newApiPathsBuilder(builder *apiInfoBuilder) *apiPathsBuilder {
 	if builder.AppVersion != "" {
 		builder.Info.Version = builder.AppVersion
 	}
-
+	// TODO: save visit for later use
 	visit := fmt.Sprintf("%s://%s/swagger-ui", builder.SwaggerProps.Schemes[0], filepath.Join(builder.SwaggerProps.Host, builder.SwaggerProps.BasePath))
 	log.Infof("visit %v to open api doc", visit)
 
