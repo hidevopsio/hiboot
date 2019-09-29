@@ -161,6 +161,14 @@ func (c *employeeController) CreateEmployee(at struct {
 	Responses struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"returns a employee with ID"`
+			Headers struct{
+				XRateLimit struct{
+					at.Header `value:"X-Rate-Limit" type:"integer" format:"int32" description:"calls per hour allowed by the user"`
+				}
+				XExpiresAfter struct {
+					at.Header `value:"X-Expires-After" type:"string" format:"date-time" description:"date in UTC when token expires"`
+				}
+			}
 			EmployeeResponse
 		}
 	}

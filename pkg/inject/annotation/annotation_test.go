@@ -398,5 +398,39 @@ func TestImplementsAnnotation(t *testing.T) {
 		assert.Equal(t, "path", ao.AtIn)
 		assert.Equal(t, "This is a test parameter", ao.AtDescription)
 	})
+
+	t.Run("should parse complicate annotations", func(t *testing.T) {
+		atTest := &struct {
+			at.PostMapping `value:"/"`
+			at.Operation   `id:"Create Employee" description:"This is the employee creation api"`
+			at.Consumes    `values:"application/json"`
+			at.Produces    `values:"application/json"`
+			Parameters     struct {
+				at.Parameter `name:"token" in:"header" type:"string" description:"JWT token (fake token - for demo only)" `
+				Body struct {
+					at.Parameter `name:"employee" in:"body" description:"Employee request body" `
+					foo
+				}
+			}
+			Responses struct {
+				StatusOK struct {
+					at.Response `code:"200" description:"returns a employee with ID"`
+					XRateLimit struct {
+						at.Header `value:"X-Rate-Limit" type:"integer" format:"int32" description:"calls per hour allowed by the user"`
+					}
+					XExpiresAfter struct{
+						at.Header `value:"X-Expires-After" type:"string" format:"date-time" description:"date in UTC when token expires"`
+					}
+					bar
+				}
+			}
+		}{}
+
+		ans := annotation.GetAnnotations(atTest)
+		err := annotation.InjectAll(atTest)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "Header", ans.Children[1].Children[0].Children[0].Items[0].Field.StructField.Name)
+		assert.Equal(t, "X-Rate-Limit", atTest.Responses.StatusOK.XRateLimit.AtValue)
+	})
 }
 

@@ -120,3 +120,15 @@ type Schema struct {
 	AtType string `at:"type" json:"-"`
 	AtDescription string `at:"description" json:"-"`
 }
+
+// Header is the annotation that annotate the header
+type Header struct{
+	Annotation
+
+	Swagger
+
+	AtType string `at:"type" json:"-"`
+	AtFormat string `at:"format" json:"-"`
+	AtDescription string `at:"description" json:"-"`
+}
+

@@ -146,9 +146,7 @@ func (c *employeeController) CreateEmployee(at struct {
 	at.Consumes    `values:"application/json"`
 	at.Produces    `values:"application/json"`
 	Parameters     struct {
-		Token struct {
-			at.Parameter `name:"token" in:"header" type:"string" description:"JWT token (fake token - for demo only)" `
-		}
+		at.Parameter `name:"token" in:"header" type:"string" description:"JWT token (fake token - for demo only)" `
 		Body struct {
 			at.Parameter `name:"employee" in:"body" description:"Employee request body" `
 			CreateEmployeeRequest
@@ -157,6 +155,12 @@ func (c *employeeController) CreateEmployee(at struct {
 	Responses struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"returns a employee with ID"`
+			XRateLimit struct {
+				at.Header `value:"X-Rate-Limit" type:"integer" format:"int32" description:"calls per hour allowed by the user"`
+			}
+			XExpiresAfter struct{
+				at.Header `value:"X-Expires-After" type:"string" format:"date-time" description:"date in UTC when token expires"`
+			}
 			EmployeeResponse
 		}
 	}

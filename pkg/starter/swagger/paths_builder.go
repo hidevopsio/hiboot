@@ -96,17 +96,13 @@ func (b *apiPathsBuilder) buildSchemaArray(definition *spec.Schema, typ reflect.
 	definition.Type = spec.StringOrArray{"array"}
 	// array items
 	arrSchema := spec.Schema{}
-	arrType := typ.Elem()
-	b.buildSchemaProperty(&arrSchema, arrType, recursive)
+	arrType := reflector.IndirectType(typ.Elem())
+	b.buildSchemaObject(&arrSchema, arrType, recursive)
 	definition.Items = &spec.SchemaOrArray{Schema: &arrSchema}
 }
 
 func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ reflect.Type, recursive bool)  {
 	kind := typ.Kind()
-	if kind == reflect.Ptr {
-		typ = reflector.IndirectType(typ)
-		kind = typ.Kind()
-	}
 
 	if kind == reflect.Slice {
 		b.buildSchemaArray(definition, typ, recursive)
@@ -139,27 +135,6 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 			// assign schema properties
 			typName := f.Type.Name()
 			ps := spec.Schema{}
-			if descTag != nil {
-				// assign schema
-				if jsonName != "" {
-					fieldName = jsonName
-				} else {
-					fieldName = str.ToLowerCamel(f.Name)
-				}
-
-				if schemaTag == nil {
-					descName = str.ToKebab(f.Name)
-					descName = strings.Replace(descName, "-", " ", -1)
-					descName = str.UpperFirst(descName)
-				} else {
-					descName = schemaTag.Name
-				}
-
-				ps.Title = f.Name
-				ps.Description = descName
-				ps.Format = typName
-			}
-
 			fieldKind := f.Type.Kind()
 			iTyp := reflector.IndirectType(f.Type)
 			switch fieldKind {
@@ -193,6 +168,27 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 				ps.Type = spec.StringOrArray{swgTypName}
 			}
 
+			// assign schema
+			if jsonName != "" {
+				fieldName = jsonName
+			} else {
+				fieldName = str.ToLowerCamel(f.Name)
+			}
+			if descTag != nil && iTyp.Kind() != reflect.Struct {
+
+				if schemaTag == nil {
+					descName = str.ToKebab(f.Name)
+					descName = strings.Replace(descName, "-", " ", -1)
+					descName = str.UpperFirst(descName)
+				} else {
+					descName = schemaTag.Name
+				}
+
+				ps.Title = f.Name
+				ps.Description = descName
+				ps.Format = typName
+			}
+
 			if descTag != nil {
 				definition.Properties[fieldName] = ps
 			}
@@ -200,14 +196,23 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 	}
 }
 
-func (b *apiPathsBuilder) buildSchemaObject(ps *spec.Schema, typ reflect.Type, recursive bool) {
+func (b *apiPathsBuilder) buildSchemaObject(ps *spec.Schema, typ reflect.Type, recursive bool) (ok bool) {
 	if typ == reflect.TypeOf(time.Time{}) {
 		swgTypName := b.primitiveTypes[typ.Name()]
 		ps.Type = spec.StringOrArray{swgTypName}
 	} else {
-		ps.Type = spec.StringOrArray{"object"}
-		b.buildSchemaProperty(ps, typ, recursive)
+		// try to find the definition ref first, if it does not exist, then build the schema property, otherwise just assign ref to schema
+		refName := typ.Name()
+		_, ok = b.apiInfoBuilder.Definitions[refName]
+		if !ok {
+			newSchema := spec.Schema{}
+			newSchema.Type = spec.StringOrArray{"object"}
+			b.buildSchemaProperty(&newSchema, typ, recursive)
+			b.apiInfoBuilder.Definitions[refName] = newSchema
+		}
+		ps.Ref = spec.MustCreateRef(refPrefix + refName)
 	}
+	return
 }
 
 func (b *apiPathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect.StructField) (schema *spec.Schema) {
@@ -308,6 +313,12 @@ func (b *apiPathsBuilder) buildResponse(operation *spec.Operation, annotations *
 		response.Schema = b.buildSchema(atSchema, field)
 	}
 
+	// build headers
+	atHeaders := annotation.FilterIn(annotations, at.Header{})
+	if len(atHeaders) > 0 {
+		response.Headers = b.buildHeaders(atHeaders)
+	}
+
 	operation.Responses.StatusCodeResponses[atResponse.AtCode] = response
 	return
 }
@@ -372,4 +383,18 @@ func (b *apiPathsBuilder) Build(atController *annotation.Annotations, atMethod *
 			//log.Debug(b.openAPIDefinition.Paths.Paths[path])
 		}
 	}
+}
+
+func (b *apiPathsBuilder) buildHeaders(annotations []*annotation.Annotation) (headers map[string]spec.Header) {
+	headers = make(map[string]spec.Header)
+
+	for _, ann := range annotations {
+		header := spec.Header{}
+		atHeader := ann.Field.Value.Interface().(at.Header)
+		header.Type = atHeader.AtType
+		header.Description = atHeader.AtDescription
+		header.Format = atHeader.AtFormat
+		headers[atHeader.AtValue] = header
+	}
+	return
 }
