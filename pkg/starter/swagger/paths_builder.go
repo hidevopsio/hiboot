@@ -165,8 +165,11 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 			switch fieldKind {
 			case reflect.Slice:
 				if recursive && typ == iTyp {
-					swgTypName := "array"
-					ps.Type = spec.StringOrArray{swgTypName}
+					ps.Type = spec.StringOrArray{"array"}
+					arrSchema := spec.Schema{}
+					// ref to itself for recursive object
+					arrSchema.Ref = spec.MustCreateRef(refPrefix + iTyp.Name())
+					ps.Items = &spec.SchemaOrArray{Schema: &arrSchema}
 				} else {
 					b.buildSchemaArray(&ps, f.Type, typ == iTyp)
 				}
@@ -176,11 +179,8 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 
 			case reflect.Ptr:
 				if recursive && typ == iTyp {
-					swgTypName := b.primitiveTypes[typName]
-					if swgTypName == "" {
-						swgTypName = "object"
-					}
-					ps.Type = spec.StringOrArray{swgTypName}
+					// ref to itself for recursive object
+					ps.Ref = spec.MustCreateRef(refPrefix + iTyp.Name())
 				} else {
 					if iTyp.Kind() == reflect.Struct {
 						b.buildSchemaObject(&ps, iTyp, typ == iTyp)
@@ -225,9 +225,8 @@ func (b *apiPathsBuilder) buildSchema(ann *annotation.Annotation, field *reflect
 	if primitiveTypes == "" {
 		err := annotation.Inject(atSchema)
 		if err == nil {
-			ref := refPrefix + field.Name
 			// parse body schema and assign to definitions
-			schema.Ref = spec.MustCreateRef(ref)
+			schema.Ref = spec.MustCreateRef(refPrefix + field.Name)
 
 			if b.apiInfoBuilder.Definitions == nil {
 				def := make(spec.Definitions)
