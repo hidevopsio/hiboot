@@ -16,26 +16,16 @@ import (
 )
 
 type Asset struct {
-	at.Schema  `json:"-"`
-	ID         int    `schema:"The asset ID" json:"id"`
-	Name       string `schema:"The asset name" json:"name"`
-	Amount     float64
-	Type       string `schema:"The asset type"`
-	ExpirationTime time.Time
-}
-
-type AddAssertsResponse struct {
-	at.ResponseBody `json:"-"`
-	at.Schema       `json:"-"`
-
-	model.BaseResponseInfo
-	Data []*Asset `json:"data,omitempty" schema:"The employee data"`
+	ID         int    `schema:"The asset ID" json:"id" example:"1234567890"`
+	Name       string `schema:"The asset name" json:"name" example:"John Deng"`
+	Amount     float64 `json:"amount" example:"987654321"`
+	Type       string `schema:"The asset type" json:"type" example:"book"`
+	ExpirationTime time.Time `json:"expiration_time" example:"Sun Sep 29 15:47:50 CST 2019"`
 }
 
 type Manager struct {
-	at.Schema `json:"-"`
-	ID        int    `schema:"The manager ID" json:"id"`
-	Name      string `schema:"The manager name of the employee" json:"name"`
+	ID int `schema:"The manager ID" json:"id" default:"1000000"`
+	Name string `schema:"The manager name of the employee" json:"name" example:"John Deng"`
 }
 
 type Employee struct {
