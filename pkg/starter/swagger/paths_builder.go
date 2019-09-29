@@ -174,7 +174,7 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 			} else {
 				fieldName = str.ToLowerCamel(f.Name)
 			}
-			if descTag != nil && iTyp.Kind() != reflect.Struct {
+			if descTag != nil && ps.Ref.Ref.String() == "" {
 
 				if schemaTag == nil {
 					descName = str.ToKebab(f.Name)
@@ -187,6 +187,11 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 				ps.Title = f.Name
 				ps.Description = descName
 				ps.Format = typName
+				// example
+				example := b.parseExample(f.Tag)
+				if example != "" {
+					ps.Example = example
+				}
 			}
 
 			if descTag != nil {
@@ -194,6 +199,14 @@ func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ refle
 			}
 		}
 	}
+}
+
+func (b *apiPathsBuilder) parseExample(tagVal reflect.StructTag) string {
+	example := tagVal.Get("example")
+	if example == "" {
+		example = tagVal.Get("default")
+	}
+	return example
 }
 
 func (b *apiPathsBuilder) buildSchemaObject(ps *spec.Schema, typ reflect.Type, recursive bool) (ok bool) {

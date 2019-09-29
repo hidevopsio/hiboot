@@ -16,22 +16,22 @@ import (
 )
 
 type Asset struct {
-	ID         int    `schema:"The asset ID" json:"id"`
-	Name       string `schema:"The asset name" json:"name"`
-	Amount     float64 `json:"amount"`
-	Type       string `schema:"The asset type" json:"type"`
-	ExpirationTime time.Time `json:"expiration_time"`
+	ID         int    `schema:"The asset ID" json:"id" example:"1234567890"`
+	Name       string `schema:"The asset name" json:"name" example:"John Deng"`
+	Amount     float64 `json:"amount" example:"987654321"`
+	Type       string `schema:"The asset type" json:"type" example:"book"`
+	ExpirationTime time.Time `json:"expiration_time" example:"Sun Sep 29 15:47:50 CST 2019"`
 }
 
 type Manager struct {
-	ID int `schema:"The manager ID" json:"id"`
-	Name string `schema:"The manager name of the employee" json:"name"`
+	ID int `schema:"The manager ID" json:"id" default:"1000000"`
+	Name string `schema:"The manager name of the employee" json:"name" example:"John Deng"`
 }
 
 type Employee struct {
-	Id        int     `schema:"The auto generated employee ID" json:"id"`
-	FirstName string  `schema:"The employee first name" json:"first_name"`
-	LastName  string  `schema:"The employee last name" json:"last_name"`
+	Id        int     `schema:"The auto generated employee ID" json:"id" example:"123456"`
+	FirstName string  `schema:"The employee first name" json:"first_name" example:"John"`
+	LastName  string  `schema:"The employee last name" json:"last_name" example:"Deng"`
 	Manger    Manager `schema:"The manager" json:"manger"`
 	Assets    []Asset `schema:"The assets list of the employee" json:"assets"`
 }

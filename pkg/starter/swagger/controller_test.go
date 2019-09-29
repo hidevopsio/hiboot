@@ -41,7 +41,7 @@ type Manager struct {
 type Employee struct {
 	at.Schema   `json:"-"`
 	Id          int     `schema:"The auto generated employee ID" json:"id"`
-	FirstName   string  `schema:"The employee first name" json:"first_name"`
+	FirstName   string  `schema:"The employee first name" json:"first_name" example:"John"`
 	LastName    string  `schema:"The employee last name" json:"last_name"`
 	Email       string  `schema:"The email of the employee"`
 	Address     string  `schema:"The address of the employee"`
