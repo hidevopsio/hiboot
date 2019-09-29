@@ -316,9 +316,18 @@ func injectIntoField(field *Field) (err error) {
 
 	// iterate over all tags
 	if tags != nil {
-		values := make( map[string]string)
+		values := make( map[string]interface{})
 		for _, tag := range tags.Tags() {
-			values[tag.Key] = tag.Name
+			atField, ok := reflector.FindFieldByTag(field.StructField.Type, "at", tag.Key)
+			// check if it is an array/slice
+			if ok && atField.Type != nil && atField.Type.Kind() == reflect.Slice {
+				var opt []string
+				opt = append(opt, tag.Name)
+				opt = append(opt, tag.Options...)
+				values[tag.Key] = opt
+			} else {
+				values[tag.Key] = tag.Name
+			}
 		}
 		if len(values) != 0 {
 			// use mapstruct.WithSquash to decode embedded sub field

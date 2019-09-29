@@ -178,6 +178,17 @@ func TestGetFieldValue(t *testing.T) {
 	assert.Equal(t, "foo", fv.Interface())
 }
 
+func TestFindFieldByTag(t *testing.T) {
+	type foo struct {
+		Name string `json:"name"`
+		AtValues []string `at:"values"`
+	}
+	f := &foo{}
+	field, ok := FindFieldByTag(f, "at", "values")
+	assert.Equal(t, true, ok)
+	assert.Equal(t, "AtValues", field.Name)
+}
+
 func TestSetFieldValue(t *testing.T) {
 	foo := &Foo{}
 	value := "foo"

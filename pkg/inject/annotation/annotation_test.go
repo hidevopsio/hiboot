@@ -138,6 +138,12 @@ type atApiOperation struct {
 	at.Operation `value:"testApi" id:"getGreeting" description:"This is the Greeting api for demo"`
 }
 
+type AtArray struct {
+	at.Annotation
+
+	AtValues []string `at:"values" json:"-"`
+}
+
 func TestImplementsAnnotation(t *testing.T) {
 	log.SetLevel("debug")
 
@@ -431,6 +437,16 @@ func TestImplementsAnnotation(t *testing.T) {
 		assert.Equal(t, nil, err)
 		assert.Equal(t, "Header", ans.Children[1].Children[0].Children[0].Items[0].Field.StructField.Name)
 		assert.Equal(t, "X-Rate-Limit", atTest.Responses.StatusOK.XRateLimit.AtValue)
+	})
+
+	t.Run("should inject array", func(t *testing.T) {
+		type testArray struct {
+			AtArray `values:"foo,bar,baz"`
+		}
+		ta := &testArray{}
+		err := annotation.InjectAll(ta)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, 3, len(ta.AtValues))
 	})
 }
 

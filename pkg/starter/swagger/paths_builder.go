@@ -340,6 +340,9 @@ func (b *apiPathsBuilder) buildOperation(operation *spec.Operation, annotations 
 	for _, a := range annotations.Items {
 		ao := a.Field.Value.Interface()
 		switch ao.(type) {
+		case at.Tags:
+			ann := ao.(at.Tags)
+			operation.Tags = append(operation.Tags, ann.AtValues...)
 		case at.Consumes:
 			ann := ao.(at.Consumes)
 			operation.Consumes = append(operation.Consumes, ann.AtValues...)
@@ -350,6 +353,12 @@ func (b *apiPathsBuilder) buildOperation(operation *spec.Operation, annotations 
 			b.buildParameter(operation, annotations, a)
 		case at.Response:
 			b.buildResponse(operation, annotations, a)
+		case at.ExternalDocs:
+			ann := ao.(at.ExternalDocs)
+			extDoc := new(spec.ExternalDocumentation)
+			extDoc.Description = ann.AtDescription
+			extDoc.URL = ann.AtURL
+			operation.ExternalDocs = extDoc
 		}
 	}
 
@@ -385,6 +394,8 @@ func (b *apiPathsBuilder) Build(atController *annotation.Annotations, atMethod *
 		operation := &spec.Operation{}
 		operation.ID = atOperation.AtID
 		operation.Description = atOperation.AtDescription
+		operation.Summary = atOperation.AtSummary
+		operation.Deprecated = atOperation.AtDeprecated
 
 		method = strings.Title(strings.ToLower(method))
 		err := reflector.SetFieldValue(&pathItem, method, operation)

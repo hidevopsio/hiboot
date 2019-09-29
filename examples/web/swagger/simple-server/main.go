@@ -112,12 +112,20 @@ type Foo struct {
 	GradChildren []Foo `json:"grad_children"`
 }
 
+type Bar struct {
+	at.Schema
+
+	Name string `json:"name"`
+
+}
+
 // Foo
 func (c *employeeController) Foo(at struct {
 	at.PostMapping `value:"/foo"`
 	at.Operation   `id:"Foo" description:"This is the foo test api"`
 	at.Consumes    `values:"application/json"`
 	at.Produces    `values:"application/json"`
+	at.Tags 	   `values:"foo,bar,test"`
 	Parameters     struct {
 		at.Parameter `name:"foo" in:"body" description:"foo request body" `
 		Foo
@@ -139,12 +147,39 @@ func (c *employeeController) Foo(at struct {
 	return
 }
 
+
+// Foo
+func (c *employeeController) Bar(at struct {
+	at.PostMapping `value:"/bar"`
+	at.Operation   `id:"Bar" description:"This is the bar test api" deprecated:"true"`
+	at.Consumes    `values:"application/json"`
+	at.Produces    `values:"application/json"`
+	Parameters     struct {
+		at.Parameter `name:"foo" in:"body" description:"foo request body" `
+		Bar
+	}
+	Responses struct {
+		StatusOK struct {
+			at.Response `code:"200" description:"returns foo"`
+			Bar
+		}
+	}
+}, request *Bar) (response model.Response, err error) {
+	response = new(model.BaseResponse)
+
+	// Just for the demo purpose
+	response.SetData(&Bar{Name: "bar"})
+
+	return
+}
+
 // GetEmployee
 func (c *employeeController) CreateEmployee(at struct {
 	at.PostMapping `value:"/"`
 	at.Operation   `id:"Create Employee" description:"This is the employee creation api"`
 	at.Consumes    `values:"application/json"`
 	at.Produces    `values:"application/json"`
+	at.ExternalDocs `url:"http://hiboot.hidevops.io" description:"HiBoot Official Site"`
 	Parameters     struct {
 		at.Parameter `name:"token" in:"header" type:"string" description:"JWT token (fake token - for demo only)" `
 		Body struct {

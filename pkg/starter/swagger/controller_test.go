@@ -144,6 +144,8 @@ func (c *employeeController) CreateEmployee(at struct {
 	at.Operation   `id:"Create Employee" description:"This is the employee creation api"`
 	at.Consumes    `values:"application/json"`
 	at.Produces    `values:"application/json"`
+	at.Tags 	   `values:"create,employee,new"`
+	at.ExternalDocs `url:"http://hiboot.hidevops.io" description:"HiBoot Official Site"`
 	Parameters     struct {
 		at.Parameter `name:"employee" in:"body" description:"Employee request body" `
 		CreateEmployeeRequest

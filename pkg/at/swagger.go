@@ -21,12 +21,31 @@ type Swagger struct {
 type Operation struct {
 	Annotation
 
-	// Required Element Summary
 	Swagger
 
-	// Optional Element Summary
 	AtID string `at:"id" json:"-"`
 	AtDescription string `at:"description" json:"-"`
+	AtSummary string `at:"summary" json:"-"`
+	AtDeprecated bool `at:"deprecated" json:"-"`
+}
+
+// Tags
+type Tags struct {
+	Annotation
+
+	Swagger
+
+	AtValues []string `at:"values" json:"-"`
+}
+
+// ExternalDocs
+type ExternalDocs struct {
+	Annotation
+
+	Swagger
+
+	AtDescription string `at:"description" json:"-"`
+	AtURL         string `at:"url" json:"-"`
 }
 
 // ApiParam annotation to add additional meta-data for operation parameters
