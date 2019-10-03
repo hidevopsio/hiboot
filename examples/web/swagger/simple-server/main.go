@@ -104,6 +104,7 @@ func (c *employeeController) BeforeMethod(at struct{ at.BeforeMethod }, ctx cont
 
 
 type Foo struct {
+	at.RequestBody
 	at.Schema
 
 	Name string `json:"name"`
@@ -113,6 +114,7 @@ type Foo struct {
 }
 
 type Bar struct {
+	at.RequestBody
 	at.Schema
 
 	Name string `json:"name"`
@@ -140,13 +142,12 @@ func (c *employeeController) Foo(at struct {
 	response = new(model.BaseResponse)
 
 	// Just for the demo purpose
-	response.SetData(&Foo{Name: "foo", Child: &Foo{
+	response.SetData(&Foo{Name: request.Name, Child: &Foo{
 		Name: "foo1",
 	}})
 
 	return
 }
-
 
 // Foo
 func (c *employeeController) Bar(at struct {
@@ -168,7 +169,7 @@ func (c *employeeController) Bar(at struct {
 	response = new(model.BaseResponse)
 
 	// Just for the demo purpose
-	response.SetData(&Bar{Name: "bar"})
+	response.SetData(&Bar{Name: request.Name})
 
 	return
 }

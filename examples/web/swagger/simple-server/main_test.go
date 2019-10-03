@@ -100,6 +100,12 @@ func TestController(t *testing.T) {
 				Name: "foo"}).Expect().Status(http.StatusOK).Body().Contains("foo")
 	})
 
+	t.Run("should post /bar", func(t *testing.T) {
+		testApp.Post("/employee/bar").
+			WithJSON(&Bar{
+				Name: "bar"}).Expect().Status(http.StatusOK).Body().Contains("bar")
+	})
+
 	t.Run("should add asset", func(t *testing.T) {
 		testApp.Post("/employee/add-assets").
 			WithJSON([]*Asset{
