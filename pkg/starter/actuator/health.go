@@ -29,11 +29,13 @@ type HealthService interface {
 
 // Health is the health check struct
 type Health struct {
-	Status string `json:"status"`
+	at.Schema `json:"-"`
+	Status string `schema:"The status of health check" json:"status"`
 }
 
 type healthController struct {
 	at.RestController
+	at.RequestMapping `value:"/health"`
 
 	configurableFactory factory.ConfigurableFactory
 }
@@ -47,7 +49,17 @@ func newHealthController(configurableFactory factory.ConfigurableFactory) *healt
 }
 
 // GET /health
-func (c *healthController) Get() map[string]interface{} {
+func (c *healthController) Get( struct {
+	at.GetMapping `value:"/"`
+	at.Operation  `id:"health" description:"health check endpoint"`
+	at.Produces   `values:"application/json"`
+	Responses struct {
+		StatusOK struct {
+			at.Response `code:"200" description:"Returns the status of health check"`
+			Health
+		}
+	}
+}) map[string]interface{} {
 	healthServices := c.configurableFactory.GetInstances(at.HealthCheckService{})
 	healthCheckProfiles := make(map[string]interface{})
 

@@ -28,6 +28,8 @@ import (
 	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
+	"hidevops.io/hiboot/pkg/starter/locale"
+
 	//_ "hidevops.io/hiboot/pkg/starter/actuator"
 	"hidevops.io/hiboot/pkg/starter/jwt"
 	_ "hidevops.io/hiboot/pkg/starter/locale"
@@ -576,7 +578,9 @@ func TestApplicationWithCircularDI(t *testing.T) {
 func TestWebApplication(t *testing.T) {
 	foo := &Foo{Name: "test injection"}
 	app.Register(foo)
-	testApp := web.RunTestApplication(t, newHelloController, newFooController, newBarController, newFoobarController)
+	testApp := web.NewTestApp(newHelloController, newFooController, newBarController, newFoobarController).
+		SetProperty(app.ProfilesInclude, jwt.Profile, locale.Profile, logging.Profile).
+		Run(t)
 
 	t.Run("should response 200 when GET /hello/all", func(t *testing.T) {
 		testApp.
@@ -1004,7 +1008,7 @@ func (c *customRouterController) PathVariable(
 	at.GetMapping `value:"/{id}/name/{name}"`
 }, id int, name string) (response *CustomResponse, err error) {
 	response = new(CustomResponse)
-	log.Infof("PathParamIdAndName: %v", at.Value)
+	log.Infof("PathParamIdAndName: %v", at.AtValue)
 	switch id {
 	case 0:
 		response.Code = http.StatusNotFound
@@ -1029,7 +1033,7 @@ func (c *customRouterController) Delete(
 	at.UseJwt
 }, id int,) (response *CustomResponse, err error) {
 	response = new(CustomResponse)
-	log.Infof("Delete: %v", at.DeleteMapping.Value)
+	log.Infof("Delete: %v", at.DeleteMapping.AtValue)
 
 	response.Code = http.StatusOK
 	response.Message = "Success"

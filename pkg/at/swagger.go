@@ -21,12 +21,31 @@ type Swagger struct {
 type Operation struct {
 	Annotation
 
-	// Required Element Summary
 	Swagger
 
-	// Optional Element Summary
-	ID string `at:"id" json:"-"`
-	Description string `at:"description" json:"-"`
+	AtID string `at:"id" json:"-"`
+	AtDescription string `at:"description" json:"-"`
+	AtSummary string `at:"summary" json:"-"`
+	AtDeprecated bool `at:"deprecated" json:"-"`
+}
+
+// Tags
+type Tags struct {
+	Annotation
+
+	Swagger
+
+	AtValues []string `at:"values" json:"-"`
+}
+
+// ExternalDocs
+type ExternalDocs struct {
+	Annotation
+
+	Swagger
+
+	AtDescription string `at:"description" json:"-"`
+	AtURL         string `at:"url" json:"-"`
 }
 
 // ApiParam annotation to add additional meta-data for operation parameters
@@ -43,10 +62,10 @@ type Parameter struct {
 
 	Swagger
 
-	Name string `at:"name" json:"-"`
-	Type string `at:"type:" json:"-"`
-	In string `at:"in" json:"-"`
-	Description string `at:"description" json:"-"`
+	AtName string `at:"name" json:"-"`
+	AtType string `at:"type" json:"-"`
+	AtIn string `at:"in" json:"-"`
+	AtDescription string `at:"description" json:"-"`
 }
 
 // Produces corresponds to the `produces` field of the operation.
@@ -61,7 +80,7 @@ type Produces struct{
 
 	Swagger
 
-	Values []string `at:"values" json:"-"`
+	AtValues []string `at:"values" json:"-"`
 }
 
 // Consumes corresponds to the `consumes` field of the operation.
@@ -76,7 +95,7 @@ type Consumes struct{
 
 	Swagger
 
-	Values []string `at:"values" json:"-"`
+	AtValues []string `at:"values" json:"-"`
 }
 
 // Response is the response type of the operation.
@@ -96,8 +115,8 @@ type Response struct {
 
 	Swagger
 
-	Code int `at:"code" json:"-"`
-	Description string `at:"description" json:"-"`
+	AtCode int `at:"code" json:"-"`
+	AtDescription string `at:"description" json:"-"`
 }
 
 // Schema is the annotation that annotate Response or Parameter's properties
@@ -117,6 +136,18 @@ type Schema struct {
 
 	Swagger
 
-	Type string `at:"type" json:"-"`
-	Description string `at:"description" json:"-"`
+	AtType string `at:"type" json:"-"`
+	AtDescription string `at:"description" json:"-"`
 }
+
+// Header is the annotation that annotate the header
+type Header struct{
+	Annotation
+
+	Swagger
+
+	AtType string `at:"type" json:"-"`
+	AtFormat string `at:"format" json:"-"`
+	AtDescription string `at:"description" json:"-"`
+}
+

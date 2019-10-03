@@ -24,6 +24,7 @@ import (
 	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"reflect"
+	"strings"
 )
 
 const (
@@ -196,7 +197,16 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 	// field injection
 	for _, f := range reflector.DeepFields(object.Type()) {
 		var injectedObject interface{}
-		prop := str.ToLowerCamel(f.Name)
+		var prop string
+		pn, ok := f.Tag.Lookup("json")
+		if ok {
+			pns := strings.Split(pn, ",")
+			if len(pns) > 1 {
+				prop = pns[0]
+			}
+		} else {
+			prop = str.ToLowerCamel(f.Name)
+		}
 
 		// debug prints
 		//n := reflector.GetLowerCamelFullNameByType(f.Type)
@@ -267,7 +277,7 @@ func (i *inject) parseFuncOrMethodInput(inType reflect.Type) (paramValue reflect
 	inst := i.getInstance(inType)
 	ok = true
 	if inst == nil {
-		log.Debug(inType.Kind())
+		//log.Debug(inType.Kind())
 		switch inType.Kind() {
 		// interface and slice creation is not supported
 		case reflect.Interface, reflect.Slice:

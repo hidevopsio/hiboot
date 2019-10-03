@@ -12,6 +12,6 @@ import (
 func main() {
 	// create new web application and run it
 	web.NewApplication().
-		SetProperty(app.ProfilesInclude, actuator.Profile).
+		SetProperty(app.ProfilesInclude, web.Profile, actuator.Profile,).
 		Run()
 }

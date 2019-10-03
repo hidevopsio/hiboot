@@ -257,7 +257,7 @@ func TestWithoutReplacer(t *testing.T) {
 
 func TestBuilderInit(t *testing.T) {
 	b := NewBuilder(&Configuration{},
-		filepath.Join(os.TempDir(), "config"),
+		filepath.Join(os.TempDir(), "test-init"),
 		"foo",
 		"yaml",
 		customProps)

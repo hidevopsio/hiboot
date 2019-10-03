@@ -117,7 +117,10 @@ func init() {
 func main() {
 	// create new web application and run it
 	web.NewApplication().
-		SetProperty(app.ProfilesInclude, logging.Profile, web.Profile,
-			jaeger.Profile, httpclient.Profile).
+		SetProperty(app.ProfilesInclude,
+			logging.Profile,
+			web.Profile,
+			jaeger.Profile,
+			httpclient.Profile).
 		Run()
 }

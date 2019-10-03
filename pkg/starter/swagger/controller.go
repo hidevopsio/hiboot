@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/handlers"
-	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 	"net/http"
@@ -37,11 +36,6 @@ func newController(openAPIDefinition *apiInfoBuilder) *controller {
 	return &controller{apiInfoBuilder: openAPIDefinition}
 }
 
-func init() {
-	app.Register(newController)
-}
-
-
 // TODO: add description 'Implemented by HiBoot Framework'
 func (c *controller) loadDoc() (retVal []byte, err error) {
 	retVal, err = json.MarshalIndent(c.apiInfoBuilder.Swagger, "", "  ")
@@ -51,16 +45,22 @@ func (c *controller) loadDoc() (retVal []byte, err error) {
 func (c *controller) serve(ctx context.Context, docsPath string) {
 	b, err := c.loadDoc()
 	if err == nil {
-		basePath := filepath.Join(c.apiInfoBuilder.Swagger.BasePath, c.RequestMapping.Value)
+		// read host dynamically
+		c.apiInfoBuilder.Swagger.Host = ctx.Host()
+		// concat path
+		basePath := filepath.Join(c.apiInfoBuilder.Swagger.BasePath, c.RequestMapping.AtValue)
 
+		// get handler
 		handler := middleware.Redoc(middleware.RedocOpts{
 			BasePath: basePath,
 			SpecURL:  path.Join(basePath, "swagger.json"),
 			Path:     docsPath,
 		}, http.NotFoundHandler())
 
+		// handle cors
 		handler = handlers.CORS()(middleware.Spec(basePath, b, handler))
 
+		// wrap handler
 		ctx.WrapHandler(handler)
 	}
 }
@@ -76,7 +76,7 @@ func (c *controller) Swagger(at struct{ at.GetMapping `value:"/swagger.json"` })
 
 // UI serve static resource via context StaticResource method
 func (c *controller) SwaggerUI(at struct{ at.GetMapping `value:"/swagger-ui"` }, ctx context.Context) {
-	c.serve(ctx, at.GetMapping.Value)
+	c.serve(ctx, at.GetMapping.AtValue)
 	return
 }
 

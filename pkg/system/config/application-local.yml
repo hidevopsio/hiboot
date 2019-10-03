@@ -1,10 +1,5 @@
 # config file for testing
 
-app:
-  profiles:
-    include:
-    - bar
-
 server:
   port: 8081
 
@@ -14,3 +9,6 @@ logging:
 mock:
   name: hiboot-mock-local
   username: ${app.name}-user-local
+
+star:
+  name: Mars

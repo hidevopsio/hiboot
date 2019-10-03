@@ -718,9 +718,9 @@ func TestInjectAnnotation(t *testing.T) {
 		assert.Equal(t, nil, err)
 		assert.Equal(t, nil, err)
 		log.Debugf("final result: %v", att)
-		assert.Equal(t, "GET", att.Method)
-		assert.Equal(t, "/path/to/api", att.GetMapping.Value)
-		assert.Equal(t, "/parent/path", att.RequestMapping.Value)
+		assert.Equal(t, "GET", att.AtMethod)
+		assert.Equal(t, "/path/to/api", att.GetMapping.AtValue)
+		assert.Equal(t, "/parent/path", att.RequestMapping.AtValue)
 	})
 
 	t.Run("should report error when inject into nil", func(t *testing.T) {

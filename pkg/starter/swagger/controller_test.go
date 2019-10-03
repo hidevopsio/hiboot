@@ -16,32 +16,22 @@ import (
 )
 
 type Asset struct {
-	at.Schema  `json:"-"`
-	ID         int    `schema:"The asset ID" json:"id"`
-	Name       string `schema:"The asset name" json:"name"`
-	Amount     float64
-	Type       string `schema:"The asset type"`
-	ExpirationTime time.Time
-}
-
-type AddAssertsResponse struct {
-	at.ResponseBody `json:"-"`
-	at.Schema       `json:"-"`
-
-	model.BaseResponseInfo
-	Data []*Asset `json:"data,omitempty" schema:"The employee data"`
+	ID         int    `schema:"The asset ID" json:"id" example:"1234567890"`
+	Name       string `schema:"The asset name" json:"name" example:"John Deng"`
+	Amount     float64 `json:"amount" example:"987654321"`
+	Type       string `schema:"The asset type" json:"type" example:"book"`
+	ExpirationTime time.Time `json:"expiration_time" example:"Sun Sep 29 15:47:50 CST 2019"`
 }
 
 type Manager struct {
-	at.Schema `json:"-"`
-	ID        int    `schema:"The manager ID" json:"id"`
-	Name      string `schema:"The manager name of the employee" json:"name"`
+	ID int `schema:"The manager ID" json:"id" default:"1000000"`
+	Name string `schema:"The manager name of the employee" json:"name" example:"John Deng"`
 }
 
 type Employee struct {
 	at.Schema   `json:"-"`
 	Id          int     `schema:"The auto generated employee ID" json:"id"`
-	FirstName   string  `schema:"The employee first name" json:"first_name"`
+	FirstName   string  `schema:"The employee first name" json:"first_name" example:"John"`
 	LastName    string  `schema:"The employee last name" json:"last_name"`
 	Email       string  `schema:"The email of the employee"`
 	Address     string  `schema:"The address of the employee"`
@@ -112,6 +102,41 @@ func (c *employeeController) BeforeMethod(at struct{ at.BeforeMethod }, ctx cont
 	ctx.Next()
 	return
 }
+type Foo struct {
+	at.Schema
+
+	Name string `json:"name"`
+	Child *Foo `json:"child"`
+	Children []*Foo `json:"children"`
+	GradChildren []Foo `json:"grad_children"`
+}
+
+// Foo
+func (c *employeeController) Foo(at struct {
+	at.PostMapping `value:"/foo"`
+	at.Operation   `id:"Foo" description:"This is the foo test api"`
+	at.Consumes    `values:"application/json"`
+	at.Produces    `values:"application/json"`
+	Parameters     struct {
+		at.Parameter `name:"foo" in:"body" description:"foo request body" `
+		Foo
+	}
+	Responses struct {
+		StatusOK struct {
+			at.Response `code:"200" description:"returns foo"`
+			Foo
+		}
+	}
+}, request *Foo) (response model.Response, err error) {
+	response = new(model.BaseResponse)
+
+	// Just for the demo purpose
+	response.SetData(&Foo{Name: "foo", Child: &Foo{
+		Name: "foo1",
+	}})
+
+	return
+}
 
 // GetEmployee
 func (c *employeeController) CreateEmployee(at struct {
@@ -119,6 +144,8 @@ func (c *employeeController) CreateEmployee(at struct {
 	at.Operation   `id:"Create Employee" description:"This is the employee creation api"`
 	at.Consumes    `values:"application/json"`
 	at.Produces    `values:"application/json"`
+	at.Tags 	   `values:"create,employee,new"`
+	at.ExternalDocs `url:"http://hiboot.hidevops.io" description:"HiBoot Official Site"`
 	Parameters     struct {
 		at.Parameter `name:"employee" in:"body" description:"Employee request body" `
 		CreateEmployeeRequest
@@ -126,6 +153,14 @@ func (c *employeeController) CreateEmployee(at struct {
 	Responses struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"returns a employee with ID"`
+			Headers struct{
+				XRateLimit struct{
+					at.Header `value:"X-Rate-Limit" type:"integer" format:"int32" description:"calls per hour allowed by the user"`
+				}
+				XExpiresAfter struct {
+					at.Header `value:"X-Expires-After" type:"string" format:"date-time" description:"date in UTC when token expires"`
+				}
+			}
 			EmployeeResponse
 		}
 	}
@@ -318,6 +353,7 @@ func TestController(t *testing.T) {
 		SetProperty(server.Host, "localhost:8080").
 		SetProperty(server.ContextPath, "/v2").
 		SetProperty(app.Version, "v2").
+		SetProperty(app.ProfilesInclude, web.Profile, swagger.Profile).
 		Run(t)
 
 	app.Register(
@@ -352,7 +388,7 @@ limitations under the License.
 	)
 
 	time.Sleep(time.Second)
-	testApp := web.NewTestApp(t).Run(t)
+	testApp := web.NewTestApp(t).SetProperty(app.ProfilesInclude, web.Profile, swagger.Profile).Run(t)
 	employee := Employee{
 		Id:        12345,
 		FirstName: "foo",

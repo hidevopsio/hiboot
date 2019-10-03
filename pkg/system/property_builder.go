@@ -31,12 +31,13 @@ import (
 	"strings"
 )
 
+const ( appProfilesInclude  = "app.profiles.include")
+
 type ConfigFile struct{
 	path             string
 	name             string
 	fileType         string
 }
-
 
 type propertyBuilder struct {
 	at.Qualifier `value:"system.builder"`
@@ -56,6 +57,7 @@ func NewPropertyBuilder(path string, customProperties map[string]interface{}) Bu
 		Viper:             viper.New(),
 		defaultProperties: customProperties,
 	}
+
 	return b
 }
 
@@ -128,6 +130,13 @@ func (b *propertyBuilder) Save(p interface{}) (err error) {
 func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error) {
 	// parse profiles
 
+	// set custom properties
+	for key, value := range b.defaultProperties {
+		b.SetDefaultProperty(key, value)
+	}
+
+	b.setCustomPropertiesFromArgs()
+
 	var paths []string
 	configFiles :=  make(map[string]map[string][]string)
 	pp, _ := filepath.Abs(b.path)
@@ -138,6 +147,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 	}
 
 	var activeProfileConfigFile *ConfigFile
+	var defaultProfileConfigFile *ConfigFile
 	err = filepath.Walk(pp, func(path string, info os.FileInfo, err error) error {
 		if err == nil {
 			//*files = append(*files, path)
@@ -153,6 +163,16 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 								configFiles[dir] = make(map[string][]string)
 							}
 							files := configFiles[dir][ext]
+							// do not add default profile, will be handled later
+							if !strings.Contains(file, "-") {
+								defaultProfileConfigFile = &ConfigFile{
+									path:     dir,
+									name:     file,
+									fileType: ext,
+								}
+								return nil
+							}
+
 							if profile != "" {
 								if strings.Contains(file, profile) {
 									activeProfileConfigFile = &ConfigFile{
@@ -193,13 +213,24 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 	}
 	sort.ByLen(paths)
 
+	// read default profile first
+	if defaultProfileConfigFile != nil {
+		err = b.readConfig(defaultProfileConfigFile.path, defaultProfileConfigFile.name, defaultProfileConfigFile.fileType)
+	}
+
+	includeProfiles := b.GetStringSlice(appProfilesInclude)
+
 	// read all config files
 	//log.Debug("after ...")
 	for _, path := range paths {
 		ds := configFiles[path]
 		for ext, files := range ds {
 			for _, file := range files {
-				err = b.readConfig(path, file, ext)
+				p := strings.Split(file, "-")
+				np := len(p)
+				if np > 0 && str.InSlice(p[np-1], includeProfiles) {
+					err = b.readConfig(path, file, ext)
+				}
 			}
 		}
 	}
@@ -208,13 +239,6 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 	if activeProfileConfigFile != nil {
 		err = b.readConfig(activeProfileConfigFile.path, activeProfileConfigFile.name, activeProfileConfigFile.fileType)
 	}
-
-	// set custom properties
-	for key, value := range b.defaultProperties {
-		b.SetDefaultProperty(key, value)
-	}
-
-	b.setCustomPropertiesFromArgs()
 
 	// iterate all and replace reference values or env
 	allKeys := b.AllKeys()
@@ -295,32 +319,6 @@ func (b *propertyBuilder) GetProperty(name string) (retVal interface{}) {
 	retVal = b.Get(name)
 	return
 }
-//
-//func (b *propertyBuilder) updateProperty(name string, val interface{}) (retVal interface{})  {
-//	// TODO: for debug only, TBD
-//	if name == "swagger" {
-//		log.Debug(name)
-//	}
-//	original := b.Get(name)
-//	// convert struct to map
-//	var dm = make(map[string]interface{})
-//	sm, ok := mapstruct.DecodeStructToMap(val)
-//	if ok {
-//		if original != nil {
-//			// copy original map to the new map
-//			copier.CopyMap(dm, original.(map[string]interface{}))
-//			// copy new src map to dest map
-//			copier.CopyMap(dm, sm, copier.IgnoreEmptyValue)
-//			// assign dest map to retVal
-//			retVal = dm
-//		} else {
-//			retVal = sm
-//		}
-//	} else {
-//		retVal = val
-//	}
-//	return
-//}
 
 func (b *propertyBuilder) SetProperty(name string, val interface{}) Builder {
 	b.Set(name, val)

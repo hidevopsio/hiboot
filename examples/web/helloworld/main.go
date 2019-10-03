@@ -18,8 +18,11 @@ package main
 
 // import web starter from hiboot
 import (
+	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
 	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/starter/actuator"
+	"hidevops.io/hiboot/pkg/starter/swagger"
 )
 
 // Controller Rest Controller with path /
@@ -27,18 +30,33 @@ import (
 type Controller struct {
 	// at.RestController or at.RestController must be embedded here
 	at.RestController
+	at.RequestMapping `value:"/"`
 }
 
 // Get GET /
-func (c *Controller) Get() string {
+func (c *Controller) Get(at struct {
+	at.GetMapping `value:"/"`
+	at.Operation  `id:"helloWorld" description:"This is hello world API"`
+	at.Produces   `values:"text/plain"`
+	Responses struct {
+		StatusOK struct {
+			at.Response `code:"200" description:"response status OK"`
+			at.Schema `type:"string" description:"returns hello world message"`
+		}
+	}
+}) string {
 	// response
 	return "Hello world"
 }
 
 // main function
 func main() {
+	app.Register(swagger.ApiInfoBuilder().
+		Title("HiBoot Example - Hello world").
+		Description("This is an example that demonstrate the basic usage"))
+
 	// create new web application and run it
 	web.NewApplication(new(Controller)).
-		SetAddCommandLineProperties(false).
+		SetProperty(app.ProfilesInclude, swagger.Profile, web.Profile, actuator.Profile).
 		Run()
 }

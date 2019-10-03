@@ -8,5 +8,5 @@ type Annotation struct {
 type BaseAnnotation struct {
 	Annotation `json:"-"`
 
-	Value string `json:"-" at:"value"`
+	AtValue string `json:"-" at:"value"`
 }

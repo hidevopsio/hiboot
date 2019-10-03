@@ -14,6 +14,8 @@
 
 package model
 
+import "hidevops.io/hiboot/pkg/at"
+
 var (
 	// RequestTypeBody means it is RequestBody
 	RequestTypeBody = "RequestBody"
@@ -26,13 +28,19 @@ var (
 )
 
 // RequestBody the annotation RequestBody
-type RequestBody struct{}
+type RequestBody struct{
+	at.RequestBody
+}
 
 // RequestForm the annotation RequestForm
-type RequestForm struct{}
+type RequestForm struct{
+	at.RequestForm
+}
 
 // RequestParams the annotation RequestParams
-type RequestParams struct{}
+type RequestParams struct{
+	at.RequestParams
+}
 
 // ListOptions specifies the optional parameters to various List methods that
 // support pagination.

@@ -17,6 +17,8 @@ package swagger
 
 /*
 
+// TODO: still need to use at.AutoConfiguration on swagger to be able to enable/disable it at runtime
+
 func init() {
 	app.Register(swagger.OpenAPIDefinitionBuilder().
 		Version("1.0.0").

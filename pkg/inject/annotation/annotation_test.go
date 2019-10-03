@@ -13,15 +13,15 @@ type AtBaz struct {
 	at.Annotation
 
 	at.BaseAnnotation
-	Code int `value:"200" json:"code"`
+	AtCode int `value:"200" at:"code" json:"-"`
 }
 
 type AtFoo struct {
 	at.Annotation
 
 	at.BaseAnnotation
-	ID int `json:"fooId"`
-	Age int `json:"age"`
+	AtID int `at:"fooId" json:"-"`
+	AtAge int `at:"age" json:"-"`
 }
 
 type AtBar struct {
@@ -34,14 +34,14 @@ type AtFooBar struct {
 	at.Annotation
 
 	AtFoo
-	Code int `value:"200" json:"code"`
+	Code int `value:"200" at:"code" json:"-"`
 }
 
 type AtFooBaz struct {
 	at.Annotation
 
 	AtFoo
-	Code int `value:"400" json:"code"`
+	Code int `value:"400" at:"code" json:"-"`
 }
 
 type MyObj struct{
@@ -138,6 +138,12 @@ type atApiOperation struct {
 	at.Operation `value:"testApi" id:"getGreeting" description:"This is the Greeting api for demo"`
 }
 
+type AtArray struct {
+	at.Annotation
+
+	AtValues []string `at:"values" json:"-"`
+}
+
 func TestImplementsAnnotation(t *testing.T) {
 	log.SetLevel("debug")
 
@@ -210,14 +216,14 @@ func TestImplementsAnnotation(t *testing.T) {
 	})
 
 	t.Run("should inject all annotations", func(t *testing.T) {
-		assert.Equal(t, "", f.AtFoo.Value)
-		assert.Equal(t, 0, f.AtFoo.Age)
+		assert.Equal(t, "", f.AtFoo.AtValue)
+		assert.Equal(t, 0, f.AtFoo.AtAge)
 		err := annotation.InjectAll(f)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, "foo", f.AtFoo.Value)
-		assert.Equal(t, 18, f.AtFoo.Age)
+		assert.Equal(t, "foo", f.AtFoo.AtValue)
+		assert.Equal(t, 18, f.AtFoo.AtAge)
 
-		assert.Equal(t, "bar", f.AtBar.Value)
+		assert.Equal(t, "bar", f.AtBar.AtValue)
 		assert.Equal(t, "my object value", f.Value)
 	})
 
@@ -251,7 +257,7 @@ func TestImplementsAnnotation(t *testing.T) {
 	})
 
 	t.Run("should inject annotation into sub struct", func(t *testing.T) {
-		var fb struct{at.GetMapping `value:"/path/to/api"`}
+		var fb struct{at.GetMapping `value:"/path/to/api" foo:"bar"`}
 		err := annotation.InjectAll(&fb)
 		assert.Equal(t, nil, err)
 	})
@@ -291,12 +297,12 @@ func TestImplementsAnnotation(t *testing.T) {
 
 		err := annotation.InjectAll(ma)
 		assert.Equal(t, nil, err)
-		assert.Equal(t, "bar1", ma.Bar1.AtBar.Value)
-		assert.Equal(t, "bar2", ma.Bar2.AtBar.Value)
-		assert.Equal(t, "baz", ma.Bar1.AtBaz.Value)
+		assert.Equal(t, "bar1", ma.Bar1.AtBar.AtValue)
+		assert.Equal(t, "bar2", ma.Bar2.AtBar.AtValue)
+		assert.Equal(t, "baz", ma.Bar1.AtBaz.AtValue)
 
 		fa := annotation.Find(maf, AtFoo{})
-		assert.Equal(t, "foo", fa.Field.Value.Interface().(AtFoo).Value)
+		assert.Equal(t, "foo", fa.Field.Value.Interface().(AtFoo).AtValue)
 	})
 
 	t.Run("should get from nil interface", func(t *testing.T) {
@@ -380,9 +386,67 @@ func TestImplementsAnnotation(t *testing.T) {
 		err := annotation.Inject(a)
 		assert.Equal(t, nil, err)
 		ao := a.Field.Value.Interface().(at.Schema)
-		assert.Equal(t, "array", ao.Value)
-		assert.Equal(t, "string", ao.Type)
-		assert.Equal(t, "This is a test parameter", ao.Description)
+		assert.Equal(t, "array", ao.AtValue)
+		assert.Equal(t, "string", ao.AtType)
+		assert.Equal(t, "This is a test parameter", ao.AtDescription)
+	})
+
+	t.Run("should inject into annotation", func(t *testing.T) {
+		type foo struct {
+			at.Parameter `value:"foo" in:"path" type:"integer" description:"This is a test parameter"`
+		}
+		f := &foo{}
+		a := annotation.GetAnnotation(f, at.Parameter{})
+		err := annotation.Inject(a)
+		assert.Equal(t, nil, err)
+		ao := a.Field.Value.Interface().(at.Parameter)
+		assert.Equal(t, "integer", ao.AtType)
+		assert.Equal(t, "path", ao.AtIn)
+		assert.Equal(t, "This is a test parameter", ao.AtDescription)
+	})
+
+	t.Run("should parse complicate annotations", func(t *testing.T) {
+		atTest := &struct {
+			at.PostMapping `value:"/"`
+			at.Operation   `id:"Create Employee" description:"This is the employee creation api"`
+			at.Consumes    `values:"application/json"`
+			at.Produces    `values:"application/json"`
+			Parameters     struct {
+				at.Parameter `name:"token" in:"header" type:"string" description:"JWT token (fake token - for demo only)" `
+				Body struct {
+					at.Parameter `name:"employee" in:"body" description:"Employee request body" `
+					foo
+				}
+			}
+			Responses struct {
+				StatusOK struct {
+					at.Response `code:"200" description:"returns a employee with ID"`
+					XRateLimit struct {
+						at.Header `value:"X-Rate-Limit" type:"integer" format:"int32" description:"calls per hour allowed by the user"`
+					}
+					XExpiresAfter struct{
+						at.Header `value:"X-Expires-After" type:"string" format:"date-time" description:"date in UTC when token expires"`
+					}
+					bar
+				}
+			}
+		}{}
+
+		ans := annotation.GetAnnotations(atTest)
+		err := annotation.InjectAll(atTest)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, "Header", ans.Children[1].Children[0].Children[0].Items[0].Field.StructField.Name)
+		assert.Equal(t, "X-Rate-Limit", atTest.Responses.StatusOK.XRateLimit.AtValue)
+	})
+
+	t.Run("should inject array", func(t *testing.T) {
+		type testArray struct {
+			AtArray `values:"foo,bar,baz"`
+		}
+		ta := &testArray{}
+		err := annotation.InjectAll(ta)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, 3, len(ta.AtValues))
 	})
 }
 

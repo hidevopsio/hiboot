@@ -107,6 +107,7 @@ func (a *application) Run() {
 		// serve web app with server port, default port number is 8080
 		if err == nil {
 			err = http.ListenAndServe(serverPort, nil)
+			log.Debug(err)
 		}
 	}
 }

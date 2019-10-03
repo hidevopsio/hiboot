@@ -124,6 +124,24 @@ func GetFieldValue(f interface{}, name string) reflect.Value {
 	return fv
 }
 
+
+// FindFieldByTag find field by tag
+func FindFieldByTag(obj interface{}, key, name string) (field reflect.StructField, ok bool) {
+	typ, ok := GetObjectType(obj)
+	if ok {
+		for _, f := range DeepFields(typ) {
+			if f.Tag.Get(key) == name {
+				field = f
+				ok = true
+				break
+			}
+		}
+	}
+
+	return
+}
+
+
 // SetFieldValue set field value
 func SetFieldValue(object interface{}, name string, value interface{}) error {
 
