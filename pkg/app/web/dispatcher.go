@@ -30,7 +30,7 @@ import (
 	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"net/http"
-	"path/filepath"
+	"path"
 	"reflect"
 	"strings"
 )
@@ -187,7 +187,7 @@ func (d *Dispatcher) parseRestController(ctl *factory.MetaData) (restController 
 	if af != nil {
 		customizedControllerPath = true
 		ann := af.Field.Value.Interface().(at.RequestMapping)
-		pathPrefix = filepath.Join(pathPrefix, ann.AtValue)
+		pathPrefix = path.Join(pathPrefix, ann.AtValue)
 	}
 
 	// parse method
