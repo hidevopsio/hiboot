@@ -387,7 +387,7 @@ func (h *handler) call(ctx context.Context) {
 	lenOfPathParams := h.lenOfPathParams
 	for i := 1; i < h.numIn; i++ {
 		req := h.requests[i]
-		input = h.requests[i].obj
+		input = reflect.New(req.iTyp).Interface()
 
 		// inject params
 		//log.Debugf("%v, %v", i, h.requests[i].iVal.Type())
