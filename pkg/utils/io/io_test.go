@@ -80,7 +80,7 @@ func TestWriteFile(t *testing.T) {
 
 	if runtime.GOOS != "windows" {
 		_, err = WriterFile("/should-not-have-access-permission", "test.txt", buf.Bytes())
-		assert.Equal(t, "mkdir /should-not-have-access-permission: permission denied", err.Error())
+		assert.NotEqual(t, nil, err)
 	}
 }
 
