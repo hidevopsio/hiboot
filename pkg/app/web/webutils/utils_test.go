@@ -10,14 +10,30 @@ import (
 
 func TestUtils(t *testing.T) {
 	testData := []interface{}{
-		&struct{ at.GetMapping `value:"/"` }{},
-		&struct{ at.PostMapping `value:"/"` }{},
-		&struct{ at.PutMapping `value:"/"` }{},
-		&struct{ at.DeleteMapping `value:"/"` }{},
-		&struct{ at.PatchMapping `value:"/"` }{},
-		&struct{ at.OptionsMapping `value:"/"` }{},
-		&struct{ at.AnyMapping `value:"/"` }{},
-		&struct{ at.TraceMapping `value:"/"` }{},
+		&struct {
+			at.GetMapping `value:"/"`
+		}{},
+		&struct {
+			at.PostMapping `value:"/"`
+		}{},
+		&struct {
+			at.PutMapping `value:"/"`
+		}{},
+		&struct {
+			at.DeleteMapping `value:"/"`
+		}{},
+		&struct {
+			at.PatchMapping `value:"/"`
+		}{},
+		&struct {
+			at.OptionsMapping `value:"/"`
+		}{},
+		&struct {
+			at.AnyMapping `value:"/"`
+		}{},
+		&struct {
+			at.TraceMapping `value:"/"`
+		}{},
 	}
 
 	for _, a := range testData {

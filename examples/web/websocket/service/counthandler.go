@@ -43,12 +43,10 @@ func (h *CountHandler) OnDisconnect() {
 	log.Debugf("Connection with ID: %v has been disconnected!", h.connection.ID())
 }
 
-
 // OnPing is the websocket ping handler
 func (h *CountHandler) OnPing() {
 	log.Debugf("Connection with ID: %v has been pinged!", h.connection.ID())
 }
-
 
 // OnPong is the websocket pong handler
 func (h *CountHandler) OnPong() {

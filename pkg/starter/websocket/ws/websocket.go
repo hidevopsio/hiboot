@@ -1,4 +1,4 @@
-/*Package websocket provides rich websocket support for the iris web framework.
+/*Package websocket provides rich websocket support for the iris web framework. (Before v11.2)
 
 Source code and other details for the project are available at GitHub:
 

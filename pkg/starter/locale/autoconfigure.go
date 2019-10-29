@@ -16,7 +16,7 @@
 package locale
 
 import (
-	"github.com/kataras/iris/middleware/i18n"
+	"github.com/kataras/iris/v12/middleware/i18n"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/utils/io"

@@ -32,7 +32,7 @@ type profiles struct {
 type properties struct {
 	at.ConfigurationProperties `value:"app"`
 
-	Name string `json:"name"`
+	Name     string   `json:"name"`
 	Profiles profiles `json:"profiles"`
 }
 
@@ -47,7 +47,6 @@ func init() {
 }
 
 var customProps = make(map[string]interface{})
-
 
 func TestBuilderBuild(t *testing.T) {
 	err := os.Setenv("APP_NAME", "hiboot-app")

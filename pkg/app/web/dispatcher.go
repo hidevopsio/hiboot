@@ -17,7 +17,7 @@ package web
 import (
 	"fmt"
 	"github.com/fatih/camelcase"
-	"github.com/kataras/iris"
+	"github.com/kataras/iris/v12"
 	"github.com/rakyll/statik/fs"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
@@ -58,8 +58,8 @@ type Dispatcher struct {
 	webApp *webApp
 	// inject context aware dependencies
 	configurableFactory factory.ConfigurableFactory
-	SystemApp    *system.App
-	SystemServer *system.Server
+	SystemApp           *system.App
+	SystemServer        *system.Server
 
 	ContextPathFormat string `value:"${server.context_path_format}" `
 

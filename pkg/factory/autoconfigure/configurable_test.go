@@ -94,7 +94,6 @@ type foobarProperties struct {
 	Username string `default:"fb"`
 }
 
-
 type barProperties struct {
 	at.ConfigurationProperties `value:"bar"`
 
@@ -221,8 +220,8 @@ type FooBar struct {
 
 type barConfiguration struct {
 	at.AutoConfiguration
-	
-	barProperties *barProperties 
+
+	barProperties *barProperties
 }
 
 func newBarConfiguration(barProperties *barProperties) *barConfiguration {
@@ -240,7 +239,7 @@ func init() {
 
 type fakeConfiguration struct {
 	app.Configuration
-	FakeProperties *FakeProperties 
+	FakeProperties *FakeProperties
 }
 
 func newFakeConfiguration(fakeProperties *FakeProperties) *fakeConfiguration {
@@ -443,7 +442,7 @@ func TestConfigurableFactory(t *testing.T) {
 		_, err = f.BuildProperties()
 		assert.Equal(t, nil, err)
 	})
-	
+
 	f.Build([]*factory.MetaData{
 		factory.NewMetaData(newEmptyConfiguration),
 		factory.NewMetaData(newFakeConfiguration),
@@ -521,7 +520,6 @@ func TestReplacer(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 
-
 	type outConfiguration struct {
 		at.AutoConfiguration
 		Properties *fooProperties `inject:""`
@@ -536,7 +534,7 @@ func TestReplacer(t *testing.T) {
 	fp := f.GetInstance(fooProperties{})
 	assert.NotEqual(t, nil, fp)
 	fooProp := fp.(*fooProperties)
-	
+
 	t.Run("should get foo configuration", func(t *testing.T) {
 		assert.Equal(t, "hiboot-test foo", fooProp.Nickname)
 		assert.Equal(t, "bar", fooProp.Username)

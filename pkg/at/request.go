@@ -8,7 +8,7 @@ type RequestBody struct {
 }
 
 // RequestForm the annotation RequestForm
-type RequestForm struct{
+type RequestForm struct {
 	Annotation
 
 	BaseAnnotation

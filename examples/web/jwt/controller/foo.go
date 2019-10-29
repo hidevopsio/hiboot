@@ -40,8 +40,8 @@ type fooRequestParam struct {
 type fooResponse struct {
 	at.ResponseBody
 	AppNameVersion string `json:"appNameVersion"`
-	Greeting string `json:"greeting"`
-	Age      int    `json:"age"`
+	Greeting       string `json:"greeting"`
+	Age            int    `json:"age"`
 }
 
 type fooController struct {
@@ -83,8 +83,8 @@ func (c *fooController) Get(request *fooRequestParam) (response model.Response, 
 	response = new(model.BaseResponse)
 	response.SetData(&fooResponse{
 		AppNameVersion: c.AppNameVersion,
-		Greeting: "Hello, " + request.Name,
-		Age:      request.Age})
+		Greeting:       "Hello, " + request.Name,
+		Age:            request.Age})
 
 	return
 }

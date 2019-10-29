@@ -15,16 +15,18 @@
 package web
 
 import (
-	"github.com/kataras/iris"
 	"sync"
 
-	ctx "github.com/kataras/iris/context"
-	"github.com/kataras/iris/middleware/i18n"
+	"github.com/kataras/iris/v12"
+
+	"net/http"
+
+	ctx "github.com/kataras/iris/v12/context"
+	"github.com/kataras/iris/v12/middleware/i18n"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/model"
 	"hidevops.io/hiboot/pkg/utils/mapstruct"
 	"hidevops.io/hiboot/pkg/utils/validator"
-	"net/http"
 )
 
 // Context Create your own custom Context, put any fields you wanna need.
@@ -85,17 +87,17 @@ func (c *Context) Next() {
 //}
 
 // WrapHandler is a helper function for wrapping http.Handler
-func (c *Context) WrapHandler(h http.Handler)  {
+func (c *Context) WrapHandler(h http.Handler) {
 	h.ServeHTTP(c.ResponseWriter(), c.Request())
 }
 
 // HTML Override any context's method you want...
 // [...]
-func (c *Context) HTML(htmlContents string) (int, error) {
+func (c *Context) HTML(htmlContents string, args ...interface{}) (int, error) {
 	c.Application().Logger().Infof("Executing .HTML function from Context")
 
 	c.ContentType("text/html")
-	return c.WriteString(htmlContents)
+	return c.Writef(htmlContents, args...)
 }
 
 // handle i18n

@@ -82,4 +82,3 @@ func (t *BaseTag) Properties() cmap.ConcurrentMap {
 func (t *BaseTag) Decode(object reflect.Value, field reflect.StructField, property string) (retVal interface{}) {
 	return nil
 }
-

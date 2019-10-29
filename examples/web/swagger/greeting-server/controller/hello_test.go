@@ -22,4 +22,3 @@ func TestController(t *testing.T) {
 	})
 
 }
-

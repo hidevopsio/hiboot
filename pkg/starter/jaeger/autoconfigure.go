@@ -64,7 +64,7 @@ func (c *configuration) path(ctx context.Context) (path string) {
 //Span returns an instance of Jaeger root span.
 func (c *configuration) Span(ctx context.Context, tracer Tracer) (span *Span) {
 	span = new(Span)
-	span.Span = tracer.StartSpan( c.path(ctx) )
+	span.Span = tracer.StartSpan(c.path(ctx))
 	span.context = ctx
 	return span
 }
@@ -76,7 +76,7 @@ func (c *configuration) ChildSpan(ctx context.Context, tracer Tracer) (span *Chi
 	span = new(ChildSpan)
 
 	spanCtx, _ := tracer.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(ctx.Request().Header))
-	span.Span = tracer.StartSpan( c.path(ctx), ext.RPCServerOption(spanCtx))
+	span.Span = tracer.StartSpan(c.path(ctx), ext.RPCServerOption(spanCtx))
 	span.context = ctx
 	return span
 }

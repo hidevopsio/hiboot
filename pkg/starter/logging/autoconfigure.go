@@ -16,7 +16,7 @@
 package logging
 
 import (
-	"github.com/kataras/iris/middleware/logger"
+	"github.com/kataras/iris/v12/middleware/logger"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
 )
@@ -46,7 +46,7 @@ type configuration struct {
 	applicationContext app.ApplicationContext
 }
 
-func newConfiguration(applicationContext app.ApplicationContext, properties *properties ) *configuration {
+func newConfiguration(applicationContext app.ApplicationContext, properties *properties) *configuration {
 	return &configuration{
 		applicationContext: applicationContext,
 		Properties:         properties,

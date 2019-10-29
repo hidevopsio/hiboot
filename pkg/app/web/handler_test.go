@@ -15,7 +15,7 @@
 package web
 
 import (
-	"github.com/kataras/iris"
+	"github.com/kataras/iris/v12"
 	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
@@ -91,6 +91,5 @@ func TestParse(t *testing.T) {
 		p := clean("//")
 		assert.Equal(t, "/", p)
 	})
-
 
 }

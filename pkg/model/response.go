@@ -39,8 +39,8 @@ type Response interface {
 // BaseResponseInfo is the implementation of rest controller's Response
 type BaseResponseInfo struct {
 	at.Schema
-	Code    int         `json:"code" schema:"HTTP response code"`
-	Message string      `json:"message,omitempty" schema:"HTTP response message"`
+	Code    int    `json:"code" schema:"HTTP response code"`
+	Message string `json:"message,omitempty" schema:"HTTP response message"`
 }
 
 // SetCode set error code
@@ -66,7 +66,7 @@ func (r *BaseResponseInfo) GetMessage() string {
 // BaseResponse is the implementation of rest controller's Response
 type BaseResponse struct {
 	BaseResponseInfo
-	Data    interface{} `json:"data,omitempty" schema:"HTTP response data"`
+	Data interface{} `json:"data,omitempty" schema:"HTTP response data"`
 }
 
 // SetData the data will be serialized to json string

@@ -17,7 +17,6 @@ func TestMiddleware(t *testing.T) {
 			Body().Contains("123456")
 	})
 
-
 	t.Run("should delete user", func(t *testing.T) {
 		testApp.Delete("/user/123456").
 			Expect().Status(http.StatusOK)

@@ -31,7 +31,6 @@ import (
 type Controller struct {
 	// at.RestController or at.RestController must be embedded here
 	at.RestController
-
 }
 
 // Get GET /publisher/{publisher}

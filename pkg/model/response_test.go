@@ -14,7 +14,6 @@
 
 package model_test
 
-
 import (
 	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/model"

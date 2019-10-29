@@ -131,7 +131,6 @@ func init() {
 	app.Register(newConfiguration, new(properties))
 }
 
-
 // ClientConnector is the interface that connect to grpc client
 // it can be injected to struct at runtime
 func (c *configuration) ClientConnector() ClientConnector {

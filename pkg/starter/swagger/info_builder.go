@@ -106,7 +106,6 @@ func (b *apiInfoBuilder) Schemes(values ...string) ApiInfoBuilderInterface {
 	return b
 }
 
-
 func (b *apiInfoBuilder) ContactName(value string) ApiInfoBuilderInterface {
 	b.ensureContact()
 	b.Swagger.SwaggerProps.Info.Contact.Name = value

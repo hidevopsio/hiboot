@@ -38,10 +38,10 @@ func (c *Controller) Get(at struct {
 	at.GetMapping `value:"/"`
 	at.Operation  `id:"helloWorld" description:"This is hello world API"`
 	at.Produces   `values:"text/plain"`
-	Responses struct {
+	Responses     struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"response status OK"`
-			at.Schema `type:"string" description:"returns hello world message"`
+			at.Schema   `type:"string" description:"returns hello world message"`
 		}
 	}
 }) string {

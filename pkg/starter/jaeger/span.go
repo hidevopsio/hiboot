@@ -19,7 +19,6 @@ type Span struct {
 //ChildSpan
 type ChildSpan Span
 
-
 func (s *Span) Inject(ctx context.Context, method string, url string, req *http.Request) opentracing.Span {
 	c := opentracing.ContextWithSpan(ctx, s)
 	newSpan, _ := opentracing.StartSpanFromContext(c, req.RequestURI)
@@ -35,7 +34,6 @@ func (s *Span) Inject(ctx context.Context, method string, url string, req *http.
 
 	return newSpan
 }
-
 
 func (s *ChildSpan) Inject(ctx context.Context, method string, url string, req *http.Request) opentracing.Span {
 	c := opentracing.ContextWithSpan(ctx, s)

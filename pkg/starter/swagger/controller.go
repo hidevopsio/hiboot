@@ -66,7 +66,9 @@ func (c *controller) serve(ctx context.Context, docsPath string) {
 }
 
 // UI serve static resource via context StaticResource method
-func (c *controller) Swagger(at struct{ at.GetMapping `value:"/swagger.json"` }) (response string) {
+func (c *controller) Swagger(at struct {
+	at.GetMapping `value:"/swagger.json"`
+}) (response string) {
 	b, err := c.loadDoc()
 	if err == nil {
 		response = string(b)
@@ -75,8 +77,9 @@ func (c *controller) Swagger(at struct{ at.GetMapping `value:"/swagger.json"` })
 }
 
 // UI serve static resource via context StaticResource method
-func (c *controller) SwaggerUI(at struct{ at.GetMapping `value:"/swagger-ui"` }, ctx context.Context) {
+func (c *controller) SwaggerUI(at struct {
+	at.GetMapping `value:"/swagger-ui"`
+}, ctx context.Context) {
 	c.serve(ctx, at.GetMapping.AtValue)
 	return
 }
-

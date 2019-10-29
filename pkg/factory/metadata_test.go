@@ -11,7 +11,7 @@ import (
 
 type foo struct {
 	at.Qualifier `value:"foo"`
-	name string
+	name         string
 }
 
 type fooBarService struct {

@@ -22,7 +22,7 @@ func newUserController() *UserController {
 }
 
 type User struct {
-	ID int `json:"id"`
+	ID       int    `json:"id"`
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
@@ -34,7 +34,7 @@ type UserResponse struct {
 }
 
 // GetUser
-func (c *UserController) GetUser(at struct{
+func (c *UserController) GetUser(at struct {
 	at.GetMapping `value:"/{id}"`
 }, id int) (response *UserResponse) {
 	response = new(UserResponse)
@@ -45,7 +45,7 @@ func (c *UserController) GetUser(at struct{
 }
 
 // GetUser
-func (c *UserController) DeleteUser(at struct{
+func (c *UserController) DeleteUser(at struct {
 	at.DeleteMapping `value:"/{id}"`
 }, id int) (response *UserResponse) {
 	response = new(UserResponse)
@@ -53,7 +53,3 @@ func (c *UserController) DeleteUser(at struct{
 	response.SetMessage("Success")
 	return
 }
-
-
-
-

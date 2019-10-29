@@ -83,4 +83,3 @@ type Logging struct {
 
 	Level string `json:"level,omitempty" default:"info"`
 }
-

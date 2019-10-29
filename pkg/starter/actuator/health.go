@@ -30,7 +30,7 @@ type HealthService interface {
 // Health is the health check struct
 type Health struct {
 	at.Schema `json:"-"`
-	Status string `schema:"The status of health check" json:"status"`
+	Status    string `schema:"The status of health check" json:"status"`
 }
 
 type healthController struct {
@@ -49,11 +49,11 @@ func newHealthController(configurableFactory factory.ConfigurableFactory) *healt
 }
 
 // GET /health
-func (c *healthController) Get( struct {
+func (c *healthController) Get(struct {
 	at.GetMapping `value:"/"`
 	at.Operation  `id:"health" description:"health check endpoint"`
 	at.Produces   `values:"application/json"`
-	Responses struct {
+	Responses     struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"Returns the status of health check"`
 			Health

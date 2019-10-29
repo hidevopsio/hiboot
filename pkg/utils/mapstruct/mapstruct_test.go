@@ -65,7 +65,6 @@ func TestDecode(t *testing.T) {
 
 		foo := &Foo{}
 
-
 		err := Decode(foo, src)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, "", foo.Name)

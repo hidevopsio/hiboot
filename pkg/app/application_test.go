@@ -93,8 +93,11 @@ func TestApp(t *testing.T) {
 
 	t.Run("should add new named component", func(t *testing.T) {
 		type fakeService interface{}
-		type fakeServiceImpl struct{ at.Qualifier `value:"myService"`; fakeService }
-		 app.Register(new(fakeServiceImpl))
+		type fakeServiceImpl struct {
+			at.Qualifier `value:"myService"`
+			fakeService
+		}
+		app.Register(new(fakeServiceImpl))
 	})
 
 	t.Run("should add more than one new component at the same time", func(t *testing.T) {

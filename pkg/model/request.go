@@ -28,17 +28,17 @@ var (
 )
 
 // RequestBody the annotation RequestBody
-type RequestBody struct{
+type RequestBody struct {
 	at.RequestBody
 }
 
 // RequestForm the annotation RequestForm
-type RequestForm struct{
+type RequestForm struct {
 	at.RequestForm
 }
 
 // RequestParams the annotation RequestParams
-type RequestParams struct{
+type RequestParams struct {
 	at.RequestParams
 }
 

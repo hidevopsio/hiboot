@@ -18,8 +18,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/iris-contrib/httpexpect"
-	"github.com/kataras/iris/httptest"
+	"github.com/kataras/iris/v12/httptest"
 	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/log"
 )
@@ -29,19 +28,19 @@ type TestApplication interface {
 	Initialize() error
 	SetProperty(name string, value ...interface{}) TestApplication
 	Run(t *testing.T) TestApplication
-	Request(method, path string, pathargs ...interface{}) *httpexpect.Request
-	Post(path string, pathargs ...interface{}) *httpexpect.Request
-	Get(path string, pathargs ...interface{}) *httpexpect.Request
-	Put(path string, pathargs ...interface{}) *httpexpect.Request
-	Delete(path string, pathargs ...interface{}) *httpexpect.Request
-	Patch(path string, pathargs ...interface{}) *httpexpect.Request
-	Options(path string, pathargs ...interface{}) *httpexpect.Request
+	Request(method, path string, pathargs ...interface{}) *httptest.Request
+	Post(path string, pathargs ...interface{}) *httptest.Request
+	Get(path string, pathargs ...interface{}) *httptest.Request
+	Put(path string, pathargs ...interface{}) *httptest.Request
+	Delete(path string, pathargs ...interface{}) *httptest.Request
+	Patch(path string, pathargs ...interface{}) *httptest.Request
+	Options(path string, pathargs ...interface{}) *httptest.Request
 }
 
 // TestApplication the test web application for unit test only
 type testApplication struct {
 	application
-	expect *httpexpect.Expect
+	expect *httptest.Expect
 }
 
 // RunTestApplication returns the new test application
@@ -85,36 +84,36 @@ func (a *testApplication) Run(t *testing.T) TestApplication {
 }
 
 // Request request for unit test
-func (a *testApplication) Request(method, path string, pathargs ...interface{}) *httpexpect.Request {
+func (a *testApplication) Request(method, path string, pathargs ...interface{}) *httptest.Request {
 	return a.expect.Request(method, path, pathargs...)
 }
 
 // Post wrap of Request with POST method
-func (a *testApplication) Post(path string, pathargs ...interface{}) *httpexpect.Request {
+func (a *testApplication) Post(path string, pathargs ...interface{}) *httptest.Request {
 	return a.expect.Request(http.MethodPost, path, pathargs...)
 }
 
 // Put wrap of Request with Put method
-func (a *testApplication) Put(path string, pathargs ...interface{}) *httpexpect.Request {
+func (a *testApplication) Put(path string, pathargs ...interface{}) *httptest.Request {
 	return a.expect.Request(http.MethodPut, path, pathargs...)
 }
 
 // Patch wrap of Request with Patch method
-func (a *testApplication) Patch(path string, pathargs ...interface{}) *httpexpect.Request {
+func (a *testApplication) Patch(path string, pathargs ...interface{}) *httptest.Request {
 	return a.expect.Request(http.MethodPatch, path, pathargs...)
 }
 
 // Get wrap of Request with Get method
-func (a *testApplication) Get(path string, pathargs ...interface{}) *httpexpect.Request {
+func (a *testApplication) Get(path string, pathargs ...interface{}) *httptest.Request {
 	return a.expect.Request(http.MethodGet, path, pathargs...)
 }
 
 // Delete wrap of Request with Delete method
-func (a *testApplication) Delete(path string, pathargs ...interface{}) *httpexpect.Request {
+func (a *testApplication) Delete(path string, pathargs ...interface{}) *httptest.Request {
 	return a.expect.Request(http.MethodDelete, path, pathargs...)
 }
 
 // Delete wrap of Request with Delete method
-func (a *testApplication) Options(path string, pathargs ...interface{}) *httpexpect.Request {
+func (a *testApplication) Options(path string, pathargs ...interface{}) *httptest.Request {
 	return a.expect.Request(http.MethodOptions, path, pathargs...)
 }

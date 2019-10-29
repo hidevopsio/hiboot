@@ -35,12 +35,12 @@ var customProperties = make(map[string]interface{})
 type StarProperties struct {
 	at.ConfigurationProperties `value:"star"`
 
-	Name string `json:"name"`
+	Name   string `json:"name"`
 	System string `json:"system"`
 }
 
 func TestPropertyBuilderBuild(t *testing.T) {
-	os.Args = append(os.Args, "--logging.level=debug", "--foo.bar",  "--foobar=foo,bar", "--foobar=foo,bar")
+	os.Args = append(os.Args, "--logging.level=debug", "--foo.bar", "--foobar=foo,bar", "--foobar=foo,bar")
 
 	err := os.Setenv("APP_NAME", "hiboot-app")
 

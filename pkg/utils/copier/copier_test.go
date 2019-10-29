@@ -63,8 +63,8 @@ func TestCopier(t *testing.T) {
 	}{
 		{
 			name: "should copy struct slice",
-			from:   &[]Bar{},
-			to: &[]Foo{{Name: "foo"}, {Name: "bar"}},
+			from: &[]Bar{},
+			to:   &[]Foo{{Name: "foo"}, {Name: "bar"}},
 			err:  nil,
 		},
 		{
@@ -136,21 +136,20 @@ func TestCopier(t *testing.T) {
 	}
 }
 
-
 func TestCopierWithConfig(t *testing.T) {
 
 	type src struct {
-		Str string
-		Int int
+		Str   string
+		Int   int
 		Slice []string
-		Foo *Foo
+		Foo   *Foo
 	}
 
 	type dst struct {
-		Str string
-		Int int
+		Str   string
+		Int   int
 		Slice []string
-		Foo *Foo
+		Foo   *Foo
 	}
 
 	type p1 struct {
@@ -170,17 +169,17 @@ func TestCopierWithConfig(t *testing.T) {
 	type baz struct {
 		Name string
 	}
-	type bar struct{
+	type bar struct {
 		Name string
-		Arr []baz
+		Arr  []baz
 	}
 	type foo struct {
 		Name string
-		Bar bar
+		Bar  bar
 	}
 	type fake struct {
 		Name string
-		Foo foo
+		Foo  foo
 	}
 
 	testCases := []struct {
@@ -194,58 +193,58 @@ func TestCopierWithConfig(t *testing.T) {
 			name: "should copy struct slice deeply",
 			from: &fake{
 				Name: "fake",
-				Foo:  foo{
+				Foo: foo{
 					Name: "foo",
-					Bar:  bar{
+					Bar: bar{
 						Name: "bar",
 					},
 				},
 			},
-			to:   &fake{
+			to: &fake{
 				Name: "fake",
-				Foo:  foo{
+				Foo: foo{
 					Name: "foo",
-					Bar:  bar{
+					Bar: bar{
 						Name: "bar",
-						Arr: []baz{{Name: "foo"}, {Name: "bar"}, {Name: "baz"}},
+						Arr:  []baz{{Name: "foo"}, {Name: "bar"}, {Name: "baz"}},
 					},
 				},
 			},
 			expected: &fake{
 				Name: "fake",
-				Foo:  foo{
+				Foo: foo{
 					Name: "foo",
-					Bar:  bar{
+					Bar: bar{
 						Name: "bar",
 					},
 				},
 			},
-			err:  nil,
+			err: nil,
 		},
 		{
 			name: "should copy struct slice deeply",
 			from: &fake{
 				Name: "fake",
-				Foo:  foo{
+				Foo: foo{
 					Name: "foo",
-					Bar:  bar{
+					Bar: bar{
 						Name: "bar",
-						Arr: []baz{{Name: "foo"}, {Name: "bar"}, {Name: "baz"}},
+						Arr:  []baz{{Name: "foo"}, {Name: "bar"}, {Name: "baz"}},
 					},
 				},
 			},
-			to:   &fake{},
+			to: &fake{},
 			expected: &fake{
 				Name: "fake",
-				Foo:  foo{
+				Foo: foo{
 					Name: "foo",
-					Bar:  bar{
+					Bar: bar{
 						Name: "bar",
-						Arr: []baz{{Name: "foo"}, {Name: "bar"}, {Name: "baz"}},
+						Arr:  []baz{{Name: "foo"}, {Name: "bar"}, {Name: "baz"}},
 					},
 				},
 			},
-			err:  nil,
+			err: nil,
 		},
 		{
 			name:     "should copy struct slice",
@@ -305,7 +304,7 @@ func TestCopierWithConfig(t *testing.T) {
 		},
 		{
 			name:     "Should copy from src to dst",
-			from:     &src{Int: 1, },
+			from:     &src{Int: 1},
 			to:       &dst{Str: "bar", Slice: []string{"one", "two", "three"}, Foo: &Foo{Name: "bar"}},
 			expected: &dst{Str: "bar", Int: 1, Slice: []string{"one", "two", "three"}, Foo: &Foo{Name: "bar"}},
 			err:      nil,
@@ -319,7 +318,6 @@ func TestCopierWithConfig(t *testing.T) {
 		})
 	}
 }
-
 
 type User struct {
 	Name     string
@@ -576,34 +574,34 @@ func TestScanner(t *testing.T) {
 func TestCopyMap(t *testing.T) {
 	src := map[string]interface{}{
 		"abc": map[string]interface{}{
-			"str": "string value",
-			"int": 123,
-			"int-slice": []int{1,2,3},
-			"str-slice": []string{"a","b","c"},
-			"str-ifc": []interface{}{"a",100,"c"},
+			"str":         "string value",
+			"int":         123,
+			"int-slice":   []int{1, 2, 3},
+			"str-slice":   []string{"a", "b", "c"},
+			"str-ifc":     []interface{}{"a", 100, "c"},
 			"do-not-copy": nil,
 		},
 		"opq": map[string]interface{}{
-			"str": "str value",
-			"int": 666,
-			"int-slice": []int{1,2,3},
-			"str-slice": []string{"j","b","c"},
-			"str-ifc": []interface{}{"a",333,"c"},
+			"str":       "str value",
+			"int":       666,
+			"int-slice": []int{1, 2, 3},
+			"str-slice": []string{"j", "b", "c"},
+			"str-ifc":   []interface{}{"a", 333, "c"},
 		},
-		"def": "define",
-		"nil": nil,
+		"def":   "define",
+		"nil":   nil,
 		"empty": "",
 	}
 	dst := map[string]interface{}{
 		"abc": map[string]interface{}{
-			"str2": "hhh",
-			"int2": 456,
-			"int-slice": []int{1,2,3},
-			"str-slice": []string{"j","f","k"},
-			"str-ifc": []interface{}{"a",100,"c"},
-			"do-not-copy": []string{"x","y"},
+			"str2":        "hhh",
+			"int2":        456,
+			"int-slice":   []int{1, 2, 3},
+			"str-slice":   []string{"j", "f", "k"},
+			"str-ifc":     []interface{}{"a", 100, "c"},
+			"do-not-copy": []string{"x", "y"},
 		},
-		"hi": "Hi all",
+		"hi":  "Hi all",
 		"nil": "Nil",
 	}
 
