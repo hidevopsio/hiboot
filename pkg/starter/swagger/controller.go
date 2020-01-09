@@ -22,7 +22,6 @@ import (
 	"hidevops.io/hiboot/pkg/at"
 	"net/http"
 	"path"
-	"path/filepath"
 )
 
 type controller struct {
@@ -48,7 +47,7 @@ func (c *controller) serve(ctx context.Context, docsPath string) {
 		// read host dynamically
 		c.apiInfoBuilder.Swagger.Host = ctx.Host()
 		// concat path
-		basePath := filepath.Join(c.apiInfoBuilder.Swagger.BasePath, c.RequestMapping.AtValue)
+		basePath := path.Join(c.apiInfoBuilder.Swagger.BasePath, c.RequestMapping.AtValue)
 
 		// get handler
 		handler := middleware.Redoc(middleware.RedocOpts{
