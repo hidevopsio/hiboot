@@ -10,7 +10,7 @@ import (
 	"hidevops.io/hiboot/pkg/utils/reflector"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"hidevops.io/hiboot/pkg/utils/structtag"
-	"path/filepath"
+	"path"
 	"reflect"
 	"strings"
 	"time"
@@ -39,7 +39,7 @@ func newApiPathsBuilder(builder *apiInfoBuilder) *apiPathsBuilder {
 		builder.Info.Version = builder.AppVersion
 	}
 	// TODO: save visit for later use
-	visit := fmt.Sprintf("%s://%s/swagger-ui", builder.SwaggerProps.Schemes[0], filepath.Join(builder.SwaggerProps.Host, builder.SwaggerProps.BasePath))
+	visit := fmt.Sprintf("%s://%s/swagger-ui", builder.SwaggerProps.Schemes[0], path.Join(builder.SwaggerProps.Host, builder.SwaggerProps.BasePath))
 	log.Infof("visit %v to open api doc", visit)
 
 	return &apiPathsBuilder{
@@ -374,16 +374,16 @@ func (b *apiPathsBuilder) Build(atController *annotation.Annotations, atMethod *
 		return
 	}
 
-	method, path := webutils.GetHttpMethod(atMethod)
+	method, pth := webutils.GetHttpMethod(atMethod)
 	if method != "" {
 		atRequestMapping := annotation.GetAnnotation(atController, at.RequestMapping{})
 		if atRequestMapping != nil {
 			ann := atRequestMapping.Field.Value.Interface().(at.RequestMapping)
-			path = filepath.Join(ann.AtValue, path)
+			pth = path.Join(ann.AtValue, pth)
 		}
 		//log.Debugf("%v:%v", method, path)
 
-		pathItem := b.apiInfoBuilder.Paths.Paths[path]
+		pathItem := b.apiInfoBuilder.Paths.Paths[pth]
 
 		ann :=  annotation.GetAnnotation(atMethod, at.Operation{})
 
@@ -403,7 +403,7 @@ func (b *apiPathsBuilder) Build(atController *annotation.Annotations, atMethod *
 			b.buildOperation(operation, atMethod)
 
 			// add new path item
-			b.apiInfoBuilder.Paths.Paths[path] = pathItem
+			b.apiInfoBuilder.Paths.Paths[pth] = pathItem
 			//log.Debug(b.openAPIDefinition.Paths.Paths[path])
 		}
 	}
