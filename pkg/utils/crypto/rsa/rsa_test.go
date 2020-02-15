@@ -28,7 +28,7 @@ func TestRsa(t *testing.T) {
 	data, _ := Encrypt([]byte(src))
 	decrypted, err := Decrypt(data)
 	assert.Equal(t, nil, err)
-	log.Debugf("encrypted: %v, decrypted: %v, org: %v", string(data), string(decrypted), string(src))
+	//log.Debugf("encrypted: %v, decrypted: %v, org: %v", string(data), string(decrypted), string(src))
 	assert.Equal(t, src, decrypted)
 }
 
@@ -37,7 +37,7 @@ func TestRsaBase64(t *testing.T) {
 	data, _ := EncryptBase64([]byte(src))
 	decrypted, err := DecryptBase64(data)
 	assert.Equal(t, nil, err)
-	log.Debugf("encrypted: %v, decrypted: %v, org: %v", string(data), string(decrypted), string(src))
+	//log.Debugf("encrypted: %v, decrypted: %v, org: %v", string(data), string(decrypted), string(src))
 	assert.Equal(t, src, decrypted)
 }
 
@@ -51,7 +51,7 @@ func TestExeptions(t *testing.T) {
 	t.Run("should report error with invalid public key", func(t *testing.T) {
 		src := []byte("hello")
 		_, err := Encrypt([]byte(src), invalidPrivateKey)
-		assert.Contains(t, err.Error(), "tags don't match")
+		assert.Contains(t, err.Error(), "failed to parse public key")
 	})
 
 	t.Run("should report error with invalid public key", func(t *testing.T) {

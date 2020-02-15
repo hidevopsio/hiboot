@@ -12,7 +12,16 @@ import (
 	"io"
 )
 
+var (
+	publicKeyError  = errors.New("public key error")
+	privateKeyError = errors.New("private key error!")
+	parametersError = errors.New("parameters error")
+)
+
 func EncryptLongString(raw string, publicKey []byte) (result string, err error) {
+	if len(raw) == 0 || len(publicKey) == 0 {
+		return "", parametersError
+	}
 	public, err := getPublickKey(publicKey)
 	if err != nil {
 		return
@@ -22,16 +31,16 @@ func EncryptLongString(raw string, publicKey []byte) (result string, err error) 
 	chunks := split([]byte(raw), partLen)
 	buffer := bytes.NewBufferString("")
 	for _, chunk := range chunks {
-		bytes, err := rsa.EncryptPKCS1v15(rand.Reader, public, chunk)
-		if err != nil {
-			return "", err
-		}
+		bytes, _ := rsa.EncryptPKCS1v15(rand.Reader, public, chunk)
 		buffer.Write(bytes)
 	}
 	return base64.RawURLEncoding.EncodeToString(buffer.Bytes()), nil
 }
 
 func DecryptLongString(cipherText string, publicKey, privateKey []byte) (result string, err error) {
+	if len(cipherText) == 0 || len(publicKey) == 0 || len(privateKey) == 0 {
+		return "", parametersError
+	}
 	public, err := getPublickKey(publicKey)
 	if err != nil {
 		return
@@ -45,40 +54,45 @@ func DecryptLongString(cipherText string, publicKey, privateKey []byte) (result 
 	chunks := split([]byte(raw), partLen)
 	buffer := bytes.NewBufferString("")
 	for _, chunk := range chunks {
-		decrypted, err := rsa.DecryptPKCS1v15(rand.Reader, private, chunk)
-		if err != nil {
-			return "", err
-		}
+		decrypted, _ := rsa.DecryptPKCS1v15(rand.Reader, private, chunk)
 		buffer.Write(decrypted)
 	}
 	return buffer.String(), err
 }
 
 func getPublickKey(publicKey []byte) (*rsa.PublicKey, error) {
+	if len(publicKey) == 0 {
+		return nil, parametersError
+	}
 	block, _ := pem.Decode(publicKey)
 	if block == nil {
-		return nil, errors.New("public key error")
+		return nil, publicKeyError
 	}
-	pubInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
-	if err != nil {
-		return nil, err
-	}
+
+	pubInterface, _ := x509.ParsePKIXPublicKey(block.Bytes)
 	return pubInterface.(*rsa.PublicKey), nil
 }
 
 func getPrivateKey(priveteKey []byte) (*rsa.PrivateKey, error) {
+	if len(priveteKey) == 0 {
+		return nil, parametersError
+	}
 	block, _ := pem.Decode(priveteKey)
 	if block == nil {
-		return nil, errors.New("private key error!")
+		return nil, privateKeyError
 	}
-	privInterface, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-	if err != nil {
-		return nil, err
-	}
+
+	privInterface, _ := x509.ParsePKCS8PrivateKey(block.Bytes)
 	return privInterface.(*rsa.PrivateKey), nil
 }
 
 func split(buf []byte, lim int) [][]byte {
+	if buf == nil {
+		return nil
+	}
+	if lim == 0 {
+		return nil
+	}
 	var chunk []byte
 	chunks := make([][]byte, 0, len(buf)/lim+1)
 	for len(buf) >= lim {
@@ -93,38 +107,38 @@ func split(buf []byte, lim int) [][]byte {
 
 // 生成密钥对
 func GenKeys(publicKeyWriter, privateKeyWriter io.Writer, keyLength int) error {
+	if publicKeyWriter == nil || privateKeyWriter == nil {
+		return parametersError
+	}
 	// 生成私钥文件
 	privateKey, err := rsa.GenerateKey(rand.Reader, keyLength)
 	if err != nil {
 		return err
 	}
-	derStream := MarshalPKCS8PrivateKey(privateKey)
+	derStream, _ := MarshalPKCS8PrivateKey(privateKey)
+
 	block := &pem.Block{
 		Type:  "PRIVATE KEY",
 		Bytes: derStream,
 	}
-	err = pem.Encode(privateKeyWriter, block)
-	if err != nil {
-		return err
-	}
+	_ = pem.Encode(privateKeyWriter, block)
+
 	// 生成公钥文件
 	publicKey := &privateKey.PublicKey
-	derPkix, err := x509.MarshalPKIXPublicKey(publicKey)
-	if err != nil {
-		return err
-	}
+	derPkix, _ := x509.MarshalPKIXPublicKey(publicKey)
 	block = &pem.Block{
 		Type:  "PUBLIC KEY",
 		Bytes: derPkix,
 	}
-	err = pem.Encode(publicKeyWriter, block)
-	if err != nil {
-		return err
-	}
+	_ = pem.Encode(publicKeyWriter, block)
+
 	return nil
 }
 
-func MarshalPKCS8PrivateKey(key *rsa.PrivateKey) []byte {
+func MarshalPKCS8PrivateKey(privateKey *rsa.PrivateKey) ([]byte, error) {
+	if privateKey == nil {
+		return nil, parametersError
+	}
 	info := struct {
 		Version             int
 		PrivateKeyAlgorithm []asn1.ObjectIdentifier
@@ -133,7 +147,7 @@ func MarshalPKCS8PrivateKey(key *rsa.PrivateKey) []byte {
 	info.Version = 0
 	info.PrivateKeyAlgorithm = make([]asn1.ObjectIdentifier, 1)
 	info.PrivateKeyAlgorithm[0] = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 1, 1}
-	info.PrivateKey = x509.MarshalPKCS1PrivateKey(key)
+	info.PrivateKey = x509.MarshalPKCS1PrivateKey(privateKey)
 	k, _ := asn1.Marshal(info)
-	return k
+	return k, nil
 }
