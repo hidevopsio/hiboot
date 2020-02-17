@@ -574,13 +574,13 @@ func TestMarshalPKCS8PrivateKey(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := MarshalPKCS8PrivateKey(tt.args.key)
+			_, err := marshalPKCS8PrivateKey(tt.args.key)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MarshalPKCS8PrivateKey() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("marshalPKCS8PrivateKey() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			//if !reflect.DeepEqual(got, tt.want) {
-			//	t.Errorf("MarshalPKCS8PrivateKey() = %v, want %v", got, tt.want)
+			//	t.Errorf("marshalPKCS8PrivateKey() = %v, want %v", got, tt.want)
 			//}
 		})
 	}

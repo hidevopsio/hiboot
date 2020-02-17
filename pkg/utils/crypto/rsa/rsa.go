@@ -32,7 +32,7 @@ import (
 
 var (
 	publicKeyError  = errors.New("public key error")
-	privateKeyError = errors.New("private key error!")
+	privateKeyError = errors.New("private key error")
 	parametersError = errors.New("parameters error")
 )
 
@@ -121,6 +121,7 @@ func DecryptBase64(input []byte, privateKey ...[]byte) ([]byte, error) {
 	return nil, crypto.ErrInvalidInput
 }
 
+// EncryptLongString encrypt long string to base64 string
 func EncryptLongString(raw string, publicKey []byte) (result string, err error) {
 	if len(raw) == 0 || len(publicKey) == 0 {
 		return "", parametersError
@@ -140,6 +141,7 @@ func EncryptLongString(raw string, publicKey []byte) (result string, err error) 
 	return systemBase64.RawURLEncoding.EncodeToString(buffer.Bytes()), nil
 }
 
+// DecryptLongString decrypt long string from base64 string
 func DecryptLongString(cipherText string, publicKey, privateKey []byte) (result string, err error) {
 	if len(cipherText) == 0 || len(publicKey) == 0 || len(privateKey) == 0 {
 		return "", parametersError
@@ -208,17 +210,17 @@ func split(buf []byte, lim int) [][]byte {
 	return chunks
 }
 
-// 生成密钥对
+// GenKeys Generate public key and private key
 func GenKeys(publicKeyWriter, privateKeyWriter io.Writer, keyLength int) error {
 	if publicKeyWriter == nil || privateKeyWriter == nil {
 		return parametersError
 	}
-	// 生成私钥文件
+	// Generate private key
 	privateKey, err := rsa.GenerateKey(rand.Reader, keyLength)
 	if err != nil {
 		return err
 	}
-	derStream, _ := MarshalPKCS8PrivateKey(privateKey)
+	derStream, _ := marshalPKCS8PrivateKey(privateKey)
 
 	block := &pem.Block{
 		Type:  "PRIVATE KEY",
@@ -226,7 +228,7 @@ func GenKeys(publicKeyWriter, privateKeyWriter io.Writer, keyLength int) error {
 	}
 	_ = pem.Encode(privateKeyWriter, block)
 
-	// 生成公钥文件
+	// Generate public key
 	publicKey := &privateKey.PublicKey
 	derPkix, _ := x509.MarshalPKIXPublicKey(publicKey)
 	block = &pem.Block{
@@ -238,7 +240,7 @@ func GenKeys(publicKeyWriter, privateKeyWriter io.Writer, keyLength int) error {
 	return nil
 }
 
-func MarshalPKCS8PrivateKey(privateKey *rsa.PrivateKey) ([]byte, error) {
+func marshalPKCS8PrivateKey(privateKey *rsa.PrivateKey) ([]byte, error) {
 	if privateKey == nil {
 		return nil, parametersError
 	}
