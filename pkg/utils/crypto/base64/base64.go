@@ -45,8 +45,7 @@ func DecodeToString(src string) (retVal string, err error) {
 // Decode decode base64 bytes
 func Decode(src []byte) (dst []byte, err error) {
 	size := coder.DecodedLen(len(src))
-	buf := make([]byte, size)
-	_, err = coder.Decode(buf, src)
-	dst = buf[:size-1]
+	dst = make([]byte, size)
+	_, err = coder.Decode(dst, src)
 	return
 }

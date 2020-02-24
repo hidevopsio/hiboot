@@ -15,15 +15,17 @@ func TestBase64String(t *testing.T) {
 	str := EncodeToString(src)
 	decoded, err := DecodeToString(str)
 	assert.Equal(t, nil, err)
+	assert.Equal(t, src, decoded)
 	log.Debugf("src: %v, base64: %v, decoded: %v", src, str, decoded)
 	assert.Equal(t, src, decoded)
 }
 
 func TestBase64Bytes(t *testing.T) {
-	src := []byte("Hello world")
+	src := []byte("Abc123456")
 	str := Encode(src)
 	decoded, err := Decode(str)
 	assert.Equal(t, nil, err)
-	log.Debugf("src: %v, base64: %v, decoded: %v", src, str, decoded)
+	assert.Equal(t, src, decoded)
+	log.Debugf("src: %v, base64: %v, decoded: %v", string(src), string(str), string(decoded))
 	assert.Equal(t, src, decoded)
 }
