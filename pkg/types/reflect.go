@@ -4,6 +4,6 @@ import "reflect"
 
 type ReflectObject struct {
 	Interface interface{}
-	Type reflect.Type
-	Value reflect.Value
+	Type      reflect.Type
+	Value     reflect.Value
 }

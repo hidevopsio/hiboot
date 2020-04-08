@@ -46,23 +46,23 @@ func newApiPathsBuilder(builder *apiInfoBuilder) *apiPathsBuilder {
 		apiInfoBuilder: builder,
 		primitiveTypes: map[string]string{
 			// array, boolean, integer, number, object, string
-			"string": "string",
-			"int": "integer",
-			"int8": "integer",
-			"int16": "integer",
-			"int32": "integer",
-			"int64": "integer",
-			"uint": "integer",
-			"uint8": "integer",
-			"uint16": "integer",
-			"uint32": "integer",
-			"uint64": "integer",
+			"string":  "string",
+			"int":     "integer",
+			"int8":    "integer",
+			"int16":   "integer",
+			"int32":   "integer",
+			"int64":   "integer",
+			"uint":    "integer",
+			"uint8":   "integer",
+			"uint16":  "integer",
+			"uint32":  "integer",
+			"uint64":  "integer",
 			"float32": "number",
 			"float64": "number",
-			"struct": "object",
-			"slice": "array",
-			"bool": "boolean",
-			"Time": "string",
+			"struct":  "object",
+			"slice":   "array",
+			"bool":    "boolean",
+			"Time":    "string",
 		},
 	}
 }
@@ -79,7 +79,7 @@ func deepFields(reflectType reflect.Type) []reflect.StructField {
 			}
 
 			if v.Anonymous {
-				vk :=  reflector.IndirectType(v.Type).Kind()
+				vk := reflector.IndirectType(v.Type).Kind()
 				if vk == reflect.Struct || vk == reflect.Interface {
 					fields = append(fields, deepFields(v.Type)...)
 				}
@@ -92,7 +92,7 @@ func deepFields(reflectType reflect.Type) []reflect.StructField {
 	return fields
 }
 
-func (b *apiPathsBuilder) buildSchemaArray(definition *spec.Schema, typ reflect.Type, recursive bool)  {
+func (b *apiPathsBuilder) buildSchemaArray(definition *spec.Schema, typ reflect.Type, recursive bool) {
 	definition.Type = spec.StringOrArray{"array"}
 	// array items
 	arrSchema := spec.Schema{}
@@ -101,7 +101,7 @@ func (b *apiPathsBuilder) buildSchemaArray(definition *spec.Schema, typ reflect.
 	definition.Items = &spec.SchemaOrArray{Schema: &arrSchema}
 }
 
-func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ reflect.Type, recursive bool)  {
+func (b *apiPathsBuilder) buildSchemaProperty(definition *spec.Schema, typ reflect.Type, recursive bool) {
 	kind := typ.Kind()
 
 	if kind == reflect.Slice {
@@ -336,7 +336,7 @@ func (b *apiPathsBuilder) buildResponse(operation *spec.Operation, annotations *
 	return
 }
 
-func (b *apiPathsBuilder) buildOperation(operation *spec.Operation, annotations *annotation.Annotations)  {
+func (b *apiPathsBuilder) buildOperation(operation *spec.Operation, annotations *annotation.Annotations) {
 	for _, a := range annotations.Items {
 		ao := a.Field.Value.Interface()
 		switch ao.(type) {
@@ -385,7 +385,7 @@ func (b *apiPathsBuilder) Build(atController *annotation.Annotations, atMethod *
 
 		pathItem := b.apiInfoBuilder.Paths.Paths[pth]
 
-		ann :=  annotation.GetAnnotation(atMethod, at.Operation{})
+		ann := annotation.GetAnnotation(atMethod, at.Operation{})
 
 		atOperationInterface := ann.Field.Value.Interface()
 		atOperation := atOperationInterface.(at.Operation)

@@ -180,7 +180,7 @@ func TestGetFieldValue(t *testing.T) {
 
 func TestFindFieldByTag(t *testing.T) {
 	type foo struct {
-		Name string `json:"name"`
+		Name     string   `json:"name"`
 		AtValues []string `at:"values"`
 	}
 	f := &foo{}
@@ -682,7 +682,6 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 			EmbeddedInterfaceA
 			EmbeddedString `value:"Hello"`
 			EmbeddedInterfaceB
-
 		}
 
 		type embeddedTypeB struct {

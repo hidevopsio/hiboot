@@ -16,15 +16,15 @@ import (
 )
 
 type Asset struct {
-	ID         int    `schema:"The asset ID" json:"id" example:"1234567890"`
-	Name       string `schema:"The asset name" json:"name" example:"John Deng"`
-	Amount     float64 `json:"amount" example:"987654321"`
-	Type       string `schema:"The asset type" json:"type" example:"book"`
+	ID             int       `schema:"The asset ID" json:"id" example:"1234567890"`
+	Name           string    `schema:"The asset name" json:"name" example:"John Deng"`
+	Amount         float64   `json:"amount" example:"987654321"`
+	Type           string    `schema:"The asset type" json:"type" example:"book"`
 	ExpirationTime time.Time `json:"expiration_time" example:"Sun Sep 29 15:47:50 CST 2019"`
 }
 
 type Manager struct {
-	ID int `schema:"The manager ID" json:"id" default:"1000000"`
+	ID   int    `schema:"The manager ID" json:"id" default:"1000000"`
 	Name string `schema:"The manager name of the employee" json:"name" example:"John Deng"`
 }
 
@@ -40,7 +40,6 @@ type ResponseInfo struct {
 	at.Schema
 	model.BaseResponseInfo
 }
-
 
 type UpdateEmployeeRequest struct {
 	at.RequestBody
@@ -102,15 +101,14 @@ func (c *employeeController) BeforeMethod(at struct{ at.BeforeMethod }, ctx cont
 	return
 }
 
-
 type Foo struct {
 	at.RequestBody
 	at.Schema
 
-	Name string `json:"name"`
-	Child *Foo `json:"child"`
-	Children []*Foo `json:"children"`
-	GradChildren []Foo `json:"grad_children"`
+	Name         string `json:"name"`
+	Child        *Foo   `json:"child"`
+	Children     []*Foo `json:"children"`
+	GradChildren []Foo  `json:"grad_children"`
 }
 
 type Bar struct {
@@ -118,7 +116,6 @@ type Bar struct {
 	at.Schema
 
 	Name string `json:"name"`
-
 }
 
 // Foo
@@ -127,7 +124,7 @@ func (c *employeeController) Foo(at struct {
 	at.Operation   `id:"Foo" description:"This is the foo test api"`
 	at.Consumes    `values:"application/json"`
 	at.Produces    `values:"application/json"`
-	at.Tags 	   `values:"foo,bar,test"`
+	at.Tags        `values:"foo,bar,test"`
 	Parameters     struct {
 		at.Parameter `name:"foo" in:"body" description:"foo request body" `
 		Foo
@@ -176,14 +173,14 @@ func (c *employeeController) Bar(at struct {
 
 // GetEmployee
 func (c *employeeController) CreateEmployee(at struct {
-	at.PostMapping `value:"/"`
-	at.Operation   `id:"Create Employee" description:"This is the employee creation api"`
-	at.Consumes    `values:"application/json"`
-	at.Produces    `values:"application/json"`
+	at.PostMapping  `value:"/"`
+	at.Operation    `id:"Create Employee" description:"This is the employee creation api"`
+	at.Consumes     `values:"application/json"`
+	at.Produces     `values:"application/json"`
 	at.ExternalDocs `url:"http://hiboot.hidevops.io" description:"HiBoot Official Site"`
-	Parameters     struct {
+	Parameters      struct {
 		at.Parameter `name:"token" in:"header" type:"string" description:"JWT token (fake token - for demo only)" `
-		Body struct {
+		Body         struct {
 			at.Parameter `name:"employee" in:"body" description:"Employee request body" `
 			CreateEmployeeRequest
 		}
@@ -191,10 +188,10 @@ func (c *employeeController) CreateEmployee(at struct {
 	Responses struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"returns a employee with ID"`
-			XRateLimit struct {
+			XRateLimit  struct {
 				at.Header `value:"X-Rate-Limit" type:"integer" format:"int32" description:"calls per hour allowed by the user"`
 			}
-			XExpiresAfter struct{
+			XExpiresAfter struct {
 				at.Header `value:"X-Expires-After" type:"string" format:"date-time" description:"date in UTC when token expires"`
 			}
 			EmployeeResponse
@@ -211,14 +208,13 @@ func (c *employeeController) CreateEmployee(at struct {
 	return
 }
 
-
 // GetEmployee
 func (c *employeeController) UpdateEmployee(at struct {
 	at.PutMapping `value:"/"`
-	at.Operation   `id:"Update Employee" description:"This is the employee update api"`
-	at.Consumes    `values:"application/json"`
-	at.Produces    `values:"application/json"`
-	Parameters     struct {
+	at.Operation  `id:"Update Employee" description:"This is the employee update api"`
+	at.Consumes   `values:"application/json"`
+	at.Produces   `values:"application/json"`
+	Parameters    struct {
 		at.Parameter `name:"employee" in:"body" description:"Employee request body" `
 		UpdateEmployeeRequest
 	}
@@ -278,7 +274,6 @@ func (c *employeeController) GetEmployee(at struct {
 	return
 }
 
-
 // GetEmployeeName
 func (c *employeeController) GetEmployeeName(at struct {
 	at.GetMapping `value:"/{id}/name"`
@@ -302,7 +297,6 @@ func (c *employeeController) GetEmployeeName(at struct {
 }, id int) (name string) {
 	return "Donald Trump"
 }
-
 
 // ListEmployee
 func (c *employeeController) ListEmployee(at struct {
@@ -354,10 +348,10 @@ func (c *employeeController) DeleteEmployee(at struct {
 // AddEmployeeAsserts
 func (c *employeeController) AddEmployeeAsserts(at struct {
 	at.PostMapping `value:"/add-assets"`
-	at.Operation     `id:"Add Employee's Assets" description:"This is the api that adding assets for employees"`
-	at.Consumes      `values:"application/json"`
-	at.Produces      `values:"application/json"`
-	Parameters    struct {
+	at.Operation   `id:"Add Employee's Assets" description:"This is the api that adding assets for employees"`
+	at.Consumes    `values:"application/json"`
+	at.Produces    `values:"application/json"`
+	Parameters     struct {
 		at.Parameter `in:"body" description:"Employee request body" `
 		at.Schema
 		Assets []*Asset

@@ -360,7 +360,6 @@ func newContextAwareObject(ctx context.Context) *contextAwareFuncObject {
 }
 
 type foo struct {
-
 }
 
 func (f *foo) ContextAwareMethodObject(ctx context.Context) *contextAwareMethodObject {

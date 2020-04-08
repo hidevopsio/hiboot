@@ -28,22 +28,22 @@ import (
 )
 
 // annotation field
-type Field struct{
+type Field struct {
 	StructField reflect.StructField
-	Value reflect.Value
+	Value       reflect.Value
 }
 
-type Annotation struct{
-	Field *Field
+type Annotation struct {
+	Field  *Field
 	Parent *types.ReflectObject
 }
 
-type Annotations struct{
+type Annotations struct {
 	Items    []*Annotation
 	Children []*Annotations
 }
 
-func IsAnnotation(object interface{}) (yes bool)  {
+func IsAnnotation(object interface{}) (yes bool) {
 	typ, ok := reflector.GetObjectType(object)
 	if !ok {
 		return
@@ -141,7 +141,7 @@ func GetAnnotations(object interface{}) (annotations *Annotations) {
 					_, ok = reflector.GetEmbeddedFieldByType(typ, at.Annotation{}, reflect.Struct)
 					if ok {
 						//log.Debugf("%v %v %v", ov.IsValid(), ov.CanAddr(), ov.Type().Kind())
-						if ov.IsValid() && ov.CanAddr() && ov.Type().Kind() == reflect.Struct{
+						if ov.IsValid() && ov.CanAddr() && ov.Type().Kind() == reflect.Struct {
 							ann.Field.Value = ov.FieldByName(f.Name)
 						}
 						ann.Field.StructField = f
@@ -171,7 +171,7 @@ func FilterIn(input *Annotations, att interface{}) (annotations []*Annotation) {
 		for _, item := range input.Items {
 			if item.Field.Value.IsValid() {
 				ok = item.Field.StructField.Type == reflect.TypeOf(att)
-				ok =  ok || reflector.HasEmbeddedFieldType(item.Field.Value.Interface(), att)
+				ok = ok || reflector.HasEmbeddedFieldType(item.Field.Value.Interface(), att)
 				if ok {
 					annotations = append(annotations, item)
 				}
@@ -262,7 +262,7 @@ func InjectAll(object interface{}) (err error) {
 	return
 }
 
-func addTags(tags *structtag.Tags, typ reflect.Type) () {
+func addTags(tags *structtag.Tags, typ reflect.Type) {
 	for _, f := range reflector.DeepFields(typ) {
 		tgs, e := structtag.Parse(string(f.Tag))
 		if e == nil {
@@ -286,7 +286,7 @@ func injectIntoField(field *Field) (err error) {
 	}
 	addTags(tags, field.StructField.Type)
 
-    fieldValue := field.Value
+	fieldValue := field.Value
 	typeField, ok := fieldValue.Type().FieldByName("FieldName")
 	if ok {
 		valueFieldName := typeField.Tag.Get("value")
@@ -295,7 +295,7 @@ func injectIntoField(field *Field) (err error) {
 			if valueFieldValue.CanSet() {
 				switch valueFieldValue.Interface().(type) {
 				case map[int]string:
-					values := make( map[int]string)
+					values := make(map[int]string)
 					for _, tag := range tags.Tags() {
 						k := str.Convert(tag.Key, reflect.Int).(int)
 						values[k] = tag.Name
@@ -303,7 +303,7 @@ func injectIntoField(field *Field) (err error) {
 					valueFieldValue.Set(reflect.ValueOf(values))
 					return
 				case map[string]string:
-					values := make( map[string]string)
+					values := make(map[string]string)
 					for _, tag := range tags.Tags() {
 						values[tag.Key] = tag.Name
 					}
@@ -316,7 +316,7 @@ func injectIntoField(field *Field) (err error) {
 
 	// iterate over all tags
 	if tags != nil {
-		values := make( map[string]interface{})
+		values := make(map[string]interface{})
 		for _, tag := range tags.Tags() {
 			atField, ok := reflector.FindFieldByTag(field.StructField.Type, "at", tag.Key)
 			// check if it is an array/slice

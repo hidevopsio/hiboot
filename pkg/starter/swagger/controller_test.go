@@ -16,15 +16,15 @@ import (
 )
 
 type Asset struct {
-	ID         int    `schema:"The asset ID" json:"id" example:"1234567890"`
-	Name       string `schema:"The asset name" json:"name" example:"John Deng"`
-	Amount     float64 `json:"amount" example:"987654321"`
-	Type       string `schema:"The asset type" json:"type" example:"book"`
+	ID             int       `schema:"The asset ID" json:"id" example:"1234567890"`
+	Name           string    `schema:"The asset name" json:"name" example:"John Deng"`
+	Amount         float64   `json:"amount" example:"987654321"`
+	Type           string    `schema:"The asset type" json:"type" example:"book"`
 	ExpirationTime time.Time `json:"expiration_time" example:"Sun Sep 29 15:47:50 CST 2019"`
 }
 
 type Manager struct {
-	ID int `schema:"The manager ID" json:"id" default:"1000000"`
+	ID   int    `schema:"The manager ID" json:"id" default:"1000000"`
 	Name string `schema:"The manager name of the employee" json:"name" example:"John Deng"`
 }
 
@@ -102,13 +102,14 @@ func (c *employeeController) BeforeMethod(at struct{ at.BeforeMethod }, ctx cont
 	ctx.Next()
 	return
 }
+
 type Foo struct {
 	at.Schema
 
-	Name string `json:"name"`
-	Child *Foo `json:"child"`
-	Children []*Foo `json:"children"`
-	GradChildren []Foo `json:"grad_children"`
+	Name         string `json:"name"`
+	Child        *Foo   `json:"child"`
+	Children     []*Foo `json:"children"`
+	GradChildren []Foo  `json:"grad_children"`
 }
 
 // Foo
@@ -140,21 +141,21 @@ func (c *employeeController) Foo(at struct {
 
 // GetEmployee
 func (c *employeeController) CreateEmployee(at struct {
-	at.PostMapping `value:"/"`
-	at.Operation   `id:"Create Employee" description:"This is the employee creation api"`
-	at.Consumes    `values:"application/json"`
-	at.Produces    `values:"application/json"`
-	at.Tags 	   `values:"create,employee,new"`
+	at.PostMapping  `value:"/"`
+	at.Operation    `id:"Create Employee" description:"This is the employee creation api"`
+	at.Consumes     `values:"application/json"`
+	at.Produces     `values:"application/json"`
+	at.Tags         `values:"create,employee,new"`
 	at.ExternalDocs `url:"http://hiboot.hidevops.io" description:"HiBoot Official Site"`
-	Parameters     struct {
+	Parameters      struct {
 		at.Parameter `name:"employee" in:"body" description:"Employee request body" `
 		CreateEmployeeRequest
 	}
 	Responses struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"returns a employee with ID"`
-			Headers struct{
-				XRateLimit struct{
+			Headers     struct {
+				XRateLimit struct {
 					at.Header `value:"X-Rate-Limit" type:"integer" format:"int32" description:"calls per hour allowed by the user"`
 				}
 				XExpiresAfter struct {
@@ -263,7 +264,6 @@ func (c *employeeController) GetEmployeeName(at struct {
 }, id int) (name string) {
 	return "Donald Trump"
 }
-
 
 // ListEmployee
 func (c *employeeController) ListEmployee(at struct {
@@ -414,13 +414,10 @@ limitations under the License.
 			Expect().Status(http.StatusOK)
 	})
 
-
 	t.Run("should get employee ", func(t *testing.T) {
 		testApp.Get("/employee/123/name").
 			Expect().Status(http.StatusOK)
 	})
-
-
 
 	t.Run("should delete employee ", func(t *testing.T) {
 		testApp.Delete("/employee/333").

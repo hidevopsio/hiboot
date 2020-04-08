@@ -21,7 +21,9 @@ func init() {
 
 // Logging is the middleware handler,it support dependency injection, method annotation
 // middleware handler can be annotated to specific purpose or general purpose
-func (m *loggingMiddleware) Logging( at struct{at.MiddlewareHandler `value:"/" `}, ctx context.Context) {
+func (m *loggingMiddleware) Logging(at struct {
+	at.MiddlewareHandler `value:"/" `
+}, ctx context.Context) {
 
 	log.Infof("[logging middleware] %v", ctx.GetCurrentRoute())
 
@@ -29,4 +31,3 @@ func (m *loggingMiddleware) Logging( at struct{at.MiddlewareHandler `value:"/" `
 	ctx.Next()
 	return
 }
-

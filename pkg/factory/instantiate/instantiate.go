@@ -82,7 +82,6 @@ func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory
 	sl := new(system.Logging)
 	syscfg := system.NewConfiguration(sa, ss, sl)
 
-
 	customProps := defaultProperties.Items()
 	f.builder = system.NewPropertyBuilder(
 		filepath.Join(workDir, config),

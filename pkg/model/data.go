@@ -19,11 +19,11 @@ import "time"
 // BaseData specifies the base data fields for database models
 type BaseData struct {
 	// IsDeleted for soft delete
-	IsDeleted   bool      `json:"is_deleted,omitempty"`
+	IsDeleted bool `json:"is_deleted,omitempty"`
 
 	// CreatedAt data created time
-	CreatedAt   time.Time `json:"created_at,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
 
 	// UpdatedAt data updated time
-	UpdatedAt   time.Time `json:"updated_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }

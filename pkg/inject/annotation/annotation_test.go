@@ -20,7 +20,7 @@ type AtFoo struct {
 	at.Annotation
 
 	at.BaseAnnotation
-	AtID int `at:"fooId" json:"-"`
+	AtID  int `at:"fooId" json:"-"`
 	AtAge int `at:"age" json:"-"`
 }
 
@@ -44,15 +44,15 @@ type AtFooBaz struct {
 	Code int `value:"400" at:"code" json:"-"`
 }
 
-type MyObj struct{
-	Name string
+type MyObj struct {
+	Name  string
 	Value string
 }
 
 type foo struct {
-	AtBaz `value:"baz"`
-	AtFoo `value:"foo,option 1,option 2" age:"18" fooId:"123"`
-	AtBar `value:"bar"`
+	AtBaz    `value:"baz"`
+	AtFoo    `value:"foo,option 1,option 2" age:"18" fooId:"123"`
+	AtBar    `value:"bar"`
 	AtFooBar `value:"foobar" age:"12"`
 	AtFooBaz `value:"foobaz" age:"22"`
 	MyObj
@@ -66,11 +66,11 @@ type bar struct {
 type multipleBar struct {
 	AtFoo `value:"foo"`
 	AtBar `value:"bar0"`
-	Bar1 struct{
+	Bar1  struct {
 		AtBar `value:"bar1"`
 		AtBaz `value:"baz"`
 	}
-	Bar2 struct{
+	Bar2 struct {
 		AtBar `value:"bar2"`
 		AtBaz `value:"baz"`
 	}
@@ -81,7 +81,7 @@ type AtIntMap struct {
 
 	at.BaseAnnotation
 	FieldName string `value:"codes"`
-	Codes map[int]string
+	Codes     map[int]string
 }
 
 type AtStrMap struct {
@@ -89,7 +89,7 @@ type AtStrMap struct {
 
 	at.BaseAnnotation
 	FieldName string `value:"messages"`
-	Messages map[string]string
+	Messages  map[string]string
 }
 
 type foobar struct {
@@ -114,7 +114,6 @@ type AtLevel3 struct {
 
 	AtLevel2
 }
-
 
 type AtLevel4 struct {
 	at.Annotation
@@ -257,7 +256,9 @@ func TestImplementsAnnotation(t *testing.T) {
 	})
 
 	t.Run("should inject annotation into sub struct", func(t *testing.T) {
-		var fb struct{at.GetMapping `value:"/path/to/api" foo:"bar"`}
+		var fb struct {
+			at.GetMapping `value:"/path/to/api" foo:"bar"`
+		}
 		err := annotation.InjectAll(&fb)
 		assert.Equal(t, nil, err)
 	})
@@ -274,7 +275,9 @@ func TestImplementsAnnotation(t *testing.T) {
 	})
 
 	t.Run("should get annotation by type", func(t *testing.T) {
-		var fb struct{at.PostMapping `value:"/path/to/api"`}
+		var fb struct {
+			at.PostMapping `value:"/path/to/api"`
+		}
 		f := annotation.GetAnnotation(reflect.TypeOf(&fb), at.PostMapping{})
 		assert.NotEqual(t, nil, f)
 		assert.Equal(t, "PostMapping", f.Field.StructField.Name)
@@ -413,7 +416,7 @@ func TestImplementsAnnotation(t *testing.T) {
 			at.Produces    `values:"application/json"`
 			Parameters     struct {
 				at.Parameter `name:"token" in:"header" type:"string" description:"JWT token (fake token - for demo only)" `
-				Body struct {
+				Body         struct {
 					at.Parameter `name:"employee" in:"body" description:"Employee request body" `
 					foo
 				}
@@ -421,10 +424,10 @@ func TestImplementsAnnotation(t *testing.T) {
 			Responses struct {
 				StatusOK struct {
 					at.Response `code:"200" description:"returns a employee with ID"`
-					XRateLimit struct {
+					XRateLimit  struct {
 						at.Header `value:"X-Rate-Limit" type:"integer" format:"int32" description:"calls per hour allowed by the user"`
 					}
-					XExpiresAfter struct{
+					XExpiresAfter struct {
 						at.Header `value:"X-Expires-After" type:"string" format:"date-time" description:"date in UTC when token expires"`
 					}
 					bar
@@ -449,4 +452,3 @@ func TestImplementsAnnotation(t *testing.T) {
 		assert.Equal(t, 3, len(ta.AtValues))
 	})
 }
-

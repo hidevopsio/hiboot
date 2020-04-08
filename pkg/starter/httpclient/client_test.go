@@ -434,8 +434,6 @@ func TestHTTPClientGetReturnsNoErrorOn5xxFailure(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusInternalServerError, response.StatusCode)
 
-
-
 }
 
 func TestHTTPClientGetReturnsErrorOnFailure(t *testing.T) {

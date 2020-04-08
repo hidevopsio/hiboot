@@ -1,13 +1,12 @@
 package swagger
 
-
 import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/at"
 )
 
 const (
-    // Profile is the configuration name "swagger"
+	// Profile is the configuration name "swagger"
 	Profile = "swagger"
 )
 
@@ -34,6 +33,3 @@ func (c *configuration) HttpMethodSubscriber(pathsBuilder *apiPathsBuilder) *htt
 func (c *configuration) ApiPathsBuilder(infoBuilder *apiInfoBuilder) *apiPathsBuilder {
 	return newApiPathsBuilder(infoBuilder)
 }
-
-
-

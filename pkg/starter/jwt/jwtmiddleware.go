@@ -21,7 +21,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	mwjwt "github.com/iris-contrib/middleware/jwt"
-	ictx "github.com/kataras/iris/context"
+	ictx "github.com/kataras/iris/v12/context"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/log"
 )

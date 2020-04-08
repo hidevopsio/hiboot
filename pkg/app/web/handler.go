@@ -57,12 +57,12 @@ type request struct {
 }
 
 type response struct {
-	typeName string
-	name     string
-	kind     reflect.Kind
-	typ      reflect.Type
-	isResponseBody bool
-	implementsResponse bool
+	typeName               string
+	name                   string
+	kind                   reflect.Kind
+	typ                    reflect.Type
+	isResponseBody         bool
+	implementsResponse     bool
 	implementsResponseInfo bool
 }
 

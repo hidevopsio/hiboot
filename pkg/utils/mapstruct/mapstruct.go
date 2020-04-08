@@ -18,17 +18,18 @@ package mapstruct
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
+
 	"github.com/hidevopsio/mapstructure"
 	"hidevops.io/hiboot/pkg/utils/reflector"
-	"reflect"
 )
-
 
 func WithAnnotation(config *mapstructure.DecoderConfig) {
 	config.TagName = "at"
 }
 
 func WithSquash(config *mapstructure.DecoderConfig) {
+	// INFO: this is not part of the config structure anymore.
 	config.Squash = true
 }
 
@@ -37,7 +38,7 @@ func WithWeaklyTypedInput(config *mapstructure.DecoderConfig) {
 }
 
 // Decode decode (convert) map to struct
-func Decode(to interface{}, from interface{}, opts ...func (*mapstructure.DecoderConfig) ) error {
+func Decode(to interface{}, from interface{}, opts ...func(*mapstructure.DecoderConfig)) error {
 	config := &mapstructure.DecoderConfig{
 		WeaklyTypedInput: true,
 		Result:           to,

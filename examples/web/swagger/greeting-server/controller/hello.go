@@ -21,7 +21,7 @@ func newHelloController() *controller {
 type HelloQueryParam struct {
 	at.RequestParams
 	at.Schema
-	Name        string `schema:"defaults to World if not given"`
+	Name string `schema:"defaults to World if not given"`
 }
 
 // Hello
@@ -29,8 +29,8 @@ func (c *controller) Hello(at struct {
 	at.GetMapping `value:"/hello"`
 	at.Operation  `id:"hello" description:"This is the Greeting api for demo"`
 	at.Produces   `values:"text/plain"`
-	Parameters     struct {
-		Name struct{
+	Parameters    struct {
+		Name struct {
 			at.Parameter `type:"string" name:"name" in:"query" description:"defaults to World if not given" `
 		}
 	}
@@ -53,14 +53,13 @@ func (c *controller) Hello(at struct {
 	return
 }
 
-
 // Hey
 func (c *controller) Hey(at struct {
 	at.GetMapping `value:"/hey"`
 	at.Operation  `id:"hey" description:"This is the another Greeting api for demo"`
 	at.Produces   `values:"text/plain"`
-	Parameters     struct {
-		Name struct{
+	Parameters    struct {
+		Name struct {
 			at.Parameter `type:"string" name:"name" in:"query" description:"defaults to HiBoot if not given" `
 		}
 	}

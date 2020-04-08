@@ -210,8 +210,6 @@ func TestAB(t *testing.T) {
 	b.Run("hello")
 }
 
-
-
 type circularFoo struct {
 	circularBar *circularBar
 }
@@ -261,4 +259,3 @@ func TestApplicationWithCircularDI(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 }
-

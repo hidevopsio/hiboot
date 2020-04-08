@@ -71,7 +71,9 @@ func newUserController() *UserController {
 }
 
 // Create
-func (c *UserController) CreateUser(at struct{ at.PostMapping `value:"/"` },
+func (c *UserController) CreateUser(at struct {
+	at.PostMapping `value:"/"`
+},
 	request *UserRequest) (response *UserResponse, err error) {
 
 	// response
@@ -88,7 +90,9 @@ func (c *UserController) CreateUser(at struct{ at.PostMapping `value:"/"` },
 }
 
 // Get
-func (c *UserController) GetUserByPathVariable(at struct{ at.GetMapping `value:"/{id:int}/and/{name}"` },
+func (c *UserController) GetUserByPathVariable(at struct {
+	at.GetMapping `value:"/{id:int}/and/{name}"`
+},
 	id int, name string) (response *UserResponse, err error) {
 
 	// response
@@ -105,7 +109,9 @@ func (c *UserController) GetUserByPathVariable(at struct{ at.GetMapping `value:"
 }
 
 // Patch
-func (c *UserController) Patch(at struct{ at.PatchMapping `value:"/{id}"` },
+func (c *UserController) Patch(at struct {
+	at.PatchMapping `value:"/{id}"`
+},
 	id int) (response *UserResponse, err error) {
 
 	// response
@@ -114,7 +120,9 @@ func (c *UserController) Patch(at struct{ at.PatchMapping `value:"/{id}"` },
 }
 
 // Delete
-func (c *UserController) DeleteUser(at struct{ at.DeleteMapping `value:"/{id:int}"` },
+func (c *UserController) DeleteUser(at struct {
+	at.DeleteMapping `value:"/{id:int}"`
+},
 	id int) (response *UserResponse, err error) {
 	// response
 	response = new(UserResponse)
@@ -122,7 +130,9 @@ func (c *UserController) DeleteUser(at struct{ at.DeleteMapping `value:"/{id:int
 }
 
 // List
-func (c *UserController) ListUser(at struct{ at.GetMapping `value:"/"` }) (response *UserResponse, err error) {
+func (c *UserController) ListUser(at struct {
+	at.GetMapping `value:"/"`
+}) (response *UserResponse, err error) {
 	// response
 	response = new(UserResponse)
 	user := new(User)
@@ -155,13 +165,17 @@ func newOrgController() *orgController {
 
 // GetOfficialSite
 // at.Method is a annotations to define request mapping for http method GET
-func (c *orgController) GetOfficialSite(at struct{ at.GetMapping `value:"/official-site"` }) string {
+func (c *orgController) GetOfficialSite(at struct {
+	at.GetMapping `value:"/official-site"`
+}) string {
 	return "https://hidevops.io"
 }
 
 // GetWithPathParamIdAndName
 // at.GetMapping is an annotation to define request mapping for http method GET,
-func (c *orgController) GetWithPathVariable(at struct{ at.GetMapping `value:"/{id}/and/{name}"` },
+func (c *orgController) GetWithPathVariable(at struct {
+	at.GetMapping `value:"/{id}/and/{name}"`
+},
 	id int, name string) string {
 
 	return fmt.Sprintf("https://hidevops.io/%v/%v", id, name)

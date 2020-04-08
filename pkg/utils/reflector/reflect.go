@@ -71,7 +71,7 @@ func DeepFields(reflectType reflect.Type) []reflect.StructField {
 		for i := 0; i < reflectType.NumField(); i++ {
 			v := reflectType.Field(i)
 			if v.Anonymous {
-				vk :=  IndirectType(v.Type).Kind()
+				vk := IndirectType(v.Type).Kind()
 				if vk != reflect.Struct && vk != reflect.Interface {
 					fields = append(fields, v)
 				} else {
@@ -124,7 +124,6 @@ func GetFieldValue(f interface{}, name string) reflect.Value {
 	return fv
 }
 
-
 // FindFieldByTag find field by tag
 func FindFieldByTag(obj interface{}, key, name string) (field reflect.StructField, ok bool) {
 	typ, ok := GetObjectType(obj)
@@ -140,7 +139,6 @@ func FindFieldByTag(obj interface{}, key, name string) (field reflect.StructFiel
 
 	return
 }
-
 
 // SetFieldValue set field value
 func SetFieldValue(object interface{}, name string, value interface{}) error {

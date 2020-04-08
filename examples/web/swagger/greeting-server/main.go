@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	version = "1.0.3"
+	version  = "1.0.3"
 	basePath = "/api/v1/greeting-server"
 )
 
@@ -24,11 +24,11 @@ func init() {
 		ContactURL("https://hidevops.io").
 		Title("HiBoot Swagger Demo Application - Greeting Server").
 		Description("Greeting Server is an application that demonstrate the usage of Swagger Annotations"),
-		// alternatively, you can set below properties by using SetProperty() in main, config/application.yml or program arguments to take advantage of HiBoot DI
-		//Version(version).
-		//Schemes("http", "https").
-		//Host("localhost:8080").
-		//BasePath(basePath),
+	// alternatively, you can set below properties by using SetProperty() in main, config/application.yml or program arguments to take advantage of HiBoot DI
+	//Version(version).
+	//Schemes("http", "https").
+	//Host("localhost:8080").
+	//BasePath(basePath),
 	)
 }
 

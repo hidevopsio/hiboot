@@ -23,10 +23,10 @@ type Operation struct {
 
 	Swagger
 
-	AtID string `at:"id" json:"-"`
+	AtID          string `at:"id" json:"-"`
 	AtDescription string `at:"description" json:"-"`
-	AtSummary string `at:"summary" json:"-"`
-	AtDeprecated bool `at:"deprecated" json:"-"`
+	AtSummary     string `at:"summary" json:"-"`
+	AtDeprecated  bool   `at:"deprecated" json:"-"`
 }
 
 // Tags
@@ -62,9 +62,9 @@ type Parameter struct {
 
 	Swagger
 
-	AtName string `at:"name" json:"-"`
-	AtType string `at:"type" json:"-"`
-	AtIn string `at:"in" json:"-"`
+	AtName        string `at:"name" json:"-"`
+	AtType        string `at:"type" json:"-"`
+	AtIn          string `at:"in" json:"-"`
 	AtDescription string `at:"description" json:"-"`
 }
 
@@ -75,7 +75,7 @@ type Parameter struct {
 // at struct {
 //    at.Consumes    `values:"application/json,application/xml"`
 // }
-type Produces struct{
+type Produces struct {
 	Annotation
 
 	Swagger
@@ -90,7 +90,7 @@ type Produces struct{
 // at struct {
 //    at.Consumes    `values:"application/json,application/xml"`
 // }
-type Consumes struct{
+type Consumes struct {
 	Annotation
 
 	Swagger
@@ -115,7 +115,7 @@ type Response struct {
 
 	Swagger
 
-	AtCode int `at:"code" json:"-"`
+	AtCode        int    `at:"code" json:"-"`
 	AtDescription string `at:"description" json:"-"`
 }
 
@@ -136,18 +136,17 @@ type Schema struct {
 
 	Swagger
 
-	AtType string `at:"type" json:"-"`
+	AtType        string `at:"type" json:"-"`
 	AtDescription string `at:"description" json:"-"`
 }
 
 // Header is the annotation that annotate the header
-type Header struct{
+type Header struct {
 	Annotation
 
 	Swagger
 
-	AtType string `at:"type" json:"-"`
-	AtFormat string `at:"format" json:"-"`
+	AtType        string `at:"type" json:"-"`
+	AtFormat      string `at:"format" json:"-"`
 	AtDescription string `at:"description" json:"-"`
 }
-

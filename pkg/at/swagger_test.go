@@ -14,7 +14,7 @@ func TestMarshal(t *testing.T) {
 	}
 
 	foo := &Foo{
-		Name:   "foo",
+		Name: "foo",
 	}
 
 	b, err := json.Marshal(foo)

@@ -19,7 +19,7 @@ import (
 
 func TestConfiguration(t *testing.T) {
 	c := newConfiguration(&properties{
-		Config:                  config.Configuration{
+		Config: config.Configuration{
 			ServiceName:         "test",
 			Disabled:            false,
 			RPCMetrics:          false,
@@ -45,8 +45,7 @@ type Controller struct {
 }
 
 func newController() *Controller {
-	return &Controller{
-	}
+	return &Controller{}
 }
 
 // Get GET /foo/{foo}
@@ -134,4 +133,3 @@ func TestController(t *testing.T) {
 			Expect().Status(http.StatusOK)
 	})
 }
-

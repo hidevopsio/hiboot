@@ -1,6 +1,6 @@
 package web
 
-import "github.com/kataras/iris"
+import "github.com/kataras/iris/v12"
 
 // DefaultConfiguration returns the default configuration for an iris station, fills the main Configuration
 func defaultConfiguration() iris.Configuration {

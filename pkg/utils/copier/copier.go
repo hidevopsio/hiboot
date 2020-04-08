@@ -47,7 +47,7 @@ import (
 
 // Config configurations for Copy function
 type Config struct {
-	IgnoreEmptyValue        bool
+	IgnoreEmptyValue bool
 }
 
 // IgnoreEmptyValue option to config IgnoreEmptyValue, any empty or nil value will not copy from source to destination
@@ -280,7 +280,6 @@ func copyMap(dst, src map[string]interface{}, config *Config) {
 	}
 	return
 }
-
 
 func CopyMap(dst, src map[string]interface{}, opts ...func(*Config)) {
 	config := &Config{}

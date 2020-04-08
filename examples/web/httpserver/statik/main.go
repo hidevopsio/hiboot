@@ -26,12 +26,18 @@ func newStaticController() *controller {
 }
 
 // UI serve static resource via context StaticResource method
-func (c *controller) UI(at struct{ at.GetMapping `value:"/ui/*"`; at.FileServer `value:"/ui"` }, ctx context.Context) {
+func (c *controller) UI(at struct {
+	at.GetMapping `value:"/ui/*"`
+	at.FileServer `value:"/ui"`
+}, ctx context.Context) {
 	return
 }
 
 // UI serve static resource via context StaticResource method
-func (c *controller) UIIndex(at struct{ at.GetMapping `value:"/ui"`; at.FileServer `value:"/ui"` }, ctx context.Context) {
+func (c *controller) UIIndex(at struct {
+	at.GetMapping `value:"/ui"`
+	at.FileServer `value:"/ui"`
+}, ctx context.Context) {
 	return
 }
 

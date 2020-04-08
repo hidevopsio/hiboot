@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"strconv"
 
-	"github.com/kataras/iris/core/errors"
 	"github.com/valyala/bytebufferpool"
 )
 
@@ -127,7 +127,7 @@ func (ms *messageSerializer) serialize(event string, data interface{}) ([]byte, 
 	return message, nil
 }
 
-var errInvalidTypeMessage = errors.New("Type %s is invalid for message: %s")
+var errInvalidTypeMessage = fmt.Errorf("invalid message type")
 
 // deserialize deserializes a custom websocket message from the client
 // ex: iris-websocket-message;chat;4;themarshaledstringfromajsonstruct will return 'hello' as string
@@ -135,7 +135,7 @@ var errInvalidTypeMessage = errors.New("Type %s is invalid for message: %s")
 func (ms *messageSerializer) deserialize(event []byte, websocketMessage []byte) (interface{}, error) {
 	dataStartIdx := ms.prefixAndSepIdx + len(event) + 3
 	if len(websocketMessage) <= dataStartIdx {
-		return nil, errors.New("websocket invalid message: " + string(websocketMessage))
+		return nil, fmt.Errorf("websocket invalid message: %s", string(websocketMessage))
 	}
 
 	typ, err := strconv.Atoi(string(websocketMessage[ms.prefixAndSepIdx+len(event)+1 : ms.prefixAndSepIdx+len(event)+2])) // in order to iris-websocket-message;user;-> 4
@@ -166,7 +166,7 @@ func (ms *messageSerializer) deserialize(event []byte, websocketMessage []byte) 
 		err := json.Unmarshal(data, &msg)
 		return msg, err
 	default:
-		return nil, errInvalidTypeMessage.Format(messageType(typ).Name(), websocketMessage)
+		return nil, fmt.Errorf("message: %v of type: %s", websocketMessage, messageType(typ).Name())
 	}
 }
 

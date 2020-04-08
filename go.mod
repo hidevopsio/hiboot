@@ -1,6 +1,7 @@
 module hidevops.io/hiboot
 
 require (
+	github.com/ajg/form v1.5.1 // indirect
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/deckarep/golang-set v1.7.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -10,21 +11,21 @@ require (
 	github.com/go-openapi/swag v0.19.5 // indirect
 	github.com/gojektech/valkyrie v0.0.0-20190210220504-8f62c1e7ba45
 	github.com/golang/mock v1.2.0
-	github.com/golang/protobuf v1.2.0
+	github.com/golang/protobuf v1.3.1
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.0
 	github.com/gorilla/websocket v1.4.0
 	github.com/hidevopsio/mapstructure v1.1.3-0.20190908102033-f8832fd9e307
-	github.com/iris-contrib/formBinder v0.0.0-20190104093907-fbd5963f41e1 // indirect
+	github.com/imkira/go-interpol v1.1.0 // indirect
 	github.com/iris-contrib/go.uuid v2.0.0+incompatible
-	github.com/iris-contrib/httpexpect v0.0.0-20180314041918-ebe99fcebbce
-	github.com/iris-contrib/middleware v0.0.0-20171114084220-1060fbb0ce08
-	github.com/kataras/golog v0.0.0-20180321173939-03be10146386
-	github.com/kataras/iris v11.0.3+incompatible
-	github.com/kataras/pio v0.0.0-20180511174041-a9733b5b6b83
+	github.com/iris-contrib/middleware/jwt v0.0.0-20191028172159-41f72a73786a
+	github.com/kataras/golog v0.0.9
+	github.com/kataras/iris/v12 v12.0.1
+	github.com/kataras/pio v0.0.0-20190103105442-ea782b38602d
+	github.com/mitchellh/mapstructure v1.1.2
 	github.com/moul/http2curl v1.0.0 // indirect
 	github.com/opentracing/opentracing-go v1.0.2
-	github.com/pkg/errors v0.8.0
+	github.com/pkg/errors v0.8.1
 	github.com/rakyll/statik v0.1.6
 	github.com/sony/sonyflake v0.0.0-20160530021500-fa881fb1052b
 	github.com/spf13/afero v1.1.2
@@ -35,13 +36,19 @@ require (
 	github.com/uber/jaeger-client-go v2.15.0+incompatible
 	github.com/uber/jaeger-lib v1.5.0+incompatible // indirect
 	github.com/valyala/bytebufferpool v1.0.0
+	github.com/valyala/fasthttp v1.6.0 // indirect
+	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
+	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0 // indirect
+	github.com/yudai/gojsondiff v1.0.0 // indirect
+	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
 	go.uber.org/atomic v1.3.2 // indirect
 	golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4 // indirect
-	golang.org/x/net v0.0.0-20190613194153-d28f0bde5980
+	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
 	google.golang.org/grpc v1.17.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2
+	gopkg.in/ini.v1 v1.49.0 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 	hidevops.io/viper v1.3.2
 )
@@ -66,3 +73,5 @@ replace (
 	google.golang.org/genproto => github.com/google/go-genproto v0.0.0-20190215211957-bd968387e4aa
 	google.golang.org/grpc => github.com/grpc/grpc-go v1.14.0
 )
+
+go 1.13

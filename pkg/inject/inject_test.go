@@ -146,7 +146,7 @@ type UserService interface {
 
 type userService struct {
 	// just put at.RequestMapping here for test only, it has no meaning
-	at.RequestMapping	`value:"/path/to/hiboot"`
+	at.RequestMapping `value:"/path/to/hiboot"`
 
 	FooUser        *FooUser       `inject:"name=foo"`
 	User           *User          `inject:""`
@@ -703,11 +703,11 @@ func TestInjectIntoFunc(t *testing.T) {
 func TestInjectAnnotation(t *testing.T) {
 	cf := setUp(t)
 	injecting := inject.NewInject(cf)
-	var att struct{
-		at.GetMapping `value:"/path/to/api"`
+	var att struct {
+		at.GetMapping     `value:"/path/to/api"`
 		at.RequestMapping `value:"/parent/path"`
 		at.BeforeMethod
-		Children struct{
+		Children struct {
 			at.Parameter `description:"testing params"`
 		}
 	}
@@ -730,7 +730,7 @@ func TestInjectAnnotation(t *testing.T) {
 	})
 
 	t.Run("should find all annotations that inherit form at.HttpMethod{}", func(t *testing.T) {
-		found := annotation.FindAll(&struct{at.BeforeMethod}{}, at.HttpMethod{})
+		found := annotation.FindAll(&struct{ at.BeforeMethod }{}, at.HttpMethod{})
 		assert.Equal(t, 1, len(found))
 		assert.Equal(t, "BeforeMethod", found[0].Field.StructField.Name)
 	})

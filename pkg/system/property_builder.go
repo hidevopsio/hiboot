@@ -17,7 +17,11 @@
 package system
 
 import (
-	"github.com/hidevopsio/mapstructure"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/mitchellh/mapstructure"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/inject/annotation"
 	"hidevops.io/hiboot/pkg/log"
@@ -26,17 +30,16 @@ import (
 	"hidevops.io/hiboot/pkg/utils/sort"
 	"hidevops.io/hiboot/pkg/utils/str"
 	"hidevops.io/viper"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
-const ( appProfilesInclude  = "app.profiles.include")
+const (
+	appProfilesInclude = "app.profiles.include"
+)
 
-type ConfigFile struct{
-	path             string
-	name             string
-	fileType         string
+type ConfigFile struct {
+	path     string
+	name     string
+	fileType string
 }
 
 type propertyBuilder struct {
@@ -49,7 +52,6 @@ type propertyBuilder struct {
 	merge             bool
 }
 
-
 // NewBuilder is the constructor of system.Builder
 func NewPropertyBuilder(path string, customProperties map[string]interface{}) Builder {
 	b := &propertyBuilder{
@@ -60,7 +62,6 @@ func NewPropertyBuilder(path string, customProperties map[string]interface{}) Bu
 
 	return b
 }
-
 
 // setCustomPropertiesFromArgs returns application config
 func (b *propertyBuilder) setCustomPropertiesFromArgs() {
@@ -138,7 +139,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 	b.setCustomPropertiesFromArgs()
 
 	var paths []string
-	configFiles :=  make(map[string]map[string][]string)
+	configFiles := make(map[string]map[string][]string)
 	pp, _ := filepath.Abs(b.path)
 	var profile string
 
@@ -256,7 +257,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 }
 
 // Read single file
-func (b *propertyBuilder) Load(properties interface{}, opts ...func (*mapstructure.DecoderConfig)) (err error) {
+func (b *propertyBuilder) Load(properties interface{}, opts ...func(*mapstructure.DecoderConfig)) (err error) {
 	ann := annotation.GetAnnotation(properties, at.ConfigurationProperties{})
 	if ann != nil {
 		prefix := ann.Field.StructField.Tag.Get("value")
