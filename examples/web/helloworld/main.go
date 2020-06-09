@@ -20,6 +20,7 @@ package main
 import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/starter/actuator"
 	"hidevops.io/hiboot/pkg/starter/swagger"
@@ -44,9 +45,9 @@ func (c *Controller) Get(at struct {
 			at.Schema `type:"string" description:"returns hello world message"`
 		}
 	}
-}) string {
+}, ctx context.Context) string {
 	// response
-	return "Hello world"
+	return ctx.RemoteAddr() + ": Hi " + ctx.Host()
 }
 
 // main function
