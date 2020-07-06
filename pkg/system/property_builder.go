@@ -29,6 +29,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 const ( appProfilesInclude  = "app.profiles.include")
@@ -47,6 +48,7 @@ type propertyBuilder struct {
 	defaultProperties map[string]interface{}
 	profiles          []string
 	merge             bool
+	mutex sync.Mutex
 }
 
 
@@ -326,6 +328,8 @@ func (b *propertyBuilder) SetProperty(name string, val interface{}) Builder {
 }
 
 func (b *propertyBuilder) SetDefaultProperty(name string, val interface{}) Builder {
+	b.mutex.Lock()
 	b.SetDefault(name, val)
+	b.mutex.Unlock()
 	return b
 }
