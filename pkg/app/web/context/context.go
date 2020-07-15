@@ -15,7 +15,10 @@ type ExtendedContext interface {
 	ResponseBody(message string, data interface{})
 	ResponseError(message string, code int)
 	WrapHandler(h http.Handler)
-	//StaticResource(system http.FileSystem)
+	SetAnnotations(ann interface{})
+	Annotations() interface{}
+
+//StaticResource(system http.FileSystem)
 }
 
 // Context is the interface of web app context

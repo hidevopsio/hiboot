@@ -84,6 +84,7 @@ type handler struct {
 
 	injectableObject *injectableObject
 	restMethod       *injectableMethod
+	annotations		interface{}
 }
 
 type requestSet struct {
@@ -205,6 +206,9 @@ func (h *handler) parseMethod(injectableObject *injectableObject, injectableMeth
 			// TODO: should confirm if value is usable
 			h.requests[i].iVal = injectableMethod.annotations.Items[0].Parent.Value //ann.Parent.Value.Elem()
 			h.requests[i].isAnnotation = true
+
+			// operation
+			h.annotations = request
 			continue
 		}
 
@@ -461,3 +465,4 @@ func (h *handler) decodeSlice(ctx context.Context, iTyp reflect.Type, input refl
 	retVal = input
 	return
 }
+

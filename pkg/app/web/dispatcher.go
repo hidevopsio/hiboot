@@ -129,7 +129,7 @@ func (d *Dispatcher) parseAnnotation(object interface{}, method *reflect.Method)
 }
 
 // TODO: controller method handler, middleware handler, and event handler, they all use the same way to achieve handler dispatch.
-func (d *Dispatcher) parseMiddleware(m *factory.MetaData) (middleware *injectableObject) {
+func (d *Dispatcher) parseMiddleware(m *factory.MetaData, mwHdl interface{}) (middleware *injectableObject) {
 	middleware = new(injectableObject)
 
 	mwi := reflect.ValueOf(m.Instance)
@@ -147,10 +147,10 @@ func (d *Dispatcher) parseMiddleware(m *factory.MetaData) (middleware *injectabl
 		methodHandler.method = &method
 		ma := d.parseAnnotation(mi, &method)
 		methodHandler.annotations = ma
-		mwh := annotation.FilterIn(ma, at.MiddlewareHandler{})
+		mwh := annotation.FilterIn(ma, mwHdl)
 		if len(mwh) > 0 {
 			methodHandler.hasMethodAnnotation = true
-			hdl := newHandler(d.configurableFactory, middleware, methodHandler, at.MiddlewareHandler{})
+			hdl := newHandler(d.configurableFactory, middleware, methodHandler, mwHdl)
 			methodHandler.handler = Handler(func(c context.Context) {
 				hdl.call(c)
 			})
@@ -344,10 +344,16 @@ func (d *Dispatcher) register(controllers []*factory.MetaData, middleware []*fac
 	d.methodSubscribers = d.configurableFactory.GetInstances(at.HttpMethodSubscriber{})
 
 	var mws []*injectableObject
+	var postMws []*injectableObject
 	for _, m := range middleware {
-		mw := d.parseMiddleware(m)
+		mw := d.parseMiddleware(m, at.MiddlewareHandler{})
 		if mw != nil {
 			mws = append(mws, mw)
+		}
+
+		postMw := d.parseMiddleware(m, at.MiddlewarePostHandler{})
+		if postMw != nil {
+			postMws = append(postMws, postMw)
 		}
 	}
 
@@ -377,6 +383,7 @@ func (d *Dispatcher) register(controllers []*factory.MetaData, middleware []*fac
 		atCtl := annotation.FilterIn(restController.annotations, at.UseMiddleware{})
 		for _, m := range restController.methods {
 			var handlers []iris.Handler
+			var postHandlers []iris.Handler
 
 			atCtlMth := annotation.FilterIn(m.annotations, at.UseMiddleware{})
 
@@ -403,22 +410,42 @@ func (d *Dispatcher) register(controllers []*factory.MetaData, middleware []*fac
 				}
 			}
 
+			if len(postMws) > 0 {
+				for _, mw := range postMws {
+					atMw := annotation.FilterIn(mw.annotations, at.UseMiddleware{})
+					for _, mth := range mw.methods {
+						atMwMth := annotation.FilterIn(mth.annotations, at.UseMiddleware{})
+						// check if middleware is used
+						// else skip to append this middleware
+						useMiddleware := d.useMiddleware(atMw, atMwMth, atCtl, atCtlMth)
+						if useMiddleware {
+							postHandlers = append(postHandlers, mth.handler)
+						}
+					}
+				}
+			}
+
 			// 3. finally, handle all method handlers
-			d.handleControllerMethod(restController, m, party, handlers)
+			d.handleControllerMethod(restController, m, party, handlers, postHandlers)
 		}
 	}
 	return
 }
 
-func (d *Dispatcher) handleControllerMethod(restController *injectableObject, m *injectableMethod, party iris.Party, handlers []iris.Handler) {
+func (d *Dispatcher) handleControllerMethod(restController *injectableObject, m *injectableMethod, party iris.Party, handlers []iris.Handler, postHandlers []iris.Handler) {
 	// 3. create new handler for rest controller method
 	hdl := newHandler(d.configurableFactory, restController, m, at.HttpMethod{})
+
+	before := Handler(func(c context.Context) {
+		c.SetAnnotations(hdl.annotations)
+		c.Next()
+	})
 
 	var h iris.Handler
 	atFileServer := annotation.GetAnnotation(m.annotations, at.FileServer{})
 	if atFileServer != nil {
 		afs := atFileServer.Field.Value.Interface().(at.FileServer)
-		path := restController.pathPrefix + afs.AtValue
+		lp := restController.pathPrefix + afs.AtValue
 		h = Handler(func(c context.Context) {
 			// call controller method first
 			hdl.call(c)
@@ -426,7 +453,7 @@ func (d *Dispatcher) handleControllerMethod(restController *injectableObject, m 
 			// serve static resource
 			f, err := fs.New()
 			if err == nil {
-				c.WrapHandler(http.StripPrefix(path, http.FileServer(f)))
+				c.WrapHandler(http.StripPrefix(lp, http.FileServer(f)))
 			}
 
 			// next
@@ -438,12 +465,21 @@ func (d *Dispatcher) handleControllerMethod(restController *injectableObject, m 
 			c.Next()
 		})
 	}
-	handlers = append(handlers, h)
+
+	var finalHandlers []iris.Handler
+	finalHandlers = append(finalHandlers, before)
+	if len(handlers) != 0 {
+		finalHandlers = append(finalHandlers, handlers...)
+	}
+	finalHandlers = append(finalHandlers, h)
+	if len(postHandlers) != 0 {
+		finalHandlers = append(finalHandlers, postHandlers...)
+	}
 
 	if m.requestMapping.Method == Any {
-		party.Any(m.requestMapping.Value, handlers...)
+		party.Any(m.requestMapping.Value, finalHandlers...)
 	} else {
-		route := party.Handle(m.requestMapping.Method, m.requestMapping.Value, handlers...)
+		route := party.Handle(m.requestMapping.Method, m.requestMapping.Value, finalHandlers...)
 		route.MainHandlerName = fmt.Sprintf("%s/%s.%s", restController.pkgPath, restController.name, m.method.Name)
 	}
 

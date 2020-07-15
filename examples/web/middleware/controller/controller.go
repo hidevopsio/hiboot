@@ -2,6 +2,7 @@ package controller
 
 import (
 	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/model"
 	"net/http"
@@ -36,7 +37,10 @@ type UserResponse struct {
 // GetUser
 func (c *UserController) GetUser(at struct{
 	at.GetMapping `value:"/{id}"`
-}, id int) (response *UserResponse) {
+	at.Operation   `id:"Update Employee" description:"Get User"`
+	at.RequiresPermissions `value:"printer:print:hp890"`
+}, id int, ctx context.Context) (response *UserResponse) {
+
 	response = new(UserResponse)
 	response.SetCode(http.StatusOK)
 	response.SetMessage("Success")
@@ -47,6 +51,7 @@ func (c *UserController) GetUser(at struct{
 // GetUser
 func (c *UserController) DeleteUser(at struct{
 	at.DeleteMapping `value:"/{id}"`
+	at.Operation   `id:"Update Employee" description:"Delete User"`
 }, id int) (response *UserResponse) {
 	response = new(UserResponse)
 	response.SetCode(http.StatusOK)

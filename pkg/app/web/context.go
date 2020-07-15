@@ -30,6 +30,7 @@ import (
 // Context Create your own custom Context, put any fields you wanna need.
 type Context struct {
 	iris.Context
+	ann interface{}
 }
 
 //NewContext constructor of context.Context
@@ -45,7 +46,12 @@ var contextPool = sync.Pool{New: func() interface{} {
 
 func acquire(original iris.Context) *Context {
 	c := contextPool.Get().(*Context)
-	c.Context = original // set the context to the original one in order to have access to iris's implementation.
+	switch original.(type) {
+	case *Context:
+		c = original.(*Context)
+	default:
+		c.Context = original // set the context to the original one in order to have access to iris's implementation.
+	}
 	return c
 }
 
@@ -145,6 +151,16 @@ func (c *Context) ResponseError(message string, code int) {
 		c.StatusCode(code)
 		c.JSON(response)
 	}
+}
+
+// SetAnnotations
+func (c *Context) SetAnnotations(ann interface{})  {
+	c.ann = ann
+}
+
+// Annotations
+func (c *Context) Annotations() interface{} {
+	return c.ann
 }
 
 // RequestEx get RequestBody
