@@ -46,12 +46,7 @@ var contextPool = sync.Pool{New: func() interface{} {
 
 func acquire(original iris.Context) *Context {
 	c := contextPool.Get().(*Context)
-	switch original.(type) {
-	case *Context:
-		c = original.(*Context)
-	default:
-		c.Context = original // set the context to the original one in order to have access to iris's implementation.
-	}
+	c.Context = original
 	return c
 }
 
@@ -160,6 +155,11 @@ func (c *Context) SetAnnotations(ann interface{})  {
 
 // Annotations
 func (c *Context) Annotations() interface{} {
+	switch c.Context.(type) {
+	case *Context:
+		lc := c.Context.(*Context)
+		return lc.ann
+	}
 	return c.ann
 }
 
