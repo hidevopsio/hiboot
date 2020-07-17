@@ -1,5 +1,20 @@
 package at
 
+type Logical string
+
+const (
+	AND = "and"
+	OR = "or"
+)
+
+// RequiresLogical  is the annotation that annotate the method for requires logical
+type RequiresLogical  struct {
+	Annotation
+
+	BaseAnnotation
+
+	AtLogical Logical `json:"-" at:"logical"`
+}
 
 // RequiresAuthentication is the annotation that annotate the method for authorization
 type RequiresAuthentication struct {
@@ -13,7 +28,7 @@ type RequiresAuthentication struct {
 type RequiresRoles struct {
 	Annotation
 
-	BaseAnnotation
+	RequiresLogical
 }
 
 
@@ -21,7 +36,7 @@ type RequiresRoles struct {
 type RequiresPermissions  struct {
 	Annotation
 
-	BaseAnnotation
+	RequiresLogical
 }
 
 // RequiresUser  is the annotation that annotate the method for requires users
@@ -30,3 +45,15 @@ type RequiresUser  struct {
 
 	BaseAnnotation
 }
+
+// RequiresData  is the annotation that annotate the method for requires data access
+type RequiresData  struct {
+	Annotation
+
+	RequiresLogical
+
+	AtPermission string `json:"-" at:"permission"`
+	AtAction string `json:"-" at:"action"`
+	AtCondition string `json:"-" at:"condition"`
+}
+
