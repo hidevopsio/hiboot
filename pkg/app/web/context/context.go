@@ -16,6 +16,7 @@ type ExtendedContext interface {
 	ResponseError(message string, code int)
 	WrapHandler(h http.Handler)
 	SetAnnotations(ann interface{})
+	SetURLParam(name, value string)
 	Annotations() interface{}
 
 //StaticResource(system http.FileSystem)

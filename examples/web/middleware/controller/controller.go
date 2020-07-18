@@ -4,6 +4,7 @@ import (
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
+	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/model"
 	"net/http"
 )
@@ -28,17 +29,36 @@ type User struct {
 	Password string `json:"password"`
 }
 
+type UserRequests struct {
+	at.RequestParams
+	at.Schema
+
+	// For paginated result sets, page of results to retrieve.
+	Page int `url:"page,omitempty" json:"page,omitempty" validate:"min=1"`
+
+	// For paginated result sets, the number of results to include per page.
+	PerPage int `url:"per_page,omitempty" json:"per_page,omitempty" validate:"min=1"`
+
+	Expr string `json:"expr"`
+}
+
 type UserResponse struct {
 	at.ResponseBody `json:"-"`
 	model.BaseResponse
 	Data *User `json:"data"`
 }
 
+type ListUserResponse struct {
+	at.ResponseBody `json:"-"`
+	model.BaseResponse
+	Data *UserRequests `json:"data"`
+}
+
 // GetUser
-func (c *UserController) GetUser(at struct{
+func (c *UserController) GetUser(_ struct{
 	at.GetMapping `value:"/{id}"`
 	at.Operation   `id:"Update Employee" description:"Get User"`
-	at.RequiresPermissions `value:"printer:print:hp890"`
+	at.RequiresPermissions `values:"user:read,team:read"`
 }, id int, ctx context.Context) (response *UserResponse) {
 
 	response = new(UserResponse)
@@ -47,6 +67,22 @@ func (c *UserController) GetUser(at struct{
 	response.Data = &User{ID: id, Username: "john.deng", Password: "magic-password"}
 	return
 }
+
+
+// GetUser
+func (c *UserController) GetUsers(_ struct{
+	at.GetMapping `value:"/"`
+	at.Operation   `id:"Update Employee" description:"Get User"`
+	at.RequiresPermissions `values:"user:list,team:*" type:"pagination" in:"page,per_page" out:"expr"`
+}, request *UserRequests) (response *ListUserResponse) {
+	log.Debugf("expr: %v", request.Expr)
+	response = new(ListUserResponse)
+	response.SetCode(http.StatusOK)
+	response.SetMessage("Success")
+	response.Data = request
+	return
+}
+
 
 // GetUser
 func (c *UserController) DeleteUser(at struct{

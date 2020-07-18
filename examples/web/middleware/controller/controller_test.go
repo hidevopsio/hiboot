@@ -17,6 +17,12 @@ func TestMiddleware(t *testing.T) {
 			Body().Contains("123456")
 	})
 
+	t.Run("should get users", func(t *testing.T) {
+		testApp.Get("/user").
+			WithQuery("page", 2).
+			WithQuery("per_page", 10).
+			Expect().Status(http.StatusOK)
+	})
 
 	t.Run("should delete user", func(t *testing.T) {
 		testApp.Delete("/user/123456").

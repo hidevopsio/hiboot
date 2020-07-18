@@ -37,6 +37,14 @@ type RequiresPermissions  struct {
 	Annotation
 
 	RequiresLogical
+
+	AtValues []string `at:"values" json:"-"`		// `values:"user:read,team:read"`
+
+	AtType string `json:"-" at:"type"`	// `type:"pagination"`
+
+	AtIn []string `json:"-" at:"in" `				// `in:"page,per_page"`
+
+	AtOut []string `json:"-" at:"out"` 	// `out:"expr"` <where in (1,2,3)>
 }
 
 // RequiresUser  is the annotation that annotate the method for requires users
@@ -52,14 +60,5 @@ type RequiresGuest  struct {
 	Annotation
 
 	BaseAnnotation
-}
-
-// RequiresData  is the annotation that annotate the method for requires data access
-type RequiresData  struct {
-	Annotation
-
-	RequiresLogical
-
-	AtCondition string `json:"-" at:"condition"`
 }
 

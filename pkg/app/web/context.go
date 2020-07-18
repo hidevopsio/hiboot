@@ -16,6 +16,8 @@ package web
 
 import (
 	"github.com/kataras/iris"
+	"net/url"
+	"strings"
 	"sync"
 
 	ctx "github.com/kataras/iris/context"
@@ -161,6 +163,29 @@ func (c *Context) Annotations() interface{} {
 		return lc.ann
 	}
 	return c.ann
+}
+
+// AddURLParam
+func (c *Context) AddURLParam(name, value string) {
+	rawQuery := c.Request().URL.RawQuery
+	if rawQuery[len(rawQuery)-1:] != "&" {
+		rawQuery = rawQuery + "&"
+	}
+	rawQuery = rawQuery + name + "=" + url.QueryEscape(value)
+	c.Request().URL.RawQuery = rawQuery
+}
+
+// AddURLParam
+func (c *Context) SetURLParam(name, value string) {
+	rawQuery := c.Request().URL.RawQuery
+	v := c.URLParam(name)
+	if v != "" {
+		// find and remove it
+		kv := name + "=" + url.QueryEscape(v)
+		c.Request().URL.RawQuery = strings.Replace(rawQuery, kv, "", -1)
+	}
+	c.AddURLParam(name, value)
+
 }
 
 // RequestEx get RequestBody

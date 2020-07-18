@@ -23,14 +23,26 @@ func init() {
 // Logging is the middleware handler,it support dependency injection, method annotation
 // middleware handler can be annotated to specific purpose or general purpose
 func (m *loggingMiddleware) Logging( a struct{at.MiddlewareHandler `value:"/" `}, ctx context.Context) {
-	atRequiresPermissions := annotation.GetAnnotation(ctx.Annotations(), at.RequiresPermissions{})
-	if atRequiresPermissions != nil {
-		log.Infof("[ logging middleware] %v - %v", ctx.GetCurrentRoute(), atRequiresPermissions.Field.StructField.Tag.Get("value"))
+	ann := annotation.GetAnnotation(ctx.Annotations(), at.RequiresPermissions{})
+	if ann != nil {
+		va := ann.Field.Value.Interface().(at.RequiresPermissions)
+
+		if va.AtType == "pagination" {
+			log.Debugf("page number: %v, page size: %v", ctx.URLParam(va.AtIn[0]), ctx.URLParam(va.AtIn[1]))
+
+			ctx.SetURLParam(va.AtOut[0], "where in(1,3,5,7)")
+			ctx.SetURLParam(va.AtOut[0], "where in(2,4,6,8)") // just for test
+		}
+
+		log.Infof("[ logging middleware] %v - %v", ctx.GetCurrentRoute(), va.AtValues)
 	}
 
-	atOperation := annotation.GetAnnotation(ctx.Annotations(), at.Operation{})
-	if atOperation != nil {
-		log.Infof("[ logging middleware] %v - %v", ctx.GetCurrentRoute(), atOperation.Field.StructField.Tag.Get("description"))
+
+
+	ann = annotation.GetAnnotation(ctx.Annotations(), at.Operation{})
+	if ann != nil {
+		va := ann.Field.Value.Interface().(at.Operation)
+		log.Infof("[ logging middleware] %v - %v", ctx.GetCurrentRoute(), va.AtDescription)
 	} else {
 		log.Infof("[ logging middleware] %v", ctx.GetCurrentRoute())
 	}
@@ -42,9 +54,10 @@ func (m *loggingMiddleware) Logging( a struct{at.MiddlewareHandler `value:"/" `}
 
 // PostLogging is the middleware post handler
 func (m *loggingMiddleware) PostLogging( a struct{at.MiddlewarePostHandler `value:"/" `}, ctx context.Context) {
-	atOperation := annotation.GetAnnotation(ctx.Annotations(), at.Operation{})
-	if atOperation != nil {
-		log.Infof("[post logging middleware] %v - %v", ctx.GetCurrentRoute(), atOperation.Field.StructField.Tag.Get("description"))
+	ann := annotation.GetAnnotation(ctx.Annotations(), at.Operation{})
+	if ann != nil {
+		va := ann.Field.Value.Interface().(at.Operation)
+		log.Infof("[post logging middleware] %v - %v", ctx.GetCurrentRoute(), ctx.GetCurrentRoute(), va.AtDescription)
 	} else {
 		log.Infof("[post logging middleware] %v", ctx.GetCurrentRoute())
 	}

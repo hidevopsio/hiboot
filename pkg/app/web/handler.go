@@ -208,6 +208,7 @@ func (h *handler) parseMethod(injectableObject *injectableObject, injectableMeth
 			h.requests[i].isAnnotation = true
 
 			// operation
+			_ = annotation.InjectAll(request)
 			h.annotations = request
 			continue
 		}
