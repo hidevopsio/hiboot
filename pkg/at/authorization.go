@@ -13,7 +13,7 @@ type RequiresLogical  struct {
 
 	BaseAnnotation
 
-	AtLogical Logical `json:"-" at:"logical"`
+	AtLogical Logical `json:"-" at:"logical" value:"and"` // default value is and
 }
 
 // RequiresAuthentication is the annotation that annotate the method for authorization
@@ -46,14 +46,20 @@ type RequiresUser  struct {
 	BaseAnnotation
 }
 
+
+// RequiresGuest  is the annotation that annotate the method for requires guest
+type RequiresGuest  struct {
+	Annotation
+
+	BaseAnnotation
+}
+
 // RequiresData  is the annotation that annotate the method for requires data access
 type RequiresData  struct {
 	Annotation
 
 	RequiresLogical
 
-	AtPermission string `json:"-" at:"permission"`
-	AtAction string `json:"-" at:"action"`
 	AtCondition string `json:"-" at:"condition"`
 }
 
