@@ -24,6 +24,12 @@ func TestMiddleware(t *testing.T) {
 			Expect().Status(http.StatusOK)
 	})
 
+
+	t.Run("should get users", func(t *testing.T) {
+		testApp.Get("/user").
+			Expect().Status(http.StatusBadRequest)
+	})
+
 	t.Run("should delete user", func(t *testing.T) {
 		testApp.Delete("/user/123456").
 			Expect().Status(http.StatusOK)

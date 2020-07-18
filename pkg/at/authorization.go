@@ -38,11 +38,11 @@ type RequiresPermissions  struct {
 
 	RequiresLogical
 
-	AtValues []string `at:"values" json:"-"`		// `values:"user:read,team:read"`
+	AtValues []string `at:"values" json:"-"`	// `values:"user:read,team:read"`
 
 	AtType string `json:"-" at:"type"`	// `type:"pagination"`
 
-	AtIn []string `json:"-" at:"in" `				// `in:"page,per_page"`
+	AtIn []string `json:"-" at:"in" `	// `in:"page,per_page"`
 
 	AtOut []string `json:"-" at:"out"` 	// `out:"expr"` <where in (1,2,3)>
 }

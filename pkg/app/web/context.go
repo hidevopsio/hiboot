@@ -168,7 +168,8 @@ func (c *Context) Annotations() interface{} {
 // AddURLParam
 func (c *Context) AddURLParam(name, value string) {
 	rawQuery := c.Request().URL.RawQuery
-	if rawQuery[len(rawQuery)-1:] != "&" {
+	size := len(rawQuery)
+	if size != 0 && rawQuery[size-1:] != "&" {
 		rawQuery = rawQuery + "&"
 	}
 	rawQuery = rawQuery + name + "=" + url.QueryEscape(value)
