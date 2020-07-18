@@ -51,7 +51,7 @@ func TestExeptions(t *testing.T) {
 	t.Run("should report error with invalid public key", func(t *testing.T) {
 		src := []byte("hello")
 		_, err := Encrypt([]byte(src), invalidPrivateKey)
-		assert.Contains(t, err.Error(), "tags don't match")
+		assert.Contains(t, err.Error(), "failed")
 	})
 
 	t.Run("should report error with invalid public key", func(t *testing.T) {

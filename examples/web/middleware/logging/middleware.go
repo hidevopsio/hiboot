@@ -57,7 +57,7 @@ func (m *loggingMiddleware) PostLogging( a struct{at.MiddlewarePostHandler `valu
 	ann := annotation.GetAnnotation(ctx.Annotations(), at.Operation{})
 	if ann != nil {
 		va := ann.Field.Value.Interface().(at.Operation)
-		log.Infof("[post logging middleware] %v - %v", ctx.GetCurrentRoute(), ctx.GetCurrentRoute(), va.AtDescription)
+		log.Infof("[post logging middleware] %v - %v - %v", ctx.GetCurrentRoute(), ctx.GetCurrentRoute(), va.AtDescription)
 	} else {
 		log.Infof("[post logging middleware] %v", ctx.GetCurrentRoute())
 	}
