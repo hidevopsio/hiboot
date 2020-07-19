@@ -3,8 +3,8 @@ package at
 type Logical string
 
 const (
-	AND = "and"
-	OR = "or"
+	AND Logical = "and"
+	OR Logical = "or"
 )
 
 // RequiresLogical  is the annotation that annotate the method for requires logical
@@ -13,7 +13,8 @@ type RequiresLogical  struct {
 
 	BaseAnnotation
 
-	AtLogical Logical `json:"-" at:"logical" value:"and"` // default value is and
+	// AtLogical is the logical operator, default value is 'and'
+	AtLogical Logical `json:"-" at:"logical" logical:"and"` // default value is and
 }
 
 // RequiresAuthentication is the annotation that annotate the method for authorization
@@ -38,13 +39,17 @@ type RequiresPermissions  struct {
 
 	RequiresLogical
 
-	AtValues []string `at:"values" json:"-"`	// `values:"user:read,team:read"`
+	// AtValues hold the permission values as an array,  e.g. `values:"user:read,team:read"`
+	AtValues []string `at:"values" json:"-"`
 
-	AtType string `json:"-" at:"type"`	// `type:"pagination"`
+	// AtType is for data permission, user can specify his/her own type and then implement it in middleware, e.g. `type:"pagination"`
+	AtType string `json:"-" at:"type" type:"pagination"`
 
-	AtIn []string `json:"-" at:"in" `	// `in:"page,per_page"`
+	// AtIn is the input field name of query parameters, e.g. `in:"page,per_page"`; page,per_page is the default values that indicate
+	AtIn []string `json:"-" at:"in" in:"page,per_page"`
 
-	AtOut []string `json:"-" at:"out"` 	// `out:"expr"` <where in (1,2,3)>
+	// AtOut is the output field name of query parameters, e.g. `out:"expr"` <where in (1,2,3)>; expr is the default value, it can be any query parameters field name
+	AtOut []string `json:"-" at:"out" out:"expr"`
 }
 
 // RequiresUser  is the annotation that annotate the method for requires users
