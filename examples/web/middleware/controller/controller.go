@@ -61,10 +61,24 @@ func (c *UserController) GetUser(_ struct{
 	// /user/{id} -> `values:"user:read" type:"path" in:"id"`
 	at.RequiresPermissions `values:"user:read" type:"path" in:"id"`
 }, id int, ctx context.Context) (response *UserResponse) {
+	log.Debug("GetUserByID requested")
 	response = new(UserResponse)
 	response.SetCode(http.StatusOK)
 	response.SetMessage("Success")
 	response.Data = &User{ID: id, Username: "john.deng", Password: "magic-password"}
+	return
+}
+
+// GetUser
+func (c *UserController) GetUserByName(_ struct{
+	at.GetMapping `value:"/name/{name}"`
+	// /user/{id} -> `values:"user:read" type:"path" in:"id"`
+	at.RequiresPermissions `values:"user:read" type:"path" in:"name"`
+}, name string) (response *UserResponse) {
+	response = new(UserResponse)
+	response.SetCode(http.StatusOK)
+	response.SetMessage("Success")
+	response.Data = &User{ID: 123456, Username: name, Password: "magic-password"}
 	return
 }
 

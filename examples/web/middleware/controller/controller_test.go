@@ -11,10 +11,16 @@ import (
 func TestMiddleware(t *testing.T) {
 	testApp := web.NewTestApp().Run(t)
 
-	t.Run("should get user", func(t *testing.T) {
+	t.Run("should get user by id", func(t *testing.T) {
 		testApp.Get("/user/123456").
 			Expect().Status(http.StatusOK).
 			Body().Contains("123456")
+	})
+
+	t.Run("should get user by name", func(t *testing.T) {
+		testApp.Get("/user/name/john.deng").
+			Expect().Status(http.StatusOK).
+			Body().Contains("john.deng")
 	})
 
 	t.Run("should get user", func(t *testing.T) {
