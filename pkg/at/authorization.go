@@ -43,13 +43,13 @@ type RequiresPermissions  struct {
 	AtValues []string `at:"values" json:"-"`
 
 	// AtType is for data permission, user can specify his/her own type and then implement it in middleware, e.g. `type:"pagination"`
-	AtType string `json:"-" at:"type" type:"pagination"`
+	AtType string `json:"-" at:"type"`
 
 	// AtIn is the input field name of query parameters, e.g. `in:"page,per_page"`; page,per_page is the default values that indicate
-	AtIn []string `json:"-" at:"in" in:"page,per_page"`
+	AtIn []string `json:"-" at:"in"`
 
 	// AtOut is the output field name of query parameters, e.g. `out:"expr"` <where in (1,2,3)>; expr is the default value, it can be any query parameters field name
-	AtOut []string `json:"-" at:"out" out:"expr"`
+	AtOut []string `json:"-" at:"out"`
 }
 
 // RequiresUser  is the annotation that annotate the method for requires users
