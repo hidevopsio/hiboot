@@ -395,41 +395,32 @@ func (d *Dispatcher) register(controllers []*factory.MetaData, middleware []*fac
 			// handlers = append(handlers, middleware...)
 
 			// set matched to true by default
-			if len(mws) > 0 {
-				for _, mw := range mws {
-					atMw := annotation.FilterIn(mw.annotations, at.UseMiddleware{})
-					for _, mth := range mw.methods {
-						atMwMth := annotation.FilterIn(mth.annotations, at.UseMiddleware{})
-						// check if middleware is used
-						// else skip to append this middleware
-						useMiddleware := d.useMiddleware(atMw, atMwMth, atCtl, atCtlMth)
-						if useMiddleware {
-							handlers = append(handlers, mth.handler)
-						}
-					}
-				}
-			}
-
-			if len(postMws) > 0 {
-				for _, mw := range postMws {
-					atMw := annotation.FilterIn(mw.annotations, at.UseMiddleware{})
-					for _, mth := range mw.methods {
-						atMwMth := annotation.FilterIn(mth.annotations, at.UseMiddleware{})
-						// check if middleware is used
-						// else skip to append this middleware
-						useMiddleware := d.useMiddleware(atMw, atMwMth, atCtl, atCtlMth)
-						if useMiddleware {
-							postHandlers = append(postHandlers, mth.handler)
-						}
-					}
-				}
-			}
+			handlers = d.appendMiddleware(mws, atCtl, atCtlMth, handlers)
+			postHandlers = d.appendMiddleware(postMws, atCtl, atCtlMth, postHandlers)
 
 			// 3. finally, handle all method handlers
 			d.handleControllerMethod(restController, m, party, handlers, postHandlers)
 		}
 	}
 	return
+}
+
+func (d *Dispatcher) appendMiddleware(mws []*injectableObject, atCtl []*annotation.Annotation, atCtlMth []*annotation.Annotation, handlers []iris.Handler) []iris.Handler {
+	if len(mws) > 0 {
+		for _, mw := range mws {
+			atMw := annotation.FilterIn(mw.annotations, at.UseMiddleware{})
+			for _, mth := range mw.methods {
+				atMwMth := annotation.FilterIn(mth.annotations, at.UseMiddleware{})
+				// check if middleware is used
+				// else skip to append this middleware
+				useMiddleware := d.useMiddleware(atMw, atMwMth, atCtl, atCtlMth)
+				if useMiddleware {
+					handlers = append(handlers, mth.handler)
+				}
+			}
+		}
+	}
+	return handlers
 }
 
 func (d *Dispatcher) handleControllerMethod(restController *injectableObject, m *injectableMethod, party iris.Party, handlers []iris.Handler, postHandlers []iris.Handler) {

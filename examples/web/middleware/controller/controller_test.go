@@ -17,6 +17,13 @@ func TestMiddleware(t *testing.T) {
 			Body().Contains("123456")
 	})
 
+	t.Run("should get user", func(t *testing.T) {
+		testApp.Get("/user/query").
+			WithQuery("id", 123456).
+			Expect().Status(http.StatusOK).
+			Body().Contains("123456")
+	})
+
 	t.Run("should get users", func(t *testing.T) {
 		testApp.Get("/user").
 			WithQuery("page", 2).
@@ -25,7 +32,7 @@ func TestMiddleware(t *testing.T) {
 	})
 
 
-	t.Run("should get users", func(t *testing.T) {
+	t.Run("should get users without page, per_page params", func(t *testing.T) {
 		testApp.Get("/user").
 			Expect().Status(http.StatusBadRequest)
 	})

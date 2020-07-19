@@ -211,6 +211,10 @@ func (c *FooController) GetById(id int) string {
 
 // GET /hello
 func (c *FooController) GetHello(ctx context.Context) string {
+	log.Debug(ctx.Annotations())
+	ctx.SetURLParam("foo", "bar")
+	ctx.SetURLParam("foo", "baz")
+	log.Debug(ctx.URLParam("foo"))
 	log.Debug("FooController.GetHello")
 	return "hello"
 }
@@ -977,7 +981,17 @@ func newFooMiddleware() *fooMiddleware {
 
 // Logging is the middleware handler,it support dependency injection, method annotation
 // middleware handler can be annotated to specific purpose or general purpose
-func (m *fooMiddleware) Logging( at struct{at.MiddlewareHandler `value:"/" `}, ctx context.Context) {
+func (m *fooMiddleware) Logging( _ struct{at.MiddlewareHandler `value:"/" `}, ctx context.Context) {
+
+	log.Infof("[logging middleware] %v", ctx.GetCurrentRoute())
+
+	// call ctx.Next() if you want to continue, otherwise do not call it
+	ctx.Next()
+	return
+}
+// Logging is the middleware handler,it support dependency injection, method annotation
+// middleware handler can be annotated to specific purpose or general purpose
+func (m *fooMiddleware) PostLogging( _ struct{at.MiddlewarePostHandler `value:"/" `}, ctx context.Context) {
 
 	log.Infof("[logging middleware] %v", ctx.GetCurrentRoute())
 

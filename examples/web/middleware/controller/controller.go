@@ -57,13 +57,28 @@ type ListUserResponse struct {
 // GetUser
 func (c *UserController) GetUser(_ struct{
 	at.GetMapping `value:"/{id}"`
-	at.Operation   `id:"Update Employee" description:"Get User"`
-	at.RequiresPermissions `values:"user:read,team:read"`
+	at.Operation   `id:"Update Employee" description:"Get User by ID"`
+	// /user/{id} -> `values:"user:read" type:"path" in:"id"`
+	at.RequiresPermissions `values:"user:read" type:"path" in:"id"`
 }, id int, ctx context.Context) (response *UserResponse) {
-
 	response = new(UserResponse)
 	response.SetCode(http.StatusOK)
 	response.SetMessage("Success")
+	response.Data = &User{ID: id, Username: "john.deng", Password: "magic-password"}
+	return
+}
+
+// GetUser
+func (c *UserController) GetUserQuery(_ struct{
+	at.GetMapping `value:"/query"`
+	at.Operation   `id:"Update Employee" description:"Query User"`
+	// /user?id=12345 -> `values:"user:read" type:"query" in:"id"`
+	at.RequiresPermissions `values:"user:read" type:"query" in:"id"`
+}, ctx context.Context) (response *UserResponse) {
+	response = new(UserResponse)
+	response.SetCode(http.StatusOK)
+	response.SetMessage("Success")
+	id, _ := ctx.URLParamInt("id")
 	response.Data = &User{ID: id, Username: "john.deng", Password: "magic-password"}
 	return
 }
@@ -72,10 +87,11 @@ func (c *UserController) GetUser(_ struct{
 // GetUser
 func (c *UserController) GetUsers(_ struct{
 	at.GetMapping `value:"/"`
-	at.Operation   `id:"Update Employee" description:"Get User"`
-	at.RequiresPermissions `values:"user:list,team:*" type:"pagination" in:"page,per_page" out:"expr"`
-}, request *UserRequests) (response *ListUserResponse) {
+	at.Operation   `id:"Update Employee" description:"Get User List"`
+	at.RequiresPermissions `values:"user:list,team:*" type:"query:pagination" in:"page,per_page" out:"expr"`
+}, request *UserRequests, ctx context.Context) (response *ListUserResponse) {
 	log.Debugf("expr: %v", request.Expr)
+	log.Debugf("header.expr: %v", ctx.GetHeader("expr"))
 	response = new(ListUserResponse)
 	response.SetCode(http.StatusOK)
 	response.SetMessage("Success")
@@ -85,9 +101,9 @@ func (c *UserController) GetUsers(_ struct{
 
 
 // GetUser
-func (c *UserController) DeleteUser(at struct{
+func (c *UserController) DeleteUser(_ struct{
 	at.DeleteMapping `value:"/{id}"`
-	at.Operation   `id:"Update Employee" description:"Delete User"`
+	at.Operation   `id:"Update Employee" description:"Delete User by ID"`
 }, id int) (response *UserResponse) {
 	response = new(UserResponse)
 	response.SetCode(http.StatusOK)

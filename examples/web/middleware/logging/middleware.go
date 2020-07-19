@@ -26,25 +26,29 @@ func (m *loggingMiddleware) Logging( a struct{at.MiddlewareHandler `value:"/" `}
 	ann := annotation.GetAnnotation(ctx.Annotations(), at.RequiresPermissions{})
 	if ann != nil {
 		va := ann.Field.Value.Interface().(at.RequiresPermissions)
-
-		if va.AtType == "pagination" {
+		switch va.AtType {
+		case "path":
+			id := ctx.Params().Get(va.AtIn[0])
+			log.Debugf("path id: %v", id)
+		case "query":
+			id := ctx.URLParams()[va.AtIn[0]]
+			log.Debugf("query id: %v", id)
+		case "query:pagination":
 			log.Debugf("page number: %v, page size: %v", ctx.URLParam(va.AtIn[0]), ctx.URLParam(va.AtIn[1]))
-
-			ctx.SetURLParam(va.AtOut[0], "where in(1,3,5,7)")
-			ctx.SetURLParam(va.AtOut[0], "where in(2,4,6,8)") // just for test
+			ctx.SetURLParam(va.AtOut[0], "where in(2,4,6,8)")
+			ctx.Header(va.AtOut[0], "where in(2,4,6,8)")
+			ctx.Request().Header.Set(va.AtOut[0], "where in(2,4,6,8)")
 		}
 
-		log.Infof("[ logging middleware] %v - %v", ctx.GetCurrentRoute(), va.AtValues)
+		log.Infof("[auth middleware] %v - %v", ctx.GetCurrentRoute(), va.AtValues)
 	}
-
-
 
 	ann = annotation.GetAnnotation(ctx.Annotations(), at.Operation{})
 	if ann != nil {
 		va := ann.Field.Value.Interface().(at.Operation)
-		log.Infof("[ logging middleware] %v - %v", ctx.GetCurrentRoute(), va.AtDescription)
+		log.Infof("[logging middleware] %v - %v", ctx.GetCurrentRoute(), va.AtDescription)
 	} else {
-		log.Infof("[ logging middleware] %v", ctx.GetCurrentRoute())
+		log.Infof("[logging middleware] %v", ctx.GetCurrentRoute())
 	}
 
 	// call ctx.Next() if you want to continue, otherwise do not call it
