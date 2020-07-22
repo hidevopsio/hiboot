@@ -39,6 +39,8 @@ type UserRequests struct {
 	// For paginated result sets, the number of results to include per page.
 	PerPage int `url:"per_page,omitempty" json:"per_page,omitempty" validate:"min=1"`
 
+	Total int `json:"total"`
+
 	Expr string `json:"expr"`
 }
 
@@ -102,10 +104,10 @@ func (c *UserController) GetUserQuery(_ struct{
 func (c *UserController) GetUsers(_ struct{
 	at.GetMapping `value:"/"`
 	at.Operation   `id:"Update Employee" description:"Get User List"`
-	at.RequiresPermissions `values:"user:list,team:*" type:"query:pagination" in:"page,per_page" out:"expr"`
+	at.RequiresPermissions `values:"user:list" type:"query:pagination" in:"page,per_page,id" out:"expr,total"`
 }, request *UserRequests, ctx context.Context) (response *ListUserResponse) {
 	log.Debugf("expr: %v", request.Expr)
-	log.Debugf("header.expr: %v", ctx.GetHeader("expr"))
+	log.Debugf("total: %v", request.Total)
 	response = new(ListUserResponse)
 	response.SetCode(http.StatusOK)
 	response.SetMessage("Success")

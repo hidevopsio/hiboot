@@ -35,9 +35,10 @@ func (m *loggingMiddleware) Logging( a struct{at.MiddlewareHandler `value:"/" `}
 			log.Debugf("query id: %v", id)
 		case "query:pagination":
 			log.Debugf("page number: %v, page size: %v", ctx.URLParam(va.AtIn[0]), ctx.URLParam(va.AtIn[1]))
-			ctx.SetURLParam(va.AtOut[0], "where in(2,4,6,8)")
-			ctx.Header(va.AtOut[0], "where in(2,4,6,8)")
-			ctx.Request().Header.Set(va.AtOut[0], "where in(2,4,6,8)")
+			ctx.SetURLParam(va.AtOut[0], "in(2,4,6,8)")
+			ctx.SetURLParam(va.AtOut[1], "50")
+			ctx.Header(va.AtOut[0], "in(2,4,6,8)")
+			ctx.Request().Header.Set(va.AtOut[0], "in(2,4,6,8)")
 		}
 
 		log.Infof("[auth middleware] %v - %v", ctx.GetCurrentRoute(), va.AtValues)
