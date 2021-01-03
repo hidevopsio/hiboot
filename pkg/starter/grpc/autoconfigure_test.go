@@ -30,16 +30,18 @@ import (
 
 // gRpc server
 // server is used to implement helloworld.GreeterServer.
-type greeterServerService struct{}
+type greeterServerService struct{
+	helloworld.UnimplementedGreeterServer
+}
 
 // newGreeterServerService is the constructor of greeterServerService
-func newGreeterServerService() *greeterServerService {
+func newGreeterServerService() helloworld.GreeterServer {
 	return &greeterServerService{}
 }
 
 // SayHello implements helloworld.GreeterServer
-func (s *greeterServerService) SayHello(ctx context.Context, in *helloworld.HelloRequest) (*helloworld.HelloReply, error) {
-	return &helloworld.HelloReply{Message: "Hello " + in.Name}, nil
+func (s *greeterServerService) SayHello(ctx context.Context, req *helloworld.HelloRequest) (*helloworld.HelloReply, error) {
+	return &helloworld.HelloReply{Message: "Hello " + req.Name}, nil
 }
 
 // gRpc client

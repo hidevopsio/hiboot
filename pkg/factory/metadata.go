@@ -3,6 +3,7 @@ package factory
 import (
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/inject/annotation"
+	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/system/types"
 	"hidevops.io/hiboot/pkg/utils/io"
 	"hidevops.io/hiboot/pkg/utils/reflector"
@@ -71,7 +72,11 @@ func parseDependencies(object interface{}, kind string, typ reflect.Type) (deps 
 		numIn := method.Type.NumIn()
 		for i := 1; i < numIn; i++ {
 			inTyp := method.Type.In(i)
-			depNames = appendDep(depNames, findDep(typ, inTyp))
+			if annotation.IsAnnotation(inTyp) {
+				log.Debugf("%v is annotation", inTyp.Name())
+			} else {
+				depNames = appendDep(depNames, findDep(typ, inTyp))
+			}
 		}
 	default:
 		// find user specific inject tag

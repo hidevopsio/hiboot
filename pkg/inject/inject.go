@@ -121,7 +121,7 @@ func (i *inject) IntoAnnotations(annotations *annotation.Annotations) (err error
 	// inject annotation
 	for _, a := range annotations.Items {
 		err = annotation.Inject(a)
-		if err == nil {
+		if err == nil && a.Field.Value.IsValid() {
 			err = i.IntoObjectValue(a.Field.Value.Addr(), "")
 		}
 	}
@@ -288,7 +288,11 @@ func (i *inject) parseFuncOrMethodInput(inType reflect.Type) (paramValue reflect
 
 			// if it is not found, then create new instance
 			paramValue = reflect.New(inType)
-			inst = paramValue.Interface()
+			if annotation.IsAnnotation(inType) {
+				inst = paramValue.Elem().Interface()
+			} else {
+				inst = paramValue.Interface()
+			}
 			// TODO: inTypeName
 			i.factory.SetInstance(inst)
 		}
@@ -346,13 +350,21 @@ func (i *inject) IntoMethod(object interface{}, m interface{}) (retVal interface
 			numIn := method.Type.NumIn()
 			inputs := make([]reflect.Value, numIn)
 			inputs[0] = reflect.ValueOf(object)
+			var ann interface{}
 			for n := 1; n < numIn; n++ {
 				fnInType := method.Type.In(n)
+				if annotation.IsAnnotation(fnInType) {
+					ann = fnInType
+				}
 				val, ok := i.parseFuncOrMethodInput(fnInType)
 				if ok {
 					inputs[n] = val
 				} else {
-					return nil, fmt.Errorf("%v is not injected", fnInType.Name())
+					if reflect.TypeOf(at.AllowNil{}) == ann || annotation.Contains(ann, at.AllowNil{}) {
+						inputs[n] = reflect.Zero(fnInType)
+					} else {
+						return nil, fmt.Errorf("%v is not injected", fnInType.Name())
+					}
 				}
 
 				paramObject := reflect.Indirect(val)

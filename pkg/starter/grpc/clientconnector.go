@@ -43,15 +43,21 @@ func (c *clientConnector) ConnectWithName(name string, clientConstructor interfa
 	conn := c.instantiateFactory.GetInstance(name)
 	if conn == nil {
 		// connect to grpc server
-		conn, err = grpc.Dial(address,
-			grpc.WithInsecure(),
-			grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
-				grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(c.tracer)),
-			)),
-			grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
-				grpc_opentracing.UnaryClientInterceptor(grpc_opentracing.WithTracer(c.tracer)),
-			)),
-		)
+		if c.tracer == nil {
+			conn, err = grpc.Dial(address,
+				grpc.WithInsecure(),
+			)
+		} else {
+			conn, err = grpc.Dial(address,
+				grpc.WithInsecure(),
+				grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
+					grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(c.tracer)),
+				)),
+				grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
+					grpc_opentracing.UnaryClientInterceptor(grpc_opentracing.WithTracer(c.tracer)),
+				)),
+			)
+		}
 		c.instantiateFactory.SetInstance(name, conn)
 		if err == nil {
 			log.Infof("gRPC client connected to: %v", address)

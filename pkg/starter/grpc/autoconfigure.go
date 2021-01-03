@@ -24,8 +24,8 @@ import (
 	"google.golang.org/grpc/health"
 	pb "google.golang.org/grpc/health/grpc_health_v1"
 	"hidevops.io/hiboot/pkg/app"
+	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/factory"
-	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/starter/jaeger"
 	"hidevops.io/hiboot/pkg/utils/cmap"
 	"hidevops.io/hiboot/pkg/utils/reflector"
@@ -150,20 +150,24 @@ func (c *configuration) ClientFactory(cc ClientConnector) ClientFactory {
 }
 
 // GrpcServer create new gRpc Server
-func (c *configuration) Server(tracer jaeger.Tracer) (grpcServer *grpc.Server) {
-	log.Debugf(">>> create grpc server")
-	// just return if grpc server is not enabled
+func (c *configuration) Server(_ at.AllowNil, tracer jaeger.Tracer) (grpcServer *grpc.Server) {
 	if c.Properties.Server.Enabled {
-		grpcServer = grpc.NewServer(
-			grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
-				// add opentracing stream interceptor to chain
-				grpc_opentracing.StreamServerInterceptor(grpc_opentracing.WithTracer(tracer)),
-			)),
-			grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
-				// add opentracing unary interceptor to chain
-				grpc_opentracing.UnaryServerInterceptor(grpc_opentracing.WithTracer(tracer)),
-			)),
-		)
+		if tracer == nil {
+			grpcServer = grpc.NewServer()
+		} else {
+			// just return if grpc server is not enabled
+			grpcServer = grpc.NewServer(
+				grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
+					// add opentracing stream interceptor to chain
+					grpc_opentracing.StreamServerInterceptor(grpc_opentracing.WithTracer(tracer)),
+				)),
+				grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
+					// add opentracing unary interceptor to chain
+					grpc_opentracing.UnaryServerInterceptor(grpc_opentracing.WithTracer(tracer)),
+				)),
+			)
+
+		}
 	}
 	return
 }

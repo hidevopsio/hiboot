@@ -16,6 +16,8 @@
 package jaeger
 
 import (
+	"io"
+
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/uber/jaeger-client-go/config"
@@ -23,7 +25,6 @@ import (
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
-	"io"
 )
 
 const (
@@ -55,7 +56,9 @@ func (c *configuration) Tracer() (tracer Tracer) {
 		c.Properties.Config.ServiceName = c.ServiceName
 	}
 	tracer, c.Closer, err = c.Properties.Config.NewTracer(config.Logger(&Logger{}))
-	log.Debug(err)
+	if err != nil {
+		log.Error(err)
+	}
 	opentracing.SetGlobalTracer(tracer)
 	return tracer
 }
