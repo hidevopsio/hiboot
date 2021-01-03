@@ -14,7 +14,7 @@ import (
 type ClientConnector interface {
 	// Connect connect the gRPC client
 	ConnectWithName(name string, cb interface{}, prop *ClientProperties) (gRPCCli interface{}, err error)
-	Connect(address string, clientConstructor interface{}) (gRpcCli interface{})
+	Connect(address string, clientConstructor interface{}) (gRpcCli interface{}, conn *grpc.ClientConn, err error)
 }
 
 type clientConnector struct {
@@ -30,7 +30,7 @@ func newClientConnector(instantiateFactory factory.InstantiateFactory, tracer ja
 	return cc
 }
 
-// Connect connect to grpc server from client
+// ConnectWithName connect to grpc server from client with service name
 // name: client name
 // clientConstructor: client constructor
 // properties: properties for configuring
@@ -64,10 +64,8 @@ func (c *clientConnector) ConnectWithName(name string, clientConstructor interfa
 	return
 }
 
-
-func (c *clientConnector) Connect(address string, clientConstructor interface{}) (gRpcCli interface{}) {
-	var conn *grpc.ClientConn
-	var err error
+// Connect connect to client connection
+func (c *clientConnector) Connect(address string, clientConstructor interface{}) (gRpcCli interface{}, conn *grpc.ClientConn, err error) {
 	if c.tracer != nil {
 		conn, err = grpc.Dial(address,
 			grpc.WithInsecure(),
@@ -85,11 +83,6 @@ func (c *clientConnector) Connect(address string, clientConstructor interface{})
 		)
 	}
 
-	if err != nil {
-		return
-	}
-	defer conn.Close()
-
 	if clientConstructor != nil {
 		// get return type for register instance name
 		gRpcCli, err = reflector.CallFunc(clientConstructor, conn)
@@ -98,13 +91,11 @@ func (c *clientConnector) Connect(address string, clientConstructor interface{})
 }
 
 
-func Connect(address string, clientConstructor interface{}, tracers... jaeger.Tracer) (gRpcCli interface{}) {
+func Connect(address string, clientConstructor interface{}, tracers... jaeger.Tracer) (gRpcCli interface{}, conn *grpc.ClientConn, err error) {
 	var tracer jaeger.Tracer
 	if len(tracers) > 0 {
 		tracer = tracers[0]
 	}
-	var conn *grpc.ClientConn
-	var err error
 	if tracer != nil {
 		conn, err = grpc.Dial(address,
 			grpc.WithInsecure(),
@@ -121,11 +112,6 @@ func Connect(address string, clientConstructor interface{}, tracers... jaeger.Tr
 			grpc.WithInsecure(),
 		)
 	}
-
-	if err != nil {
-		return
-	}
-	defer conn.Close()
 
 	if clientConstructor != nil {
 		// get return type for register instance name
