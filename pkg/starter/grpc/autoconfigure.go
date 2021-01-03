@@ -25,6 +25,7 @@ import (
 	pb "google.golang.org/grpc/health/grpc_health_v1"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/factory"
+	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/starter/jaeger"
 	"hidevops.io/hiboot/pkg/utils/cmap"
 	"hidevops.io/hiboot/pkg/utils/reflector"
@@ -150,6 +151,7 @@ func (c *configuration) ClientFactory(cc ClientConnector) ClientFactory {
 
 // GrpcServer create new gRpc Server
 func (c *configuration) Server(tracer jaeger.Tracer) (grpcServer *grpc.Server) {
+	log.Debugf(">>> create grpc server")
 	// just return if grpc server is not enabled
 	if c.Properties.Server.Enabled {
 		grpcServer = grpc.NewServer(
