@@ -139,8 +139,8 @@ func init() {
 
 // ClientConnector is the interface that connect to grpc client
 // it can be injected to struct at runtime
-func (c *configuration) ClientConnector() ClientConnector {
-	return newClientConnector(c.instantiateFactory)
+func (c *configuration) ClientConnector(tracer jaeger.Tracer) ClientConnector {
+	return newClientConnector(c.instantiateFactory, tracer)
 }
 
 // GrpcClientFactory create gRPC Clients that registered by application

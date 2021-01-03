@@ -23,7 +23,7 @@ func newClientFactory(instantiateFactory factory.InstantiateFactory, properties 
 		prop := new(ClientProperties)
 		err := mapstruct.Decode(prop, clientProps[cli.name])
 		if err == nil {
-			gRPCCli, err = cc.Connect(cli.name, cli.cb, prop)
+			gRPCCli, err = cc.ConnectWithName(cli.name, cli.cb, prop)
 			if err == nil {
 				clientInstanceName := reflector.GetLowerCamelFullName(gRPCCli)
 				// register grpc client

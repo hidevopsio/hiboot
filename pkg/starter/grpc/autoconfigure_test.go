@@ -87,7 +87,7 @@ func TestGrpcServerAndClient(t *testing.T) {
 		assert.NotEqual(t, nil, cc)
 		prop := new(grpc.ClientProperties)
 		f.InjectDefaultValue(prop)
-		grpcCli, err := cc.Connect("", helloworld.NewGreeterClient, prop)
+		grpcCli, err := cc.ConnectWithName("", helloworld.NewGreeterClient, prop)
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, nil, grpcCli)
 	})
