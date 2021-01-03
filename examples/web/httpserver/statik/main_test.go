@@ -1,10 +1,11 @@
 package main
 
 import (
-	"hidevops.io/hiboot/pkg/app/web"
 	"net/http"
+	"sync"
 	"testing"
-	"time"
+
+	"hidevops.io/hiboot/pkg/app/web"
 )
 
 func TestController(t *testing.T) {
@@ -21,7 +22,9 @@ func TestController(t *testing.T) {
 	})
 }
 
+var mu sync.Mutex
 func TestRunMain(t *testing.T) {
+	mu.Lock()
 	go main()
-	time.Sleep(100 * time.Millisecond)
+	mu.Unlock()
 }

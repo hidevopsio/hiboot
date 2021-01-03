@@ -3,12 +3,16 @@ package hello
 import (
 	"hidevops.io/hiboot/pkg/app/web"
 	"net/http"
+	"sync"
 	"testing"
 	"time"
 )
 
+var mu sync.Mutex
 func TestRunMain(t *testing.T) {
+	mu.Lock()
 	go main()
+	mu.Unlock()
 }
 
 func TestController(t *testing.T) {

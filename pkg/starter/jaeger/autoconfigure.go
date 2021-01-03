@@ -36,6 +36,8 @@ type configuration struct {
 
 	Properties *properties
 	Closer     io.Closer
+
+	ServiceName string `value:"${app.name}"`
 }
 
 func init() {
@@ -49,6 +51,9 @@ func newConfiguration(properties *properties) *configuration {
 //Tracer returns an instance of Jaeger Tracer that samples 100% of traces and logs all spans to stdout.
 func (c *configuration) Tracer() (tracer Tracer) {
 	var err error
+	if c.Properties.Config.ServiceName == "" {
+		c.Properties.Config.ServiceName = c.ServiceName
+	}
 	tracer, c.Closer, err = c.Properties.Config.NewTracer(config.Logger(&Logger{}))
 	log.Debug(err)
 	opentracing.SetGlobalTracer(tracer)

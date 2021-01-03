@@ -124,6 +124,8 @@ func (a *application) build() (err error) {
 	if !str.InSlice(Profile, systemConfig.App.Profiles.Include) {
 		systemConfig.App.Profiles.Include = append(systemConfig.App.Profiles.Include, Profile)
 	}
+	systemConfig.App.Profiles.Include = append(systemConfig.App.Profiles.Include, app.Profiles...)
+
 	if systemConfig != nil {
 		log.Infof("Starting Hiboot web application %v version %v on localhost with PID %v", systemConfig.App.Name, systemConfig.App.Version, os.Getpid())
 		log.Infof("Working directory: %v", a.WorkDir)

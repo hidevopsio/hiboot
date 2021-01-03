@@ -191,8 +191,8 @@ func (f *instantiateFactory) BuildComponents() (err error) {
 	f.resolved = resolved
 	log.Debugf("Injecting dependencies")
 	// then build components
-	for _, item := range resolved {
-		//log.Debugf("build component: %v", item.Type)
+	for idx, item := range resolved {
+		log.Debugf("build component: %v %v", idx, item.Type)
 		if item.ContextAware {
 			//log.Debugf("at.ContextAware: %v", item.MetaObject)
 			f.SetInstance(item)

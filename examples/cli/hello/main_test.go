@@ -18,11 +18,15 @@ package main
 import (
 	"github.com/stretchr/testify/assert"
 	"hidevops.io/hiboot/pkg/app/cli"
+	"sync"
 	"testing"
 )
 
+var mu sync.Mutex
 func TestRunMain(t *testing.T) {
+	mu.Lock()
 	go main()
+	mu.Unlock()
 }
 
 func TestHelloCommands(t *testing.T) {

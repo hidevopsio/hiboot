@@ -67,6 +67,11 @@ func appendParams(container []*factory.MetaData, params ...interface{}) (retVal 
 	return
 }
 
+// IncludeProfiles include specific profiles
+func IncludeProfiles(profiles ...string)  {
+	Profiles = append(Profiles, profiles...)
+}
+
 // Register register a struct instance or constructor (func), so that it will be injectable.
 func Register(params ...interface{}) {
 	// appendParams will append the object that annotated with at.AutoConfiguration

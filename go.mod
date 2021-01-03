@@ -11,12 +11,12 @@ require (
 	github.com/go-openapi/spec v0.19.2
 	github.com/go-openapi/swag v0.19.5 // indirect
 	github.com/gojektech/valkyrie v0.0.0-20190210220504-8f62c1e7ba45
-	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
-	github.com/golang/mock v1.2.0
-	github.com/golang/protobuf v1.2.0
+	github.com/golang/mock v1.4.4
+	github.com/golang/protobuf v1.4.2
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.0
 	github.com/gorilla/websocket v1.4.0
+	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/hidevopsio/mapstructure v1.1.3-0.20190908102033-f8832fd9e307
 	github.com/iris-contrib/formBinder v0.0.0-20190104093907-fbd5963f41e1 // indirect
 	github.com/iris-contrib/go.uuid v2.0.0+incompatible
@@ -26,30 +26,25 @@ require (
 	github.com/kataras/iris v11.0.3+incompatible
 	github.com/kataras/pio v0.0.0-20180511174041-a9733b5b6b83
 	github.com/moul/http2curl v1.0.0 // indirect
-	github.com/opentracing/opentracing-go v1.0.2
-	github.com/pkg/errors v0.8.0
+	github.com/opentracing/opentracing-go v1.1.0
+	github.com/pkg/errors v0.8.1
 	github.com/rakyll/statik v0.1.6
+	github.com/sirupsen/logrus v1.4.2
 	github.com/sony/sonyflake v0.0.0-20160530021500-fa881fb1052b
 	github.com/spf13/afero v1.1.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
-	github.com/stretchr/testify v1.3.0
+	github.com/stretchr/testify v1.5.1
 	github.com/uber-go/atomic v1.3.2 // indirect
 	github.com/uber/jaeger-client-go v2.15.0+incompatible
 	github.com/uber/jaeger-lib v1.5.0+incompatible // indirect
 	github.com/valyala/bytebufferpool v1.0.0
-	go.uber.org/atomic v1.3.2 // indirect
-	golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4 // indirect
-	golang.org/x/net v0.0.0-20190613194153-d28f0bde5980
-	google.golang.org/genproto v0.0.0-20200715011427-11fb19a81f2c // indirect
-	google.golang.org/grpc v1.16.0
+	golang.org/x/net v0.0.0-20200421231249-e086a090c8fd
+	google.golang.org/grpc v1.34.0
+	google.golang.org/grpc/examples v0.0.0-20201226181154-53788aa5dcb4
+	google.golang.org/protobuf v1.25.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2
 	gopkg.in/yaml.v2 v2.2.2
 	hidevops.io/viper v1.3.2
-)
-
-replace (
-	google.golang.org/genproto => github.com/google/go-genproto v0.0.0-20190215211957-bd968387e4aa
-	google.golang.org/grpc => github.com/grpc/grpc-go v1.14.0
 )

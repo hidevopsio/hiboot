@@ -28,7 +28,7 @@ func newClientConnector(instantiateFactory factory.InstantiateFactory) ClientCon
 // name: client name
 // clientConstructor: client constructor
 // properties: properties for configuring
-func (c *clientConnector) Connect(name string, clientConstructor interface{}, properties *ClientProperties) (gRPCCli interface{}, err error) {
+func (c *clientConnector) Connect(name string, clientConstructor interface{}, properties *ClientProperties) (gRpcCli interface{}, err error) {
 	host := properties.Host
 	if host == "" {
 		host = name
@@ -45,7 +45,21 @@ func (c *clientConnector) Connect(name string, clientConstructor interface{}, pr
 	}
 	if err == nil && clientConstructor != nil {
 		// get return type for register instance name
-		gRPCCli, err = reflector.CallFunc(clientConstructor, conn)
+		gRpcCli, err = reflector.CallFunc(clientConstructor, conn)
+	}
+	return
+}
+
+func Connect(address string, clientConstructor interface{}) (gRpcCli interface{}) {
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+
+	if clientConstructor != nil {
+		// get return type for register instance name
+		gRpcCli, err = reflector.CallFunc(clientConstructor, conn)
 	}
 	return
 }
