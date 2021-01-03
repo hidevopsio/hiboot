@@ -83,6 +83,10 @@ func (c *clientConnector) Connect(address string) (conn *grpc.ClientConn, err er
 		)
 	}
 
+	if err == nil {
+		log.Infof("gRPC client connected to: %v", address)
+	}
+
 	return
 }
 
@@ -107,6 +111,10 @@ func Connect(address string, tracers... jaeger.Tracer) (conn *grpc.ClientConn, e
 		conn, err = grpc.Dial(address,
 			grpc.WithInsecure(),
 		)
+	}
+
+	if err == nil {
+		log.Infof("gRPC client connected to: %v", address)
 	}
 
 	return
