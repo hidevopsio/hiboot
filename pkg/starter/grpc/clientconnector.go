@@ -14,7 +14,7 @@ import (
 type ClientConnector interface {
 	// Connect connect the gRPC client
 	ConnectWithName(name string, cb interface{}, prop *ClientProperties) (gRPCCli interface{}, err error)
-	Connect(address string, clientConstructor interface{}) (gRpcCli interface{}, conn *grpc.ClientConn, err error)
+	Connect(address string, clientConstructor interface{}) (conn *grpc.ClientConn, err error)
 }
 
 type clientConnector struct {
@@ -65,7 +65,7 @@ func (c *clientConnector) ConnectWithName(name string, clientConstructor interfa
 }
 
 // Connect connect to client connection
-func (c *clientConnector) Connect(address string, clientConstructor interface{}) (gRpcCli interface{}, conn *grpc.ClientConn, err error) {
+func (c *clientConnector) Connect(address string, clientConstructor interface{}) (conn *grpc.ClientConn, err error) {
 	if c.tracer != nil {
 		conn, err = grpc.Dial(address,
 			grpc.WithInsecure(),
@@ -83,15 +83,11 @@ func (c *clientConnector) Connect(address string, clientConstructor interface{})
 		)
 	}
 
-	if clientConstructor != nil {
-		// get return type for register instance name
-		gRpcCli, err = reflector.CallFunc(clientConstructor, conn)
-	}
 	return
 }
 
 
-func Connect(address string, clientConstructor interface{}, tracers... jaeger.Tracer) (gRpcCli interface{}, conn *grpc.ClientConn, err error) {
+func Connect(address string, clientConstructor interface{}, tracers... jaeger.Tracer) (conn *grpc.ClientConn, err error) {
 	var tracer jaeger.Tracer
 	if len(tracers) > 0 {
 		tracer = tracers[0]
@@ -113,9 +109,5 @@ func Connect(address string, clientConstructor interface{}, tracers... jaeger.Tr
 		)
 	}
 
-	if clientConstructor != nil {
-		// get return type for register instance name
-		gRpcCli, err = reflector.CallFunc(clientConstructor, conn)
-	}
 	return
 }
