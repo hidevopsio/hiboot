@@ -112,6 +112,18 @@ func (a *application) Run() {
 	}
 }
 
+func unique(intSlice []string) []string {
+	keys := make(map[string]bool)
+	list := []string{}
+	for _, entry := range intSlice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
+}
+
 // Init init web application
 func (a *application) build() (err error) {
 
@@ -121,8 +133,9 @@ func (a *application) build() (err error) {
 	a.PrintStartupMessages()
 
 	systemConfig := a.SystemConfig()
+	// should do deduplication
 	systemConfig.App.Profiles.Include = append(systemConfig.App.Profiles.Include, app.Profiles...)
-
+	systemConfig.App.Profiles.Include = unique(systemConfig.App.Profiles.Include)
 	if systemConfig != nil {
 		log.Infof("Starting Hiboot web application %v version %v on localhost with PID %v", systemConfig.App.Name, systemConfig.App.Version, os.Getpid())
 		log.Infof("Working directory: %v", a.WorkDir)

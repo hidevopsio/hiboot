@@ -9,4 +9,5 @@ logging:
   level: info
 
 config:
+  enabled: true
   name: bar

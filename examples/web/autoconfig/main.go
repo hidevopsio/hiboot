@@ -68,6 +68,6 @@ func main() {
 
 	// create new web application and run it
 	web.NewApplication().
-		SetProperty(app.ProfilesInclude, swagger.Profile, web.Profile, actuator.Profile, config.Profile).
+		SetProperty(app.ProfilesInclude, swagger.Profile, swagger.Profile, web.Profile, actuator.Profile, config.Profile).
 		Run()
 }
