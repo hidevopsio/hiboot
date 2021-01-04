@@ -17,17 +17,17 @@ package web
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"regexp"
+	"time"
+
 	"github.com/kataras/iris"
 	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web/context"
 	"hidevops.io/hiboot/pkg/at"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/utils/io"
-	"hidevops.io/hiboot/pkg/utils/str"
-	"net/http"
-	"os"
-	"regexp"
-	"time"
 )
 
 const (
@@ -121,9 +121,6 @@ func (a *application) build() (err error) {
 	a.PrintStartupMessages()
 
 	systemConfig := a.SystemConfig()
-	if !str.InSlice(Profile, systemConfig.App.Profiles.Include) {
-		systemConfig.App.Profiles.Include = append(systemConfig.App.Profiles.Include, Profile)
-	}
 	systemConfig.App.Profiles.Include = append(systemConfig.App.Profiles.Include, app.Profiles...)
 
 	if systemConfig != nil {

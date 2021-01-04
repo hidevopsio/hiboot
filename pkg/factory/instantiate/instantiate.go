@@ -80,7 +80,7 @@ func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory
 	sa := new(system.App)
 	ss := new(system.Server)
 	sl := new(system.Logging)
-	syscfg := system.NewConfiguration(sa, ss, sl)
+	syscfg := system.NewConfiguration()
 
 
 	customProps := defaultProperties.Items()
@@ -195,12 +195,12 @@ func (f *instantiateFactory) BuildComponents() (err error) {
 		// log.Debugf("build component: %v %v", idx, item.Type)
 		if item.ContextAware {
 			//log.Debugf("at.ContextAware: %v", item.MetaObject)
-			f.SetInstance(item)
+			err = f.SetInstance(item)
 		} else {
 			// inject dependencies into function
 			// components, controllers
 			// TODO: should save the upstream dependencies that contains item.ContextAware annotation for runtime injection
-			f.injectDependency(item)
+			err = f.injectDependency(item)
 		}
 	}
 	if err == nil {

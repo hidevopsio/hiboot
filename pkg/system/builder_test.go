@@ -54,7 +54,7 @@ func TestBuilderBuild(t *testing.T) {
 
 	testProject := "hidevopsio"
 	customProps["app.project"] = testProject
-	b := NewBuilder(NewConfiguration(new(App), new(Server), new(Logging)),
+	b := NewBuilder(NewConfiguration(),
 		filepath.Join(io.GetWorkDir(), "config"),
 		"application",
 		"yaml",

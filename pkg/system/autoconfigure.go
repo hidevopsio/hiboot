@@ -27,6 +27,6 @@ type Configuration struct {
 	Logging *Logging
 }
 
-func NewConfiguration(app *App, server *Server, logging *Logging) *Configuration {
-	return &Configuration{App: app, Server: server, Logging: logging}
+func NewConfiguration() *Configuration {
+	return &Configuration{}
 }

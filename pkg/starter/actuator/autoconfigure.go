@@ -35,10 +35,10 @@ type configuration struct {
 	Properties *properties
 }
 
-func newConfiguration(properties *properties) *configuration {
-	return &configuration{Properties: properties}
+func newConfiguration() *configuration {
+	return &configuration{}
 }
 
 func init() {
-	app.Register(newConfiguration, new(properties))
+	app.Register(newConfiguration)
 }

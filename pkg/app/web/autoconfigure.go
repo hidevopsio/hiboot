@@ -17,11 +17,12 @@ type configuration struct {
 	Properties *properties
 }
 
-func newWebConfiguration(properties *properties) *configuration {
-	return &configuration{Properties: properties}
+func newWebConfiguration() *configuration {
+	return &configuration{}
 }
 
 func init() {
+	app.IncludeProfiles(Profile)
 	app.Register(newWebConfiguration)
 }
 

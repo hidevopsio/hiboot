@@ -161,11 +161,11 @@ func (f *configurableFactory) Build(configs []*factory.MetaData) {
 	f.build(f.configureContainer)
 
 	// load properties again
-	allProperties := f.GetInstances(at.ConfigurationProperties{})
-	log.Debug(len(allProperties))
-	for _, properties := range allProperties {
-		_ = f.builder.Load(properties.MetaObject)
-	}
+	//allProperties := f.GetInstances(at.ConfigurationProperties{})
+	//log.Debug(len(allProperties))
+	//for _, properties := range allProperties {
+	//	_ = f.builder.Load(properties.MetaObject)
+	//}
 }
 
 // Instantiate run instantiation by method
@@ -223,7 +223,41 @@ func (f *configurableFactory) parseName(item *factory.MetaData) string {
 	return name
 }
 
+func (f *configurableFactory) injectProperties(cf interface{}) {
+	v := reflect.ValueOf(cf)
+	cfv := reflector.Indirect(v)
+	cft := cfv.Type()
+	for _, field := range reflector.DeepFields(cft) {
+		var fieldObjValue reflect.Value
+
+		// find properties field
+		if !annotation.Contains(field.Type, at.ConfigurationProperties{}) {
+			continue
+		}
+		if cfv.IsValid() && cfv.Kind() == reflect.Struct {
+			fieldObjValue = cfv.FieldByName(field.Name)
+		}
+
+		// find it first
+		injectedObject := f.GetInstance(field.Type)
+		var injectedObjectValue reflect.Value
+		if injectedObject == nil {
+			injectedObjectValue = reflect.New(reflector.IndirectType(field.Type))
+		} else {
+			injectedObjectValue = reflect.ValueOf(injectedObject)
+		}
+
+		if fieldObjValue.CanSet() && injectedObjectValue.Type().AssignableTo(fieldObjValue.Type()) {
+			fieldObjValue.Set(injectedObjectValue)
+		} else {
+			log.Errorf("Error: trying to assign %v to %v", injectedObjectValue.Type(), fieldObjValue.Type())
+		}
+	}
+	return
+}
+
 func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
+	var err error
 	for _, item := range cfgContainer {
 		name := f.parseName(item)
 		config := item.MetaObject
@@ -238,26 +272,20 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 		}
 		log.Infof("Auto configuration %v is configured on %v.", item.PkgName, item.Type)
 
+		err = f.initProperties(config)
+
 		// inject into func
 		var cf interface{}
 		if item.Kind == types.Func {
-			cf, _ = f.InjectIntoFunc(config)
+			cf, err = f.InjectIntoFunc(config)
 		}
-		if cf != nil {
+		if err == nil && cf != nil {
+			// new properties
+			// we have two choices: the first is current implementation which inject properties by default,
+			// the second is inject properties and load to the container, let user to decide inject to configuration through constructor
+			f.injectProperties(cf)
 
-			_ = f.InjectDefaultValue(cf)
-			// inject default value
-
-			// build properties, inject settings
-			//_ = f.builder.Load(cf)
-
-			//No properties needs to build, use default config
-			//if cf == nil {
-			//	confTyp := reflect.TypeOf(config)
-			//	log.Warnf("Unsupported configuration type: %v", confTyp)
-			//	continue
-			//}
-
+			// inject other fields
 			_ = f.InjectIntoObject(cf)
 
 			// instantiation
@@ -270,6 +298,44 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 			//}
 			// TODO: should set full name instead
 			f.configurations.Set(configName, cf)
+		} else {
+			log.Warn(err)
 		}
 	}
+}
+
+func (f *configurableFactory) initProperties(config interface{}) (err error) {
+	cft, ok := reflector.GetObjectType(config)
+	if ok {
+		// load properties
+		for _, field := range reflector.DeepFields(cft) {
+
+			// find properties field
+			if !annotation.Contains(field.Type, at.ConfigurationProperties{}) {
+				continue
+			}
+			newPropVal := reflect.New(reflector.IndirectType(field.Type))
+			newPropObj := newPropVal.Interface()
+			err = f.InjectDefaultValue(newPropObj)
+			if err != nil {
+				log.Warn(err)
+				return
+			}
+
+			// load properties, inject settings
+			err = f.builder.Load(newPropObj)
+			if err != nil {
+				log.Warn(err)
+				return
+			}
+
+			// save new properties to container
+			err = f.SetInstance(newPropObj)
+			if err != nil {
+				log.Warn(err)
+				return
+			}
+		}
+	}
+	return
 }

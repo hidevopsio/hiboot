@@ -43,8 +43,8 @@ type configuration struct {
 	instantiateFactory factory.InstantiateFactory
 }
 
-func newConfiguration(properties *properties, instantiateFactory factory.InstantiateFactory) *configuration {
-	c := &configuration{Properties: properties, instantiateFactory: instantiateFactory}
+func newConfiguration(instantiateFactory factory.InstantiateFactory) *configuration {
+	c := &configuration{instantiateFactory: instantiateFactory}
 	var dep []string
 	for _, srv := range grpcServers {
 		if srv.svc != nil {

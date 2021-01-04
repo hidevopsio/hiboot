@@ -42,11 +42,11 @@ type configuration struct {
 }
 
 func init() {
-	app.Register(newConfiguration, new(properties))
+	app.Register(newConfiguration)
 }
 
-func newConfiguration(properties *properties) *configuration {
-	return &configuration{Properties: properties}
+func newConfiguration() *configuration {
+	return &configuration{}
 }
 
 //Tracer returns an instance of Jaeger Tracer that samples 100% of traces and logs all spans to stdout.

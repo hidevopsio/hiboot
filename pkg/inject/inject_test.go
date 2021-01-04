@@ -41,6 +41,7 @@ type fakeRepository struct {
 }
 
 type fakeProperties struct {
+	at.ConfigurationProperties `value:"fake"`
 	DefVarSlice   []string `default:"${app.name}"`
 	DefProfiles   []string `default:"${app.profiles.include}"`
 	Name          string   `default:"should not inject this default value as it will inject by system.Builder"`
@@ -76,8 +77,8 @@ type fakeConfiguration struct {
 	FakeProperties *fakeProperties
 }
 
-func newFakeConfiguration(properties *fakeProperties) *fakeConfiguration {
-	return &fakeConfiguration{FakeProperties: properties}
+func newFakeConfiguration() *fakeConfiguration {
+	return &fakeConfiguration{}
 }
 
 type fakeDataSource struct {
@@ -395,8 +396,6 @@ func setUp(t *testing.T) factory.ConfigurableFactory {
 		configurations)
 	cf.BuildProperties()
 
-	cf.SetInstance(new(fooProperties))
-	cf.SetInstance(new(fakeProperties))
 	configs := []*factory.MetaData{
 		factory.NewMetaData(newFakeConfiguration),
 		factory.NewMetaData(new(fooConfiguration)),
@@ -410,28 +409,27 @@ func setUp(t *testing.T) factory.ConfigurableFactory {
 func TestInject(t *testing.T) {
 
 	cf := setUp(t)
-	fakeConfig := cf.Configuration("fake").(*fakeConfiguration)
-
+	fakeProperties := cf.GetInstance(fakeProperties{}).(*fakeProperties)
 	cf.SetInstance("inject_test.hello", Hello("Hello"))
 
 	t.Run("should inject default string", func(t *testing.T) {
-		assert.Equal(t, "this is default value", fakeConfig.FakeProperties.DefStrVal)
+		assert.Equal(t, "this is default value", fakeProperties.DefStrVal)
 	})
 
 	t.Run("should inject default int", func(t *testing.T) {
-		assert.Equal(t, 123, fakeConfig.FakeProperties.DefIntVal)
+		assert.Equal(t, 123, fakeProperties.DefIntVal)
 	})
 
 	t.Run("should inject default uint", func(t *testing.T) {
-		assert.Equal(t, uint(123), fakeConfig.FakeProperties.DefIntValU)
+		assert.Equal(t, uint(123), fakeProperties.DefIntValU)
 	})
 
 	t.Run("should inject default float32", func(t *testing.T) {
-		assert.Equal(t, float32(0.1), fakeConfig.FakeProperties.DefFloatVal32)
+		assert.Equal(t, float32(0.1), fakeProperties.DefFloatVal32)
 	})
 
 	t.Run("should inject default int", func(t *testing.T) {
-		assert.Equal(t, 123, fakeConfig.FakeProperties.DefIntPropVal)
+		assert.Equal(t, 123, fakeProperties.DefIntPropVal)
 	})
 
 	t.Run("should get config", func(t *testing.T) {

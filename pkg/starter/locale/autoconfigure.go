@@ -36,15 +36,14 @@ type configuration struct {
 	applicationContext app.ApplicationContext
 }
 
-func newConfiguration(applicationContext app.ApplicationContext, properties *properties) *configuration {
+func newConfiguration(applicationContext app.ApplicationContext) *configuration {
 	return &configuration{
 		applicationContext: applicationContext,
-		Properties:         properties,
 	}
 }
 
 func init() {
-	app.Register(newConfiguration, new(properties))
+	app.Register(newConfiguration)
 }
 
 func (c *configuration) Handler() (handler context.Handler) {

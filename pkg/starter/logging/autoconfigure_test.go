@@ -23,9 +23,10 @@ import (
 )
 
 func TestConfiguration(t *testing.T) {
-	c := newConfiguration(new(fake.ApplicationContext), &properties{
+	c := newConfiguration(new(fake.ApplicationContext))
+	c.Properties = &properties{
 		Level: "debug",
-	})
+	}
 
 	t.Run("should get nil handler", func(t *testing.T) {
 		lh := c.LoggerHandler()

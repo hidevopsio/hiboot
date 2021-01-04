@@ -17,7 +17,7 @@ func TestRunMain(t *testing.T) {
 }
 
 func TestController(t *testing.T) {
-	time.Sleep(time.Second)
+	mu.Lock()
 	testApp := web.NewTestApp(t).Run(t)
 
 	t.Run("should get employee ", func(t *testing.T) {
@@ -140,4 +140,5 @@ func TestController(t *testing.T) {
 		testApp.Get("/employee").
 			Expect().Status(http.StatusOK)
 	})
+	mu.Unlock()
 }

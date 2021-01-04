@@ -265,10 +265,10 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 	}
 
 	//inject property set
-	if atFields := annotation.FindAll(object, at.ConfigurationProperties{}); len(atFields) > 0 {
-		obj := object.Interface()
-		err = i.factory.Builder().Load(obj)
-	}
+	//if atFields := annotation.FindAll(object, at.ConfigurationProperties{}); len(atFields) > 0 {
+	//	obj := object.Interface()
+	//	err = i.factory.Builder().Load(obj)
+	//}
 	return err
 }
 

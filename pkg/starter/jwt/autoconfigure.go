@@ -37,11 +37,11 @@ type configuration struct {
 }
 
 func init() {
-	app.Register(newConfiguration, new(Properties))
+	app.Register(newConfiguration)
 }
 
-func newConfiguration(properties *Properties) *configuration {
-	return &configuration{Properties: properties}
+func newConfiguration() *configuration {
+	return &configuration{}
 }
 
 func (c *configuration) Middleware(jwtToken Token) *Middleware {

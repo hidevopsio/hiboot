@@ -20,22 +20,22 @@ const (
 
 type view struct {
 	// ViewEnabled is the property for enabling web view
-	Enabled bool
+	Enabled bool `json:"enabled"`
 	// ContextPath is the property for setting web view context path
-	ContextPath string `default:"/"`
+	ContextPath string `json:"context_path" default:"/"`
 	// DefaultPage is the property for setting default page
-	DefaultPage string `default:"index.html"`
+	DefaultPage string `json:"default_page" default:"index.html"`
 	// ResourcePath is the property for setting resource path
-	ResourcePath string `default:"./static"`
+	ResourcePath string `json:"resource_path" default:"./static"`
 	// Extension is the property for setting extension
-	Extension string `default:".html"`
+	Extension string `json:"extension" default:".html"`
 }
 
 type properties struct {
 	at.ConfigurationProperties `value:"web"`
 
 	// View is the properties for setting web view
-	View view
+	View view `json:"view"`
 }
 
 func init() {
