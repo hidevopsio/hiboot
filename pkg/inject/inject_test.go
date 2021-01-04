@@ -33,6 +33,7 @@ import (
 )
 
 type User struct {
+	at.AutoWired
 	Name string
 	App  string
 }
@@ -42,6 +43,7 @@ type fakeRepository struct {
 
 type fakeProperties struct {
 	at.ConfigurationProperties `value:"fake"`
+	at.AutoWired
 	DefVarSlice   []string `default:"${app.name}"`
 	DefProfiles   []string `default:"${app.profiles.include}"`
 	Name          string   `default:"should not inject this default value as it will inject by system.Builder"`
@@ -68,7 +70,7 @@ type fakeProperties struct {
 
 type fooProperties struct {
 	at.ConfigurationProperties `value:"foo"`
-
+	at.AutoWired
 	Name string `default:"foo"`
 }
 
@@ -88,6 +90,7 @@ type FakeRepository interface {
 }
 
 type FooUser struct {
+	at.AutoWired
 	Name string
 }
 
@@ -174,11 +177,13 @@ type userService struct {
 }
 
 type PropTestUser struct {
+	at.AutoWired
 	Name string
 	App  string
 }
 
 type PropFooUser struct {
+	at.AutoWired
 	Name string
 }
 

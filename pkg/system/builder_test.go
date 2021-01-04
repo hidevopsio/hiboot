@@ -31,6 +31,7 @@ type profiles struct {
 
 type properties struct {
 	at.ConfigurationProperties `value:"app"`
+	at.AutoWired
 
 	Name string `json:"name"`
 	Profiles profiles `json:"profiles"`

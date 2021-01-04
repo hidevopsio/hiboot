@@ -234,12 +234,18 @@ func (f *configurableFactory) injectProperties(cf interface{}) {
 		if !annotation.Contains(field.Type, at.ConfigurationProperties{}) {
 			continue
 		}
+
 		if cfv.IsValid() && cfv.Kind() == reflect.Struct {
 			fieldObjValue = cfv.FieldByName(field.Name)
 		}
 
 		// find it first
 		injectedObject := f.GetInstance(field.Type)
+
+		if !annotation.Contains(injectedObject, at.AutoWired{}) {
+			continue
+		}
+
 		var injectedObjectValue reflect.Value
 		if injectedObject == nil {
 			injectedObjectValue = reflect.New(reflector.IndirectType(field.Type))

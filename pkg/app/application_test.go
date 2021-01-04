@@ -34,6 +34,7 @@ func TestApp(t *testing.T) {
 	mux.Lock()
 	type fakeProperties struct {
 		at.ConfigurationProperties `value:"fake"`
+		at.AutoWired
 
 		Name string `default:"fake"`
 	}

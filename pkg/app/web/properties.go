@@ -33,6 +33,7 @@ type view struct {
 
 type properties struct {
 	at.ConfigurationProperties `value:"web"`
+	at.AutoWired
 
 	// View is the properties for setting web view
 	View view `json:"view"`

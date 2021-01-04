@@ -245,12 +245,14 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 		}
 
 		// assign value to struct field
-		if injectedObject != nil && fieldObjValue.CanSet() {
-			fov := i.convert(f, injectedObject)
-			if fov.Type().AssignableTo(fieldObjValue.Type()) {
-				fieldObjValue.Set(fov)
-			//} else {
-			//	log.Errorf("unmatched type %v against %v", fov.Type(), fieldObj.Type())
+		if ft.Kind() != reflect.Struct || annotation.Contains(injectedObject, at.AutoWired{}) {
+			if injectedObject != nil && fieldObjValue.CanSet() {
+				fov := i.convert(f, injectedObject)
+				if fov.Type().AssignableTo(fieldObjValue.Type()) {
+					fieldObjValue.Set(fov)
+					//} else {
+					//	log.Errorf("unmatched type %v against %v", fov.Type(), fieldObj.Type())
+				}
 			}
 		}
 

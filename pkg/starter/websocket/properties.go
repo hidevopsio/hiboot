@@ -4,6 +4,7 @@ import "hidevops.io/hiboot/pkg/at"
 
 type properties struct {
 	at.ConfigurationProperties `value:"websocket"`
+	at.AutoWired
 
 	// EvtMessagePrefix is the prefix of the underline websocket events that are being established under the hoods.
 	// This prefix is visible only to the javascript side (code) and it has nothing to do

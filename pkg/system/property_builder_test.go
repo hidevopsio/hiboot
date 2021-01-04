@@ -34,6 +34,7 @@ var customProperties = make(map[string]interface{})
 
 type StarProperties struct {
 	at.ConfigurationProperties `value:"star"`
+	at.AutoWired
 
 	Name string `json:"name"`
 	System string `json:"system"`

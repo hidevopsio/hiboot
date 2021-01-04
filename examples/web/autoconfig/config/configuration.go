@@ -10,11 +10,11 @@ const Profile string = "config"
 type configuration struct {
 	at.AutoConfiguration
 
-	Properties *properties
+	properties *properties
 }
 
-func newConfiguration() *configuration  {
-	return &configuration{}
+func newConfiguration(properties *properties) *configuration  {
+	return &configuration{properties: properties}
 }
 
 func init() {
@@ -34,5 +34,5 @@ func (c *configuration) Foo(bar *Bar) *Foo {
 }
 
 func (c *configuration) Bar() *Bar {
-	return &Bar{Name: c.Properties.Name}
+	return &Bar{Name: c.properties.Name}
 }

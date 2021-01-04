@@ -50,6 +50,7 @@ type License struct {
 
 type apiInfoBuilder struct {
 	at.ConfigurationProperties `value:"swagger"`
+	at.AutoWired
 	spec.Swagger
 
 	SystemServer *system.Server

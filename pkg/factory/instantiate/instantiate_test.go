@@ -253,9 +253,13 @@ func TestInstantiateFactory(t *testing.T) {
 	})
 
 	type Greeter struct {
+		at.AutoWired
+
 		Name string `default:"Hiboot"`
 	}
-	greeter := new(Greeter)
+	greeter := &Greeter{
+		Name: "Hiboot",
+	}
 	t.Run("should inject default value", func(t *testing.T) {
 		err := instFactory.InjectDefaultValue(greeter)
 		assert.Equal(t, nil, err)
@@ -263,7 +267,7 @@ func TestInstantiateFactory(t *testing.T) {
 	})
 
 	type DevTester struct {
-		Greeter *Greeter `inject:""`
+		Greeter *Greeter
 		Home    string   `value:"${HOME}"`
 	}
 	devTester := new(DevTester)

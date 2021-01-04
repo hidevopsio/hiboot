@@ -22,6 +22,7 @@ import (
 // Properties the jaeger properties
 type properties struct {
 	at.ConfigurationProperties `value:"jaeger" `
+	at.AutoWired
 
 	Config config.Configuration
 }

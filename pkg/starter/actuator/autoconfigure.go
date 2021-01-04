@@ -27,6 +27,7 @@ const (
 
 type properties struct {
 	at.ConfigurationProperties `value:"actuator"`
+	at.AutoWired
 }
 
 type configuration struct {

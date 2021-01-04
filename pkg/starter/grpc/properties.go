@@ -41,6 +41,7 @@ type ClientProperties struct {
 
 type properties struct {
 	at.ConfigurationProperties `value:"grpc"`
+	at.AutoWired
 
 	TimeoutSecond time.Duration          `json:"timeout_second"`
 	Server        server                 `json:"server"`

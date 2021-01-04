@@ -16,11 +16,11 @@
 package main
 
 import (
-	"hidevops.io/hiboot/pkg/app/web"
 	"net/http"
 	"sync"
 	"testing"
-	"time"
+
+	"hidevops.io/hiboot/pkg/app/web"
 )
 
 var mu sync.Mutex
@@ -31,8 +31,9 @@ func TestRunMain(t *testing.T) {
 }
 
 func TestController(t *testing.T) {
-	time.Sleep(time.Second)
+	mu.Lock()
 	web.RunTestApplication(t, new(Controller)).
 		Get("/").
 		Expect().Status(http.StatusOK)
+	mu.Unlock()
 }

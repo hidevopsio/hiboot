@@ -46,6 +46,8 @@ type License struct {
 type App struct {
 	// at.ConfigurationProperties annotation
 	at.ConfigurationProperties `value:"app" json:"-"`
+	at.AutoWired
+
 	// project name
 	Title string `json:"title,omitempty" default:"HiBoot Demo Application"`
 	// project name
@@ -70,6 +72,8 @@ type App struct {
 type Server struct {
 	// annotation
 	at.ConfigurationProperties `value:"server" json:"-"`
+	at.AutoWired
+
 	Schemes                    []string `json:"schemes,omitempty" default:"http"`
 	Host                       string   `json:"host,omitempty" default:"localhost:8080"`
 	Port                       string   `json:"port,omitempty" default:"8080"`
@@ -80,6 +84,7 @@ type Server struct {
 type Logging struct {
 	// annotation
 	at.ConfigurationProperties `value:"logging" json:"-"`
+	at.AutoWired
 
 	Level string `json:"level,omitempty" default:"info"`
 }

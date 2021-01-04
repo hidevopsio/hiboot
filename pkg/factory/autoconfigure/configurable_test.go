@@ -33,6 +33,7 @@ import (
 
 type FakeProperties struct {
 	at.ConfigurationProperties `value:"fake"`
+	at.AutoWired
 
 	Name     string `default:"foo"`
 	Nickname string `default:"foobar"`
@@ -80,6 +81,7 @@ func newUnsupportedConfiguration(fakeProperties *FakeProperties) *unsupportedCon
 
 type fooProperties struct {
 	at.ConfigurationProperties `value:"foo"`
+	at.AutoWired
 
 	Name     string `default:"${fake.name}"`
 	Nickname string `default:"foobar"`
@@ -88,6 +90,7 @@ type fooProperties struct {
 
 type foobarProperties struct {
 	at.ConfigurationProperties `value:"foobar"`
+	at.AutoWired
 
 	Name     string `default:"${fake.name}"`
 	Nickname string `default:"foobar"`
@@ -97,6 +100,7 @@ type foobarProperties struct {
 
 type barProperties struct {
 	at.ConfigurationProperties `value:"bar"`
+	at.AutoWired
 
 	Name     string `default:"${fake.name}"`
 	Nickname string `default:"foobar"`
