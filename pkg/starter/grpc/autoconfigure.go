@@ -61,6 +61,8 @@ type grpcService struct {
 	svc  interface{}
 }
 
+type ClientConn grpc.ClientConn
+
 var (
 	grpcServers []*grpcService
 	grpcClients []*grpcService
@@ -68,6 +70,9 @@ var (
 	clientMap cmap.ConcurrentMap
 
 	registerHealthCheckService = false
+
+	Header = grpc.Header
+	Server = RegisterServer
 )
 
 // RegisterServer register server from application
@@ -81,9 +86,6 @@ func RegisterServer(register interface{}, server interface{}) {
 	app.Register(server)
 	grpcServers = append(grpcServers, svr)
 }
-
-// Server alias to RegisterServer
-var Server = RegisterServer
 
 // registerClient register client from application
 func registerClient(name string, clientConstructors ...interface{}) {
