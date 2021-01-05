@@ -57,10 +57,11 @@ func (c *configuration) Tracer() (tracer Tracer) {
 	}
 	tracer, c.Closer, err = c.Properties.Config.NewTracer(config.Logger(&Logger{}))
 	if err != nil {
-		log.Error(err)
+		log.Warnf("%v, so Jaeger may not work properly because of this warning", err.Error())
+		return
 	}
 	opentracing.SetGlobalTracer(tracer)
-	return tracer
+	return
 }
 
 func (c *configuration) path(ctx context.Context) (path string) {

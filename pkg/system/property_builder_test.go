@@ -55,7 +55,7 @@ func TestPropertyBuilderBuild(t *testing.T) {
 	_ = b.Save(nil)
 	b.SetConfiguration(nil)
 
-	profile := os.Getenv("APP_PROFILES_ACTIVE")
+	profile := "local" //os.Getenv("APP_PROFILES_ACTIVE")
 	_, err = b.Build()
 
 	_, err = b.Build(profile)

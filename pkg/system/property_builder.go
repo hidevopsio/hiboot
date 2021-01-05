@@ -142,9 +142,9 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 	var paths []string
 	configFiles :=  make(map[string]map[string][]string)
 	pp, _ := filepath.Abs(b.path)
-	var profile string
 
-	if len(profiles) > 0 {
+	profile := b.GetString("app.profiles.active")
+	if profile == "" && len(profiles) > 0 {
 		profile = profiles[0]
 	}
 

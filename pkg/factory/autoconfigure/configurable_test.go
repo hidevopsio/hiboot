@@ -422,7 +422,7 @@ func TestConfigurableFactory(t *testing.T) {
 	var err error
 
 	// backup profile
-	profile := os.Getenv(autoconfigure.EnvAppProfilesActive)
+	profile := "default" //os.Getenv(autoconfigure.EnvAppProfilesActive)
 	t.Run("should build app config", func(t *testing.T) {
 		os.Setenv(autoconfigure.EnvAppProfilesActive, "")
 		sc, err := f.BuildProperties()
