@@ -1,9 +1,12 @@
 package grpc
 
 import (
+	"time"
+
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 	"hidevops.io/hiboot/pkg/factory"
 	"hidevops.io/hiboot/pkg/log"
 	"hidevops.io/hiboot/pkg/starter/jaeger"
@@ -30,6 +33,36 @@ func newClientConnector(instantiateFactory factory.InstantiateFactory, tracer ja
 	return cc
 }
 
+
+func Connect(address string, tracer jaeger.Tracer) (conn *grpc.ClientConn, err error) {
+	if tracer == nil {
+		conn, err = grpc.Dial(address,
+			grpc.WithInsecure(),
+			grpc.WithKeepaliveParams(keepalive.ClientParameters{
+				Time:                10 * time.Second,
+				Timeout:             time.Second,
+				PermitWithoutStream: true,
+			}),
+		)
+	} else {
+		conn, err = grpc.Dial(address,
+			grpc.WithInsecure(),
+			grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
+				grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(tracer)),
+			)),
+			grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
+				grpc_opentracing.UnaryClientInterceptor(grpc_opentracing.WithTracer(tracer)),
+			)),
+			grpc.WithKeepaliveParams(keepalive.ClientParameters{
+				Time:                10 * time.Second,
+				Timeout:             time.Second,
+				PermitWithoutStream: true,
+			}),
+		)
+	}
+	return conn, err
+}
+
 // ConnectWithName connect to grpc server from client with service name
 // name: client name
 // clientConstructor: client constructor
@@ -43,21 +76,7 @@ func (c *clientConnector) ConnectWithName(name string, clientConstructor interfa
 	conn := c.instantiateFactory.GetInstance(name)
 	if conn == nil {
 		// connect to grpc server
-		if c.tracer == nil {
-			conn, err = grpc.Dial(address,
-				grpc.WithInsecure(),
-			)
-		} else {
-			conn, err = grpc.Dial(address,
-				grpc.WithInsecure(),
-				grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
-					grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(c.tracer)),
-				)),
-				grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
-					grpc_opentracing.UnaryClientInterceptor(grpc_opentracing.WithTracer(c.tracer)),
-				)),
-			)
-		}
+		conn, err = Connect(address, c.tracer)
 		c.instantiateFactory.SetInstance(name, conn)
 		if err == nil {
 			log.Infof("gRPC client connected to: %v", address)
@@ -70,25 +89,11 @@ func (c *clientConnector) ConnectWithName(name string, clientConstructor interfa
 	return
 }
 
+
 // Connect connect to client connection
 func (c *clientConnector) Connect(address string) (conn *grpc.ClientConn, err error) {
-	if c.tracer != nil {
-		conn, err = grpc.Dial(address,
-			grpc.WithInsecure(),
-			grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
-				grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(c.tracer)),
-			)),
-			grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
-				grpc_opentracing.UnaryClientInterceptor(grpc_opentracing.WithTracer(c.tracer)),
-			)),
-		)
 
-	} else {
-		conn, err = grpc.Dial(address,
-			grpc.WithInsecure(),
-		)
-	}
-
+	conn, err = Connect(address, c.tracer)
 	if err == nil {
 		log.Infof("gRPC client connected to: %v", address)
 	}
@@ -96,32 +101,3 @@ func (c *clientConnector) Connect(address string) (conn *grpc.ClientConn, err er
 	return
 }
 
-
-func Connect(address string, tracers... jaeger.Tracer) (conn *grpc.ClientConn, err error) {
-	var tracer jaeger.Tracer
-	if len(tracers) > 0 {
-		tracer = tracers[0]
-	}
-	if tracer != nil {
-		conn, err = grpc.Dial(address,
-			grpc.WithInsecure(),
-			grpc.WithStreamInterceptor(grpc_middleware.ChainStreamClient(
-				grpc_opentracing.StreamClientInterceptor(grpc_opentracing.WithTracer(tracer)),
-			)),
-			grpc.WithUnaryInterceptor(grpc_middleware.ChainUnaryClient(
-				grpc_opentracing.UnaryClientInterceptor(grpc_opentracing.WithTracer(tracer)),
-			)),
-		)
-
-	} else {
-		conn, err = grpc.Dial(address,
-			grpc.WithInsecure(),
-		)
-	}
-
-	if err == nil {
-		log.Infof("gRPC client connected to: %v", address)
-	}
-
-	return
-}

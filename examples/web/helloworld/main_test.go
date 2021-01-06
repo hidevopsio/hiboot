@@ -20,7 +20,10 @@ import (
 	"sync"
 	"testing"
 
+	"hidevops.io/hiboot/pkg/app"
 	"hidevops.io/hiboot/pkg/app/web"
+	"hidevops.io/hiboot/pkg/starter/actuator"
+	"hidevops.io/hiboot/pkg/starter/swagger"
 )
 
 var mu sync.Mutex
@@ -32,8 +35,16 @@ func TestRunMain(t *testing.T) {
 
 func TestController(t *testing.T) {
 	mu.Lock()
-	web.RunTestApplication(t, new(Controller)).
+
+	app.Register(swagger.ApiInfoBuilder().
+		Title("HiBoot Example - Hello world").
+		Description("This is an example that demonstrate the basic usage"))
+
+	web.NewTestApp(t, new(Controller)).
+		SetProperty(app.ProfilesInclude, swagger.Profile, web.Profile, actuator.Profile).
+		Run(t).
 		Get("/").
 		Expect().Status(http.StatusOK)
+
 	mu.Unlock()
 }
