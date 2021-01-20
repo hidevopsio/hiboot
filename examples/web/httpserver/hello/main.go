@@ -1,4 +1,4 @@
-package hello
+package main
 
 // import web starter from hiboot
 import (

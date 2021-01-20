@@ -1,4 +1,4 @@
-package hello
+package main
 
 import (
 	"hidevops.io/hiboot/pkg/app/web"

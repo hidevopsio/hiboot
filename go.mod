@@ -29,7 +29,6 @@ require (
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.8.1
 	github.com/rakyll/statik v0.1.6
-	github.com/sirupsen/logrus v1.4.2
 	github.com/sony/sonyflake v0.0.0-20160530021500-fa881fb1052b
 	github.com/spf13/afero v1.1.2
 	github.com/spf13/cobra v0.0.5
@@ -41,7 +40,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0
 	golang.org/x/net v0.0.0-20200421231249-e086a090c8fd
 	google.golang.org/grpc v1.34.0
-	google.golang.org/grpc/examples v0.0.0-20201226181154-53788aa5dcb4
+	google.golang.org/grpc/examples v0.0.0-20210120020032-f579b61a694c
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2
