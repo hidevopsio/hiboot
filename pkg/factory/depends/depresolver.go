@@ -16,10 +16,10 @@
 package depends
 
 import (
-	"hidevops.io/hiboot/pkg/factory"
-	"hidevops.io/hiboot/pkg/log"
-	"hidevops.io/hiboot/pkg/system/types"
-	"hidevops.io/hiboot/pkg/utils/str"
+	"github.com/hidevopsio/hiboot/pkg/factory"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/system/types"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
 )
 

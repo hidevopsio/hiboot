@@ -15,11 +15,11 @@
 package main
 
 import (
-	"hidevops.io/hiboot/examples/cli/advanced/cmd"
-	"hidevops.io/hiboot/examples/cli/advanced/config"
-	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/cli"
-	"hidevops.io/hiboot/pkg/starter/logging"
+	"github.com/hidevopsio/hiboot/examples/cli/advanced/cmd"
+	"github.com/hidevopsio/hiboot/examples/cli/advanced/config"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
+	"github.com/hidevopsio/hiboot/pkg/starter/logging"
 )
 
 func main() {

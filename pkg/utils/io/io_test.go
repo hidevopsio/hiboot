@@ -17,7 +17,7 @@ package io
 import (
 	"bytes"
 	"github.com/stretchr/testify/assert"
-	"hidevops.io/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"os"
 	"path/filepath"
 	"runtime"

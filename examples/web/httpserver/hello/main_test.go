@@ -1,7 +1,7 @@
 package main
 
 import (
-	"hidevops.io/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"net/http"
 	"sync"
 	"testing"

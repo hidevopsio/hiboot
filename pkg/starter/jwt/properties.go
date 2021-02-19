@@ -14,7 +14,7 @@
 
 package jwt
 
-import "hidevops.io/hiboot/pkg/at"
+import "github.com/hidevopsio/hiboot/pkg/at"
 
 // Properties the jwt properties
 type Properties struct {

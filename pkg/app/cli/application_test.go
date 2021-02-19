@@ -17,9 +17,9 @@ package cli_test
 import (
 	"errors"
 	"github.com/stretchr/testify/assert"
-	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/cli"
-	"hidevops.io/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"sync"
 	"testing"
 	"time"

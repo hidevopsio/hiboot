@@ -16,11 +16,11 @@
 package websocket
 
 import (
-	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/web/context"
-	"hidevops.io/hiboot/pkg/at"
-	"hidevops.io/hiboot/pkg/starter/websocket/ws"
-	"hidevops.io/hiboot/pkg/utils/copier"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/web/context"
+	"github.com/hidevopsio/hiboot/pkg/at"
+	"github.com/hidevopsio/hiboot/pkg/starter/websocket/ws"
+	"github.com/hidevopsio/hiboot/pkg/utils/copier"
 	"time"
 )
 

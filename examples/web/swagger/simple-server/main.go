@@ -2,17 +2,18 @@ package main
 
 import (
 	"fmt"
-	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/web"
-	"hidevops.io/hiboot/pkg/app/web/context"
-	"hidevops.io/hiboot/pkg/at"
-	"hidevops.io/hiboot/pkg/log"
-	"hidevops.io/hiboot/pkg/model"
-	"hidevops.io/hiboot/pkg/starter/actuator"
-	"hidevops.io/hiboot/pkg/starter/logging"
-	"hidevops.io/hiboot/pkg/starter/swagger"
 	"net/http"
 	"time"
+
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/app/web/context"
+	"github.com/hidevopsio/hiboot/pkg/at"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/model"
+	"github.com/hidevopsio/hiboot/pkg/starter/actuator"
+	"github.com/hidevopsio/hiboot/pkg/starter/logging"
+	"github.com/hidevopsio/hiboot/pkg/starter/swagger"
 )
 
 type Asset struct {

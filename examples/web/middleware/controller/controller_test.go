@@ -1,9 +1,9 @@
 package controller_test
 
 import (
-	_ "hidevops.io/hiboot/examples/web/middleware/controller"
-	_ "hidevops.io/hiboot/examples/web/middleware/logging"
-	"hidevops.io/hiboot/pkg/app/web"
+	_ "github.com/hidevopsio/hiboot/examples/web/middleware/controller"
+	_ "github.com/hidevopsio/hiboot/examples/web/middleware/logging"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"net/http"
 	"testing"
 )

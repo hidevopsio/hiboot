@@ -20,10 +20,10 @@ import (
 
 	ctx "github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/i18n"
-	"hidevops.io/hiboot/pkg/app/web/context"
-	"hidevops.io/hiboot/pkg/model"
-	"hidevops.io/hiboot/pkg/utils/mapstruct"
-	"hidevops.io/hiboot/pkg/utils/validator"
+	"github.com/hidevopsio/hiboot/pkg/app/web/context"
+	"github.com/hidevopsio/hiboot/pkg/model"
+	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
+	"github.com/hidevopsio/hiboot/pkg/utils/validator"
 	"net/http"
 )
 

@@ -1,11 +1,11 @@
 package logging
 
 import (
-	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/web/context"
-	"hidevops.io/hiboot/pkg/at"
-	"hidevops.io/hiboot/pkg/inject/annotation"
-	"hidevops.io/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/web/context"
+	"github.com/hidevopsio/hiboot/pkg/at"
+	"github.com/hidevopsio/hiboot/pkg/inject/annotation"
+	"github.com/hidevopsio/hiboot/pkg/log"
 )
 
 type loggingMiddleware struct {

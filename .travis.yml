@@ -11,7 +11,7 @@ branches:
   - master
   - v2
 
-go_import_path: hidevops.io/hiboot
+go_import_path: github.com/hidevopsio/hiboot
 
 env:
 - GO111MODULE=on APP_PROFILES_ACTIVE=local GOPROXY=https://goproxy.cn

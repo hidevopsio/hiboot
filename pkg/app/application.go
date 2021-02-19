@@ -22,14 +22,14 @@ import (
 	"strings"
 	"sync"
 
-	"hidevops.io/hiboot/pkg/app/web/context"
-	"hidevops.io/hiboot/pkg/factory"
-	"hidevops.io/hiboot/pkg/factory/autoconfigure"
-	"hidevops.io/hiboot/pkg/factory/instantiate"
-	"hidevops.io/hiboot/pkg/log"
-	"hidevops.io/hiboot/pkg/system"
-	"hidevops.io/hiboot/pkg/utils/cmap"
-	"hidevops.io/hiboot/pkg/utils/io"
+	"github.com/hidevopsio/hiboot/pkg/app/web/context"
+	"github.com/hidevopsio/hiboot/pkg/factory"
+	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
+	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
 const (
@@ -89,7 +89,7 @@ ______  ____________             _____
 ___  / / /__(_)__  /_______________  /_
 __  /_/ /__  /__  __ \  __ \  __ \  __/   
 _  __  / _  / _  /_/ / /_/ / /_/ / /_     Hiboot Application Framework
-/_/ /_/  /_/  /_.___/\____/\____/\__/     https://hidevops.io/hiboot
+/_/ /_/  /_/  /_.___/\____/\____/\__/     https://github.com/hidevopsio/hiboot
 
 `
 )

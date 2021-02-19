@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	protobuf2 "hidevops.io/hiboot/examples/web/grpc/helloworld/protobuf"
+	protobuf2 "github.com/hidevopsio/hiboot/examples/web/grpc/helloworld/protobuf"
 )
 
 var mu sync.Mutex

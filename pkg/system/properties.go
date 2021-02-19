@@ -14,7 +14,7 @@
 
 package system
 
-import "hidevops.io/hiboot/pkg/at"
+import "github.com/hidevopsio/hiboot/pkg/at"
 
 // Profiles is app profiles
 // .include auto configuration starter should be included inside this slide

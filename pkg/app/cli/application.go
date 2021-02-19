@@ -15,7 +15,7 @@
 package cli
 
 import (
-	"hidevops.io/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app"
 	"os"
 	"path/filepath"
 	"strings"

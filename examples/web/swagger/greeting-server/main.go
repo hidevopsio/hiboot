@@ -3,13 +3,13 @@
 package main
 
 import (
-	_ "hidevops.io/hiboot/examples/web/swagger/greeting-server/controller"
-	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/web"
-	"hidevops.io/hiboot/pkg/app/web/server"
-	"hidevops.io/hiboot/pkg/starter/actuator"
-	"hidevops.io/hiboot/pkg/starter/logging"
-	"hidevops.io/hiboot/pkg/starter/swagger"
+	_ "github.com/hidevopsio/hiboot/examples/web/swagger/greeting-server/controller"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/app/web/server"
+	"github.com/hidevopsio/hiboot/pkg/starter/actuator"
+	"github.com/hidevopsio/hiboot/pkg/starter/logging"
+	"github.com/hidevopsio/hiboot/pkg/starter/swagger"
 )
 
 const (

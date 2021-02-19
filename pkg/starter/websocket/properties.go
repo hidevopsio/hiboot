@@ -1,6 +1,6 @@
 package websocket
 
-import "hidevops.io/hiboot/pkg/at"
+import "github.com/hidevopsio/hiboot/pkg/at"
 
 type properties struct {
 	at.ConfigurationProperties `value:"websocket"`

@@ -23,12 +23,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	pb "google.golang.org/grpc/health/grpc_health_v1"
-	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/at"
-	"hidevops.io/hiboot/pkg/factory"
-	"hidevops.io/hiboot/pkg/starter/jaeger"
-	"hidevops.io/hiboot/pkg/utils/cmap"
-	"hidevops.io/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/at"
+	"github.com/hidevopsio/hiboot/pkg/factory"
+	"github.com/hidevopsio/hiboot/pkg/starter/jaeger"
+	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 )
 
 const (

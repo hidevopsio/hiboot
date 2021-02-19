@@ -17,7 +17,7 @@ package main
 
 import (
 	"github.com/stretchr/testify/assert"
-	"hidevops.io/hiboot/pkg/app/cli"
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"sync"
 	"testing"
 )

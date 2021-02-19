@@ -1,12 +1,12 @@
 package main
 
 import (
-	_ "hidevops.io/hiboot/examples/web/middleware/controller"
-	_ "hidevops.io/hiboot/examples/web/middleware/logging"
-	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/web"
-	"hidevops.io/hiboot/pkg/starter/actuator"
-	"hidevops.io/hiboot/pkg/starter/logging"
+	_ "github.com/hidevopsio/hiboot/examples/web/middleware/controller"
+	_ "github.com/hidevopsio/hiboot/examples/web/middleware/logging"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/starter/actuator"
+	"github.com/hidevopsio/hiboot/pkg/starter/logging"
 )
 
 // HiBoot main function

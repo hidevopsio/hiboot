@@ -16,8 +16,8 @@ package swagger
 
 import (
 	"github.com/go-openapi/spec"
-	"hidevops.io/hiboot/pkg/at"
-	"hidevops.io/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/at"
+	"github.com/hidevopsio/hiboot/pkg/system"
 )
 
 type ApiInfoBuilderInterface interface {

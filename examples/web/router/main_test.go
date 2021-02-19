@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"hidevops.io/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 )
 
 var mu sync.Mutex

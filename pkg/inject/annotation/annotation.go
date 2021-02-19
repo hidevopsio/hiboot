@@ -16,13 +16,13 @@ package annotation
 
 import (
 	"fmt"
-	"hidevops.io/hiboot/pkg/at"
-	"hidevops.io/hiboot/pkg/log"
-	"hidevops.io/hiboot/pkg/types"
-	"hidevops.io/hiboot/pkg/utils/mapstruct"
-	"hidevops.io/hiboot/pkg/utils/reflector"
-	"hidevops.io/hiboot/pkg/utils/str"
-	"hidevops.io/hiboot/pkg/utils/structtag"
+	"github.com/hidevopsio/hiboot/pkg/at"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/types"
+	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
+	"github.com/hidevopsio/hiboot/pkg/utils/structtag"
 	"reflect"
 	"strings"
 )

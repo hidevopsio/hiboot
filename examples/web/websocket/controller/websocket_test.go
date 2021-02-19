@@ -2,11 +2,11 @@ package controller
 
 import (
 	"github.com/stretchr/testify/assert"
-	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/web"
-	"hidevops.io/hiboot/pkg/app/web/context"
-	"hidevops.io/hiboot/pkg/starter/logging"
-	"hidevops.io/hiboot/pkg/starter/websocket"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/app/web/context"
+	"github.com/hidevopsio/hiboot/pkg/starter/logging"
+	"github.com/hidevopsio/hiboot/pkg/starter/websocket"
 	"net/http"
 	"testing"
 )

@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"hidevops.io/hiboot/pkg/app/web"
-	"hidevops.io/hiboot/pkg/app/web/server"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/app/web/server"
 	"net/http"
 	"sync"
 	"testing"
@@ -11,8 +11,10 @@ import (
 var mu sync.Mutex
 func TestController(t *testing.T) {
 	mu.Lock()
-	basePath := "/api/v1/greeting-server"
-	testApp := web.NewTestApp(t, newHelloController).SetProperty(server.ContextPath, basePath).Run(t)
+	basePath := "/api/v1/my-greeting-server"
+	testApp := web.NewTestApp(t, newHelloController).
+		SetProperty("server.port", "8082").
+		SetProperty(server.ContextPath, basePath).Run(t)
 
 	t.Run("should get employee ", func(t *testing.T) {
 		testApp.Get(basePath + "/hello").

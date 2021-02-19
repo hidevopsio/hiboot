@@ -5,13 +5,13 @@ import (
 	"sync"
 	"testing"
 
-	"hidevops.io/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 )
 var mu sync.Mutex
 
 func TestController(t *testing.T) {
 	mu.Lock()
-	testApp := web.NewTestApp(t).Run(t)
+	testApp := web.NewTestApp(t).SetProperty("server.port", "8081").Run(t)
 
 	t.Run("should get index.html ", func(t *testing.T) {
 		testApp.Get("/public/ui").

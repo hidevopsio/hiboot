@@ -2,10 +2,10 @@ package controller
 
 import (
 	"golang.org/x/net/context"
-	"hidevops.io/hiboot/examples/web/grpc/helloworld/protobuf"
-	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/at"
-	"hidevops.io/hiboot/pkg/starter/grpc"
+	"github.com/hidevopsio/hiboot/examples/web/grpc/helloworld/protobuf"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/at"
+	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
 )
 
 // controller

@@ -1,13 +1,13 @@
 package factory
 
 import (
-	"hidevops.io/hiboot/pkg/at"
-	"hidevops.io/hiboot/pkg/inject/annotation"
-	"hidevops.io/hiboot/pkg/log"
-	"hidevops.io/hiboot/pkg/system/types"
-	"hidevops.io/hiboot/pkg/utils/io"
-	"hidevops.io/hiboot/pkg/utils/reflector"
-	"hidevops.io/hiboot/pkg/utils/str"
+	"github.com/hidevopsio/hiboot/pkg/at"
+	"github.com/hidevopsio/hiboot/pkg/inject/annotation"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/system/types"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
 	"strings"
 )

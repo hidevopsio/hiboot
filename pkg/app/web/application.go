@@ -23,11 +23,11 @@ import (
 	"time"
 
 	"github.com/kataras/iris"
-	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/web/context"
-	"hidevops.io/hiboot/pkg/at"
-	"hidevops.io/hiboot/pkg/log"
-	"hidevops.io/hiboot/pkg/utils/io"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/web/context"
+	"github.com/hidevopsio/hiboot/pkg/at"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
 
 const (

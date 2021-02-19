@@ -15,7 +15,7 @@
 package system
 
 import (
-	"hidevops.io/hiboot/pkg/at"
+	"github.com/hidevopsio/hiboot/pkg/at"
 )
 
 // Configuration is the system configuration

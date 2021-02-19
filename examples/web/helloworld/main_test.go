@@ -20,10 +20,10 @@ import (
 	"sync"
 	"testing"
 
-	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/web"
-	"hidevops.io/hiboot/pkg/starter/actuator"
-	"hidevops.io/hiboot/pkg/starter/swagger"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/starter/actuator"
+	"github.com/hidevopsio/hiboot/pkg/starter/swagger"
 )
 
 var mu sync.Mutex
@@ -41,6 +41,7 @@ func TestController(t *testing.T) {
 		Description("This is an example that demonstrate the basic usage"))
 
 	web.NewTestApp(t, new(Controller)).
+		SetProperty("server.port", "8081").
 		SetProperty(app.ProfilesInclude, swagger.Profile, web.Profile, actuator.Profile).
 		Run(t).
 		Get("/").

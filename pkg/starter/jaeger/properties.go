@@ -16,7 +16,7 @@ package jaeger
 
 import (
 	"github.com/uber/jaeger-client-go/config"
-	"hidevops.io/hiboot/pkg/at"
+	"github.com/hidevopsio/hiboot/pkg/at"
 )
 
 // Properties the jaeger properties

@@ -16,9 +16,9 @@
 package factory
 
 import (
-	"hidevops.io/hiboot/pkg/app/web/context"
-	"hidevops.io/hiboot/pkg/system"
-	"hidevops.io/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/app/web/context"
+	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"reflect"
 )
 

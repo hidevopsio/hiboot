@@ -1,4 +1,4 @@
-module hidevops.io/hiboot
+module github.com/hidevopsio/hiboot
 
 go 1.16
 

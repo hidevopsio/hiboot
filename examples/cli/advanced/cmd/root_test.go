@@ -16,8 +16,8 @@ package cmd
 
 import (
 	"github.com/stretchr/testify/assert"
-	_ "hidevops.io/hiboot/examples/cli/advanced/config"
-	"hidevops.io/hiboot/pkg/app/cli"
+	_ "github.com/hidevopsio/hiboot/examples/cli/advanced/config"
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"sync"
 	"testing"
 )

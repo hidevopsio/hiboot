@@ -20,11 +20,11 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/examples/helloworld/helloworld"
 	"google.golang.org/grpc/health/grpc_health_v1"
-	"hidevops.io/hiboot/pkg/app"
-	"hidevops.io/hiboot/pkg/app/web"
-	"hidevops.io/hiboot/pkg/factory"
-	"hidevops.io/hiboot/pkg/starter/grpc"
-	"hidevops.io/hiboot/pkg/starter/grpc/mockgrpc"
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/factory"
+	"github.com/hidevopsio/hiboot/pkg/starter/grpc"
+	"github.com/hidevopsio/hiboot/pkg/starter/grpc/mockgrpc"
 	"testing"
 )
 
