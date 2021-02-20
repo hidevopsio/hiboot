@@ -15,9 +15,10 @@ require (
 	github.com/golang/protobuf v1.4.2
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.0
-	github.com/gorilla/websocket v1.4.0
+	github.com/gorilla/websocket v1.4.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/hidevopsio/mapstructure v1.1.3-0.20190908102033-f8832fd9e307
+	github.com/hidevopsio/viper v1.2.2-0.20210220025633-ccb4b202d169
 	github.com/iris-contrib/formBinder v0.0.0-20190104093907-fbd5963f41e1 // indirect
 	github.com/iris-contrib/go.uuid v2.0.0+incompatible
 	github.com/iris-contrib/httpexpect v0.0.0-20180314041918-ebe99fcebbce
@@ -44,6 +45,5 @@ require (
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2
-	gopkg.in/yaml.v2 v2.2.2
-	hidevops.io/viper v1.3.2
+	gopkg.in/yaml.v2 v2.2.4
 )

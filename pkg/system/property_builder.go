@@ -17,7 +17,11 @@
 package system
 
 import (
-	"github.com/hidevopsio/mapstructure"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/inject/annotation"
 	"github.com/hidevopsio/hiboot/pkg/log"
@@ -25,11 +29,8 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
 	"github.com/hidevopsio/hiboot/pkg/utils/sort"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
-	"hidevops.io/viper"
-	"os"
-	"path/filepath"
-	"strings"
-	"sync"
+	"github.com/hidevopsio/mapstructure"
+	"github.com/hidevopsio/viper"
 )
 
 const ( appProfilesInclude  = "app.profiles.include")

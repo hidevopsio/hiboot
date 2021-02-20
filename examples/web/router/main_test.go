@@ -19,7 +19,6 @@ import (
 	"net/http"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 )

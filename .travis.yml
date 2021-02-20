@@ -19,7 +19,7 @@ env:
 install: true
 
 script:
-- env GO111MODULE=on go test -v ./... -coverprofile=coverage.out -covermode=atomic
+- env GO111MODULE=on go test -p 1 -v ./... -coverprofile=coverage.out -covermode=atomic
 
 after_success:
 - bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN}
