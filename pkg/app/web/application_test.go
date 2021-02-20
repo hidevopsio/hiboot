@@ -19,6 +19,8 @@ package web_test
 import (
 	"errors"
 	"fmt"
+	"sync"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
@@ -41,6 +43,8 @@ import (
 	"testing"
 	"time"
 )
+
+var mu sync.Mutex
 
 type UserRequest struct {
 	model.RequestBody
@@ -434,7 +438,7 @@ func (c *oneTwoThreeController) Get() string {
 }
 
 func TestOneTwoThreeController(t *testing.T) {
-
+	mu.Lock()
 	testData := []struct {
 		format string
 		path   string
@@ -467,6 +471,7 @@ func TestOneTwoThreeController(t *testing.T) {
 				Expect().Status(http.StatusOK)
 		})
 	}
+	mu.Unlock()
 }
 
 // Define our controller, start with the name Foo, the first word of the Camelcase FooController is the controller name
@@ -499,6 +504,7 @@ func (c *HelloViewController) AnyTest() string {
 }
 
 func TestWebViewApplicationWithProperties(t *testing.T) {
+	mu.Lock()
 	testApp := web.NewTestApp(newHelloViewController).
 		SetProperty("web.view.enabled", true).
 		Run(t)
@@ -507,9 +513,11 @@ func TestWebViewApplicationWithProperties(t *testing.T) {
 			Get("/").
 			Expect().Status(http.StatusOK)
 	})
+	mu.Unlock()
 }
 
 func TestWebViewApplicationWithArgs(t *testing.T) {
+	mu.Lock()
 	testApp := web.NewTestApp(newHelloViewController).
 		SetProperty("server.port", 8080).
 		SetProperty("web.view.enabled", true).
@@ -525,9 +533,11 @@ func TestWebViewApplicationWithArgs(t *testing.T) {
 			Get("/test").
 			Expect().Status(http.StatusOK)
 	})
+	mu.Unlock()
 }
 
 func TestApplicationWithoutController(t *testing.T) {
+	mu.Lock()
 	testApp := web.NewTestApp().
 		Run(t)
 
@@ -536,6 +546,7 @@ func TestApplicationWithoutController(t *testing.T) {
 			Get("/").
 			Expect().Status(http.StatusNotFound)
 	})
+	mu.Unlock()
 }
 
 type circularFoo struct {
@@ -569,6 +580,7 @@ func newCircularDiController(circularFoo *circularFoo) *circularDiController {
 }
 
 func TestApplicationWithCircularDI(t *testing.T) {
+	mu.Lock()
 	testApp := web.NewTestApp(newCircularDiController).
 		Run(t)
 
@@ -577,9 +589,11 @@ func TestApplicationWithCircularDI(t *testing.T) {
 			Get("/").
 			Expect().Status(http.StatusNotFound)
 	})
+	mu.Unlock()
 }
 
 func TestWebApplication(t *testing.T) {
+	mu.Lock()
 	foo := &Foo{Name: "test injection"}
 	app.Register(foo)
 	testApp := web.NewTestApp(newHelloController, newFooController, newBarController, newFoobarController).
@@ -879,6 +893,7 @@ func TestWebApplication(t *testing.T) {
 		testApp.Get("/foo/error").
 			Expect().Status(http.StatusInternalServerError)
 	})
+	mu.Unlock()
 }
 
 //func TestInvalidController(t *testing.T)  {
@@ -889,7 +904,7 @@ func TestWebApplication(t *testing.T) {
 //}
 
 func TestNewApplication(t *testing.T) {
-
+	mu.Lock()
 	app.Register(new(ExampleController))
 
 	testApp := web.NewApplication().
@@ -913,9 +928,11 @@ func TestNewApplication(t *testing.T) {
 
 	go testApp.Run()
 	time.Sleep(time.Second)
+	mu.Unlock()
 }
 
 func TestAnonymousController(t *testing.T) {
+	mu.Lock()
 	t.Run("should failed to register anonymous controller", func(t *testing.T) {
 		testApp := web.RunTestApplication(t, (*Bar)(nil))
 		assert.NotEqual(t, nil, testApp)
@@ -925,6 +942,7 @@ func TestAnonymousController(t *testing.T) {
 		testApp := web.RunTestApplication(t, newBar)
 		assert.NotEqual(t, nil, testApp)
 	})
+	mu.Unlock()
 }
 
 type fakeConditionalJwtMiddleware struct {
@@ -1104,6 +1122,7 @@ func (c *regularTestController) Get(at struct{ at.GetMapping `value:"/"` }) stri
 }
 
 func TestCustomRouter(t *testing.T) {
+	mu.Lock()
 	app.Register(newFooMiddleware)
 	testApp := web.NewTestApp(newCustomRouterController).
 		SetProperty("server.context_path", "/test").
@@ -1113,6 +1132,7 @@ func TestCustomRouter(t *testing.T) {
 	testApp.Get("/test/custom/0/name/hiboot").Expect().Status(http.StatusNotFound)
 	testApp.Get("/test/custom/1/name/hiboot").Expect().Status(http.StatusInternalServerError)
 	testApp.Get("/test/custom/2/name/hiboot").Expect().Status(http.StatusOK)
+	mu.Unlock()
 }
 
 // test HttpMethodSubscriber
@@ -1129,6 +1149,7 @@ func (s *fakeSubscriber) Subscribe(atc *annotation.Annotations, atm *annotation.
 }
 
 func TestMiddlewareAnnotation(t *testing.T) {
+	mu.Lock()
 	app.Register(
 		newCustomRouterController,
 		newFooMiddleware,
@@ -1177,7 +1198,7 @@ func TestMiddlewareAnnotation(t *testing.T) {
 		testApp.Delete("/jwt-auth").
 			Expect().Status(http.StatusUnauthorized)
 	})
-
+	mu.Unlock()
 }
 
 // --- test file server
@@ -1206,7 +1227,9 @@ func (c *publicTestController) NotFound(at struct{ at.GetMapping `value:"/foo"`;
 }
 
 func TestController(t *testing.T) {
-	testApp := web.NewTestApp(t, newPublicTestController).Run(t)
+	mu.Lock()
+	testApp := web.NewTestApp(t, newPublicTestController).
+		SetProperty("server.port", "8085").Run(t)
 
 	t.Run("should get index.html ", func(t *testing.T) {
 		testApp.Get("/public/ui").
@@ -1222,4 +1245,5 @@ func TestController(t *testing.T) {
 		testApp.Get("/public/foo").
 			Expect().Status(http.StatusNotFound)
 	})
+	mu.Unlock()
 }
