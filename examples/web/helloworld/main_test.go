@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
@@ -35,6 +36,8 @@ func TestRunMain(t *testing.T) {
 
 func TestController(t *testing.T) {
 	mu.Lock()
+
+	time.Sleep(2 * time.Second)
 
 	app.Register(swagger.ApiInfoBuilder().
 		Title("HiBoot Example - Hello world").
