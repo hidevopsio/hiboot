@@ -32,7 +32,7 @@ func TestRunMain(t *testing.T) {
 }
 
 func TestController(t *testing.T) {
-	time.Sleep(time.Second)
+	mu.Lock()
 	testApp := web.NewTestApp(t).SetProperty("server.context_path", "/router-example").Run(t)
 
 	t.Run("should send post request to user", func(t *testing.T) {
@@ -67,4 +67,5 @@ func TestController(t *testing.T) {
 			Expect().Status(http.StatusOK)
 
 	})
+	mu.Unlock()
 }
