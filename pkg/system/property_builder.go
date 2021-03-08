@@ -69,6 +69,9 @@ func NewPropertyBuilder(path string, customProperties map[string]interface{}) Bu
 func (b *propertyBuilder) setCustomPropertiesFromArgs() {
 	log.Println(os.Args)
 	for _, val := range os.Args {
+		if len(val) < 2 {
+			continue
+		}
 		prefix := val[:2]
 		if prefix == "--" {
 			kv := val[2:]
