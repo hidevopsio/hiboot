@@ -97,7 +97,11 @@ _  __  / _  / _  /_/ / /_/ / /_/ / /_     Hiboot Application Framework
 // PrintStartupMessages prints startup messages
 func (a *BaseApplication) PrintStartupMessages() {
 	if !a.systemConfig.App.Banner.Disabled {
-		fmt.Print(banner)
+		if a.systemConfig.App.Banner.Custom != "" {
+			fmt.Print(a.systemConfig.App.Banner.Custom)
+		} else {
+			fmt.Print(banner)
+		}
 	}
 }
 

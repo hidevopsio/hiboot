@@ -29,6 +29,7 @@ type Profiles struct {
 type banner struct {
 	// disable banner
 	Disabled bool `json:"disabled" default:"false"`
+	Custom string `json:"custom"`
 }
 
 type ContactInfo struct {
@@ -59,7 +60,7 @@ type App struct {
 	// profiles
 	Profiles Profiles `json:"profiles"`
 	// banner
-	Banner banner
+	Banner banner `json:"banner"`
 	// Version
 	Version string `json:"version,omitempty" default:"${APP_VERSION:v1}"`
 	// TermsOfService

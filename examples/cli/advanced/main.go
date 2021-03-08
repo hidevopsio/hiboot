@@ -25,7 +25,7 @@ import (
 func main() {
 	// create new cli application and run it
 	cli.NewApplication(cmd.NewRootCommand).
-		SetProperty(logging.Level, logging.LevelWarn).
-		SetProperty(app.ProfilesInclude, config.Profile).
+		SetProperty(logging.Level, logging.LevelInfo).
+		SetProperty(app.ProfilesInclude, config.Profile, logging.Profile).
 		Run()
 }
