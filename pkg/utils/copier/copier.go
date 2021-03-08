@@ -226,7 +226,8 @@ func copy(toValue interface{}, fromValue interface{}, config *Config) (err error
 	return
 }
 
-// Copy copy things from source to destination
+// Copy: copy things from source to destination, Use github.com/jinzhu/copier instead
+// Deprecated
 func Copy(toValue interface{}, fromValue interface{}, opts ...func(*Config)) (err error) {
 	config := &Config{}
 

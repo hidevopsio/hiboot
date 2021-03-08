@@ -293,6 +293,17 @@ func (c *FooController) GetRequestForm(request *FooRequestForm) string {
 	return request.Name
 }
 
+type EmbeddedParam struct {
+	Name string `json:"name"`
+}
+
+// TODO: embedded query param does not work
+type EmbeddedFooRequestParams struct {
+	at.RequestParams
+	EmbeddedParam
+}
+
+// TODO: embedded query param does not work
 type FooRequestParams struct {
 	at.RequestParams
 	Name string `json:"name"`

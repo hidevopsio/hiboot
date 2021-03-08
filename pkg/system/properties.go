@@ -75,7 +75,7 @@ type Server struct {
 	at.AutoWired
 
 	Schemes                    []string `json:"schemes,omitempty" default:"http"`
-	Host                       string   `json:"host,omitempty" default:"localhost:8080"`
+	Host                       string   `json:"host,omitempty" default:"localhost"`
 	Port                       string   `json:"port,omitempty" default:"8080"`
 	ContextPath                string   `json:"context_path,omitempty" default:"/"`
 }

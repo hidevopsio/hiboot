@@ -26,7 +26,11 @@ type apiPathsBuilder struct {
 func newApiPathsBuilder(builder *apiInfoBuilder) *apiPathsBuilder {
 	if builder.SystemServer != nil {
 		if builder.SystemServer.Host != "" {
-			builder.SwaggerProps.Host = builder.SystemServer.Host
+			if builder.SystemServer.Port != "" {
+				builder.SwaggerProps.Host = builder.SystemServer.Host + ":" + builder.SystemServer.Port
+			} else {
+				builder.SwaggerProps.Host = builder.SystemServer.Host
+			}
 		}
 		if builder.SystemServer.ContextPath != "" {
 			builder.SwaggerProps.BasePath = builder.SystemServer.ContextPath

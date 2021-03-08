@@ -1,6 +1,6 @@
 module github.com/hidevopsio/hiboot
 
-go 1.16
+go 1.15
 
 require (
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect

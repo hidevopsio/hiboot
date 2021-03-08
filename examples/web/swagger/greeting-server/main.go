@@ -27,7 +27,6 @@ func init() {
 		// alternatively, you can set below properties by using SetProperty() in main, config/application.yml or program arguments to take advantage of HiBoot DI
 		//Version(version).
 		//Schemes("http", "https").
-		//Host("localhost:8080").
 		//BasePath(basePath),
 	)
 }
@@ -37,7 +36,8 @@ func main() {
 	web.NewApplication().
 		SetProperty(app.ProfilesInclude, actuator.Profile, logging.Profile, swagger.Profile).
 		SetProperty(app.Version, version).
-		SetProperty(server.Host, "localhost:8080").
+		SetProperty(server.Host, "localhost").
+		SetProperty(server.Port, "8080").
 		SetProperty(server.ContextPath, basePath).
 		Run()
 }
