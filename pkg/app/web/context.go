@@ -31,7 +31,7 @@ import (
 // Context Create your own custom Context, put any fields you wanna need.
 type Context struct {
 	iris.Context
-	Embed embedctx.Context
+	embed embedctx.Context
 	ann interface{}
 }
 
@@ -61,6 +61,10 @@ func acquire(original iris.Context) *Context {
 
 func release(c *Context) {
 	contextPool.Put(c)
+}
+
+func (c *Context) Embed() embedctx.Context {
+	return c.embed
 }
 
 // Handler will convert our handler of func(*Context) to an iris Handler,

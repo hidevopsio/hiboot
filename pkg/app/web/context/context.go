@@ -1,6 +1,7 @@
 package context
 
 import (
+	embedctx "context"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 
 // ExtendedContext extended context
 type ExtendedContext interface {
+	Embed() embedctx.Context
 	//RequestBody(data interface{}) error
 	//RequestForm(data interface{}) error
 	//RequestParams(request interface{}) error
