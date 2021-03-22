@@ -15,21 +15,23 @@
 package web
 
 import (
+	embedctx "context"
 	"github.com/kataras/iris"
 	"sync"
 
-	ctx "github.com/kataras/iris/context"
-	"github.com/kataras/iris/middleware/i18n"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
 	"github.com/hidevopsio/hiboot/pkg/utils/validator"
+	ctx "github.com/kataras/iris/context"
+	"github.com/kataras/iris/middleware/i18n"
 	"net/http"
 )
 
 // Context Create your own custom Context, put any fields you wanna need.
 type Context struct {
 	iris.Context
+	Embed embedctx.Context
 	ann interface{}
 }
 
