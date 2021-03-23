@@ -20,10 +20,12 @@ package main
 import (
 	"github.com/hidevopsio/hiboot/examples/web/autoconfig/config"
 	"github.com/hidevopsio/hiboot/pkg/app"
-"github.com/hidevopsio/hiboot/pkg/app/web"
-"github.com/hidevopsio/hiboot/pkg/at"
-"github.com/hidevopsio/hiboot/pkg/starter/actuator"
-"github.com/hidevopsio/hiboot/pkg/starter/swagger"
+	"github.com/hidevopsio/hiboot/pkg/app/web"
+	"github.com/hidevopsio/hiboot/pkg/app/web/context"
+	"github.com/hidevopsio/hiboot/pkg/at"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/starter/actuator"
+	"github.com/hidevopsio/hiboot/pkg/starter/swagger"
 )
 
 // Controller Rest Controller with path /
@@ -55,9 +57,11 @@ func (c *Controller) Get(_ struct {
 			at.Schema `type:"string" description:"returns hello world message"`
 		}
 	}
-}) string {
+}, ctx context.Context, bar *config.Bar) string {
+	code := ctx.GetStatusCode()
+	log.Info(code)
 	// response
-	return "Hello " + c.foo.Name
+	return "Hello " + c.foo.Name + ", " + bar.Name
 }
 
 // main function

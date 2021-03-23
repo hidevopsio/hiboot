@@ -21,6 +21,6 @@ func TestWebSocketController(t *testing.T) {
 	testApp := web.NewTestApp(mockController).SetProperty(app.ProfilesInclude, websocket.Profile, logging.Profile).Run(t)
 	assert.NotEqual(t, nil, testApp)
 
-	testApp.Get("/websocket").Expect().Status(http.StatusOK)
-	testApp.Get("/websocket/status").Expect().Status(http.StatusOK)
+	testApp.Get("/websocket").Expect().Status(http.StatusServiceUnavailable)
+	testApp.Get("/websocket/status").Expect().Status(http.StatusServiceUnavailable)
 }

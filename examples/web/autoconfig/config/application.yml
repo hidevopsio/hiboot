@@ -6,7 +6,7 @@ app:
   name: hiboot
 
 logging:
-  level: info
+  level: debug
 
 config:
   enabled: true
