@@ -14,23 +14,17 @@
 
 syntax = "proto3";
 
+option go_package = "helloworld";
 option java_multiple_files = true;
-option java_package = "io.hidevops.examples.web.grpc.helloworld";
-option java_outer_classname = "MockProto";
-option go_package = "../protobuf";
-// target package name
+option java_package = "io.grpc.examples.helloworld";
+option java_outer_classname = "HelloWorldProto";
 
-package protobuf;
+package helloworld;
 
 // The greeting service definition.
-service HelloService {
-  // Sends a hello greeting
+service Greeter {
+  // Sends a greeting
   rpc SayHello (HelloRequest) returns (HelloReply) {}
-}
-
-service HolaService {
-  // Sends a hola greeting
-  rpc SayHola (HolaRequest) returns (HolaReply) {}
 }
 
 // The request message containing the user's name.
@@ -40,15 +34,5 @@ message HelloRequest {
 
 // The response message containing the greetings
 message HelloReply {
-  string message = 1;
-}
-
-// The request message containing the user's name.
-message HolaRequest {
-  string name = 1;
-}
-
-// The response message containing the greetings
-message HolaReply {
   string message = 1;
 }

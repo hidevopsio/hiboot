@@ -40,9 +40,7 @@ require (
 	github.com/uber/jaeger-lib v1.5.0+incompatible // indirect
 	github.com/valyala/bytebufferpool v1.0.0
 	golang.org/x/net v0.0.0-20200421231249-e086a090c8fd
-	google.golang.org/grpc v1.34.0
-	google.golang.org/grpc/examples v0.0.0-20210120020032-f579b61a694c
-	google.golang.org/protobuf v1.25.0
+	google.golang.org/grpc v1.29.1
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2
 	gopkg.in/yaml.v2 v2.2.4
