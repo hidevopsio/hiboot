@@ -280,7 +280,6 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 	//	ctx.StatusCode(http.StatusOK)
 	//	return
 	//}
-
 	result := results[0]
 	if !result.CanInterface() {
 		err = ErrCanNotInterface
@@ -316,9 +315,7 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 				response.SetCode(http.StatusOK)
 				response.SetMessage(ctx.Translate(success))
 			} else {
-				if response.GetCode() == 0 {
-					response.SetCode(http.StatusInternalServerError)
-				}
+				h.setErrorResponseCode(ctx, response)
 				// TODO: output error message directly? how about i18n
 				response.SetMessage(ctx.Translate(respErr.Error()))
 
@@ -349,9 +346,7 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 						response.SetMessage(ctx.Translate(success))
 					}
 				} else {
-					if response.GetCode() == 0 {
-						response.SetCode(http.StatusInternalServerError)
-					}
+					h.setErrorResponseCode(ctx, response)
 					// TODO: output error message directly? how about i18n
 					response.SetMessage(ctx.Translate(respErr.Error()))
 
@@ -365,6 +360,17 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 		}
 	}
 	return
+}
+
+func (h *handler) setErrorResponseCode(ctx context.Context, response model.ResponseInfo) {
+	if response.GetCode() == 0 {
+		prevStatusCode := ctx.GetStatusCode()
+		if prevStatusCode == http.StatusOK || prevStatusCode == 0 {
+			response.SetCode(http.StatusInternalServerError)
+		} else {
+			response.SetCode(prevStatusCode)
+		}
+	}
 }
 
 func (h *handler) call(ctx context.Context) {

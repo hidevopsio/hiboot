@@ -1138,9 +1138,8 @@ func TestCustomRouter(t *testing.T) {
 	testApp := web.NewTestApp(newCustomRouterController).
 		SetProperty("server.context_path", "/test").
 		Run(t)
-
-	testApp.Get("/test/custom/123/name/hiboot").Expect().Status(http.StatusOK)
 	testApp.Get("/test/custom/0/name/hiboot").Expect().Status(http.StatusNotFound)
+	testApp.Get("/test/custom/123/name/hiboot").Expect().Status(http.StatusOK)
 	testApp.Get("/test/custom/1/name/hiboot").Expect().Status(http.StatusInternalServerError)
 	testApp.Get("/test/custom/2/name/hiboot").Expect().Status(http.StatusOK)
 	mu.Unlock()
