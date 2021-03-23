@@ -187,7 +187,12 @@ func (d *Dispatcher) parseRestController(ctl *factory.MetaData) (restController 
 	if af != nil {
 		customizedControllerPath = true
 		ann := af.Field.Value.Interface().(at.RequestMapping)
-		pathPrefix = path.Join(pathPrefix, ann.AtValue)
+		// ignore context path
+		if ann.AtNoContextPath {
+			pathPrefix = ann.AtValue
+		} else {
+			pathPrefix = path.Join(pathPrefix, ann.AtValue)
+		}
 	}
 
 	// parse method
