@@ -35,7 +35,7 @@ type Health struct {
 
 type healthController struct {
 	at.RestController
-	at.RequestMapping `value:"/health"`
+	at.RequestMapping `value:"/health" no_context_path:"true"`
 
 	configurableFactory factory.ConfigurableFactory
 }

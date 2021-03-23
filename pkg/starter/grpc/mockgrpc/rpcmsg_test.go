@@ -1,10 +1,10 @@
 package mockgrpc
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/starter/grpc/helloworld"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
 func TestRpcMsg(t *testing.T) {

@@ -382,7 +382,13 @@ func (h *handler) call(ctx context.Context) {
 	}
 
 	if len(h.dependencies) > 0 {
-		runtimeInstance, _ = h.factory.InjectContextAwareObjects(ctx, h.dependencies)
+		var err error
+		prevStatusCode := ctx.GetStatusCode()
+		runtimeInstance, err = h.factory.InjectContextAwareObjects(ctx, h.dependencies)
+		currStatusCode := ctx.GetStatusCode()
+		if err != nil || currStatusCode != prevStatusCode {
+			return
+		}
 	}
 	inputs := make([]reflect.Value, h.numIn)
 	if h.numIn != 0 {

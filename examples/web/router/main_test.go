@@ -24,11 +24,11 @@ import (
 )
 
 var mu sync.Mutex
-func TestRunMain(t *testing.T) {
-	mu.Lock()
-	go main()
-	mu.Unlock()
-}
+//func TestRunMain(t *testing.T) {
+//	mu.Lock()
+//	go main()
+//	mu.Unlock()
+//}
 
 func TestController(t *testing.T) {
 	mu.Lock()

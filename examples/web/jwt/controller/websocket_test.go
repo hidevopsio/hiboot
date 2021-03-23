@@ -25,9 +25,9 @@ func TestWebSocketController(t *testing.T) {
 
 	testApp.Get("/websocket").
 		WithHeader("Authorization", token).
-		Expect().Status(http.StatusOK)
+		Expect().Status(http.StatusServiceUnavailable)
 
 	testApp.Get("/websocket/status").
 		WithHeader("Authorization", token).
-		Expect().Status(http.StatusOK)
+		Expect().Status(http.StatusServiceUnavailable)
 }
