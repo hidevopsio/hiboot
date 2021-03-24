@@ -276,10 +276,6 @@ func (h *handler) parseMethod(injectableObject *injectableObject, injectableMeth
 }
 
 func (h *handler) responseData(ctx context.Context, numOut int, results []reflect.Value) (err error) {
-	//if numOut == 0 {
-	//	ctx.StatusCode(http.StatusOK)
-	//	return
-	//}
 	result := results[0]
 	if !result.CanInterface() {
 		err = ErrCanNotInterface
@@ -287,79 +283,92 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 		return
 	}
 
-	respVal := result.Interface()
-	if respVal == nil {
+	responseObj := result.Interface()
+	if responseObj == nil {
 		//log.Warn("response is nil")
 		err = fmt.Errorf("response is nil")
 		return
 	}
+	ctx.AddResponse(responseObj)
 
-	switch respVal.(type) {
+	switch responseObj.(type) {
 	case string:
 		ctx.ResponseString(result.Interface().(string))
 	case error:
 		respErr := result.Interface().(error)
 		ctx.ResponseError(respErr.Error(), http.StatusInternalServerError)
 	case model.Response:
-		response := respVal.(model.Response)
-		if numOut >= 2 {
-			var respErr error
-			errVal := results[1]
-			if errVal.IsNil() {
-				respErr = nil
-			} else if errVal.Type().Name() == "error" {
-				respErr = results[1].Interface().(error)
-			}
-
-			if respErr == nil {
-				response.SetCode(http.StatusOK)
-				response.SetMessage(ctx.Translate(success))
-			} else {
-				h.setErrorResponseCode(ctx, response)
-				// TODO: output error message directly? how about i18n
-				response.SetMessage(ctx.Translate(respErr.Error()))
-
-				// TODO: configurable status code in application.yml
-				ctx.StatusCode(response.GetCode())
-			}
-		}
-		ctx.JSON(response)
+		h.responseWithError(ctx, numOut, results, responseObj)
 	case map[string]interface{}:
-		ctx.JSON(respVal)
+		_, _ = ctx.JSON(responseObj)
 	default:
 		if h.responses[0].implementsResponseInfo {
-			response := respVal.(model.ResponseInfo)
-			if numOut >= 2 {
-				var respErr error
-				errVal := results[1]
-				if errVal.IsNil() {
-					respErr = nil
-				} else if errVal.Type().Name() == "error" {
-					respErr = results[1].Interface().(error)
-				}
-
-				if respErr == nil {
-					if response.GetCode() == 0 {
-						response.SetCode(http.StatusOK)
-					}
-					if response.GetMessage() == "" {
-						response.SetMessage(ctx.Translate(success))
-					}
-				} else {
-					h.setErrorResponseCode(ctx, response)
-					// TODO: output error message directly? how about i18n
-					response.SetMessage(ctx.Translate(respErr.Error()))
-
-					// TODO: configurable status code in application.yml
-				}
-			}
-			ctx.StatusCode(response.GetCode())
-			ctx.JSON(response)
+			h.responseInfoWithError(ctx, numOut, results, responseObj)
 		} else {
-			ctx.JSON(respVal)
+			_, _ = ctx.JSON(responseObj)
 		}
 	}
 	return
+}
+
+func (h *handler) responseInfoWithError(ctx context.Context, numOut int, results []reflect.Value, responseObj interface{}) {
+	response := responseObj.(model.ResponseInfo)
+	if numOut >= 2 {
+		var respErr error
+		errVal := results[1]
+		errObj := results[1].Interface()
+		ctx.AddResponse(errObj)
+		if errVal.IsNil() {
+			respErr = nil
+		} else if errVal.Type().Name() == "error" {
+			respErr = errObj.(error)
+		}
+
+		if respErr == nil {
+			if response.GetCode() == 0 {
+				response.SetCode(http.StatusOK)
+			}
+			if response.GetMessage() == "" {
+				response.SetMessage(ctx.Translate(success))
+			}
+		} else {
+			h.setErrorResponseCode(ctx, response)
+			// TODO: output error message directly? how about i18n
+			response.SetMessage(ctx.Translate(respErr.Error()))
+
+			// TODO: configurable status code in application.yml
+		}
+	}
+	ctx.StatusCode(response.GetCode())
+	_, _ = ctx.JSON(response)
+}
+
+func (h *handler) responseWithError(ctx context.Context, numOut int, results []reflect.Value, responseObj interface{}) {
+	response := responseObj.(model.ResponseInfo)
+	if numOut >= 2 {
+		var respErr error
+		errVal := results[1]
+		errObj := results[1].Interface()
+		ctx.AddResponse(errObj)
+		if errVal.IsNil() {
+			respErr = nil
+		} else if errVal.Type().Name() == "error" {
+			respErr = errObj.(error)
+		}
+
+		if respErr == nil {
+			response.SetCode(http.StatusOK)
+			response.SetMessage(ctx.Translate(success))
+		} else {
+			h.setErrorResponseCode(ctx, response)
+			// TODO: output error message directly? how about i18n
+			response.SetMessage(ctx.Translate(respErr.Error()))
+
+			// TODO: configurable status code in application.yml
+			ctx.StatusCode(response.GetCode())
+		}
+	}
+	_, _ = ctx.JSON(response)
 }
 
 func (h *handler) setErrorResponseCode(ctx context.Context, response model.ResponseInfo) {

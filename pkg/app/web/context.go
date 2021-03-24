@@ -31,6 +31,7 @@ import (
 type Context struct {
 	iris.Context
 	ann interface{}
+	responses []interface{}
 }
 
 //NewContext constructor of context.Context
@@ -174,6 +175,34 @@ func (c *Context) SetURLParam(name, value string) {
 		q.Add(name, value)
 	}
 	c.Request().URL.RawQuery = q.Encode()
+}
+
+
+// AddResponse add response to a alice
+func (c *Context) AddResponse(response interface{}) {
+	c.responses = append(c.responses, response)
+	return
+}
+
+// GetResponses get all responses as a slice
+func (c *Context) GetResponses() (responses []interface{}) {
+	responses = c.responses
+	return
+}
+
+// GetResponse get specific response from a slice
+func (c *Context) GetResponse(index int) (response interface{}) {
+	length := len(c.responses)
+	if length < 1 {
+		return
+	}
+	if index == -1  {
+		response = c.responses[length - 1]
+	} else {
+		response = c.responses[index]
+	}
+
+	return
 }
 
 // RequestEx get RequestBody
