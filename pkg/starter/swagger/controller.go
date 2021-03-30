@@ -54,6 +54,7 @@ func (c *controller) serve(ctx context.Context, docsPath string) {
 			BasePath: basePath,
 			SpecURL:  path.Join(basePath, "swagger.json"),
 			Path:     docsPath,
+			RedocURL: c.apiInfoBuilder.RedocURL,
 		}, http.NotFoundHandler())
 
 		// handle cors

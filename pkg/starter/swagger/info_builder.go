@@ -35,6 +35,7 @@ type ApiInfoBuilderInterface interface {
 	Schemes(values ...string) ApiInfoBuilderInterface
 	Host(values string) ApiInfoBuilderInterface
 	BasePath(values string) ApiInfoBuilderInterface
+	Redoc(value string) ApiInfoBuilderInterface
 }
 
 type Contact struct {
@@ -55,6 +56,7 @@ type apiInfoBuilder struct {
 
 	SystemServer *system.Server
 	AppVersion   string `value:"${app.version}"`
+	RedocURL string `json:"redoc_url" value:"${redoc.url:https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js}"`
 }
 
 func ApiInfoBuilder() ApiInfoBuilderInterface {
@@ -160,5 +162,10 @@ func (b *apiInfoBuilder) LicenseURL(value string) ApiInfoBuilderInterface {
 func (b *apiInfoBuilder) License(value License) ApiInfoBuilderInterface {
 	b.LicenseName(value.Name)
 	b.LicenseURL(value.URL)
+	return b
+}
+
+func (b *apiInfoBuilder) Redoc(value string) ApiInfoBuilderInterface {
+	b.RedocURL = value
 	return b
 }
