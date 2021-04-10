@@ -19,8 +19,8 @@ type ExtendedContext interface {
 	SetURLParam(name, value string)
 	Annotations() interface{}
 	AddResponse(response interface{})
-	GetResponses() (responses []interface{})
-	GetResponse(index int) (response interface{})
+	GetResponses() (responses map[string]interface{})
+	GetResponse(object interface{}) (response interface{}, ok bool)
 //StaticResource(system http.FileSystem)
 }
 

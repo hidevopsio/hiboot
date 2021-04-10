@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"github.com/hidevopsio/hiboot/examples/web/middleware/controller"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/at"
@@ -58,7 +59,12 @@ func (m *loggingMiddleware) Logging( a struct{at.MiddlewareHandler `value:"/" `}
 }
 
 // PostLogging is the middleware post handler
-func (m *loggingMiddleware) PostLogging( a struct{at.MiddlewarePostHandler `value:"/" `}, ctx context.Context) {
+func (m *loggingMiddleware) PostLogging( a struct{at.MiddlewarePostHandler `value:"/user/query" `}, ctx context.Context) {
+	res, ok := ctx.GetResponse(controller.UserResponse{})
+	if ok {
+		response := res.(*controller.UserResponse)
+		log.Info(response)
+	}
 	ann := annotation.GetAnnotation(ctx.Annotations(), at.Operation{})
 	if ann != nil {
 		va := ann.Field.Value.Interface().(at.Operation)

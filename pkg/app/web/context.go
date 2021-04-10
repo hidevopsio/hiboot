@@ -15,8 +15,12 @@
 package web
 
 import (
-	"github.com/kataras/iris"
+	"net/http"
 	"sync"
+
+	"github.com/hidevopsio/hiboot/pkg/factory"
+	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
+	"github.com/kataras/iris"
 
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/model"
@@ -24,14 +28,13 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/validator"
 	ctx "github.com/kataras/iris/context"
 	"github.com/kataras/iris/middleware/i18n"
-	"net/http"
 )
 
 // Context Create your own custom Context, put any fields you wanna need.
 type Context struct {
 	iris.Context
 	ann interface{}
-	responses []interface{}
+	responses cmap.ConcurrentMap
 }
 
 //NewContext constructor of context.Context
@@ -51,6 +54,7 @@ func acquire(original iris.Context) *Context {
 	case *Context:
 		newCtx := original.(*Context)
 		c.Context = newCtx.Context
+		c.responses = newCtx.responses
 		c.ann = newCtx.ann
 	default:
 		c.Context = original // set the context to the original one in order to have access to iris's implementation.
@@ -180,28 +184,25 @@ func (c *Context) SetURLParam(name, value string) {
 
 // AddResponse add response to a alice
 func (c *Context) AddResponse(response interface{}) {
-	c.responses = append(c.responses, response)
+	if c.responses == nil {
+		c.responses = cmap.New()
+	}
+	name, object := factory.ParseParams(response)
+	c.responses.Set(name, object)
+
 	return
 }
 
 // GetResponses get all responses as a slice
-func (c *Context) GetResponses() (responses []interface{}) {
-	responses = c.responses
+func (c *Context) GetResponses() (responses map[string]interface{}) {
+	responses = c.responses.Items()
 	return
 }
 
 // GetResponse get specific response from a slice
-func (c *Context) GetResponse(index int) (response interface{}) {
-	length := len(c.responses)
-	if length < 1 {
-		return
-	}
-	if index == -1  {
-		response = c.responses[length - 1]
-	} else {
-		response = c.responses[index]
-	}
-
+func (c *Context) GetResponse(object interface{}) (response interface{}, ok bool) {
+	name, _ := factory.ParseParams(object)
+	response, ok = c.responses.Get(name)
 	return
 }
 
