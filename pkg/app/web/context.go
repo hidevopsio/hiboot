@@ -202,7 +202,9 @@ func (c *Context) GetResponses() (responses map[string]interface{}) {
 // GetResponse get specific response from a slice
 func (c *Context) GetResponse(object interface{}) (response interface{}, ok bool) {
 	name, _ := factory.ParseParams(object)
-	response, ok = c.responses.Get(name)
+	if c.responses != nil {
+		response, ok = c.responses.Get(name)
+	}
 	return
 }
 
