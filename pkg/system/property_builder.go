@@ -220,6 +220,9 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 	// read default profile first
 	if defaultProfileConfigFile != nil {
 		err = b.readConfig(defaultProfileConfigFile.path, defaultProfileConfigFile.name, defaultProfileConfigFile.fileType)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 
 	includeProfiles := b.GetStringSlice(appProfilesInclude)
@@ -234,6 +237,9 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 				np := len(p)
 				if np > 0 && str.InSlice(p[np-1], includeProfiles) {
 					err = b.readConfig(path, file, ext)
+					if err != nil {
+						log.Error(err)
+					}
 				}
 			}
 		}
@@ -242,6 +248,9 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 	// replaced with active profile
 	if activeProfileConfigFile != nil {
 		err = b.readConfig(activeProfileConfigFile.path, activeProfileConfigFile.name, activeProfileConfigFile.fileType)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 
 	// iterate all and replace reference values or env
