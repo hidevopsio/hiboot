@@ -17,18 +17,23 @@ package cors
 import (
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/iris-contrib/middleware/cors"
-	"github.com/jinzhu/copier"
 )
 
 // NewMiddleware
 func NewMiddleware(properties *Properties) (crs context.Handler) {
-	var options cors.Options
 
-	err := copier.CopyWithOption(&options, properties, copier.Option{IgnoreEmpty: true, DeepCopy: true})
-
-	if err == nil {
-		crs = context.NewHandler(cors.New(options))
+	options := cors.Options{
+		AllowedOrigins: properties.AllowedOrigins,
+		AllowedHeaders: properties.AllowedHeaders,
+		AllowedMethods: properties.AllowedMethods,
+		ExposedHeaders: properties.ExposedHeaders,
+		AllowCredentials: properties.AllowCredentials,
+		Debug: properties.Debug,
+		OptionsPassthrough: properties.OptionsPassthrough,
+		MaxAge: properties.MaxAge,
 	}
+
+	crs = context.NewHandler(cors.New(options))
 
 	return
 }
