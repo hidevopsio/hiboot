@@ -168,7 +168,6 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 							if configFiles[dir] == nil {
 								configFiles[dir] = make(map[string][]string)
 							}
-							files := configFiles[dir][ext]
 							// do not add default profile, will be handled later
 							if !strings.Contains(file, "-") {
 								defaultProfileConfigFile = &ConfigFile{
@@ -187,12 +186,11 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 										fileType: ext,
 									}
 								} else {
-									files = append(files, file)
+									configFiles[dir][ext] = append(configFiles[dir][ext], file)
 								}
 							} else {
-								files = append(files, file)
+								configFiles[dir][ext] = append(configFiles[dir][ext], file)
 							}
-							configFiles[dir][ext] = files
 							foundDir := false
 							for _, d := range paths {
 								if d == dir {
