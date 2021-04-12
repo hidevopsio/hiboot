@@ -32,7 +32,7 @@ func TestMiddleware(t *testing.T) {
 
 	t.Run("should get users", func(t *testing.T) {
 		testApp.Get("/user").
-			WithQuery("page", 2).
+			WithQuery("page", 1).
 			WithQuery("per_page", 10).
 			Expect().Status(http.StatusOK)
 	})

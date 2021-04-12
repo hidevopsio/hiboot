@@ -12,16 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package validator provides data validation utilities
-package validator
+package cors
 
 import (
-	"github.com/go-playground/validator/v10"
+	"github.com/hidevopsio/hiboot/pkg/app/web/context"
+	"github.com/iris-contrib/middleware/cors"
 )
 
-// Validate is the instance of the validator
-var Validate *validator.Validate
+// NewMiddleware
+func NewMiddleware(properties *Properties) (crs context.Handler) {
 
-func init() {
-	Validate = validator.New()
+	options := cors.Options{
+		AllowedOrigins: properties.AllowedOrigins,
+		AllowedHeaders: properties.AllowedHeaders,
+		AllowedMethods: properties.AllowedMethods,
+		ExposedHeaders: properties.ExposedHeaders,
+		AllowCredentials: properties.AllowCredentials,
+		Debug: properties.Debug,
+		OptionsPassthrough: properties.OptionsPassthrough,
+		MaxAge: properties.MaxAge,
+	}
+
+	crs = context.NewHandler(cors.New(options))
+
+	return
 }

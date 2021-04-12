@@ -10,6 +10,7 @@ require (
 	github.com/go-openapi/runtime v0.19.4
 	github.com/go-openapi/spec v0.19.2
 	github.com/go-openapi/swag v0.19.5 // indirect
+	github.com/go-playground/validator/v10 v10.5.0
 	github.com/gojektech/valkyrie v0.0.0-20190210220504-8f62c1e7ba45
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.2
@@ -26,15 +27,17 @@ require (
 	github.com/kataras/golog v0.0.0-20180321173939-03be10146386
 	github.com/kataras/iris v11.0.3+incompatible
 	github.com/kataras/pio v0.0.0-20180511174041-a9733b5b6b83
+	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/moul/http2curl v1.0.0 // indirect
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.8.1
 	github.com/rakyll/statik v0.1.6
+	github.com/rs/cors v1.7.0 // indirect
 	github.com/sony/sonyflake v0.0.0-20160530021500-fa881fb1052b
 	github.com/spf13/afero v1.1.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/uber-go/atomic v1.3.2 // indirect
 	github.com/uber/jaeger-client-go v2.15.0+incompatible
 	github.com/uber/jaeger-lib v1.5.0+incompatible // indirect

@@ -289,7 +289,7 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 		err = fmt.Errorf("response is nil")
 		return
 	}
-	ctx.AddResponse(responseObj)
+	h.addResponse(ctx, responseObj)
 
 	switch responseObj.(type) {
 	case string:
@@ -311,13 +311,20 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 	return
 }
 
+func (h *handler) addResponse(ctx context.Context, responseObj interface{}) {
+	ann := annotation.GetAnnotation(h.annotations, at.RequestMapping{})
+	if ann != nil {
+		ctx.AddResponse(responseObj)
+	}
+}
+
 func (h *handler) responseInfoWithError(ctx context.Context, numOut int, results []reflect.Value, responseObj interface{}) {
 	response := responseObj.(model.ResponseInfo)
 	if numOut >= 2 {
 		var respErr error
 		errVal := results[1]
 		errObj := results[1].Interface()
-		ctx.AddResponse(errObj)
+		h.addResponse(ctx, errObj)
 		if errVal.IsNil() {
 			respErr = nil
 		} else if errVal.Type().Name() == "error" {
@@ -349,7 +356,7 @@ func (h *handler) responseWithError(ctx context.Context, numOut int, results []r
 		var respErr error
 		errVal := results[1]
 		errObj := results[1].Interface()
-		ctx.AddResponse(errObj)
+		h.addResponse(ctx, errObj)
 		if errVal.IsNil() {
 			respErr = nil
 		} else if errVal.Type().Name() == "error" {

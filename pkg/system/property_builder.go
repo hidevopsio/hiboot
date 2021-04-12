@@ -168,7 +168,6 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 							if configFiles[dir] == nil {
 								configFiles[dir] = make(map[string][]string)
 							}
-							files := configFiles[dir][ext]
 							// do not add default profile, will be handled later
 							if !strings.Contains(file, "-") {
 								defaultProfileConfigFile = &ConfigFile{
@@ -187,12 +186,11 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 										fileType: ext,
 									}
 								} else {
-									files = append(files, file)
+									configFiles[dir][ext] = append(configFiles[dir][ext], file)
 								}
 							} else {
-								files = append(files, file)
+								configFiles[dir][ext] = append(configFiles[dir][ext], file)
 							}
-							configFiles[dir][ext] = files
 							foundDir := false
 							for _, d := range paths {
 								if d == dir {
@@ -222,6 +220,9 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 	// read default profile first
 	if defaultProfileConfigFile != nil {
 		err = b.readConfig(defaultProfileConfigFile.path, defaultProfileConfigFile.name, defaultProfileConfigFile.fileType)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 
 	includeProfiles := b.GetStringSlice(appProfilesInclude)
@@ -236,6 +237,9 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 				np := len(p)
 				if np > 0 && str.InSlice(p[np-1], includeProfiles) {
 					err = b.readConfig(path, file, ext)
+					if err != nil {
+						log.Error(err)
+					}
 				}
 			}
 		}
@@ -244,6 +248,9 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 	// replaced with active profile
 	if activeProfileConfigFile != nil {
 		err = b.readConfig(activeProfileConfigFile.path, activeProfileConfigFile.name, activeProfileConfigFile.fileType)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 
 	// iterate all and replace reference values or env
