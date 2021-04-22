@@ -33,8 +33,9 @@ import (
 )
 
 const (
-	success = "success"
-	failed  = "failed"
+	success       = "success"
+	failed        = "failed"
+	finalResponse = "finalResponse"
 )
 
 var (
@@ -57,13 +58,14 @@ type request struct {
 }
 
 type response struct {
-	typeName string
-	name     string
-	kind     reflect.Kind
-	typ      reflect.Type
-	isResponseBody bool
-	implementsResponse bool
+	typeName               string
+	name                   string
+	kind                   reflect.Kind
+	typ                    reflect.Type
+	isResponseBody         bool
+	implementsResponse     bool
 	implementsResponseInfo bool
+	value                  interface{}
 }
 
 type handler struct {
@@ -84,7 +86,7 @@ type handler struct {
 
 	injectableObject *injectableObject
 	restMethod       *injectableMethod
-	annotations		interface{}
+	annotations      interface{}
 }
 
 type requestSet struct {
@@ -275,11 +277,28 @@ func (h *handler) parseMethod(injectableObject *injectableObject, injectableMeth
 	}
 }
 
+
+func (h *handler) buildResponse(ctx context.Context, data interface{}) {
+	if len(h.responses) > 0 {
+		res := &response{
+			typeName: h.responses[0].typeName,
+			typ: h.responses[0].typ,
+			name: h.responses[0].name,
+			kind: h.responses[0].kind,
+			isResponseBody: h.responses[0].isResponseBody,
+			implementsResponse: h.responses[0].implementsResponse,
+			implementsResponseInfo: h.responses[0].implementsResponseInfo,
+			value: data,
+		}
+		h.addResponse(ctx, res)
+	}
+}
+
 func (h *handler) responseData(ctx context.Context, numOut int, results []reflect.Value) (err error) {
 	result := results[0]
 	if !result.CanInterface() {
 		err = ErrCanNotInterface
-		ctx.ResponseError(err.Error(), http.StatusInternalServerError)
+		h.buildResponse(ctx, err)
 		return
 	}
 
@@ -293,29 +312,67 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 
 	switch responseObj.(type) {
 	case string:
-		ctx.ResponseString(result.Interface().(string))
+		h.buildResponse(ctx, result.Interface().(string))
 	case error:
 		respErr := result.Interface().(error)
-		ctx.ResponseError(respErr.Error(), http.StatusInternalServerError)
+		h.buildResponse(ctx, respErr)
 	case model.Response:
 		h.responseWithError(ctx, numOut, results, responseObj)
 	case map[string]interface{}:
-		_, _ = ctx.JSON(responseObj)
+		h.buildResponse(ctx, responseObj)
 	default:
 		if h.responses[0].implementsResponseInfo {
 			h.responseInfoWithError(ctx, numOut, results, responseObj)
 		} else {
-			_, _ = ctx.JSON(responseObj)
+			h.buildResponse(ctx, responseObj)
+		}
+	}
+	return
+}
+
+func (h *handler) finalizeResponse(ctx context.Context) {
+
+	idx, size := ctx.HandlerIndex(-1), len(ctx.Handlers())-1
+
+	if idx == size {
+		resObj, ok := ctx.GetResponse(new(response))
+		// TODO: find out the root cause of strings type being called twice
+		done := ctx.Values().GetString("done") == "true"
+		if !done && ok {
+			//log.Debugf("%v / %v", idx, size)
+			ctx.Values().Set("done", "true")
+			res := resObj.(*response)
+			switch res.value.(type) {
+			case string:
+				ctx.ResponseString(res.value.(string))
+			case error:
+				respErr := res.value.(error)
+				ctx.ResponseError(respErr.Error(), http.StatusInternalServerError)
+			case model.Response:
+				r := res.value.(model.Response)
+				ctx.StatusCode(r.GetCode())
+				_, _ = ctx.JSON(r)
+			case model.ResponseInfo:
+				r := res.value.(model.ResponseInfo)
+				ctx.StatusCode(r.GetCode())
+				_, _ = ctx.JSON(r)
+			case map[string]interface{}:
+				_, _ = ctx.JSON(res.value)
+			default:
+				_, _ = ctx.JSON(res.value)
+			}
 		}
 	}
 	return
 }
 
 func (h *handler) addResponse(ctx context.Context, responseObj interface{}) {
-	ann := annotation.GetAnnotation(h.annotations, at.RequestMapping{})
-	if ann != nil {
+	//ann := annotation.GetAnnotation(h.annotations, at.RequestMapping{})
+	//if ann != nil {
+	if len(h.responses) > 0 {
 		ctx.AddResponse(responseObj)
 	}
+	//}
 }
 
 func (h *handler) responseInfoWithError(ctx context.Context, numOut int, results []reflect.Value, responseObj interface{}) {
@@ -346,8 +403,9 @@ func (h *handler) responseInfoWithError(ctx context.Context, numOut int, results
 			// TODO: configurable status code in application.yml
 		}
 	}
-	ctx.StatusCode(response.GetCode())
-	_, _ = ctx.JSON(response)
+	h.buildResponse(ctx, response)
+	//ctx.StatusCode(response.GetCode())
+	//_, _ = ctx.JSON(response)
 }
 
 func (h *handler) responseWithError(ctx context.Context, numOut int, results []reflect.Value, responseObj interface{}) {
@@ -372,10 +430,11 @@ func (h *handler) responseWithError(ctx context.Context, numOut int, results []r
 			response.SetMessage(ctx.Translate(respErr.Error()))
 
 			// TODO: configurable status code in application.yml
-			ctx.StatusCode(response.GetCode())
+			//ctx.StatusCode(response.GetCode())
 		}
 	}
-	_, _ = ctx.JSON(response)
+	h.buildResponse(ctx, response)
+	//_, _ = ctx.JSON(response)
 }
 
 func (h *handler) setErrorResponseCode(ctx context.Context, response model.ResponseInfo) {
@@ -470,6 +529,9 @@ func (h *handler) call(ctx context.Context) {
 			_ = h.responseData(ctx, h.numOut, results)
 		}
 	}
+
+	// finalize response
+	h.finalizeResponse(ctx)
 }
 
 func (h *handler) decodePathVariable(lenOfPathParams *int, pvs []string, req request, kind reflect.Kind) reflect.Value {
@@ -494,4 +556,3 @@ func (h *handler) decodeSlice(ctx context.Context, iTyp reflect.Type, input refl
 	retVal = input
 	return
 }
-

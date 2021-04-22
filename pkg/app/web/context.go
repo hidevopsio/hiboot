@@ -133,7 +133,8 @@ func (c *Context) Translate(format string, args ...interface{}) string {
 
 // ResponseString set response
 func (c *Context) ResponseString(data string) {
-	c.WriteString(c.translate(data))
+	//log.Infof("+++ %v : %v", c.Path(), c.translate(data))
+	_, _ = c.WriteString(c.translate(data))
 }
 
 // ResponseBody set response
@@ -187,6 +188,7 @@ func (c *Context) AddResponse(response interface{}) {
 	if c.responses == nil {
 		c.responses = cmap.New()
 	}
+	// TODO: do we need the index of the response value?
 	name, object := factory.ParseParams(response)
 	c.responses.Set(name, object)
 
