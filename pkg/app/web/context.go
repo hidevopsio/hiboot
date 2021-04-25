@@ -197,7 +197,9 @@ func (c *Context) AddResponse(response interface{}) {
 
 // GetResponses get all responses as a slice
 func (c *Context) GetResponses() (responses map[string]interface{}) {
-	responses = c.responses.Items()
+	if c.responses != nil {
+		responses = c.responses.Items()
+	}
 	return
 }
 
