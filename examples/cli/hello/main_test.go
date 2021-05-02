@@ -33,7 +33,7 @@ func TestHelloCommands(t *testing.T) {
 	testApp := cli.NewTestApplication(t, newRootCommand)
 
 	t.Run("should run hello command", func(t *testing.T) {
-		_, err := testApp.Run("--to", "hiboot")
+		_, err := testApp.Run("--to", "${app.name}-cmd")
 		assert.Equal(t, nil, err)
 	})
 }

@@ -25,6 +25,8 @@ type RootCommand struct {
 
 	profile string
 	timeout int
+
+	MagicNumber int `value:"${magic.number}"`
 }
 
 // NewRootCommand the root command
@@ -43,6 +45,7 @@ func NewRootCommand(second *secondCommand) *RootCommand {
 
 // Run root command handler
 func (c *RootCommand) Run(args []string) error {
-	log.Infof("handle first command: profile=%v, timeout=%v", c.profile, c.timeout)
+	log.Debugf("root: %v", args)
+	log.Infof("handle first command: profile=%v, timeout=%v, magic.number=%v", c.profile, c.timeout, c.MagicNumber)
 	return nil
 }

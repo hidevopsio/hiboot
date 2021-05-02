@@ -17,6 +17,9 @@
 package system
 
 import (
+	"embed"
+	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -33,12 +36,17 @@ import (
 	"github.com/hidevopsio/viper"
 )
 
-const ( appProfilesInclude  = "app.profiles.include")
+const (
+	Config             = "app.config"
+	ConfigDir          = "app.config.dir"
+	appProfilesInclude = "app.profiles.include"
+)
 
-type ConfigFile struct{
-	path             string
-	name             string
-	fileType         string
+type ConfigFile struct {
+	fd       fs.File
+	path     string
+	name     string
+	fileType string
 }
 
 type propertyBuilder struct {
@@ -49,9 +57,9 @@ type propertyBuilder struct {
 	defaultProperties map[string]interface{}
 	profiles          []string
 	merge             bool
+	embedFS           *embed.FS
 	sync.Mutex
 }
-
 
 // NewBuilder is the constructor of system.Builder
 func NewPropertyBuilder(path string, customProperties map[string]interface{}) Builder {
@@ -63,7 +71,6 @@ func NewPropertyBuilder(path string, customProperties map[string]interface{}) Bu
 
 	return b
 }
-
 
 // setCustomPropertiesFromArgs returns application config
 func (b *propertyBuilder) setCustomPropertiesFromArgs() {
@@ -91,6 +98,23 @@ func (b *propertyBuilder) setCustomPropertiesFromArgs() {
 			b.Set(kvPair[0], v)
 		}
 	}
+}
+
+
+// New create new viper instance
+func (b *propertyBuilder) readConfigData(in io.Reader,ext string) (err error) {
+	log.Debugf("reader: %v, ext:%v", in, ext)
+	b.AutomaticEnv()
+	viperReplacer := strings.NewReplacer(".", "_")
+	b.SetEnvKeyReplacer(viperReplacer)
+	b.SetConfigType(ext)
+	if !b.merge {
+		b.merge = true
+		err = b.ReadConfig(in)
+	} else {
+		err = b.MergeConfig(in)
+	}
+	return
 }
 
 // New create new viper instance
@@ -143,17 +167,98 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 
 	b.setCustomPropertiesFromArgs()
 
+	// External Config files
+	var embedPaths []string
 	var paths []string
-	configFiles :=  make(map[string]map[string][]string)
+	embedConfigFiles := make(map[string]map[string][]*ConfigFile)
 	pp, _ := filepath.Abs(b.path)
 
 	profile := b.GetString("app.profiles.active")
+	if profile == "" {
+		profile = b.GetString("profile")
+	}
 	if profile == "" && len(profiles) > 0 {
 		profile = profiles[0]
 	}
+	includeProfiles := b.GetStringSlice(appProfilesInclude)
 
+	// TODO: should combine below two process into one
+	var embedActiveProfileConfigFile *ConfigFile
+	var embedDefaultProfileConfigFile *ConfigFile
+
+	// Embed Config Files
+	cfg := b.Get(Config)
+	if cfg != nil {
+		switch cfg.(type) {
+		case embed.FS:
+			c := cfg.(embed.FS)
+			b.embedFS = &c
+		case *embed.FS:
+			b.embedFS = cfg.(*embed.FS)
+		}
+		dir := b.GetString(ConfigDir)
+		if dir == "" {
+			dir = "config"
+		}
+		var files []fs.DirEntry
+		files, err = b.embedFS.ReadDir(dir)
+
+		for _, f := range files {
+			name, _, isDir := f.Name(), f.Type(), f.IsDir()
+			if isDir {
+				continue
+			}
+
+			fileAndExt := strings.Split(name, ".")
+			if len(fileAndExt) == 2 {
+				file, ext := fileAndExt[0], fileAndExt[1]
+
+				if str.InSlice(ext, viper.SupportedExts) {
+					if embedConfigFiles[dir] == nil {
+						embedConfigFiles[dir] = make(map[string][]*ConfigFile)
+					}
+					fd, e := b.embedFS.Open(filepath.Join(dir, name))
+					if e == nil {
+						configFile := &ConfigFile{
+							fd:       fd,
+							path:     dir,
+							name:     file,
+							fileType: ext,
+						}
+						if !strings.Contains(name, "-") {
+							embedDefaultProfileConfigFile = configFile
+							continue
+						}
+						if profile != "" {
+							if strings.Contains(name, "-" + profile) {
+								embedActiveProfileConfigFile = configFile
+								continue
+							} else {
+								embedConfigFiles[dir][ext] = append(embedConfigFiles[dir][ext], configFile)
+							}
+						} else {
+							embedConfigFiles[dir][ext] = append(embedConfigFiles[dir][ext], configFile)
+						}
+						foundDir := false
+						for _, d := range embedPaths {
+							if d == dir {
+								foundDir = true
+								break
+							}
+						}
+						if !foundDir {
+							embedPaths = append(embedPaths, dir)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// external files
 	var activeProfileConfigFile *ConfigFile
 	var defaultProfileConfigFile *ConfigFile
+	configFiles := make(map[string]map[string][]string)
 	err = filepath.Walk(pp, func(path string, info os.FileInfo, err error) error {
 		if err == nil {
 			//*files = append(*files, path)
@@ -164,27 +269,26 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 				if len(fileAndExt) == 2 {
 					file, ext := fileAndExt[0], fileAndExt[1]
 					if file != "" {
+						configFile := &ConfigFile{
+							path:     dir,
+							name:     file,
+							fileType: ext,
+						}
+
 						if str.InSlice(ext, viper.SupportedExts) {
 							if configFiles[dir] == nil {
 								configFiles[dir] = make(map[string][]string)
 							}
 							// do not add default profile, will be handled later
 							if !strings.Contains(file, "-") {
-								defaultProfileConfigFile = &ConfigFile{
-									path:     dir,
-									name:     file,
-									fileType: ext,
-								}
+								defaultProfileConfigFile = configFile
 								return nil
 							}
 
 							if profile != "" {
-								if strings.Contains(file, profile) {
-									activeProfileConfigFile = &ConfigFile{
-										path:     dir,
-										name:     file,
-										fileType: ext,
-									}
+								if strings.Contains(file, "-" + profile) {
+									activeProfileConfigFile = configFile
+									return nil
 								} else {
 									configFiles[dir][ext] = append(configFiles[dir][ext], file)
 								}
@@ -218,6 +322,13 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 	sort.ByLen(paths)
 
 	// read default profile first
+	if embedDefaultProfileConfigFile != nil {
+		err = b.readConfigData(embedDefaultProfileConfigFile.fd, embedDefaultProfileConfigFile.fileType)
+		if err != nil {
+			log.Error(err)
+		}
+	}
+
 	if defaultProfileConfigFile != nil {
 		err = b.readConfig(defaultProfileConfigFile.path, defaultProfileConfigFile.name, defaultProfileConfigFile.fileType)
 		if err != nil {
@@ -225,7 +336,21 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 		}
 	}
 
-	includeProfiles := b.GetStringSlice(appProfilesInclude)
+	for _, path := range embedPaths {
+		ds := embedConfigFiles[path]
+		for _, files := range ds {
+			for _, file := range files {
+				p := strings.Split(file.name, "-")
+				np := len(p)
+				if np > 0 && str.InSlice(p[np-1], includeProfiles) {
+					err = b.readConfigData(file.fd, file.fileType)
+					if err != nil {
+						log.Error(err)
+					}
+				}
+			}
+		}
+	}
 
 	// read all config files
 	//log.Debug("after ...")
@@ -246,6 +371,13 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 	}
 
 	// replaced with active profile
+	if embedActiveProfileConfigFile != nil {
+		err = b.readConfigData(embedActiveProfileConfigFile.fd, embedActiveProfileConfigFile.fileType)
+		if err != nil {
+			log.Error(err)
+		}
+	}
+
 	if activeProfileConfigFile != nil {
 		err = b.readConfig(activeProfileConfigFile.path, activeProfileConfigFile.name, activeProfileConfigFile.fileType)
 		if err != nil {

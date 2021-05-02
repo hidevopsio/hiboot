@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"net/http"
 	"time"
@@ -411,10 +412,14 @@ func init() {
 	)
 }
 
+//go:embed config/*.yml
+var embedFS embed.FS
+
 // Hiboot main function
 func main() {
 	// create new web application and run it
 	web.NewApplication().
+		SetProperty(app.Config, &embedFS).
 		SetProperty(app.ProfilesInclude,
 			actuator.Profile,
 			swagger.Profile,
