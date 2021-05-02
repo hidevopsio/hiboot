@@ -190,7 +190,17 @@ func (c *Context) AddResponse(response interface{}) {
 	}
 	// TODO: do we need the index of the response value?
 	name, object := factory.ParseParams(response)
-	c.responses.Set(name, object)
+	switch response.(type) {
+	case error:
+		c.responses.Set("error", object)
+	default:
+		if name == "" {
+			// assume that name == "" means it is nil error
+			c.responses.Set("error", response)
+		} else {
+			c.responses.Set(name, response)
+		}
+	}
 
 	return
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/model"
+	"errors"
 	"net/http"
 )
 
@@ -62,12 +63,13 @@ func (c *UserController) GetUser(_ struct{
 	at.Operation   `id:"Update Employee" description:"Get User by ID"`
 	// /user/{id} -> `values:"user:read" type:"path" in:"id"`
 	at.RequiresPermissions `values:"user:read" type:"path" in:"id"`
-}, id int, ctx context.Context) (response *UserResponse) {
+}, id int, ctx context.Context) (response *UserResponse, err error) {
 	log.Debug("GetUserByID requested")
 	response = new(UserResponse)
 	response.SetCode(http.StatusOK)
 	response.SetMessage("Success")
 	response.Data = &User{ID: id, Username: "john.deng", Password: "magic-password"}
+	err = errors.New("get user error")
 	return
 }
 
@@ -76,7 +78,7 @@ func (c *UserController) GetUserByName(_ struct{
 	at.GetMapping `value:"/name/{name}"`
 	// /user/{id} -> `values:"user:read" type:"path" in:"id"`
 	at.RequiresPermissions `values:"user:read" type:"path" in:"name"`
-}, name string) (response *UserResponse) {
+}, name string) (response *UserResponse, err error) {
 	response = new(UserResponse)
 	response.SetCode(http.StatusOK)
 	response.SetMessage("Success")
@@ -90,7 +92,7 @@ func (c *UserController) GetUserQuery(_ struct{
 	at.Operation   `id:"Update Employee" description:"Query User"`
 	// /user?id=12345 -> `values:"user:read" type:"query" in:"id"`
 	at.RequiresPermissions `values:"user:read" type:"query" in:"id"`
-}, ctx context.Context) (response *UserResponse) {
+}, ctx context.Context) (response *UserResponse, err error) {
 	response = new(UserResponse)
 	response.SetCode(http.StatusOK)
 	response.SetMessage("Success")
@@ -105,7 +107,7 @@ func (c *UserController) GetUsers(_ struct{
 	at.GetMapping `value:"/"`
 	at.Operation   `id:"Update Employee" description:"Get User List"`
 	at.RequiresPermissions `values:"user:list" type:"query:pagination" in:"page,per_page,id" out:"expr,total"`
-}, request *UserRequests, ctx context.Context) (response *ListUserResponse) {
+}, request *UserRequests, ctx context.Context) (response *ListUserResponse, err error) {
 	log.Debugf("expr: %v", request.Expr)
 	log.Debugf("total: %v", request.Total)
 	response = new(ListUserResponse)
@@ -120,7 +122,7 @@ func (c *UserController) GetUsers(_ struct{
 func (c *UserController) DeleteUser(_ struct{
 	at.DeleteMapping `value:"/{id}"`
 	at.Operation   `id:"Update Employee" description:"Delete User by ID"`
-}, id int) (response *UserResponse) {
+}, id int) (response *UserResponse, err error) {
 	response = new(UserResponse)
 	response.SetCode(http.StatusOK)
 	response.SetMessage("Success")

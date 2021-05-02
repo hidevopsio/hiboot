@@ -367,12 +367,11 @@ func (h *handler) finalizeResponse(ctx context.Context) {
 }
 
 func (h *handler) addResponse(ctx context.Context, responseObj interface{}) {
-	//ann := annotation.GetAnnotation(h.annotations, at.RequestMapping{})
-	//if ann != nil {
+
 	if len(h.responses) > 0 {
 		ctx.AddResponse(responseObj)
 	}
-	//}
+
 }
 
 func (h *handler) responseInfoWithError(ctx context.Context, numOut int, results []reflect.Value, responseObj interface{}) {
@@ -381,11 +380,13 @@ func (h *handler) responseInfoWithError(ctx context.Context, numOut int, results
 		var respErr error
 		errVal := results[1]
 		errObj := results[1].Interface()
-		h.addResponse(ctx, errObj)
+
 		if errVal.IsNil() {
 			respErr = nil
+			h.addResponse(ctx, respErr)
 		} else if errVal.Type().Name() == "error" {
 			respErr = errObj.(error)
+			h.addResponse(ctx, errObj)
 		}
 
 		if respErr == nil {
@@ -414,11 +415,13 @@ func (h *handler) responseWithError(ctx context.Context, numOut int, results []r
 		var respErr error
 		errVal := results[1]
 		errObj := results[1].Interface()
-		h.addResponse(ctx, errObj)
+
 		if errVal.IsNil() {
 			respErr = nil
+			h.addResponse(ctx, respErr)
 		} else if errVal.Type().Name() == "error" {
 			respErr = errObj.(error)
+			h.addResponse(ctx, errObj)
 		}
 
 		if respErr == nil {
