@@ -26,7 +26,7 @@ func init() {
 
 // Logging is the middleware handler,it support dependency injection, method annotation
 // middleware handler can be annotated to specific purpose or general purpose
-func (m *loggingMiddleware) Logging( a struct{at.MiddlewareHandler `value:"/" `}, ctx context.Context) {
+func (m *loggingMiddleware) Logging( _ struct{at.MiddlewareHandler `value:"/" `}, ctx context.Context) {
 	ann := annotation.GetAnnotation(ctx.Annotations(), at.Operation{})
 	if ann != nil {
 		va := ann.Field.Value.Interface().(at.Operation)
@@ -41,7 +41,7 @@ func (m *loggingMiddleware) Logging( a struct{at.MiddlewareHandler `value:"/" `}
 }
 
 // PostLogging is the middleware post handler
-func (m *loggingMiddleware) PostLogging( a struct{at.MiddlewarePostHandler `value:"/user/query" `}, ctx context.Context) {
+func (m *loggingMiddleware) PostLogging( _ struct{at.MiddlewarePostHandler `value:"/user/query" `}, ctx context.Context) {
 	responses := ctx.GetResponses()
 	var baseResponseInfo model.BaseResponseInfo
 	var err error

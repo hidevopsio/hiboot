@@ -322,7 +322,7 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 		h.buildResponse(ctx, responseObj)
 	default:
 		if h.responses[0].implementsResponseInfo {
-			h.responseInfoWithError(ctx, numOut, results, responseObj)
+			h.responseWithError(ctx, numOut, results, responseObj)
 		} else {
 			h.buildResponse(ctx, responseObj)
 		}
@@ -374,7 +374,7 @@ func (h *handler) addResponse(ctx context.Context, responseObj interface{}) {
 
 }
 
-func (h *handler) responseInfoWithError(ctx context.Context, numOut int, results []reflect.Value, responseObj interface{}) {
+func (h *handler) responseWithError(ctx context.Context, numOut int, results []reflect.Value, responseObj interface{}) {
 	response := responseObj.(model.ResponseInfo)
 	if numOut >= 2 {
 		var respErr error
@@ -405,39 +405,6 @@ func (h *handler) responseInfoWithError(ctx context.Context, numOut int, results
 		}
 	}
 	h.buildResponse(ctx, response)
-	//ctx.StatusCode(response.GetCode())
-	//_, _ = ctx.JSON(response)
-}
-
-func (h *handler) responseWithError(ctx context.Context, numOut int, results []reflect.Value, responseObj interface{}) {
-	response := responseObj.(model.ResponseInfo)
-	if numOut >= 2 {
-		var respErr error
-		errVal := results[1]
-		errObj := results[1].Interface()
-
-		if errVal.IsNil() {
-			respErr = nil
-			h.addResponse(ctx, respErr)
-		} else if errVal.Type().Name() == "error" {
-			respErr = errObj.(error)
-			h.addResponse(ctx, errObj)
-		}
-
-		if respErr == nil {
-			response.SetCode(http.StatusOK)
-			response.SetMessage(ctx.Translate(success))
-		} else {
-			h.setErrorResponseCode(ctx, response)
-			// TODO: output error message directly? how about i18n
-			response.SetMessage(ctx.Translate(respErr.Error()))
-
-			// TODO: configurable status code in application.yml
-			//ctx.StatusCode(response.GetCode())
-		}
-	}
-	h.buildResponse(ctx, response)
-	//_, _ = ctx.JSON(response)
 }
 
 func (h *handler) setErrorResponseCode(ctx context.Context, response model.ResponseInfo) {
