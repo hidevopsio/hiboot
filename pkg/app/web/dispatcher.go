@@ -256,6 +256,10 @@ func (d *Dispatcher) parseRestController(ctl *factory.MetaData) (restController 
 		m, p := webutils.GetHttpMethod(restMethod.annotations)
 		if m != "" {
 			restMethod.hasMethodAnnotation = true
+			//if p == "" {
+			//	// TODO: to check why p is empty?
+			//	p = "/"
+			//}
 			reqMap.Method, reqMap.Value = m, p
 		}
 

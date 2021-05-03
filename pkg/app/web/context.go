@@ -133,7 +133,8 @@ func (c *Context) Translate(format string, args ...interface{}) string {
 
 // ResponseString set response
 func (c *Context) ResponseString(data string) {
-	c.WriteString(c.translate(data))
+	//log.Infof("+++ %v : %v", c.Path(), c.translate(data))
+	_, _ = c.WriteString(c.translate(data))
 }
 
 // ResponseBody set response
@@ -187,15 +188,28 @@ func (c *Context) AddResponse(response interface{}) {
 	if c.responses == nil {
 		c.responses = cmap.New()
 	}
+	// TODO: do we need the index of the response value?
 	name, object := factory.ParseParams(response)
-	c.responses.Set(name, object)
+	switch response.(type) {
+	case error:
+		c.responses.Set("error", object)
+	default:
+		if name == "" {
+			// assume that name == "" means it is nil error
+			c.responses.Set("error", response)
+		} else {
+			c.responses.Set(name, response)
+		}
+	}
 
 	return
 }
 
 // GetResponses get all responses as a slice
 func (c *Context) GetResponses() (responses map[string]interface{}) {
-	responses = c.responses.Items()
+	if c.responses != nil {
+		responses = c.responses.Items()
+	}
 	return
 }
 

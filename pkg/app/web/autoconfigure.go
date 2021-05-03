@@ -2,11 +2,12 @@ package web
 
 import (
 	"fmt"
-	"github.com/kataras/iris"
+
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/kataras/iris"
 )
 
 const Profile = "web"
@@ -32,7 +33,8 @@ func (c *configuration) Context(app *webApp) context.Context {
 }
 
 // DefaultView set the default view
-func (c *configuration) DefaultView(app *webApp) {
+type DefaultView interface {}
+func (c *configuration) DefaultView(app *webApp) (view DefaultView) {
 
 	if c.Properties.View.Enabled {
 		v := c.Properties.View
@@ -44,4 +46,5 @@ func (c *configuration) DefaultView(app *webApp) {
 		route.MainHandlerName = fmt.Sprintf("%s%s ", v.ContextPath, v.DefaultPage)
 		log.Infof("Mapped \"%v\" onto %v", v.ContextPath, v.DefaultPage)
 	}
+	return
 }
