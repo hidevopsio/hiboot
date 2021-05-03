@@ -27,28 +27,7 @@ func init() {
 // Logging is the middleware handler,it support dependency injection, method annotation
 // middleware handler can be annotated to specific purpose or general purpose
 func (m *loggingMiddleware) Logging( a struct{at.MiddlewareHandler `value:"/" `}, ctx context.Context) {
-	ann := annotation.GetAnnotation(ctx.Annotations(), at.RequiresPermissions{})
-	if ann != nil {
-		va := ann.Field.Value.Interface().(at.RequiresPermissions)
-		switch va.AtType {
-		case "path":
-			id := ctx.Params().Get(va.AtIn[0])
-			log.Debugf("path id: %v", id)
-		case "query":
-			id := ctx.URLParams()[va.AtIn[0]]
-			log.Debugf("query id: %v", id)
-		case "query:pagination":
-			log.Debugf("page number: %v, page size: %v", ctx.URLParam(va.AtIn[0]), ctx.URLParam(va.AtIn[1]))
-			ctx.SetURLParam(va.AtOut[0], "in(2,4,6,8)")
-			ctx.SetURLParam(va.AtOut[1], "50")
-			ctx.Header(va.AtOut[0], "in(2,4,6,8)")
-			ctx.Request().Header.Set(va.AtOut[0], "in(2,4,6,8)")
-		}
-
-		log.Infof("[auth middleware] %v - %v", ctx.GetCurrentRoute(), va.AtValues)
-	}
-
-	ann = annotation.GetAnnotation(ctx.Annotations(), at.Operation{})
+	ann := annotation.GetAnnotation(ctx.Annotations(), at.Operation{})
 	if ann != nil {
 		va := ann.Field.Value.Interface().(at.Operation)
 		log.Infof("[logging middleware] %v - %v", ctx.GetCurrentRoute(), va.AtDescription)
