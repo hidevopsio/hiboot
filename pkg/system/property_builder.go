@@ -61,6 +61,7 @@ type propertyBuilder struct {
 	sync.Mutex
 }
 
+
 // NewBuilder is the constructor of system.Builder
 func NewPropertyBuilder(path string, customProperties map[string]interface{}) Builder {
 	b := &propertyBuilder{
@@ -71,6 +72,7 @@ func NewPropertyBuilder(path string, customProperties map[string]interface{}) Bu
 
 	return b
 }
+
 
 // setCustomPropertiesFromArgs returns application config
 func (b *propertyBuilder) setCustomPropertiesFromArgs() {
@@ -180,7 +182,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 	if profile == "" && len(profiles) > 0 {
 		profile = profiles[0]
 	}
-	includeProfiles := b.GetStringSlice(appProfilesInclude)
+
 
 	// TODO: should combine below two process into one
 	var embedActiveProfileConfigFile *ConfigFile
@@ -288,7 +290,6 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 							if profile != "" {
 								if strings.Contains(file, "-" + profile) {
 									activeProfileConfigFile = configFile
-									return nil
 								} else {
 									configFiles[dir][ext] = append(configFiles[dir][ext], file)
 								}
@@ -336,6 +337,8 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 		}
 	}
 
+	includeProfiles := b.GetStringSlice(appProfilesInclude)
+
 	for _, path := range embedPaths {
 		ds := embedConfigFiles[path]
 		for _, files := range ds {
@@ -351,6 +354,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 			}
 		}
 	}
+
 
 	// read all config files
 	//log.Debug("after ...")
