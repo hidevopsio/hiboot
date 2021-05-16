@@ -1,6 +1,6 @@
 module github.com/hidevopsio/hiboot
 
-go 1.15
+go 1.16
 
 require (
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
@@ -44,8 +44,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0
 	golang.org/x/net v0.0.0-20200421231249-e086a090c8fd
 	google.golang.org/grpc v1.29.1
-	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
-	gopkg.in/go-playground/validator.v8 v8.18.2
 	gopkg.in/yaml.v2 v2.2.4
 )
 
