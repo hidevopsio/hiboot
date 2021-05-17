@@ -328,6 +328,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 		if err != nil {
 			log.Error(err)
 		}
+		_ = embedDefaultProfileConfigFile.fd.Close()
 	}
 
 	if defaultProfileConfigFile != nil {
@@ -350,6 +351,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 					if err != nil {
 						log.Error(err)
 					}
+					_ = file.fd.Close()
 				}
 			}
 		}
@@ -380,6 +382,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 		if err != nil {
 			log.Error(err)
 		}
+		_ = embedActiveProfileConfigFile.fd.Close()
 	}
 
 	if activeProfileConfigFile != nil {
