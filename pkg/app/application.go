@@ -176,7 +176,7 @@ func (a *BaseApplication) BuildConfigurations() (err error) {
 	err = a.configurableFactory.BuildComponents()
 
 	// Start Scheduler after build
-	schedulerServices := a.configurableFactory.GetInstances(at.Scheduler{})
+	schedulerServices := a.configurableFactory.GetInstances(at.EnableScheduling{})
 	a.schedulers = a.configurableFactory.StartSchedulers(schedulerServices)
 
 	return

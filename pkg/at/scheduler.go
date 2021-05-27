@@ -1,7 +1,14 @@
 package at
 
+// EnableScheduling
+type EnableScheduling struct {
+	Annotation
+
+	BaseAnnotation
+}
+
 // Scheduler
-type Scheduler struct {
+type Scheduled struct {
 	Annotation
 
 	BaseAnnotation

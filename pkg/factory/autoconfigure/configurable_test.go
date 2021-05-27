@@ -553,7 +553,7 @@ func TestReplacer(t *testing.T) {
 var doneSch = make(chan bool)
 
 type myService struct {
-	at.Scheduler `every:"200" unit:"milliseconds"`
+	at.EnableScheduling
 
 	count int
 }
@@ -563,7 +563,7 @@ func newMyService() *myService {
 }
 
 //_ struct{at.Scheduler `limit:"10"`}
-func (s *myService) Run() (done bool) {
+func (s *myService) Run(_ struct{at.Scheduled `every:"200" unit:"milliseconds"`}) (done bool) {
 	log.Info("Running Scheduler Task")
 
 	if s.count <= 0 {

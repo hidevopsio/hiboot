@@ -14,7 +14,7 @@ import (
 var waitGroup = sync.WaitGroup{}
 
 type myService struct {
-	at.Scheduler `limit:"1" every:"1" unit:"seconds"`
+	at.Scheduled `limit:"1" every:"1" unit:"seconds"`
 }
 
 func (s *myService) Run()  {
@@ -23,7 +23,7 @@ func (s *myService) Run()  {
 }
 
 type myLimitService struct {
-	at.Scheduler `limit:"2"`
+	at.Scheduled `limit:"2"`
 }
 
 func (s *myLimitService) Run()  {

@@ -348,31 +348,36 @@ func (f *configurableFactory) initProperties(config interface{}) (err error) {
 }
 
 func (f *configurableFactory) StartSchedulers(schedulerServices []*factory.MetaData) (schedulers []*scheduler.Scheduler) {
-	for _, svc := range schedulerServices {
-		sch := scheduler.NewScheduler()
-		ann := annotation.GetAnnotation(svc.Instance, at.Scheduler{})
-		schAnn := ann.Field.Value.Interface().(at.Scheduler)
-		if schAnn.AtCron != nil {
-			sch.RunWithExpr(schAnn.AtTag, schAnn.AtCron,
-				func() {
-					f.runTask(svc, sch)
-				},
-			)
-		} else {
-			sch.Run(schAnn.AtTag, schAnn.AtLimit, schAnn.AtEvery, schAnn.AtUnit, schAnn.AtTime, schAnn.AtDelay,
-				func() {
-					f.runTask(svc, sch)
-				},
-			)
-		}
+	for _, svcMD := range schedulerServices {
+		svc := svcMD.Instance
+		methods, annotations := annotation.FindAnnotatedMethods(svc, at.Scheduled{})
+		for i, method := range methods {
+			sch := scheduler.NewScheduler()
+			ann := annotations[i]
+			_ = annotation.Inject(ann)
+			schAnn := ann.Field.Value.Interface().(at.Scheduled)
+			if schAnn.AtCron != nil {
+				sch.RunWithExpr(schAnn.AtTag, schAnn.AtCron,
+					func() {
+						f.runTask(svc, method, ann, sch)
+					},
+				)
+			} else {
+				sch.Run(schAnn.AtTag, schAnn.AtLimit, schAnn.AtEvery, schAnn.AtUnit, schAnn.AtTime, schAnn.AtDelay,
+					func() {
+						f.runTask(svc, method, ann, sch)
+					},
+				)
+			}
 
-		schedulers = append(schedulers, sch)
+			schedulers = append(schedulers, sch)
+		}
 	}
 	return nil
 }
 
-func (f *configurableFactory) runTask(svc *factory.MetaData, sch *scheduler.Scheduler) {
-	result, err := reflector.CallMethodByName(svc.Instance, "Run")
+func (f *configurableFactory) runTask(svc interface{}, method reflect.Method, ann *annotation.Annotation, sch *scheduler.Scheduler) {
+	result, err := reflector.CallMethodByName(svc, method.Name, ann.Parent.Value.Interface())
 	if err == nil {
 		switch result.(type) {
 		case bool:

@@ -144,6 +144,17 @@ type AtArray struct {
 	AtValues []string `at:"values" json:"-"`
 }
 
+type fooService struct {
+}
+
+func (s *fooService) IHaveAnnotation(_ struct{ AtFoo `value:"bar"` })  {
+
+}
+
+func (s *fooService) IDoNotHaveAnnotation()  {
+
+}
+
 func TestImplementsAnnotation(t *testing.T) {
 	log.SetLevel("debug")
 
@@ -447,6 +458,13 @@ func TestImplementsAnnotation(t *testing.T) {
 		err := annotation.InjectAll(ta)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, 3, len(ta.AtValues))
+	})
+
+	t.Run("find annotated methods", func(t *testing.T) {
+		fs := new(fooService)
+		methods, annotations := annotation.FindAnnotatedMethods(fs, AtFoo{})
+		assert.Equal(t, 1, len(methods))
+		assert.Equal(t, 1, len(annotations))
 	})
 }
 
