@@ -556,6 +556,10 @@ type myService struct {
 	at.Scheduler `every:"100" unit:"milliseconds"`
 }
 
+func newMyService() *myService {
+	return &myService{}
+}
+
 //_ struct{at.Scheduler `limit:"10"`}
 func (s *myService) Run()  {
 	log.Info("Running Scheduler Task")
@@ -572,7 +576,7 @@ func (c *controller) Get() string {
 
 
 func TestScheduler(t *testing.T) {
-	app.Register(new(myService))
+	app.Register(newMyService)
 	waitGroup.Add(10)
 	testApp := web.NewTestApp(t, new(controller)).Run(t)
 

@@ -172,7 +172,7 @@ func (f *configurableFactory) Build(configs []*factory.MetaData) {
 func (f *configurableFactory) StartSchedulers(schedulerServices []*factory.MetaData) (schedulers []*scheduler.Scheduler) {
 	for _, svc := range schedulerServices {
 		sch := scheduler.NewScheduler()
-		ann := annotation.GetAnnotation(svc.MetaObject, at.Scheduler{})
+		ann := annotation.GetAnnotation(svc.Instance, at.Scheduler{})
 		schAnn := ann.Field.Value.Interface().(at.Scheduler)
 		if schAnn.AtCron != nil {
 			sch.RunWithExpr(schAnn.AtTag, schAnn.AtCron, func() {
@@ -181,7 +181,7 @@ func (f *configurableFactory) StartSchedulers(schedulerServices []*factory.MetaD
 		} else {
 			sch.Run(schAnn.AtTag, schAnn.AtLimit, schAnn.AtEvery, schAnn.AtUnit, schAnn.AtTime, schAnn.AtDelay,
 				func() {
-					_, _ = reflector.CallMethodByName(svc.MetaObject, "Run")
+					_, _ = reflector.CallMethodByName(svc.Instance, "Run")
 				},
 			)
 		}
