@@ -26,8 +26,10 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 )
 
@@ -546,4 +548,38 @@ func TestReplacer(t *testing.T) {
 		assert.Equal(t, "bar", fooProp.Username)
 		assert.Equal(t, "foo", fooProp.Name)
 	})
+}
+
+var waitGroup = sync.WaitGroup{}
+
+type myService struct {
+	at.Scheduler `every:"100" unit:"milliseconds"`
+}
+
+//_ struct{at.Scheduler `limit:"10"`}
+func (s *myService) Run()  {
+	log.Info("Running Scheduler Task")
+	waitGroup.Done()
+}
+
+type controller struct {
+	at.RestController
+}
+
+func (c *controller) Get() string {
+	return "Hello scheduler"
+}
+
+
+func TestScheduler(t *testing.T) {
+	app.Register(new(myService))
+	waitGroup.Add(10)
+	testApp := web.NewTestApp(t, new(controller)).Run(t)
+
+
+	t.Run("scheduler", func(t *testing.T) {
+		testApp.Get("/").Expect().Status(http.StatusOK)
+	})
+
+	waitGroup.Wait()
 }

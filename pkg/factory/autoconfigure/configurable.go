@@ -22,6 +22,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/inject/annotation"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/system/scheduler"
 	"github.com/hidevopsio/hiboot/pkg/system/types"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
@@ -166,6 +167,28 @@ func (f *configurableFactory) Build(configs []*factory.MetaData) {
 	//for _, properties := range allProperties {
 	//	_ = f.builder.Load(properties.MetaObject)
 	//}
+}
+
+func (f *configurableFactory) StartSchedulers(schedulerServices []*factory.MetaData) (schedulers []*scheduler.Scheduler) {
+	for _, svc := range schedulerServices {
+		sch := scheduler.NewScheduler()
+		ann := annotation.GetAnnotation(svc.MetaObject, at.Scheduler{})
+		schAnn := ann.Field.Value.Interface().(at.Scheduler)
+		if schAnn.AtCron != nil {
+			sch.RunWithExpr(schAnn.AtTag, schAnn.AtCron, func() {
+				_, _ = reflector.CallMethodByName(svc.MetaObject, "Run")
+			})
+		} else {
+			sch.Run(schAnn.AtTag, schAnn.AtLimit, schAnn.AtEvery, schAnn.AtUnit, schAnn.AtTime, schAnn.AtDelay,
+				func() {
+					_, _ = reflector.CallMethodByName(svc.MetaObject, "Run")
+				},
+			)
+		}
+
+		schedulers = append(schedulers, sch)
+	}
+	return nil
 }
 
 // Instantiate run instantiation by method
