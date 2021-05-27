@@ -169,28 +169,6 @@ func (f *configurableFactory) Build(configs []*factory.MetaData) {
 	//}
 }
 
-func (f *configurableFactory) StartSchedulers(schedulerServices []*factory.MetaData) (schedulers []*scheduler.Scheduler) {
-	for _, svc := range schedulerServices {
-		sch := scheduler.NewScheduler()
-		ann := annotation.GetAnnotation(svc.Instance, at.Scheduler{})
-		schAnn := ann.Field.Value.Interface().(at.Scheduler)
-		if schAnn.AtCron != nil {
-			sch.RunWithExpr(schAnn.AtTag, schAnn.AtCron, func() {
-				_, _ = reflector.CallMethodByName(svc.MetaObject, "Run")
-			})
-		} else {
-			sch.Run(schAnn.AtTag, schAnn.AtLimit, schAnn.AtEvery, schAnn.AtUnit, schAnn.AtTime, schAnn.AtDelay,
-				func() {
-					_, _ = reflector.CallMethodByName(svc.Instance, "Run")
-				},
-			)
-		}
-
-		schedulers = append(schedulers, sch)
-	}
-	return nil
-}
-
 // Instantiate run instantiation by method
 func (f *configurableFactory) Instantiate(configuration interface{}) (err error) {
 	cv := reflect.ValueOf(configuration)
@@ -368,3 +346,41 @@ func (f *configurableFactory) initProperties(config interface{}) (err error) {
 	}
 	return
 }
+
+func (f *configurableFactory) StartSchedulers(schedulerServices []*factory.MetaData) (schedulers []*scheduler.Scheduler) {
+	for _, svc := range schedulerServices {
+		sch := scheduler.NewScheduler()
+		ann := annotation.GetAnnotation(svc.Instance, at.Scheduler{})
+		schAnn := ann.Field.Value.Interface().(at.Scheduler)
+		if schAnn.AtCron != nil {
+			sch.RunWithExpr(schAnn.AtTag, schAnn.AtCron,
+				func() {
+					f.runTask(svc, sch)
+				},
+			)
+		} else {
+			sch.Run(schAnn.AtTag, schAnn.AtLimit, schAnn.AtEvery, schAnn.AtUnit, schAnn.AtTime, schAnn.AtDelay,
+				func() {
+					f.runTask(svc, sch)
+				},
+			)
+		}
+
+		schedulers = append(schedulers, sch)
+	}
+	return nil
+}
+
+func (f *configurableFactory) runTask(svc *factory.MetaData, sch *scheduler.Scheduler) {
+	result, err := reflector.CallMethodByName(svc.Instance, "Run")
+	if err == nil {
+		switch result.(type) {
+		case bool:
+			res := result.(bool)
+			if res {
+				sch.Stop()
+			}
+		}
+	}
+}
+
