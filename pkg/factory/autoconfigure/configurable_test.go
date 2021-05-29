@@ -15,7 +15,11 @@
 package autoconfigure_test
 
 import (
-	"github.com/stretchr/testify/assert"
+	"net/http"
+	"os"
+	"path/filepath"
+	"testing"
+
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
@@ -26,9 +30,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"os"
-	"path/filepath"
-	"testing"
+	"github.com/stretchr/testify/assert"
 )
 
 type FakeProperties struct {
@@ -546,4 +548,50 @@ func TestReplacer(t *testing.T) {
 		assert.Equal(t, "bar", fooProp.Username)
 		assert.Equal(t, "foo", fooProp.Name)
 	})
+}
+
+var doneSch = make(chan bool)
+
+type myService struct {
+	at.EnableScheduling
+
+	count int
+}
+
+func newMyService() *myService {
+	return &myService{count: 10}
+}
+
+//_ struct{at.Scheduler `limit:"10"`}
+func (s *myService) Run(_ struct{at.Scheduled `every:"200" unit:"milliseconds"`}) (done bool) {
+	log.Info("Running Scheduler Task")
+
+	if s.count <= 0 {
+		done = true
+		doneSch <- true
+	}
+	s.count--
+
+	return
+}
+
+type controller struct {
+	at.RestController
+}
+
+func (c *controller) Get() string {
+	return "Hello scheduler"
+}
+
+
+func TestScheduler(t *testing.T) {
+	app.Register(newMyService)
+	testApp := web.NewTestApp(t, new(controller)).Run(t)
+
+
+	t.Run("scheduler", func(t *testing.T) {
+		testApp.Get("/").Expect().Status(http.StatusOK)
+	})
+
+	log.Infof("scheduler is done: %v", <- doneSch)
 }

@@ -336,3 +336,45 @@ func injectIntoField(field *Field) (err error) {
 	}
 	return
 }
+
+// GetAnnotatedMethods
+func FindAnnotatedMethods(object interface{}, att interface{}) (methods []reflect.Method, annotations []*Annotation) {
+	objVal := reflect.ValueOf(object)
+	objTyp := objVal.Type()
+	numOfMethod := objVal.NumMethod()
+	//log.Debug("methods: ", numOfMethod)
+	for mi := 0; mi < numOfMethod; mi++ {
+		// get method
+		method := objTyp.Method(mi)
+		//log.Debug(method.Name)
+		ann := FindMethodAnnotation(method, att)
+		if ann != nil {
+			methods = append(methods, method)
+			annotations = append(annotations, ann)
+		}
+	}
+	return
+}
+
+// HasMethodAnnotation
+func FindMethodAnnotation(method reflect.Method, att interface{}) (annotation *Annotation) {
+	numIn := method.Type.NumIn()
+	for n := 1; n < numIn; n++ {
+		typ := method.Type.In(n)
+		iTyp := reflector.IndirectType(typ)
+		if iTyp.Kind() == reflect.Struct {
+			av := reflect.New(typ)
+			avo := av.Interface()
+			ma := GetAnnotations(avo)
+			if ma != nil {
+				ann := Find(ma, att)
+				if ann != nil {
+					annotation = ann
+					break
+				}
+			}
+		}
+	}
+
+	return
+}

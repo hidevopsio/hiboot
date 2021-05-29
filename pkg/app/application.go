@@ -23,11 +23,13 @@ import (
 	"sync"
 
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
+	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/system/scheduler"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 )
@@ -73,6 +75,8 @@ type BaseApplication struct {
 	mu                  sync.Mutex
 	// SetAddCommandLineProperties
 	addCommandLineProperties bool
+
+	schedulers []*scheduler.Scheduler
 }
 
 var (
@@ -170,6 +174,10 @@ func (a *BaseApplication) BuildConfigurations() (err error) {
 	a.configurableFactory.Build(configContainer)
 	// build components
 	err = a.configurableFactory.BuildComponents()
+
+	// Start Scheduler after build
+	schedulerServices := a.configurableFactory.GetInstances(at.EnableScheduling{})
+	a.schedulers = a.configurableFactory.StartSchedulers(schedulerServices)
 
 	return
 }

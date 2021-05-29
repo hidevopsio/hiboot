@@ -44,8 +44,8 @@ If you are a Java developer, you can start coding in Go without learning curve.
 
 ## Getting Started
 
-* [Hiboot Documentation in English](https://hiboot.hidevops.io)
-* [Hiboot 中文文档](https://hiboot.hidevops.io/cn)
+* [Hiboot Documentation in English](https://hiboot.netlify.app/)
+* [Hiboot 中文文档](https://hiboot.netlify.app/cn)
 
 ## Community Contributions Guide
 
@@ -56,3 +56,5 @@ Thank you for considering contributing to the Hiboot framework, The contribution
 © John Deng, 2017 ~ time.Now
 
 Released under the [Apache License 2.0](https://github.com/hidevopsio/hiboot/blob/master/LICENSE)
+
+[Jetbrains](https://www.jetbrains.com/?from=hiboot) supports this project with GoLand licenses. We appreciate their support for free and open source software!

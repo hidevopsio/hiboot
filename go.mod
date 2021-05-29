@@ -7,6 +7,7 @@ require (
 	github.com/deckarep/golang-set v1.7.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/camelcase v1.0.0
+	github.com/go-co-op/gocron v1.5.0
 	github.com/go-openapi/runtime v0.19.4
 	github.com/go-openapi/spec v0.19.2
 	github.com/go-openapi/swag v0.19.5 // indirect
@@ -29,6 +30,8 @@ require (
 	github.com/kataras/pio v0.0.0-20180511174041-a9733b5b6b83
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/moul/http2curl v1.0.0 // indirect
+	github.com/onsi/ginkgo v1.10.1 // indirect
+	github.com/onsi/gomega v1.7.0 // indirect
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.8.1
 	github.com/rakyll/statik v0.1.6
@@ -37,7 +40,7 @@ require (
 	github.com/spf13/afero v1.1.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/uber-go/atomic v1.3.2 // indirect
 	github.com/uber/jaeger-client-go v2.15.0+incompatible
 	github.com/uber/jaeger-lib v1.5.0+incompatible // indirect
@@ -47,4 +50,7 @@ require (
 	gopkg.in/yaml.v2 v2.2.4
 )
 
-replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
+replace (
+	github.com/go-co-op/gocron => github.com/hidevopsio/gocron v1.6.1-0.20210527020624-ab5573f2755a
+	google.golang.org/grpc => google.golang.org/grpc v1.26.0
+)

@@ -18,6 +18,7 @@ package factory
 import (
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/system/scheduler"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"reflect"
 )
@@ -68,6 +69,7 @@ type ConfigurableFactory interface {
 	SystemConfiguration() *system.Configuration
 	Configuration(name string) interface{}
 	BuildProperties() (systemConfig *system.Configuration, err error)
+	StartSchedulers(schedulerServices []*MetaData) (schedulers []*scheduler.Scheduler)
 	Build(configs []*MetaData)
 }
 
