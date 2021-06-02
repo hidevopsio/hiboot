@@ -3,7 +3,7 @@ package scheduler
 import (
 	"time"
 
-	"github.com/go-co-op/gocron"
+	"github.com/hidevopsio/gocron"
 	"github.com/hidevopsio/hiboot/pkg/log"
 )
 

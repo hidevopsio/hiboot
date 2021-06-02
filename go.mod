@@ -7,7 +7,6 @@ require (
 	github.com/deckarep/golang-set v1.7.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/camelcase v1.0.0
-	github.com/go-co-op/gocron v1.5.0
 	github.com/go-openapi/runtime v0.19.4
 	github.com/go-openapi/spec v0.19.2
 	github.com/go-openapi/swag v0.19.5 // indirect
@@ -19,6 +18,7 @@ require (
 	github.com/gorilla/mux v1.7.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
+	github.com/hidevopsio/gocron v1.6.1-0.20210602042859-a8b1ada7665d
 	github.com/hidevopsio/mapstructure v1.1.3-0.20190908102033-f8832fd9e307
 	github.com/hidevopsio/viper v1.2.2-0.20210220025633-ccb4b202d169
 	github.com/iris-contrib/formBinder v0.0.0-20190104093907-fbd5963f41e1 // indirect
@@ -50,7 +50,4 @@ require (
 	gopkg.in/yaml.v2 v2.2.4
 )
 
-replace (
-	github.com/go-co-op/gocron => github.com/hidevopsio/gocron v1.6.1-0.20210527020624-ab5573f2755a
-	google.golang.org/grpc => google.golang.org/grpc v1.26.0
-)
+replace google.golang.org/grpc => google.golang.org/grpc v1.26.0

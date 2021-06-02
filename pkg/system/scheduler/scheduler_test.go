@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-co-op/gocron"
+	"github.com/hidevopsio/gocron"
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system/scheduler"
