@@ -23,7 +23,7 @@ func (s *Scheduler) RunOnce(task func())  {
 	s.StartAsync()
 }
 
-func (s *Scheduler) Run(tag *string, limit *int, every *int, unit *string, atTime *string, delay *int64, task func())  {
+func (s *Scheduler) Run(tag *string, limit *int, every *int, unit *string, atTime *string, delay *int64, sync *bool, task func())  {
 	defaultEvery := 1
 	if every == nil {
 		every = &defaultEvery
@@ -74,7 +74,11 @@ func (s *Scheduler) Run(tag *string, limit *int, every *int, unit *string, atTim
 		return
 	}
 
-	s.StartAsync()
+	if sync != nil && *sync {
+		s.StartBlocking()
+	} else {
+		s.StartAsync()
+	}
 }
 
 func (s *Scheduler) RunWithExpr(tag *string, expressions *string, task func())  {

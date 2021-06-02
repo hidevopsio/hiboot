@@ -64,6 +64,34 @@ func (c *Controller) Get(_ struct {
 	return "Hello " + c.foo.Name + ", " + bar.Name
 }
 
+
+// GetError GET /
+func (c *Controller) GetError(_ struct {
+	at.GetMapping `value:"/error"`
+	at.Operation  `id:"error" description:"This is hello world API"`
+	at.Produces   `values:"text/plain"`
+	Responses struct {
+		StatusOK struct {
+			at.Response `code:"200" description:"response status OK"`
+			at.Schema `type:"string" description:"returns hello world message"`
+		}
+	}
+}, ctx context.Context, errorWithFoo *config.FooWithError) (response string) {
+	code := ctx.GetStatusCode()
+	log.Info(code)
+
+	if errorWithFoo == nil {
+		response = "injected object errorWithFoo is expected to be nil"
+		log.Info(response)
+	} else {
+		response = "unexpected"
+	}
+	// response
+	return response
+}
+
+
+
 // main function
 func main() {
 	app.Register(swagger.ApiInfoBuilder().

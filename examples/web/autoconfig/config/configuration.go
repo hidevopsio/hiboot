@@ -1,13 +1,17 @@
 package config
 
 import (
+	"errors"
+	"net/http"
+
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/at"
-	"net/http"
 )
 
 const Profile string = "config"
+
+var ErrFoo = errors.New("foo with error")
 
 type configuration struct {
 	at.AutoConfiguration
@@ -31,6 +35,16 @@ type Bar struct {
 	at.ContextAware
 
 	Name string `json:"name" value:"bar"`
+}
+
+type FooWithError struct {
+	at.ContextAware
+	Name string `json:"name" value:"foo"`
+}
+
+func (c *configuration) FooWithError() (foo *FooWithError, err error) {
+	err = ErrFoo
+	return
 }
 
 func (c *configuration) Foo() *Foo {

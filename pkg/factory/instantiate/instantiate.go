@@ -17,6 +17,8 @@ package instantiate
 
 import (
 	"errors"
+	"path/filepath"
+
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/factory"
@@ -29,7 +31,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"path/filepath"
 )
 
 var (
@@ -151,9 +152,10 @@ func (f *instantiateFactory) injectDependency(item *factory.MetaData) (err error
 	case types.Method:
 		inst, err = f.inject.IntoMethod(item.ObjectOwner, item.MetaObject)
 		name = item.Name
-		if err == nil {
-			log.Debugf("inject into method: %v %v", item.ShortName, item.Type)
+		if err != nil {
+			return
 		}
+		log.Debugf("inject into method: %v %v", item.ShortName, item.Type)
 	default:
 		name, inst = item.Name, item.MetaObject
 	}

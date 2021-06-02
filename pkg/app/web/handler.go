@@ -17,6 +17,10 @@ package web
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"reflect"
+	"strings"
+
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/factory"
@@ -27,9 +31,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
-	"net/http"
-	"reflect"
-	"strings"
 )
 
 const (
@@ -434,10 +435,8 @@ func (h *handler) call(ctx context.Context) {
 
 	if len(h.dependencies) > 0 {
 		var err error
-		prevStatusCode := ctx.GetStatusCode()
 		runtimeInstance, err = h.factory.InjectContextAwareObjects(ctx, h.dependencies)
-		currStatusCode := ctx.GetStatusCode()
-		if err != nil || currStatusCode != prevStatusCode {
+		if err != nil {
 			return
 		}
 	}

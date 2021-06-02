@@ -559,11 +559,11 @@ type myService struct {
 }
 
 func newMyService() *myService {
-	return &myService{count: 10}
+	return &myService{count: 9}
 }
 
 //_ struct{at.Scheduler `limit:"10"`}
-func (s *myService) Run(_ struct{at.Scheduled `every:"200" unit:"milliseconds"`}) (done bool) {
+func (s *myService) Task1(_ struct{at.Scheduled `every:"200" unit:"milliseconds" `}) (done bool) {
 	log.Info("Running Scheduler Task")
 
 	if s.count <= 0 {
@@ -575,6 +575,11 @@ func (s *myService) Run(_ struct{at.Scheduled `every:"200" unit:"milliseconds"`}
 	return
 }
 
+func (s *myService) Task3(_ struct{at.Scheduled `limit:"1"`} ) {
+	log.Info("Running Scheduler Task once")
+	return
+}
+
 type controller struct {
 	at.RestController
 }
@@ -582,7 +587,6 @@ type controller struct {
 func (c *controller) Get() string {
 	return "Hello scheduler"
 }
-
 
 func TestScheduler(t *testing.T) {
 	app.Register(newMyService)

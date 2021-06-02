@@ -17,14 +17,15 @@ package inject
 import (
 	"errors"
 	"fmt"
+	"reflect"
+	"strings"
+
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/inject/annotation"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
-	"reflect"
-	"strings"
 )
 
 const (
@@ -228,7 +229,7 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 		var fieldObjValue reflect.Value
 		if obj.IsValid() && obj.Kind() == reflect.Struct {
 			// TODO: consider embedded property
-			//log.Debugf("inject: %v.%v", obj.Type(), f.Name)
+			log.Debugf("inject: %v.%v", obj.Type(), f.Name)
 			fieldObjValue = obj.FieldByName(f.Name)
 		}
 
@@ -377,6 +378,13 @@ func (i *inject) IntoMethod(object interface{}, m interface{}) (retVal interface
 			results := method.Func.Call(inputs)
 			if len(results) != 0 {
 				retVal = results[0].Interface()
+				if len(results) > 1 {
+					errObj := results[1].Interface()
+					switch errObj.(type) {
+					case error:
+						err = errObj.(error)
+					}
+				}
 				return
 			}
 		}

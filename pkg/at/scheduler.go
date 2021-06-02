@@ -1,13 +1,13 @@
 package at
 
-// EnableScheduling
+// EnableScheduling enables scheduling
 type EnableScheduling struct {
 	Annotation
 
 	BaseAnnotation
 }
 
-// Scheduler
+// Scheduled is the annotation that annotate for scheduler
 type Scheduled struct {
 	Annotation
 
@@ -31,5 +31,7 @@ type Scheduled struct {
 
 	// delay
 	AtDelay *int64 `at:"delay" json:"-"`
-}
 
+	// sync
+	AtSync *bool `at:"sync" json:"-"`
+}

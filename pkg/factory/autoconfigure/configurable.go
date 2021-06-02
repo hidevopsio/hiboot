@@ -17,6 +17,10 @@ package autoconfigure
 
 import (
 	"errors"
+	"os"
+	"reflect"
+	"strings"
+
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/inject/annotation"
@@ -28,9 +32,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
-	"os"
-	"reflect"
-	"strings"
 )
 
 const (
@@ -355,25 +356,32 @@ func (f *configurableFactory) StartSchedulers(schedulerServices []*factory.MetaD
 			sch := scheduler.NewScheduler()
 			ann := annotations[i]
 			_ = annotation.Inject(ann)
-			schAnn := ann.Field.Value.Interface().(at.Scheduled)
-			if schAnn.AtCron != nil {
-				sch.RunWithExpr(schAnn.AtTag, schAnn.AtCron,
-					func() {
-						f.runTask(svc, method, ann, sch)
-					},
-				)
-			} else {
-				sch.Run(schAnn.AtTag, schAnn.AtLimit, schAnn.AtEvery, schAnn.AtUnit, schAnn.AtTime, schAnn.AtDelay,
-					func() {
-						f.runTask(svc, method, ann, sch)
-					},
-				)
+			switch ann.Field.Value.Interface().(type) {
+			case at.Scheduled:
+				log.Debug("sss")
+				schAnn := ann.Field.Value.Interface().(at.Scheduled)
+				f.runTaskEx(schAnn, sch, svc, method, ann)
 			}
-
 			schedulers = append(schedulers, sch)
 		}
 	}
 	return nil
+}
+
+func (f *configurableFactory) runTaskEx(schAnn at.Scheduled, sch *scheduler.Scheduler, svc interface{}, method reflect.Method, ann *annotation.Annotation) {
+	if schAnn.AtCron != nil {
+		sch.RunWithExpr(schAnn.AtTag, schAnn.AtCron,
+			func() {
+				f.runTask(svc, method, ann, sch)
+			},
+		)
+	} else {
+		sch.Run(schAnn.AtTag, schAnn.AtLimit, schAnn.AtEvery, schAnn.AtUnit, schAnn.AtTime, schAnn.AtDelay, schAnn.AtSync,
+			func() {
+				f.runTask(svc, method, ann, sch)
+			},
+		)
+	}
 }
 
 func (f *configurableFactory) runTask(svc interface{}, method reflect.Method, ann *annotation.Annotation, sch *scheduler.Scheduler) {
