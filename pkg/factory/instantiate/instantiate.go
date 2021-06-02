@@ -314,12 +314,18 @@ func (f *instantiateFactory) injectContextAwareDependencies(dps []*factory.MetaD
 	for _, d := range dps {
 		if len(d.DepMetaData) > 0 {
 			err = f.injectContextAwareDependencies(d.DepMetaData)
+			if err != nil {
+				return
+			}
 		}
 		if d.ContextAware {
 			// making sure that the context aware instance does not exist before the dependency injection
 			if f.contextAwareInstance.Get(d.Name) == nil {
 				newItem := factory.CloneMetaData(d)
 				err = f.InjectDependency(newItem)
+				if err != nil {
+					return
+				}
 			}
 		}
 	}

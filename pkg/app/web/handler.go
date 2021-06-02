@@ -379,13 +379,11 @@ func (h *handler) responseWithError(ctx context.Context, numOut int, results []r
 	response := responseObj.(model.ResponseInfo)
 	if numOut >= 2 {
 		var respErr error
-		errVal := results[1]
+		//errVal := results[1]
 		errObj := results[1].Interface()
 
-		if errVal.IsNil() {
-			respErr = nil
-			h.addResponse(ctx, respErr)
-		} else if errVal.Type().Name() == "error" {
+		switch errObj.(type) {
+		case error:
 			respErr = errObj.(error)
 			h.addResponse(ctx, errObj)
 		}
@@ -432,11 +430,15 @@ func (h *handler) call(ctx context.Context) {
 		path = ctx.Path()
 		pvs = strings.SplitN(path, "/", -1)
 	}
-
+	var results []reflect.Value
 	if len(h.dependencies) > 0 {
 		runtimeInstance, reqErr = h.factory.InjectContextAwareObjects(ctx, h.dependencies)
-		if reqErr != nil {
-			h.addResponse(ctx, reqErr)
+		if reqErr != nil && h.numOut > 0 {
+			results = make([]reflect.Value, h.numOut)
+			if h.numOut > 1 {
+				results[0] = reflect.New(h.responses[0].typ.Elem())
+			}
+			results[h.numOut - 1] = reflect.ValueOf(reqErr)
 		}
 	}
 	if reqErr == nil {
@@ -488,17 +490,16 @@ func (h *handler) call(ctx context.Context) {
 				}
 			}
 		}
-
-		//var respErr error
-		var results []reflect.Value
 		if reqErr == nil {
 			// call controller method
 			results = h.method.Func.Call(inputs)
-			if h.numOut > 0 {
-				_ = h.responseData(ctx, h.numOut, results)
-			}
 		}
 	}
+
+	if h.numOut > 0 && len(results) > 0 {
+		_ = h.responseData(ctx, h.numOut, results)
+	}
+
 
 	// finalize response
 	h.finalizeResponse(ctx)
