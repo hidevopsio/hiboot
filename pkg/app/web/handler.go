@@ -434,68 +434,69 @@ func (h *handler) call(ctx context.Context) {
 	}
 
 	if len(h.dependencies) > 0 {
-		var err error
-		runtimeInstance, err = h.factory.InjectContextAwareObjects(ctx, h.dependencies)
-		if err != nil {
-			return
+		runtimeInstance, reqErr = h.factory.InjectContextAwareObjects(ctx, h.dependencies)
+		if reqErr != nil {
+			h.buildResponse(ctx, reqErr)
 		}
 	}
-	inputs := make([]reflect.Value, h.numIn)
-	if h.numIn != 0 {
-		inputs[0] = h.objVal
-	}
-
-	lenOfPathParams := h.lenOfPathParams
-	for i := 1; i < h.numIn; i++ {
-		req := h.requests[i]
-		input = reflect.New(req.iTyp).Interface()
-
-		// inject params
-		//log.Debugf("%v, %v", i, h.requests[i].iVal.Type())
-		if req.kind == reflect.Slice {
-			var res reflect.Value
-			if lenOfPathParams != 0 {
-				res = h.decodePathVariable(&lenOfPathParams, pvs, req, req.kind)
-			} else {
-				res, reqErr = h.decodeSlice(ctx, h.requests[i].iTyp, h.requests[i].iVal)
-			}
-			inputs[i] = res
-		} else if req.callback != nil {
-			_ = h.factory.InjectDefaultValue(input) // support default value injection for request body/params/form
-			reqErr = req.callback(ctx, input)
-			inputs[i] = reflect.ValueOf(input)
-		} else if req.kind == reflect.Interface && model.Context == req.typeName {
-			input = ctx
-			inputs[i] = reflect.ValueOf(input)
-		} else if lenOfPathParams != 0 && !req.isAnnotation {
-			// allow inject other dependencies after number of lenOfPathParams
-			res := h.decodePathVariable(&lenOfPathParams, pvs, req, req.kind)
-
-			inputs[i] = res
-		} else {
-			// inject instances
-			var inst interface{}
-			if runtimeInstance != nil {
-				inst = runtimeInstance.Get(req.fullName)
-			}
-			if inst == nil {
-				inst = h.factory.GetInstance(req.fullName) // TODO: primitive types does not need to get instance for the sake of performance
-			}
-			if inst != nil {
-				inputs[i] = reflect.ValueOf(inst)
-			} else {
-				inputs[i] = h.requests[i].iVal
-			}
-		}
-	}
-
-	//var respErr error
-	var results []reflect.Value
 	if reqErr == nil {
-		// call controller method
-		results = h.method.Func.Call(inputs)
-		if h.numOut > 0 {
-			_ = h.responseData(ctx, h.numOut, results)
+		inputs := make([]reflect.Value, h.numIn)
+		if h.numIn != 0 {
+			inputs[0] = h.objVal
+		}
+
+		lenOfPathParams := h.lenOfPathParams
+		for i := 1; i < h.numIn; i++ {
+			req := h.requests[i]
+			input = reflect.New(req.iTyp).Interface()
+
+			// inject params
+			//log.Debugf("%v, %v", i, h.requests[i].iVal.Type())
+			if req.kind == reflect.Slice {
+				var res reflect.Value
+				if lenOfPathParams != 0 {
+					res = h.decodePathVariable(&lenOfPathParams, pvs, req, req.kind)
+				} else {
+					res, reqErr = h.decodeSlice(ctx, h.requests[i].iTyp, h.requests[i].iVal)
+				}
+				inputs[i] = res
+			} else if req.callback != nil {
+				_ = h.factory.InjectDefaultValue(input) // support default value injection for request body/params/form
+				reqErr = req.callback(ctx, input)
+				inputs[i] = reflect.ValueOf(input)
+			} else if req.kind == reflect.Interface && model.Context == req.typeName {
+				input = ctx
+				inputs[i] = reflect.ValueOf(input)
+			} else if lenOfPathParams != 0 && !req.isAnnotation {
+				// allow inject other dependencies after number of lenOfPathParams
+				res := h.decodePathVariable(&lenOfPathParams, pvs, req, req.kind)
+
+				inputs[i] = res
+			} else {
+				// inject instances
+				var inst interface{}
+				if runtimeInstance != nil {
+					inst = runtimeInstance.Get(req.fullName)
+				}
+				if inst == nil {
+					inst = h.factory.GetInstance(req.fullName) // TODO: primitive types does not need to get instance for the sake of performance
+				}
+				if inst != nil {
+					inputs[i] = reflect.ValueOf(inst)
+				} else {
+					inputs[i] = h.requests[i].iVal
+				}
+			}
+		}
+
+		//var respErr error
+		var results []reflect.Value
+		if reqErr == nil {
+			// call controller method
+			results = h.method.Func.Call(inputs)
+			if h.numOut > 0 {
+				_ = h.responseData(ctx, h.numOut, results)
+			}
 		}
 	}
 
