@@ -436,7 +436,7 @@ func (h *handler) call(ctx context.Context) {
 	if len(h.dependencies) > 0 {
 		runtimeInstance, reqErr = h.factory.InjectContextAwareObjects(ctx, h.dependencies)
 		if reqErr != nil {
-			h.buildResponse(ctx, reqErr)
+			h.addResponse(ctx, reqErr)
 		}
 	}
 	if reqErr == nil {
