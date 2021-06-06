@@ -2,6 +2,7 @@ package instantiate
 
 import (
 	"fmt"
+
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 )
@@ -50,12 +51,10 @@ func (i *instance) Set(params ...interface{}) (err error) {
 
 	old, ok := i.instMap.Get(name)
 	if ok {
-		oldMd := factory.CastMetaData(old)
-		if oldMd.Instance != nil {
-			err = fmt.Errorf("instance %v is already taken", name)
-			//log.Warn(err)
-			return
-		}
+		err = fmt.Errorf("instance %v is already taken by %v", name, old)
+		// TODO: should handle such error
+		//log.Warn(err)
+		return
 	}
 
 	i.instMap.Set(name, metaData)
