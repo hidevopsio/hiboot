@@ -332,7 +332,7 @@ func (f *instantiateFactory) injectContextAwareDependencies(dps []*factory.MetaD
 	return
 }
 
-// InjectContextAwareObject inject context aware objects
+// InjectContextAwareObjects inject context aware objects
 func (f *instantiateFactory) InjectContextAwareObjects(ctx context.Context, dps []*factory.MetaData) (contextAwareInstance factory.Instance, err error) {
 	log.Debugf(">>> InjectContextAwareObjects(%x) ...", &ctx)
 
@@ -340,7 +340,10 @@ func (f *instantiateFactory) InjectContextAwareObjects(ctx context.Context, dps 
 	f.contextAwareInstance = newInstance(nil)
 
 	// update context
-	f.contextAwareInstance.Set(reflector.GetLowerCamelFullName(new(context.Context)), ctx)
+	err = f.contextAwareInstance.Set(reflector.GetLowerCamelFullName(new(context.Context)), ctx)
+	if err != nil {
+		return
+	}
 
 	err = f.injectContextAwareDependencies(dps)
 

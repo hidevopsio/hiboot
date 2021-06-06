@@ -16,8 +16,11 @@ package instantiate_test
 
 import (
 	"fmt"
+	"os"
+	"reflect"
+	"testing"
+
 	"github.com/deckarep/golang-set"
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/at"
@@ -28,9 +31,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"os"
-	"reflect"
-	"testing"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
