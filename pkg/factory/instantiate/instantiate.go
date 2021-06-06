@@ -342,10 +342,14 @@ func (f *instantiateFactory) InjectContextAwareObjects(ctx context.Context, dps 
 	// update context
 	err = f.contextAwareInstance.Set(reflector.GetLowerCamelFullName(new(context.Context)), ctx)
 	if err != nil {
+		log.Error(err)
 		return
 	}
 
 	err = f.injectContextAwareDependencies(dps)
+	if err != nil {
+		log.Error(err)
+	}
 
 	contextAwareInstance = f.contextAwareInstance
 	return
