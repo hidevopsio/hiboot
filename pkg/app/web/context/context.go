@@ -1,9 +1,10 @@
 package context
 
 import (
+	"net/http"
+
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
-	"net/http"
 )
 
 // ExtendedContext extended context
@@ -18,6 +19,7 @@ type ExtendedContext interface {
 	SetAnnotations(ann interface{})
 	SetURLParam(name, value string)
 	Annotations() interface{}
+	InitResponses()
 	AddResponse(response interface{})
 	GetResponses() (responses map[string]interface{})
 	GetResponse(object interface{}) (response interface{}, ok bool)

@@ -424,7 +424,13 @@ func (h *handler) call(ctx context.Context) {
 	var path string
 	var pvs []string
 	var runtimeInstance factory.Instance
-	//var err error
+
+	// init responses
+	log.Debugf("HTTP Handler: %v: %v %v%v", ctx.HandlerIndex(-1), ctx.Method(), ctx.Host(), ctx.Path())
+	idx := ctx.HandlerIndex(-1)
+	 if idx <= 1 {
+		ctx.InitResponses()
+	}
 
 	if h.lenOfPathParams != 0 {
 		path = ctx.Path()

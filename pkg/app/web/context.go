@@ -59,6 +59,7 @@ func acquire(original iris.Context) *Context {
 	default:
 		c.Context = original // set the context to the original one in order to have access to iris's implementation.
 	}
+	//log.Debugf("acquire context %v: %v%v", c.HandlerIndex(-1), c.Context.Host(), c.Context.Path())
 	return c
 }
 
@@ -182,11 +183,14 @@ func (c *Context) SetURLParam(name, value string) {
 	c.Request().URL.RawQuery = q.Encode()
 }
 
+func (c *Context) InitResponses()  {
+	c.responses = cmap.New()
+}
 
 // AddResponse add response to a alice
 func (c *Context) AddResponse(response interface{}) {
 	if c.responses == nil {
-		c.responses = cmap.New()
+		c.InitResponses()
 	}
 	// TODO: do we need the index of the response value?
 	name, object := factory.ParseParams(response)
