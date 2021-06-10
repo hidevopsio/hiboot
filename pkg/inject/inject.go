@@ -65,10 +65,10 @@ var (
 // Inject is the interface for inject tag
 type Inject interface {
 	DefaultValue(object interface{}) error
-	IntoObject(object interface{}) error
-	IntoObjectValue(object reflect.Value, property string, tags ...Tag) error
-	IntoMethod(object interface{}, m interface{}) (retVal interface{}, err error)
-	IntoFunc(object interface{}) (retVal interface{}, err error)
+	IntoObject(instance factory.Instance, object interface{}) error
+	IntoObjectValue(instance factory.Instance, object reflect.Value, property string, tags ...Tag) error
+	IntoMethod(instance factory.Instance, object interface{}, m interface{}) (retVal interface{}, err error)
+	IntoFunc(instance factory.Instance, object interface{}) (retVal interface{}, err error)
 	IntoAnnotations(annotations *annotation.Annotations) (err error)
 }
 
@@ -102,15 +102,15 @@ func AddTag(tag Tag) {
 	}
 }
 
-func (i *inject) getInstance(typ reflect.Type) (inst interface{}) {
+func (i *inject) getInstance(instance factory.Instance, typ reflect.Type) (inst interface{}) {
 	n := reflector.GetLowerCamelFullNameByType(typ)
-	inst = i.factory.GetInstance(n)
+	inst = i.factory.GetInstance(instance, n)
 	return
 }
 
 // DefaultValue injects instance into the tagged field with `inject:"instanceName"`
 func (i *inject) DefaultValue(object interface{}) error {
-	return i.IntoObjectValue(reflect.ValueOf(object), "", InitTag(new(defaultTag)))
+	return i.IntoObjectValue(nil, reflect.ValueOf(object), "", InitTag(new(defaultTag)))
 }
 
 func (i *inject) IntoAnnotations(annotations *annotation.Annotations) (err error) {
@@ -123,7 +123,7 @@ func (i *inject) IntoAnnotations(annotations *annotation.Annotations) (err error
 	for _, a := range annotations.Items {
 		err = annotation.Inject(a)
 		if err == nil && a.Field.Value.IsValid() {
-			err = i.IntoObjectValue(a.Field.Value.Addr(), "")
+			err = i.IntoObjectValue(nil, a.Field.Value.Addr(), "")
 		}
 	}
 
@@ -134,7 +134,7 @@ func (i *inject) IntoAnnotations(annotations *annotation.Annotations) (err error
 }
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
-func (i *inject) IntoObject(object interface{}) (err error) {
+func (i *inject) IntoObject(instance factory.Instance, object interface{}) (err error) {
 	//
 	//err = annotation.InjectAll(object)
 	//if err != nil {
@@ -142,7 +142,7 @@ func (i *inject) IntoObject(object interface{}) (err error) {
 	//}
 
 	// inject into value
-	err = i.IntoObjectValue(reflect.ValueOf(object), "")
+	err = i.IntoObjectValue(instance, reflect.ValueOf(object), "")
 
 	// inject into annotations
 	if err == nil {
@@ -174,7 +174,7 @@ func (i *inject) convert(f reflect.StructField, src interface{}) (fov reflect.Va
 }
 
 // IntoObjectValue injects instance into the tagged field with `inject:"instanceName"`
-func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...Tag) error {
+func (i *inject) IntoObjectValue(instance factory.Instance, object reflect.Value, property string, tags ...Tag) error {
 	var err error
 
 	//// TODO refactor IntoObject
@@ -234,7 +234,7 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 		}
 
 		// TODO: assume that the f.Name of value and inject tag is not the same
-		injectedObject = i.getInstance(f.Type)
+		injectedObject = i.getInstance(instance, f.Type)
 		if injectedObject == nil {
 			for _, tagImpl := range targetTags {
 				tagImpl.Init(i.factory)
@@ -263,7 +263,7 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 		filedKind := filedObject.Kind()
 		canNested := filedKind == reflect.Struct
 		if canNested && fieldObjValue.IsValid() && fieldObjValue.CanSet() && filedObject.Type() != obj.Type() {
-			err = i.IntoObjectValue(fieldObjValue, prop, tags...)
+			err = i.IntoObjectValue(instance, fieldObjValue, prop, tags...)
 		}
 	}
 
@@ -275,9 +275,9 @@ func (i *inject) IntoObjectValue(object reflect.Value, property string, tags ...
 	return err
 }
 
-func (i *inject) parseFuncOrMethodInput(inType reflect.Type) (paramValue reflect.Value, ok bool) {
+func (i *inject) parseFuncOrMethodInput(instance factory.Instance, inType reflect.Type) (paramValue reflect.Value, ok bool) {
 	inType = reflector.IndirectType(inType)
-	inst := i.getInstance(inType)
+	inst := i.getInstance(instance, inType)
 	ok = true
 	if inst == nil {
 		//log.Debug(inType.Kind())
@@ -297,7 +297,7 @@ func (i *inject) parseFuncOrMethodInput(inType reflect.Type) (paramValue reflect
 				inst = paramValue.Interface()
 			}
 			// TODO: inTypeName
-			i.factory.SetInstance(inst)
+			i.factory.SetInstance(instance, inst)
 		}
 	}
 
@@ -308,7 +308,7 @@ func (i *inject) parseFuncOrMethodInput(inType reflect.Type) (paramValue reflect
 }
 
 // IntoFunc inject object into func and return instance
-func (i *inject) IntoFunc(object interface{}) (retVal interface{}, err error) {
+func (i *inject) IntoFunc(instance factory.Instance, object interface{}) (retVal interface{}, err error) {
 	fn := reflect.ValueOf(object)
 	if fn.Kind() == reflect.Func {
 		numIn := fn.Type().NumIn()
@@ -318,7 +318,7 @@ func (i *inject) IntoFunc(object interface{}) (retVal interface{}, err error) {
 			fnInType := fn.Type().In(n)
 			//expectedTypName := reflector.GetLowerCamelFullNameByType(fnInType)
 			//log.Debugf("expected: %v", expectedTypName)
-			val, ok := i.parseFuncOrMethodInput(fnInType)
+			val, ok := i.parseFuncOrMethodInput(instance, fnInType)
 			if ok {
 
 				inputs[n] = val
@@ -329,7 +329,7 @@ func (i *inject) IntoFunc(object interface{}) (retVal interface{}, err error) {
 
 			paramValue := reflect.Indirect(val)
 			if val.IsValid() && paramValue.IsValid() && paramValue.Kind() == reflect.Struct {
-				err = i.IntoObject(val.Interface())
+				err = i.IntoObject(instance, val.Interface())
 			}
 		}
 		results := fn.Call(inputs)
@@ -345,7 +345,7 @@ func (i *inject) IntoFunc(object interface{}) (retVal interface{}, err error) {
 
 //IntoMethod inject object into func and return instance
 //TODO: IntoMethod or IntoFunc should accept metaData, because it contains dependencies
-func (i *inject) IntoMethod(object interface{}, m interface{}) (retVal interface{}, err error) {
+func (i *inject) IntoMethod(instance factory.Instance, object interface{}, m interface{}) (retVal interface{}, err error) {
 	if object != nil && m != nil {
 		switch m.(type) {
 		case reflect.Method:
@@ -359,7 +359,7 @@ func (i *inject) IntoMethod(object interface{}, m interface{}) (retVal interface
 				if annotation.IsAnnotation(fnInType) {
 					ann = fnInType
 				}
-				val, ok := i.parseFuncOrMethodInput(fnInType)
+				val, ok := i.parseFuncOrMethodInput(instance, fnInType)
 				if ok {
 					inputs[n] = val
 				} else {
@@ -372,7 +372,7 @@ func (i *inject) IntoMethod(object interface{}, m interface{}) (retVal interface
 
 				paramObject := reflect.Indirect(val)
 				if val.IsValid() && paramObject.IsValid() && paramObject.Kind() == reflect.Struct {
-					err = i.IntoObject(val.Interface())
+					err = i.IntoObject(instance, val.Interface())
 				}
 			}
 			results := method.Func.Call(inputs)

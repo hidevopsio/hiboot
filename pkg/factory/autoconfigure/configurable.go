@@ -131,7 +131,7 @@ func (f *configurableFactory) BuildProperties() (systemConfig *system.Configurat
 
 	_, err = f.builder.Build(profile)
 	if err == nil {
-		_ = f.InjectIntoObject(systemConfig)
+		_ = f.InjectIntoObject(nil, systemConfig)
 		//replacer.Replace(systemConfig, systemConfig)
 
 		f.configurations.Set(System, systemConfig)
@@ -285,7 +285,7 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 		// inject into func
 		var cf interface{}
 		if item.Kind == types.Func {
-			cf, err = f.InjectIntoFunc(config)
+			cf, err = f.InjectIntoFunc(nil, config)
 		}
 		if err == nil && cf != nil {
 			// new properties
@@ -294,7 +294,7 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 			f.injectProperties(cf)
 
 			// inject other fields
-			_ = f.InjectIntoObject(cf)
+			_ = f.InjectIntoObject(nil, cf)
 
 			// instantiation
 			_ = f.Instantiate(cf)

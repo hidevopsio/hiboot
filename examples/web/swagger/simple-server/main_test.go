@@ -19,6 +19,7 @@ func TestRunMain(t *testing.T) {
 func TestController(t *testing.T) {
 	mu.Lock()
 	defer mu.Unlock()
+	time.Sleep(time.Second * time.Duration(2))
 	testApp := web.NewTestApp(t).Run(t)
 
 	t.Run("should get employee ", func(t *testing.T) {

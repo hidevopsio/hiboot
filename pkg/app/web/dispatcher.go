@@ -16,9 +16,12 @@ package web
 
 import (
 	"fmt"
+	"net/http"
+	"path"
+	"reflect"
+	"strings"
+
 	"github.com/fatih/camelcase"
-	"github.com/kataras/iris"
-	"github.com/rakyll/statik/fs"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/app/web/webutils"
@@ -29,10 +32,8 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
-	"net/http"
-	"path"
-	"reflect"
-	"strings"
+	"github.com/kataras/iris"
+	"github.com/rakyll/statik/fs"
 )
 
 var httpMethods = []string{
@@ -120,7 +121,7 @@ func (d *Dispatcher) parseAnnotation(object interface{}, method *reflect.Method)
 			avo := av.Interface()
 			ma = annotation.GetAnnotations(avo)
 			if ma != nil {
-				_ = d.configurableFactory.InjectIntoObject(avo)
+				_ = d.configurableFactory.InjectIntoObject(nil, avo)
 				break
 			}
 		}

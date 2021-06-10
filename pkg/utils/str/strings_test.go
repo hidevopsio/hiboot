@@ -15,10 +15,18 @@
 package str
 
 import (
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
+
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/stretchr/testify/assert"
 )
+
+func TestSlice(t *testing.T) {
+	s1 := []string{"a", "b", "c", "d"}
+	s2 := s1[1:]
+	log.Debug(s2)
+}
 
 func TestLowerFirst(t *testing.T) {
 	s := "Foo"

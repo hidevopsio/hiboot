@@ -221,7 +221,7 @@ func TestInstantiateFactory(t *testing.T) {
 	})
 
 	t.Run("should inject dependency by method InjectDependency", func(t *testing.T) {
-		instFactory.InjectDependency(factory.NewMetaData(newFooBarService))
+		instFactory.InjectDependency(nil, factory.NewMetaData(newFooBarService))
 	})
 
 	builder := instFactory.Builder()
@@ -274,7 +274,7 @@ func TestInstantiateFactory(t *testing.T) {
 	devTester := new(DevTester)
 	instFactory.SetInstance(greeter)
 	t.Run("should inject into object", func(t *testing.T) {
-		err := instFactory.InjectIntoObject(devTester)
+		err := instFactory.InjectIntoObject(nil, devTester)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, hiboot, devTester.Greeter.Name)
 		assert.Equal(t, os.Getenv("HOME"), devTester.Home)
@@ -287,13 +287,13 @@ func TestInstantiateFactory(t *testing.T) {
 	}
 
 	t.Run("should inject into func", func(t *testing.T) {
-		obj, err := instFactory.InjectIntoFunc(devTesterConstructor)
+		obj, err := instFactory.InjectIntoFunc(nil, devTesterConstructor)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, hiboot, obj.(*DevTester).Greeter.Name)
 	})
 
 	t.Run("should inject into method", func(t *testing.T) {
-		obj, err := instFactory.InjectIntoMethod(nil, nil)
+		obj, err := instFactory.InjectIntoMethod(nil, nil, nil)
 		assert.Equal(t, inject.ErrInvalidMethod, err)
 		assert.Equal(t, nil, obj)
 	})
@@ -303,7 +303,7 @@ func TestInstantiateFactory(t *testing.T) {
 		typ := reflect.TypeOf(svc)
 		method, ok := typ.MethodByName("HelloWorld")
 		assert.Equal(t, true, ok)
-		obj, err := instFactory.InjectIntoMethod(svc, method)
+		obj, err := instFactory.InjectIntoMethod(nil, svc, method)
 		assert.Equal(t, nil, err)
 		assert.Equal(t, helloWorld, obj.(*HelloWorld).Message)
 	})
