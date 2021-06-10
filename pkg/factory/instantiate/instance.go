@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hidevopsio/hiboot/pkg/factory"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 )
 
@@ -50,10 +51,10 @@ func (i *instance) Set(params ...interface{}) (err error) {
 	}
 
 	old, ok := i.instMap.Get(name)
-	if ok {
+	if ok && !metaData.ContextAware {
 		err = fmt.Errorf("instance %v is already taken by %v", name, old)
 		// TODO: should handle such error
-		//log.Warn(err)
+		log.Debug(err)
 		return
 	}
 
