@@ -51,7 +51,7 @@ func (i *instance) Set(params ...interface{}) (err error) {
 	}
 
 	old, ok := i.instMap.Get(name)
-	if ok && !metaData.ContextAware {
+	if ok {
 		err = fmt.Errorf("instance %v is already taken by %v", name, old)
 		// TODO: should handle such error
 		log.Debug(err)
