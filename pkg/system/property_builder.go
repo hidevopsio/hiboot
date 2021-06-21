@@ -282,13 +282,13 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 								configFiles[dir] = make(map[string][]string)
 							}
 							// do not add default profile, will be handled later
-							if !strings.Contains(file, "-") {
+							if defaultProfileConfigFile == nil && !strings.Contains(file, "-") {
 								defaultProfileConfigFile = configFile
 								return nil
 							}
 
 							if profile != "" {
-								if strings.Contains(file, "-" + profile) {
+								if activeProfileConfigFile == nil && strings.Contains(file, "-" + profile) {
 									activeProfileConfigFile = configFile
 								} else {
 									configFiles[dir][ext] = append(configFiles[dir][ext], file)
