@@ -56,7 +56,7 @@ type instantiateFactory struct {
 	components           []*factory.MetaData
 	resolved             []*factory.MetaData
 	defaultProperties    cmap.ConcurrentMap
-	categorized          map[string][]*factory.MetaData
+	categorized          cmap.ConcurrentMap //map[string][]*factory.MetaData
 	inject               inject.Inject
 	builder              system.Builder
 }
@@ -71,7 +71,7 @@ func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory
 		instance:          newInstance(instanceMap),
 		components:        components,
 		defaultProperties: defaultProperties,
-		categorized:       make(map[string][]*factory.MetaData),
+		categorized:       cmap.New(), //make(map[string][]*factory.MetaData),
 	}
 	f.inject = inject.NewInject(f)
 
@@ -117,7 +117,7 @@ func (f *instantiateFactory) SetProperty(name string, value interface{}) factory
 	return f
 }
 
-// SetProperty get property
+// SetDefaultProperty set default property
 func (f *instantiateFactory) SetDefaultProperty(name string, value interface{}) factory.InstantiateFactory {
 	f.builder.SetDefaultProperty(name, value)
 	return f
@@ -251,11 +251,15 @@ func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 			if annotations != nil {
 				for _, item := range annotations.Items {
 					typeName := reflector.GetLowerCamelFullNameByType(item.Field.StructField.Type)
-					categorised, ok := f.categorized[typeName]
-					if !ok {
+					var categorised []*factory.MetaData
+					c, ok := f.categorized.Get(typeName)
+					if ok {
+						categorised = c.([]*factory.MetaData)
+					} else {
 						categorised = make([]*factory.MetaData, 0)
 					}
-					f.categorized[typeName] = append(categorised, metaData)
+					categorised = append(categorised, metaData)
+					f.categorized.Set(typeName, append(categorised, metaData))
 				}
 			}
 		}
@@ -288,7 +292,10 @@ func (f *instantiateFactory) GetInstance(params ...interface{}) (retVal interfac
 func (f *instantiateFactory) GetInstances(params ...interface{}) (retVal []*factory.MetaData) {
 	if f.Initialized() {
 		name, _ := factory.ParseParams(params...)
-		retVal = f.categorized[name]
+		res, ok := f.categorized.Get(name)
+		if ok {
+			retVal = res.([]*factory.MetaData)
+		}
 	}
 	return
 }
@@ -298,7 +305,7 @@ func (f *instantiateFactory) Items() map[string]interface{} {
 	return f.instance.Items()
 }
 
-// Items return instance map
+// DefaultProperties return default properties
 func (f *instantiateFactory) DefaultProperties() map[string]interface{} {
 	dp := f.defaultProperties.Items()
 	return dp
