@@ -18,6 +18,7 @@ package instantiate
 import (
 	"errors"
 	"path/filepath"
+	"sync"
 
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/at"
@@ -56,9 +57,10 @@ type instantiateFactory struct {
 	components           []*factory.MetaData
 	resolved             []*factory.MetaData
 	defaultProperties    cmap.ConcurrentMap
-	categorized          cmap.ConcurrentMap //map[string][]*factory.MetaData
+	categorized          map[string][]*factory.MetaData
 	inject               inject.Inject
 	builder              system.Builder
+	mutex                sync.Mutex
 }
 
 // NewInstantiateFactory the constructor of instantiateFactory
@@ -71,7 +73,7 @@ func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory
 		instance:          newInstance(instanceMap),
 		components:        components,
 		defaultProperties: defaultProperties,
-		categorized:       cmap.New(), //make(map[string][]*factory.MetaData),
+		categorized:       make(map[string][]*factory.MetaData),
 	}
 	f.inject = inject.NewInject(f)
 
@@ -82,7 +84,6 @@ func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory
 	ss := new(system.Server)
 	sl := new(system.Logging)
 	syscfg := system.NewConfiguration()
-
 
 	customProps := defaultProperties.Items()
 	f.builder = system.NewPropertyBuilder(
@@ -213,6 +214,9 @@ func (f *instantiateFactory) BuildComponents() (err error) {
 
 // SetInstance save instance
 func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+
 	var instance factory.Instance
 	switch params[0].(type) {
 	case factory.Instance:
@@ -251,15 +255,11 @@ func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 			if annotations != nil {
 				for _, item := range annotations.Items {
 					typeName := reflector.GetLowerCamelFullNameByType(item.Field.StructField.Type)
-					var categorised []*factory.MetaData
-					c, ok := f.categorized.Get(typeName)
-					if ok {
-						categorised = c.([]*factory.MetaData)
-					} else {
+					categorised, ok := f.categorized[typeName]
+					if !ok {
 						categorised = make([]*factory.MetaData, 0)
 					}
-					categorised = append(categorised, metaData)
-					f.categorized.Set(typeName, append(categorised, metaData))
+					f.categorized[typeName] = append(categorised, metaData)
 				}
 			}
 		}
@@ -292,10 +292,7 @@ func (f *instantiateFactory) GetInstance(params ...interface{}) (retVal interfac
 func (f *instantiateFactory) GetInstances(params ...interface{}) (retVal []*factory.MetaData) {
 	if f.Initialized() {
 		name, _ := factory.ParseParams(params...)
-		res, ok := f.categorized.Get(name)
-		if ok {
-			retVal = res.([]*factory.MetaData)
-		}
+		retVal = f.categorized[name]
 	}
 	return
 }
