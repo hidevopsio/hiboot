@@ -278,6 +278,8 @@ func (h *handler) parseMethod(injectableObject *injectableObject, injectableMeth
 }
 
 func (h *handler) responseData(ctx context.Context, numOut int, results []reflect.Value) (err error) {
+	var res model.ResponseInfo
+
 	for idx, val := range results {
 		var objVal interface{}
 		if val.CanInterface() {
@@ -286,10 +288,31 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 			err = ErrCanNotInterface
 			return
 		}
+
+		switch objVal.(type) {
+		case model.ResponseInfo:
+			res = objVal.(model.ResponseInfo)
+		case model.Response:
+			res = objVal.(model.Response)
+		case error:
+			respErr := objVal.(error)
+			if res != nil {
+				if respErr == nil {
+					if res.GetCode() == 0 {
+						res.SetCode(http.StatusOK)
+					}
+					if res.GetMessage() == "" {
+						res.SetMessage(ctx.Translate(success))
+					}
+				} else {
+					h.setErrorResponseCode(ctx, res)
+					// TODO: output error message directly? how about i18n
+					res.SetMessage(ctx.Translate(respErr.Error()))
+				}
+			}
+		}
 		ctx.SetResponse(idx, objVal)
 	}
-
-	h.responseWithError(ctx, numOut, results)
 	return
 }
 
