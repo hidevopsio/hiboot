@@ -19,9 +19,11 @@ package web_test
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"sync"
+	"testing"
+	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
@@ -31,6 +33,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/starter/locale"
+	"github.com/stretchr/testify/assert"
 
 	//_ "github.com/hidevopsio/hiboot/pkg/starter/actuator"
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
@@ -39,9 +42,6 @@ import (
 	_ "github.com/hidevopsio/hiboot/pkg/starter/logging"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
-	"net/http"
-	"testing"
-	"time"
 )
 
 var mu sync.Mutex
@@ -1138,10 +1138,23 @@ func TestCustomRouter(t *testing.T) {
 	testApp := web.NewTestApp(newCustomRouterController).
 		SetProperty("server.context_path", "/test").
 		Run(t)
-	testApp.Get("/test/custom/0/name/hiboot").Expect().Status(http.StatusNotFound)
-	testApp.Get("/test/custom/123/name/hiboot").Expect().Status(http.StatusOK)
-	testApp.Get("/test/custom/1/name/hiboot").Expect().Status(http.StatusInternalServerError)
-	testApp.Get("/test/custom/2/name/hiboot").Expect().Status(http.StatusOK)
+
+	t.Run("should response not found", func(t *testing.T) {
+		testApp.Get("/test/custom/0/name/hiboot").Expect().Status(http.StatusNotFound)
+	})
+
+	t.Run("should response ok", func(t *testing.T) {
+		testApp.Get("/test/custom/123/name/hiboot").Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should response ok 2", func(t *testing.T) {
+		testApp.Get("/test/custom/2/name/hiboot").Expect().Status(http.StatusOK)
+	})
+
+	t.Run("should response error", func(t *testing.T) {
+		testApp.Get("/test/custom/1/name/hiboot").Expect().Status(http.StatusInternalServerError)
+	})
+
 	mu.Unlock()
 }
 

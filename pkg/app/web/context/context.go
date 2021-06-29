@@ -9,9 +9,6 @@ import (
 
 // ExtendedContext extended context
 type ExtendedContext interface {
-	//RequestBody(data interface{}) error
-	//RequestForm(data interface{}) error
-	//RequestParams(request interface{}) error
 	ResponseString(s string)
 	ResponseBody(message string, data interface{})
 	ResponseError(message string, code int)
@@ -20,9 +17,9 @@ type ExtendedContext interface {
 	SetURLParam(name, value string)
 	Annotations() interface{}
 	InitResponses()
-	AddResponse(response interface{})
-	GetResponses() (responses map[string]interface{})
-	GetResponse(object interface{}) (response interface{}, ok bool)
+	SetResponse(idx int, response interface{})
+	GetResponses() (responses []interface{})
+	GetResponse(idx int) (response interface{})
 //StaticResource(system http.FileSystem)
 }
 

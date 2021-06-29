@@ -16,7 +16,6 @@ package web
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
@@ -278,56 +277,19 @@ func (h *handler) parseMethod(injectableObject *injectableObject, injectableMeth
 	}
 }
 
-
-func (h *handler) buildResponse(ctx context.Context, data interface{}) {
-	if len(h.responses) > 0 {
-		res := &response{
-			typeName: h.responses[0].typeName,
-			typ: h.responses[0].typ,
-			name: h.responses[0].name,
-			kind: h.responses[0].kind,
-			isResponseBody: h.responses[0].isResponseBody,
-			implementsResponse: h.responses[0].implementsResponse,
-			implementsResponseInfo: h.responses[0].implementsResponseInfo,
-			value: data,
-		}
-		h.addResponse(ctx, res)
-	}
-}
-
 func (h *handler) responseData(ctx context.Context, numOut int, results []reflect.Value) (err error) {
-	result := results[0]
-	if !result.CanInterface() {
-		err = ErrCanNotInterface
-		h.buildResponse(ctx, err)
-		return
-	}
-
-	responseObj := result.Interface()
-	if responseObj == nil {
-		//log.Warn("response is nil")
-		err = fmt.Errorf("response is nil")
-		return
-	}
-	h.addResponse(ctx, responseObj)
-
-	switch responseObj.(type) {
-	case string:
-		h.buildResponse(ctx, result.Interface().(string))
-	case error:
-		respErr := result.Interface().(error)
-		h.buildResponse(ctx, respErr)
-	case model.Response:
-		h.responseWithError(ctx, numOut, results, responseObj)
-	case map[string]interface{}:
-		h.buildResponse(ctx, responseObj)
-	default:
-		if h.responses[0].implementsResponseInfo {
-			h.responseWithError(ctx, numOut, results, responseObj)
+	for idx, val := range results {
+		var objVal interface{}
+		if val.CanInterface() {
+			objVal = val.Interface()
 		} else {
-			h.buildResponse(ctx, responseObj)
+			err = ErrCanNotInterface
+			return
 		}
+		ctx.SetResponse(idx, objVal)
 	}
+
+	h.responseWithError(ctx, numOut, results)
 	return
 }
 
@@ -336,48 +298,62 @@ func (h *handler) finalizeResponse(ctx context.Context) {
 	idx, size := ctx.HandlerIndex(-1), len(ctx.Handlers())-1
 
 	if idx == size {
-		resObj, ok := ctx.GetResponse(new(response))
+
 		// TODO: find out the root cause of strings type being called twice
 		done := ctx.Values().GetString("done") == "true"
-		if !done && ok {
+		if !done {
 			//log.Debugf("%v / %v", idx, size)
 			ctx.Values().Set("done", "true")
-			res := resObj.(*response)
-			switch res.value.(type) {
-			case string:
-				ctx.ResponseString(res.value.(string))
-			case error:
-				respErr := res.value.(error)
-				ctx.ResponseError(respErr.Error(), http.StatusInternalServerError)
-			case model.Response:
-				r := res.value.(model.Response)
-				ctx.StatusCode(r.GetCode())
-				_, _ = ctx.JSON(r)
-			case model.ResponseInfo:
-				r := res.value.(model.ResponseInfo)
-				ctx.StatusCode(r.GetCode())
-				_, _ = ctx.JSON(r)
-			case map[string]interface{}:
-				_, _ = ctx.JSON(res.value)
-			default:
-				_, _ = ctx.JSON(res.value)
+			res := ctx.GetResponse(0)
+			if res != nil {
+				switch res.(type) {
+				case string:
+					ctx.ResponseString(res.(string))
+				case error:
+					respErr := res.(error)
+					ctx.ResponseError(respErr.Error(), http.StatusInternalServerError)
+				case model.Response:
+					r := res.(model.Response)
+					if r.GetCode() == 0 {
+						r.SetCode(http.StatusOK)
+					}
+					if r.GetMessage() == "" {
+						r.SetMessage(ctx.Translate(success))
+					}
+					ctx.StatusCode(r.GetCode())
+					_, _ = ctx.JSON(r)
+				case model.ResponseInfo:
+					r := res.(model.ResponseInfo)
+					if r.GetCode() == 0 {
+						r.SetCode(http.StatusOK)
+					}
+					if r.GetMessage() == "" {
+						r.SetMessage(ctx.Translate(success))
+					}
+					ctx.StatusCode(r.GetCode())
+					_, _ = ctx.JSON(r)
+				case map[string]interface{}:
+					_, _ = ctx.JSON(res)
+				default:
+					_, _ = ctx.JSON(res)
+				}
+			} else {
+				e := ctx.GetResponse(1)
+				switch e.(type) {
+				case error:
+					err := e.(error)
+					ctx.ResponseError(err.Error(), http.StatusInternalServerError)
+				}
 			}
 		}
 	}
 	return
 }
 
-func (h *handler) addResponse(ctx context.Context, responseObj interface{}) {
-
-	if len(h.responses) > 0 {
-		ctx.AddResponse(responseObj)
-	}
-
-}
-
-func (h *handler) responseWithError(ctx context.Context, numOut int, results []reflect.Value, responseObj interface{}) {
-	response := responseObj.(model.ResponseInfo)
+func (h *handler) responseWithError(ctx context.Context, numOut int, results []reflect.Value) {
 	if numOut >= 2 {
+		responseObj := results[0].Interface()
+		res := responseObj.(model.ResponseInfo)
 		var respErr error
 		//errVal := results[1]
 		errObj := results[1].Interface()
@@ -385,26 +361,25 @@ func (h *handler) responseWithError(ctx context.Context, numOut int, results []r
 		switch errObj.(type) {
 		case error:
 			respErr = errObj.(error)
-			h.addResponse(ctx, errObj)
 		}
 
 		if respErr == nil {
-			if response.GetCode() == 0 {
-				response.SetCode(http.StatusOK)
+			if res.GetCode() == 0 {
+				res.SetCode(http.StatusOK)
 			}
-			if response.GetMessage() == "" {
-				response.SetMessage(ctx.Translate(success))
+			if res.GetMessage() == "" {
+				res.SetMessage(ctx.Translate(success))
 			}
 		} else {
-			h.setErrorResponseCode(ctx, response)
+			h.setErrorResponseCode(ctx, res)
 			// TODO: output error message directly? how about i18n
-			response.SetMessage(ctx.Translate(respErr.Error()))
+			res.SetMessage(ctx.Translate(respErr.Error()))
 
 			// TODO: configurable status code in application.yml
 		}
 	}
-	h.buildResponse(ctx, response)
 }
+
 
 func (h *handler) setErrorResponseCode(ctx context.Context, response model.ResponseInfo) {
 	if response.GetCode() == 0 {
@@ -505,7 +480,6 @@ func (h *handler) call(ctx context.Context) {
 	if h.numOut > 0 && len(results) > 0 {
 		_ = h.responseData(ctx, h.numOut, results)
 	}
-
 
 	// finalize response
 	h.finalizeResponse(ctx)

@@ -18,8 +18,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/hidevopsio/hiboot/pkg/factory"
-	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/kataras/iris"
 
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
@@ -30,11 +29,13 @@ import (
 	"github.com/kataras/iris/middleware/i18n"
 )
 
+const maxResponses = 2
+
 // Context Create your own custom Context, put any fields you wanna need.
 type Context struct {
 	iris.Context
 	ann interface{}
-	responses cmap.ConcurrentMap
+	responses []interface{}
 }
 
 //NewContext constructor of context.Context
@@ -184,45 +185,39 @@ func (c *Context) SetURLParam(name, value string) {
 }
 
 func (c *Context) InitResponses()  {
-	c.responses = cmap.New()
+	c.responses = make([]interface{}, maxResponses)
 }
 
-// AddResponse add response to a alice
-func (c *Context) AddResponse(response interface{}) {
+// SetResponse add response to a alice
+func (c *Context) SetResponse(idx int, response interface{}) {
 	if c.responses == nil {
 		c.InitResponses()
 	}
-	// TODO: do we need the index of the response value?
-	name, object := factory.ParseParams(response)
-	switch response.(type) {
-	case error:
-		c.responses.Set("error", object)
-	default:
-		if name == "" {
-			// assume that name == "" means it is nil error
-			c.responses.Set("error", response)
-		} else {
-			c.responses.Set(name, response)
-		}
-	}
 
+	if idx >= maxResponses {
+		log.Error("SetResponse: wrong index number")
+		return
+	}
+	c.responses[idx] = response
 	return
 }
 
 // GetResponses get all responses as a slice
-func (c *Context) GetResponses() (responses map[string]interface{}) {
-	if c.responses != nil {
-		responses = c.responses.Items()
-	}
+func (c *Context) GetResponses() (responses []interface{}) {
+	responses = c.responses
 	return
 }
 
 // GetResponse get specific response from a slice
-func (c *Context) GetResponse(object interface{}) (response interface{}, ok bool) {
-	name, _ := factory.ParseParams(object)
-	if c.responses != nil {
-		response, ok = c.responses.Get(name)
+func (c *Context) GetResponse(idx int) (response interface{}) {
+	if c.responses == nil {
+		return
 	}
+	if idx >= maxResponses || idx > len(c.responses) {
+		log.Error("SetResponse: wrong index number")
+		return
+	}
+	response = c.responses[idx]
 	return
 }
 
