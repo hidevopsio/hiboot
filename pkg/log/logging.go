@@ -17,10 +17,11 @@ package log
 
 import (
 	"fmt"
-	"github.com/kataras/golog"
-	"github.com/kataras/pio"
 	"io"
 	"runtime"
+
+	"github.com/kataras/golog"
+	"github.com/kataras/pio"
 )
 
 //
@@ -182,12 +183,12 @@ func Warnf(format string, args ...interface{}) {
 
 // Info will print when logger's Level is info or debug.
 func Info(v ...interface{}) {
-	golog.Info(v...)
+	withCaller(golog.Info, v...)
 }
 
 // Infof will print when logger's Level is info or debug.
 func Infof(format string, args ...interface{}) {
-	golog.Infof(format, args...)
+	withCallerf(golog.Infof, format, args...)
 }
 
 // Debug will print when logger's Level is debug.
@@ -197,7 +198,6 @@ func Debug(v ...interface{}) {
 
 // Debugf will print when logger's Level is debug.
 func Debugf(format string, args ...interface{}) {
-
 	withCallerf(golog.Debugf, format, args...)
 }
 
