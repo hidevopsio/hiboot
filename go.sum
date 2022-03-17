@@ -227,6 +227,8 @@ github.com/hashicorp/memberlist v0.1.3/go.mod h1:ajVTdAv/9Im8oMAAj5G31PhhMCZJV2p
 github.com/hashicorp/serf v0.8.2/go.mod h1:6hOLApaqBFA1NXqRQAsxw9QxuDEvNxSQRwA/JwenrHc=
 github.com/hidevopsio/gocron v1.6.1-0.20210602042859-a8b1ada7665d h1:tyb3Uofi0B2+J6ocO34jjzDjKTxMQMVLMRMEBG5Z/4c=
 github.com/hidevopsio/gocron v1.6.1-0.20210602042859-a8b1ada7665d/go.mod h1:r7hFZ8FQUTzUrBwbBao1OPpKO0/dZGTOEkBVFar+Fww=
+github.com/hidevopsio/iris v0.0.0-20220317034144-5128af4b5636 h1:y0tDEBtinJ2Ur/Gh4zcnSM3sXMsV5I+DbJE007pK7P4=
+github.com/hidevopsio/iris v0.0.0-20220317034144-5128af4b5636/go.mod h1:4cangdWZW4brINuhSqxUwRwwObNAwvqkQm3EcRDL5pA=
 github.com/hidevopsio/mapstructure v1.1.3-0.20190908102033-f8832fd9e307 h1:Zc7/94OHdzC0A2sbJhrYErhhgho+fVW0qYQHarr8I+A=
 github.com/hidevopsio/mapstructure v1.1.3-0.20190908102033-f8832fd9e307/go.mod h1:HfcSxv9DfiSRv+QktNJmUUS4ByRmkxbldwKCpFglm7A=
 github.com/hidevopsio/viper v1.2.2-0.20210220025633-ccb4b202d169 h1:Ph6BkgjMElcd5eVVcKuUYcIsw615++Ou0aJJwgNED9M=
@@ -266,8 +268,6 @@ github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7V
 github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88/go.mod h1:3w7q1U84EfirKl04SVQ/s7nPm1ZPhiXd34z40TNz36k=
 github.com/kataras/golog v0.0.0-20180321173939-03be10146386 h1:VT6AeCHO/mc+VedKBMhoqb5eAK8B1i9F6nZl7EGlHvA=
 github.com/kataras/golog v0.0.0-20180321173939-03be10146386/go.mod h1:PcaEvfvhGsqwXZ6S3CgCbmjcp+4UDUh2MIfF2ZEul8M=
-github.com/kataras/iris v11.0.3+incompatible h1:dDO6AtDrusCZesEjBivmqhEGhjRN+Bzqzxdc8hXixOg=
-github.com/kataras/iris v11.0.3+incompatible/go.mod h1:4cangdWZW4brINuhSqxUwRwwObNAwvqkQm3EcRDL5pA=
 github.com/kataras/pio v0.0.0-20180511174041-a9733b5b6b83 h1:NoJ+fI58ptwrPc1blX116i+5xWGAY/2TJww37AN8X54=
 github.com/kataras/pio v0.0.0-20180511174041-a9733b5b6b83/go.mod h1:NV88laa9UiiDuX9AhMbDPkGYSPugBOV6yTZB1l2K9Z0=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=

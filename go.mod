@@ -50,4 +50,7 @@ require (
 	gopkg.in/yaml.v2 v2.2.4
 )
 
-replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
+replace (
+	github.com/kataras/iris => github.com/hidevopsio/iris v0.0.0-20220317034144-5128af4b5636
+	google.golang.org/grpc => google.golang.org/grpc v1.26.0
+)
