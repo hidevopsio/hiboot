@@ -1,18 +1,25 @@
 package main
 
 import (
-	"hidevops.io/hiboot/pkg/app/web"
 	"net/http"
+	"sync"
 	"testing"
 	"time"
+
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 )
 
+var mu sync.Mutex
 func TestRunMain(t *testing.T) {
+	mu.Lock()
 	go main()
+	mu.Unlock()
 }
 
 func TestController(t *testing.T) {
-	time.Sleep(time.Second)
+	mu.Lock()
+	defer mu.Unlock()
+	time.Sleep(time.Second * time.Duration(2))
 	testApp := web.NewTestApp(t).Run(t)
 
 	t.Run("should get employee ", func(t *testing.T) {
@@ -135,4 +142,5 @@ func TestController(t *testing.T) {
 		testApp.Get("/employee").
 			Expect().Status(http.StatusOK)
 	})
+
 }

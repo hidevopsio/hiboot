@@ -15,7 +15,7 @@
 package app
 
 import (
-	"hidevops.io/hiboot/pkg/factory"
+	"github.com/hidevopsio/hiboot/pkg/factory"
 )
 
 // PostProcessor is the post processor
@@ -50,7 +50,7 @@ func RegisterPostProcessor(p ...interface{}) {
 // Init init the post processor
 func (p *postProcessor) Init() {
 	for _, processor := range postProcessors {
-		ss, err := p.factory.InjectIntoFunc(processor)
+		ss, err := p.factory.InjectIntoFunc(nil, processor)
 		if err == nil {
 			p.subscribes = append(p.subscribes, ss.(PostProcessor))
 		}
@@ -60,7 +60,7 @@ func (p *postProcessor) Init() {
 // AfterInitialization post processor after initialization
 func (p *postProcessor) AfterInitialization() {
 	for _, processor := range p.subscribes {
-		p.factory.InjectIntoFunc(processor)
+		p.factory.InjectIntoFunc(nil, processor)
 		processor.AfterInitialization()
 	}
 }

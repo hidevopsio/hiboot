@@ -1,4 +1,4 @@
-# Hiboot - web/cli application framework 
+# Hiboot - web/cli application framework
 
 <p align="center">
   <a href="https://hiboot.hidevops.io">
@@ -10,7 +10,7 @@
   <a href="https://travis-ci.org/hidevopsio/hiboot?branch=master">
     <img src="https://travis-ci.org/hidevopsio/hiboot.svg?branch=master" alt="Build Status"/>
   </a>
-  <a class="badge-align" href="https://www.codacy.com/app/john-deng/hiboot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=hidevopsio/hiboot&amp;utm_campaign=Badge_Grade"><img src="https://api.codacy.com/project/badge/Grade/ee8ddbf56ece4f46a6efeb216c351a0f"/></a>
+  <a class="badge-align" href="https://www.codacy.com/app/john-deng/hiboot?utm_source=github.com&utm_medium=referral&utm_content=hidevopsio/hiboot&utm_campaign=Badge_Grade"><img src="https://api.codacy.com/project/badge/Grade/ee8ddbf56ece4f46a6efeb216c351a0f"/></a>
   <a href="https://github.com/hidevopsio/hiboot">
     <img src="https://tokei.rs/b1/github/hidevopsio/hiboot" />
   </a>
@@ -20,10 +20,10 @@
   <a href="https://opensource.org/licenses/Apache-2.0">
       <img src="https://img.shields.io/badge/License-Apache%202.0-green.svg" />
   </a>
-  <a href="https://goreportcard.com/report/hidevops.io/hiboot">
-      <img src="https://goreportcard.com/badge/hidevops.io/hiboot" />
+  <a href="https://goreportcard.com/report/github.com/hidevopsio/hiboot">
+      <img src="https://goreportcard.com/badge/github.com/hidevopsio/hiboot" />
   </a>
-  <a href="https://godoc.org/hidevops.io/hiboot">
+  <a href="https://godoc.org/github.com/hidevopsio/hiboot">
       <img src="https://godoc.org/github.com/golang/gddo?status.svg" />
   </a>
 </p>
@@ -56,3 +56,8 @@ Thank you for considering contributing to the Hiboot framework, The contribution
 © John Deng, 2017 ~ time.Now
 
 Released under the [Apache License 2.0](https://hidevops.io/hiboot/blob/master/LICENSE)
+=====================================
+
+Released under the [Apache License 2.0](https://github.com/hidevopsio/hiboot/blob/master/LICENSE)
+
+[Jetbrains](https://www.jetbrains.com/?from=hiboot) supports this project with GoLand licenses. We appreciate their support for free and open source software!

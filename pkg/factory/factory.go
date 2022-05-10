@@ -16,10 +16,12 @@
 package factory
 
 import (
-	"hidevops.io/hiboot/pkg/app/web/context"
-	"hidevops.io/hiboot/pkg/system"
-	"hidevops.io/hiboot/pkg/utils/reflector"
 	"reflect"
+
+	"github.com/hidevopsio/hiboot/pkg/app/web/context"
+	"github.com/hidevopsio/hiboot/pkg/system"
+	"github.com/hidevopsio/hiboot/pkg/system/scheduler"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 )
 
 const (
@@ -53,11 +55,11 @@ type InstantiateFactory interface {
 	SetProperty(name string, value interface{}) InstantiateFactory
 	SetDefaultProperty(name string, value interface{}) InstantiateFactory
 	DefaultProperties() map[string]interface{}
-	InjectIntoFunc(object interface{}) (retVal interface{}, err error)
-	InjectIntoMethod(owner, object interface{}) (retVal interface{}, err error)
+	InjectIntoFunc(instance Instance, object interface{}) (retVal interface{}, err error)
+	InjectIntoMethod(instance Instance, owner, object interface{}) (retVal interface{}, err error)
 	InjectDefaultValue(object interface{}) error
-	InjectIntoObject(object interface{}) error
-	InjectDependency(object interface{}) (err error)
+	InjectIntoObject(instance Instance, object interface{}) error
+	InjectDependency(instance Instance, object interface{}) (err error)
 	Replace(name string) interface{}
 	InjectContextAwareObjects(ctx context.Context, dps []*MetaData) (runtimeInstance Instance, err error)
 }
@@ -68,6 +70,7 @@ type ConfigurableFactory interface {
 	SystemConfiguration() *system.Configuration
 	Configuration(name string) interface{}
 	BuildProperties() (systemConfig *system.Configuration, err error)
+	StartSchedulers(schedulerServices []*MetaData) (schedulers []*scheduler.Scheduler)
 	Build(configs []*MetaData)
 }
 

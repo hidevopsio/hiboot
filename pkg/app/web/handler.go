@@ -16,25 +16,26 @@ package web
 
 import (
 	"errors"
-	"fmt"
-	"hidevops.io/hiboot/pkg/app/web/context"
-	"hidevops.io/hiboot/pkg/at"
-	"hidevops.io/hiboot/pkg/factory"
-	"hidevops.io/hiboot/pkg/inject/annotation"
-	"hidevops.io/hiboot/pkg/log"
-	"hidevops.io/hiboot/pkg/model"
-	"hidevops.io/hiboot/pkg/utils/mapstruct"
-	"hidevops.io/hiboot/pkg/utils/reflector"
-	"hidevops.io/hiboot/pkg/utils/replacer"
-	"hidevops.io/hiboot/pkg/utils/str"
 	"net/http"
 	"reflect"
 	"strings"
+
+	"github.com/hidevopsio/hiboot/pkg/app/web/context"
+	"github.com/hidevopsio/hiboot/pkg/at"
+	"github.com/hidevopsio/hiboot/pkg/factory"
+	"github.com/hidevopsio/hiboot/pkg/inject/annotation"
+	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/model"
+	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
+	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/hidevopsio/hiboot/pkg/utils/replacer"
+	"github.com/hidevopsio/hiboot/pkg/utils/str"
 )
 
 const (
-	success = "success"
-	failed  = "failed"
+	success       = "success"
+	failed        = "failed"
+	finalResponse = "finalResponse"
 )
 
 var (
@@ -57,13 +58,14 @@ type request struct {
 }
 
 type response struct {
-	typeName string
-	name     string
-	kind     reflect.Kind
-	typ      reflect.Type
-	isResponseBody bool
-	implementsResponse bool
+	typeName               string
+	name                   string
+	kind                   reflect.Kind
+	typ                    reflect.Type
+	isResponseBody         bool
+	implementsResponse     bool
 	implementsResponseInfo bool
+	value                  interface{}
 }
 
 type handler struct {
@@ -84,6 +86,7 @@ type handler struct {
 
 	injectableObject *injectableObject
 	restMethod       *injectableMethod
+	annotations      interface{}
 }
 
 type requestSet struct {
@@ -205,6 +208,10 @@ func (h *handler) parseMethod(injectableObject *injectableObject, injectableMeth
 			// TODO: should confirm if value is usable
 			h.requests[i].iVal = injectableMethod.annotations.Items[0].Parent.Value //ann.Parent.Value.Elem()
 			h.requests[i].isAnnotation = true
+
+			// operation
+			_ = annotation.InjectAll(request)
+			h.annotations = request
 			continue
 		}
 
@@ -271,95 +278,141 @@ func (h *handler) parseMethod(injectableObject *injectableObject, injectableMeth
 }
 
 func (h *handler) responseData(ctx context.Context, numOut int, results []reflect.Value) (err error) {
-	//if numOut == 0 {
-	//	ctx.StatusCode(http.StatusOK)
-	//	return
-	//}
+	var res model.ResponseInfo
 
-	result := results[0]
-	if !result.CanInterface() {
-		err = ErrCanNotInterface
-		ctx.ResponseError(err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	respVal := result.Interface()
-	if respVal == nil {
-		//log.Warn("response is nil")
-		err = fmt.Errorf("response is nil")
-		return
-	}
-
-	switch respVal.(type) {
-	case string:
-		ctx.ResponseString(result.Interface().(string))
-	case error:
-		respErr := result.Interface().(error)
-		ctx.ResponseError(respErr.Error(), http.StatusInternalServerError)
-	case model.Response:
-		response := respVal.(model.Response)
-		if numOut >= 2 {
-			var respErr error
-			errVal := results[1]
-			if errVal.IsNil() {
-				respErr = nil
-			} else if errVal.Type().Name() == "error" {
-				respErr = results[1].Interface().(error)
-			}
-
-			if respErr == nil {
-				response.SetCode(http.StatusOK)
-				response.SetMessage(ctx.Translate(success))
-			} else {
-				if response.GetCode() == 0 {
-					response.SetCode(http.StatusInternalServerError)
-				}
-				// TODO: output error message directly? how about i18n
-				response.SetMessage(ctx.Translate(respErr.Error()))
-
-				// TODO: configurable status code in application.yml
-				ctx.StatusCode(response.GetCode())
-			}
+	for idx, val := range results {
+		var objVal interface{}
+		if val.CanInterface() {
+			objVal = val.Interface()
+		} else {
+			err = ErrCanNotInterface
+			return
 		}
-		ctx.JSON(response)
-	case map[string]interface{}:
-		ctx.JSON(respVal)
-	default:
-		if h.responses[0].implementsResponseInfo {
-			response := respVal.(model.ResponseInfo)
-			if numOut >= 2 {
-				var respErr error
-				errVal := results[1]
-				if errVal.IsNil() {
-					respErr = nil
-				} else if errVal.Type().Name() == "error" {
-					respErr = results[1].Interface().(error)
-				}
 
+		switch objVal.(type) {
+		case model.ResponseInfo:
+			res = objVal.(model.ResponseInfo)
+		case model.Response:
+			res = objVal.(model.Response)
+		case error:
+			respErr := objVal.(error)
+			if res != nil {
 				if respErr == nil {
-					if response.GetCode() == 0 {
-						response.SetCode(http.StatusOK)
+					if res.GetCode() == 0 {
+						res.SetCode(http.StatusOK)
 					}
-					if response.GetMessage() == "" {
-						response.SetMessage(ctx.Translate(success))
+					if res.GetMessage() == "" {
+						res.SetMessage(ctx.Translate(success))
 					}
 				} else {
-					if response.GetCode() == 0 {
-						response.SetCode(http.StatusInternalServerError)
-					}
+					h.setErrorResponseCode(ctx, res)
 					// TODO: output error message directly? how about i18n
-					response.SetMessage(ctx.Translate(respErr.Error()))
-
-					// TODO: configurable status code in application.yml
+					res.SetMessage(ctx.Translate(respErr.Error()))
 				}
 			}
-			ctx.StatusCode(response.GetCode())
-			ctx.JSON(response)
-		} else {
-			ctx.JSON(respVal)
+		}
+		ctx.SetResponse(idx, objVal)
+	}
+	return
+}
+
+func (h *handler) finalizeResponse(ctx context.Context) {
+
+	idx, size := ctx.HandlerIndex(-1), len(ctx.Handlers())-1
+
+	if idx == size {
+
+		// TODO: find out the root cause of strings type being called twice
+		done := ctx.Values().GetString("done") == "true"
+		if !done {
+			//log.Debugf("%v / %v", idx, size)
+			ctx.Values().Set("done", "true")
+			res := ctx.GetResponse(0)
+			if res != nil {
+				switch res.(type) {
+				case string:
+					ctx.ResponseString(res.(string))
+				case error:
+					respErr := res.(error)
+					ctx.ResponseError(respErr.Error(), http.StatusInternalServerError)
+				case model.Response:
+					r := res.(model.Response)
+					if r.GetCode() == 0 {
+						r.SetCode(http.StatusOK)
+					}
+					if r.GetMessage() == "" {
+						r.SetMessage(ctx.Translate(success))
+					}
+					ctx.StatusCode(r.GetCode())
+					_, _ = ctx.JSON(r)
+				case model.ResponseInfo:
+					r := res.(model.ResponseInfo)
+					if r.GetCode() == 0 {
+						r.SetCode(http.StatusOK)
+					}
+					if r.GetMessage() == "" {
+						r.SetMessage(ctx.Translate(success))
+					}
+					ctx.StatusCode(r.GetCode())
+					_, _ = ctx.JSON(r)
+				case map[string]interface{}:
+					_, _ = ctx.JSON(res)
+				default:
+					_, _ = ctx.JSON(res)
+				}
+			} else {
+				e := ctx.GetResponse(1)
+				switch e.(type) {
+				case error:
+					err := e.(error)
+					ctx.ResponseError(err.Error(), http.StatusInternalServerError)
+				}
+			}
 		}
 	}
 	return
+}
+
+func (h *handler) responseWithError(ctx context.Context, numOut int, results []reflect.Value) {
+	if numOut >= 2 {
+		responseObj := results[0].Interface()
+		res := responseObj.(model.ResponseInfo)
+		var respErr error
+		//errVal := results[1]
+		errObj := results[1].Interface()
+
+		switch errObj.(type) {
+		case error:
+			respErr = errObj.(error)
+		}
+
+		if respErr == nil {
+			if res.GetCode() == 0 {
+				res.SetCode(http.StatusOK)
+			}
+			if res.GetMessage() == "" {
+				res.SetMessage(ctx.Translate(success))
+			}
+		} else {
+			h.setErrorResponseCode(ctx, res)
+			// TODO: output error message directly? how about i18n
+			res.SetMessage(ctx.Translate(respErr.Error()))
+
+			// TODO: configurable status code in application.yml
+		}
+	}
+}
+
+
+func (h *handler) setErrorResponseCode(ctx context.Context, response model.ResponseInfo) {
+	if response.GetCode() == 0 {
+		prevStatusCode := ctx.GetStatusCode()
+		if prevStatusCode == http.StatusOK || prevStatusCode == 0 {
+			response.SetCode(http.StatusInternalServerError)
+		} else {
+			response.SetCode(prevStatusCode)
+		}
+	}
 }
 
 func (h *handler) call(ctx context.Context) {
@@ -369,74 +422,90 @@ func (h *handler) call(ctx context.Context) {
 	var path string
 	var pvs []string
 	var runtimeInstance factory.Instance
-	//var err error
+
+	// init responses
+	log.Debugf("HTTP Handler: %v: %v %v%v", ctx.HandlerIndex(-1), ctx.Method(), ctx.Host(), ctx.Path())
+	idx := ctx.HandlerIndex(-1)
+	 if idx <= 1 {
+		ctx.InitResponses()
+	}
 
 	if h.lenOfPathParams != 0 {
 		path = ctx.Path()
 		pvs = strings.SplitN(path, "/", -1)
 	}
-
-	if len(h.dependencies) > 0 {
-		runtimeInstance, _ = h.factory.InjectContextAwareObjects(ctx, h.dependencies)
-	}
-	inputs := make([]reflect.Value, h.numIn)
-	if h.numIn != 0 {
-		inputs[0] = h.objVal
-	}
-
-	lenOfPathParams := h.lenOfPathParams
-	for i := 1; i < h.numIn; i++ {
-		req := h.requests[i]
-		input = reflect.New(req.iTyp).Interface()
-
-		// inject params
-		//log.Debugf("%v, %v", i, h.requests[i].iVal.Type())
-		if req.kind == reflect.Slice {
-			var res reflect.Value
-			if lenOfPathParams != 0 {
-				res = h.decodePathVariable(&lenOfPathParams, pvs, req, req.kind)
-			} else {
-				res, reqErr = h.decodeSlice(ctx, h.requests[i].iTyp, h.requests[i].iVal)
-			}
-			inputs[i] = res
-		} else if req.callback != nil {
-			_ = h.factory.InjectDefaultValue(input) // support default value injection for request body/params/form
-			reqErr = req.callback(ctx, input)
-			inputs[i] = reflect.ValueOf(input)
-		} else if req.kind == reflect.Interface && model.Context == req.typeName {
-			input = ctx
-			inputs[i] = reflect.ValueOf(input)
-		} else if lenOfPathParams != 0 && !req.isAnnotation {
-			// allow inject other dependencies after number of lenOfPathParams
-			res := h.decodePathVariable(&lenOfPathParams, pvs, req, req.kind)
-
-			inputs[i] = res
-		} else {
-			// inject instances
-			var inst interface{}
-			if runtimeInstance != nil {
-				inst = runtimeInstance.Get(req.fullName)
-			}
-			if inst == nil {
-				inst = h.factory.GetInstance(req.fullName) // TODO: primitive types does not need to get instance for the sake of performance
-			}
-			if inst != nil {
-				inputs[i] = reflect.ValueOf(inst)
-			} else {
-				inputs[i] = h.requests[i].iVal
-			}
-		}
-	}
-
-	//var respErr error
 	var results []reflect.Value
-	if reqErr == nil {
-		// call controller method
-		results = h.method.Func.Call(inputs)
-		if h.numOut > 0 {
-			_ = h.responseData(ctx, h.numOut, results)
+	if len(h.dependencies) > 0 {
+		runtimeInstance, reqErr = h.factory.InjectContextAwareObjects(ctx, h.dependencies)
+		if reqErr != nil && h.numOut > 0 {
+			results = make([]reflect.Value, h.numOut)
+			if h.numOut > 1 {
+				results[0] = reflect.New(h.responses[0].typ.Elem())
+			}
+			results[h.numOut - 1] = reflect.ValueOf(reqErr)
 		}
 	}
+	if reqErr == nil {
+		inputs := make([]reflect.Value, h.numIn)
+		if h.numIn != 0 {
+			inputs[0] = h.objVal
+		}
+
+		lenOfPathParams := h.lenOfPathParams
+		for i := 1; i < h.numIn; i++ {
+			req := h.requests[i]
+			input = reflect.New(req.iTyp).Interface()
+
+			// inject params
+			//log.Debugf("%v, %v", i, h.requests[i].iVal.Type())
+			if req.kind == reflect.Slice {
+				var res reflect.Value
+				if lenOfPathParams != 0 {
+					res = h.decodePathVariable(&lenOfPathParams, pvs, req, req.kind)
+				} else {
+					res, reqErr = h.decodeSlice(ctx, h.requests[i].iTyp, h.requests[i].iVal)
+				}
+				inputs[i] = res
+			} else if req.callback != nil {
+				_ = h.factory.InjectDefaultValue(input) // support default value injection for request body/params/form
+				reqErr = req.callback(ctx, input)
+				inputs[i] = reflect.ValueOf(input)
+			} else if req.kind == reflect.Interface && model.Context == req.typeName {
+				input = ctx
+				inputs[i] = reflect.ValueOf(input)
+			} else if lenOfPathParams != 0 && !req.isAnnotation {
+				// allow inject other dependencies after number of lenOfPathParams
+				res := h.decodePathVariable(&lenOfPathParams, pvs, req, req.kind)
+
+				inputs[i] = res
+			} else {
+				// inject instances
+				var inst interface{}
+				if runtimeInstance != nil {
+					inst = runtimeInstance.Get(req.fullName)
+				}
+				if inst == nil {
+					inst = h.factory.GetInstance(req.fullName) // TODO: primitive types does not need to get instance for the sake of performance
+				}
+				if inst != nil {
+					inputs[i] = reflect.ValueOf(inst)
+				} else {
+					inputs[i] = h.requests[i].iVal
+				}
+			}
+		}
+		if reqErr == nil {
+			// call controller method
+			results = h.method.Func.Call(inputs)
+		}
+	}
+
+	if h.numOut > 0 && len(results) > 0 {
+		_ = h.responseData(ctx, h.numOut, results)
+	}
+
+	// finalize response
+	h.finalizeResponse(ctx)
 }
 
 func (h *handler) decodePathVariable(lenOfPathParams *int, pvs []string, req request, kind reflect.Kind) reflect.Value {

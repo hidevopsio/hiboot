@@ -1,21 +1,26 @@
 package context
 
 import (
+	"net/http"
+
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
-	"net/http"
 )
 
 // ExtendedContext extended context
 type ExtendedContext interface {
-	//RequestBody(data interface{}) error
-	//RequestForm(data interface{}) error
-	//RequestParams(request interface{}) error
 	ResponseString(s string)
 	ResponseBody(message string, data interface{})
 	ResponseError(message string, code int)
 	WrapHandler(h http.Handler)
-	//StaticResource(system http.FileSystem)
+	SetAnnotations(ann interface{})
+	SetURLParam(name, value string)
+	Annotations() interface{}
+	InitResponses()
+	SetResponse(idx int, response interface{})
+	GetResponses() (responses []interface{})
+	GetResponse(idx int) (response interface{})
+//StaticResource(system http.FileSystem)
 }
 
 // Context is the interface of web app context
