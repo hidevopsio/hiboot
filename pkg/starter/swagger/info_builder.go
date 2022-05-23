@@ -56,7 +56,7 @@ type apiInfoBuilder struct {
 
 	SystemServer *system.Server
 	AppVersion   string `value:"${app.version}"`
-	RedocURL string `json:"redoc_url" value:"${redoc.url:https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js}"`
+	RedocURL string `json:"redoc_url" value:"${redoc.url:https://unpkg.com/redoc@next/bundles/redoc.standalone.js}"`
 }
 
 func ApiInfoBuilder() ApiInfoBuilderInterface {
