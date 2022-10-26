@@ -368,6 +368,8 @@ func (h *handler) finalizeResponse(ctx context.Context) {
 					ctx.ResponseError(err.Error(), http.StatusInternalServerError)
 				}
 			}
+			// To clear current context and init for next request to prevent garbage response
+			ctx.InitResponses()
 		}
 	}
 	return
@@ -403,7 +405,6 @@ func (h *handler) responseWithError(ctx context.Context, numOut int, results []r
 	}
 }
 
-
 func (h *handler) setErrorResponseCode(ctx context.Context, response model.ResponseInfo) {
 	if response.GetCode() == 0 {
 		prevStatusCode := ctx.GetStatusCode()
@@ -426,7 +427,7 @@ func (h *handler) call(ctx context.Context) {
 	// init responses
 	log.Debugf("HTTP Handler: %v: %v %v%v", ctx.HandlerIndex(-1), ctx.Method(), ctx.Host(), ctx.Path())
 	idx := ctx.HandlerIndex(-1)
-	 if idx <= 1 {
+	if idx <= 1 {
 		ctx.InitResponses()
 	}
 
@@ -442,7 +443,7 @@ func (h *handler) call(ctx context.Context) {
 			if h.numOut > 1 {
 				results[0] = reflect.New(h.responses[0].typ.Elem())
 			}
-			results[h.numOut - 1] = reflect.ValueOf(reqErr)
+			results[h.numOut-1] = reflect.ValueOf(reqErr)
 		}
 	}
 	if reqErr == nil {
