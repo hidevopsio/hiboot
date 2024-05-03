@@ -24,12 +24,12 @@ import (
 type fooCommand struct {
 	cli.SubCommand
 
-	fooBar *model.Foo
+	foo *model.Foo
 }
 
-func newFooCommand(fooBar *model.Foo) *fooCommand {
+func newFooCommand(foo *model.Foo) *fooCommand {
 	c := &fooCommand{
-		fooBar: fooBar,
+		foo: foo,
 	}
 	c.Use = "foo"
 	c.Short = "foo command"
@@ -39,7 +39,7 @@ func newFooCommand(fooBar *model.Foo) *fooCommand {
 }
 
 func init() {
-	app.Register(newFooCommand)
+	app.Register(newFooCommand, new(model.Foo))
 }
 
 func (c *fooCommand) Run(args []string) error {
