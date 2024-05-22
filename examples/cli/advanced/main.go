@@ -30,6 +30,7 @@ var embedFS embed.FS
 func main() {
 	// create new cli application and run it
 	cli.NewApplication(cmd.NewRootCommand).
+		SetProperty(app.BannerDisabled, true).
 		SetProperty(app.Config, &embedFS).
 		SetProperty(logging.Level, logging.LevelError).
 		SetProperty(app.ProfilesInclude, config.Profile, logging.Profile).
