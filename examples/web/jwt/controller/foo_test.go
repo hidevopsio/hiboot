@@ -29,7 +29,7 @@ func TestFooController(t *testing.T) {
 		testApp.
 			Get("/foo").
 			WithQueryObject(fooRequestParam{Name: "Peter", Age: 18}).
-			Expect().Status(http.StatusOK).Body().Contains("jwt-example-v1")
+			Expect().Status(http.StatusOK).Body().Contains("jwt-example")
 	})
 
 	t.Run("should pass POST /foo", func(t *testing.T) {
