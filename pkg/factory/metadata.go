@@ -18,6 +18,7 @@ type MetaData struct {
 	ShortName    string
 	TypeName     string
 	PkgName      string
+	InstName     string
 	ObjectOwner  interface{}
 	MetaObject   interface{}
 	Type         reflect.Type
@@ -216,12 +217,13 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 		typ := reflect.TypeOf(metaObject)
 		kind := typ.Kind()
 		kindName := kind.String()
-		if kind == reflect.Struct && typ.Name() == types.Method {
-			kindName = types.Method
-		}
-
+		instName := name
 		if pkgName != "" {
 			shortName = str.ToLowerCamel(typeName)
+			if kind == reflect.Struct && typ.Name() == types.Method {
+				kindName = types.Method
+				instName = pkgName + "." + shortName
+			}
 			// [2024-07-14] the method will initialize the pkgName.shortName type, so name = pkgName + "." + shortName
 			// || kindName == types.Method
 			// TODO: remove it later
@@ -231,6 +233,7 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 			if typeName == "Handler" {
 				log.Debug(pkgName)
 			}
+
 			if name == "" {
 				name = pkgName + "." + shortName
 			} else if !strings.Contains(name, ".") {
@@ -260,6 +263,7 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 			PkgName:      pkgName,
 			TypeName:     typeName,
 			Name:         name,
+			InstName:     instName,
 			ShortName:    shortName,
 			ObjectOwner:  owner,
 			MetaObject:   metaObject,
