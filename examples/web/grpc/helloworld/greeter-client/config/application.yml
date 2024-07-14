@@ -7,8 +7,8 @@ app:
   profiles:
     active: default
     include:
+    - web
     - logging
-    - locale
     - grpc
 
 logging:

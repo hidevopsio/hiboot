@@ -17,7 +17,7 @@ func TestHelloClient(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockHelloClient := mock.NewMockHelloServiceClient(ctrl)
-	app.Register("protobuf.helloServiceClient", mockHelloClient)
+	app.Register(mockHelloClient)
 
 	testApp := web.NewTestApp(t).SetProperty(logging.Level, logging.LevelDebug).Run(t)
 

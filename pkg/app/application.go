@@ -36,7 +36,7 @@ import (
 
 const (
 	// ApplicationContextName is the application context instance name
-	ApplicationContextName      = "app.applicationContext"
+	ApplicationContextName      = "github.com/hidevopsio/hiboot/pkg/app.applicationContext"
 	ContextPathFormat           = "server.context_path_format"
 	ContextPathFormatKebab      = "kebab"
 	ContextPathFormatSnake      = "snake"
@@ -83,7 +83,7 @@ var (
 	configContainer    []*factory.MetaData
 	componentContainer []*factory.MetaData
 	// Profiles include profiles initially
-	Profiles           []string
+	Profiles []string
 
 	// ErrInvalidObjectType indicates that configuration type is invalid
 	ErrInvalidObjectType = errors.New("[app] invalid Configuration type, one of app.Configuration need to be embedded")

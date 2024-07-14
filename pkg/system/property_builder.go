@@ -50,7 +50,7 @@ type ConfigFile struct {
 }
 
 type propertyBuilder struct {
-	at.Qualifier `value:"system.builder"`
+	at.Qualifier `value:"github.com/hidevopsio/hiboot/pkg/system.builder"`
 	*viper.Viper
 	ConfigFile
 	configuration     interface{}
@@ -60,7 +60,6 @@ type propertyBuilder struct {
 	embedFS           *embed.FS
 	sync.Mutex
 }
-
 
 // NewBuilder is the constructor of system.Builder
 func NewPropertyBuilder(path string, customProperties map[string]interface{}) Builder {
@@ -72,7 +71,6 @@ func NewPropertyBuilder(path string, customProperties map[string]interface{}) Bu
 
 	return b
 }
-
 
 // setCustomPropertiesFromArgs returns application config
 func (b *propertyBuilder) setCustomPropertiesFromArgs() {
@@ -102,9 +100,8 @@ func (b *propertyBuilder) setCustomPropertiesFromArgs() {
 	}
 }
 
-
 // New create new viper instance
-func (b *propertyBuilder) readConfigData(in io.Reader,ext string) (err error) {
+func (b *propertyBuilder) readConfigData(in io.Reader, ext string) (err error) {
 	log.Debugf("reader: %v, ext:%v", in, ext)
 	b.AutomaticEnv()
 	viperReplacer := strings.NewReplacer(".", "_")
@@ -183,7 +180,6 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 		profile = profiles[0]
 	}
 
-
 	// TODO: should combine below two process into one
 	var embedActiveProfileConfigFile *ConfigFile
 	var embedDefaultProfileConfigFile *ConfigFile
@@ -232,7 +228,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 							continue
 						}
 						if profile != "" {
-							if strings.Contains(name, "-" + profile) {
+							if strings.Contains(name, "-"+profile) {
 								embedActiveProfileConfigFile = configFile
 								continue
 							} else {
@@ -288,7 +284,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 							}
 
 							if profile != "" {
-								if activeProfileConfigFile == nil && strings.Contains(file, "-" + profile) {
+								if activeProfileConfigFile == nil && strings.Contains(file, "-"+profile) {
 									activeProfileConfigFile = configFile
 								} else {
 									configFiles[dir][ext] = append(configFiles[dir][ext], file)
@@ -357,7 +353,6 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 		}
 	}
 
-
 	// read all config files
 	//log.Debug("after ...")
 	for _, path := range paths {
@@ -408,7 +403,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 }
 
 // Read single file
-func (b *propertyBuilder) Load(properties interface{}, opts ...func (*mapstructure.DecoderConfig)) (err error) {
+func (b *propertyBuilder) Load(properties interface{}, opts ...func(*mapstructure.DecoderConfig)) (err error) {
 	ann := annotation.GetAnnotation(properties, at.ConfigurationProperties{})
 	if ann != nil {
 		prefix := ann.Field.StructField.Tag.Get("value")

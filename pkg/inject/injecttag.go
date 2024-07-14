@@ -20,7 +20,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 )
@@ -54,7 +53,7 @@ func (t *injectTag) Decode(object reflect.Value, field reflect.StructField, prop
 				ft = ft.Elem()
 			}
 
-			pkgName := io.DirName(ft.PkgPath())
+			pkgName := ft.PkgPath() //io.DirName(ft.PkgPath())
 
 			// get the user specific instance first
 			if tag != "" {

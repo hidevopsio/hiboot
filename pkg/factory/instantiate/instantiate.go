@@ -50,7 +50,7 @@ const (
 
 // InstantiateFactory is the factory that responsible for object instantiation
 type instantiateFactory struct {
-	at.Qualifier `value:"factory.instantiateFactory"`
+	at.Qualifier `value:"github.com/hidevopsio/hiboot/pkg/factory.instantiateFactory"`
 
 	instance             factory.Instance
 	contextAwareInstance factory.Instance
@@ -156,7 +156,7 @@ func (f *instantiateFactory) injectDependency(instance factory.Instance, item *f
 		if err != nil {
 			return
 		}
-		log.Debugf("inject into method: %v %v", item.ShortName, item.Type)
+		log.Debugf("inject into method: %v %v", item.Name, item.Type)
 	default:
 		name, inst = item.Name, item.MetaObject
 	}
@@ -194,8 +194,9 @@ func (f *instantiateFactory) BuildComponents() (err error) {
 	f.resolved = resolved
 	log.Debugf("Injecting dependencies")
 	// then build components
-	for _, item := range resolved {
+	for i, item := range resolved {
 		// log.Debugf("build component: %v %v", idx, item.Type)
+		log.Debugf("%v", i)
 		if item.ContextAware {
 			//log.Debugf("at.ContextAware: %v", item.MetaObject)
 			err = f.SetInstance(item)

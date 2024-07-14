@@ -18,6 +18,7 @@ package autoconfigure
 import (
 	"errors"
 	"os"
+	"path"
 	"reflect"
 	"strings"
 
@@ -29,7 +30,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system/scheduler"
 	"github.com/hidevopsio/hiboot/pkg/system/types"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 )
@@ -48,6 +48,8 @@ const (
 	PostfixConfiguration = "Configuration"
 
 	defaultProfileName = "default"
+
+	Configurations = "github.com/hidevopsio/hiboot/pkg/factory/autoconfigure.configurations"
 )
 
 var (
@@ -71,7 +73,7 @@ var (
 )
 
 type configurableFactory struct {
-	at.Qualifier `value:"factory.configurableFactory"`
+	at.Qualifier `value:"github.com/hidevopsio/hiboot/pkg/factory.configurableFactory"`
 
 	factory.InstantiateFactory
 	configurations cmap.ConcurrentMap
@@ -91,7 +93,7 @@ func NewConfigurableFactory(instantiateFactory factory.InstantiateFactory, confi
 	}
 
 	f.configurations = configurations
-	_ = f.SetInstance("configurations", configurations)
+	_ = f.SetInstance(Configurations, configurations)
 
 	f.builder = f.Builder()
 
@@ -182,7 +184,8 @@ func (f *configurableFactory) Instantiate(configuration interface{}) (err error)
 	//log.Debug("type: ", configType)
 	//name := configType.Elem().Name()
 	//log.Debug("fieldName: ", name)
-	pkgName := io.DirName(icv.Type().PkgPath())
+	//pkgName := io.DirName(icv.Type().PkgPath())
+	pkgName := icv.Type().PkgPath()
 	var runtimeDeps factory.Deps
 	rd := icv.FieldByName("RuntimeDeps")
 	if rd.IsValid() {
@@ -204,6 +207,9 @@ func (f *configurableFactory) Instantiate(configuration interface{}) (err error)
 				Name:       pkgName + "." + methodName,
 				MetaObject: method,
 				DepNames:   deps,
+			}
+			if pkgName == "github.com/hidevopsio/hiboot/pkg/starter/grpc" {
+				log.Debug(method)
 			}
 			f.AppendComponent(configuration, metaData)
 		} else {
@@ -273,7 +279,7 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 		isContextAware := annotation.Contains(item.MetaObject, at.ContextAware{})
 		if f.systemConfig != nil {
 			if !isContextAware &&
-				f.systemConfig != nil && !str.InSlice(name, f.systemConfig.App.Profiles.Include) {
+				f.systemConfig != nil && !str.InSlice(path.Base(name), f.systemConfig.App.Profiles.Include) {
 				log.Warnf("Auto configuration %v is filtered out! Just ignore this warning if you intended to do so.", name)
 				continue
 			}
@@ -396,4 +402,3 @@ func (f *configurableFactory) runTask(svc interface{}, method reflect.Method, an
 		}
 	}
 }
-
