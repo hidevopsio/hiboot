@@ -16,9 +16,9 @@ package reflector
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector/tester"
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 )
@@ -180,7 +180,7 @@ func TestGetFieldValue(t *testing.T) {
 
 func TestFindFieldByTag(t *testing.T) {
 	type foo struct {
-		Name string `json:"name"`
+		Name     string   `json:"name"`
 		AtValues []string `at:"values"`
 	}
 	f := &foo{}
@@ -475,10 +475,10 @@ func TestGetPkgPath(t *testing.T) {
 
 func TestParseObjectPkgName(t *testing.T) {
 	pkgName := ParseObjectPkgName(Foo{})
-	assert.Equal(t, "reflector", pkgName)
+	assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/utils/reflector", pkgName)
 
 	pkgName = ParseObjectPkgName(&Foo{})
-	assert.Equal(t, "reflector", pkgName)
+	assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/utils/reflector", pkgName)
 }
 
 func SayHello(name string) string {
@@ -576,43 +576,43 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 
 	t.Run("should get the object name", func(t *testing.T) {
 		name := GetFullName(Foo{})
-		assert.Equal(t, "reflector.Foo", name)
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/utils/reflector.Foo", name)
 	})
 
 	t.Run("should get the object name by object pointer", func(t *testing.T) {
 		name := GetFullName(&Foo{})
-		assert.Equal(t, "reflector.Foo", name)
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/utils/reflector.Foo", name)
 	})
 
 	t.Run("should get the object name by object function", func(t *testing.T) {
 		name := GetFullName(newFooBarService)
-		assert.Equal(t, "reflector.fooBarService", name)
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/utils/reflector.fooBarService", name)
 	})
 
 	t.Run("should get the object name by object pointer", func(t *testing.T) {
 		name := GetLowerCamelFullNameByType(reflect.TypeOf(&Foo{}))
-		assert.Equal(t, "reflector.foo", name)
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/utils/reflector.foo", name)
 	})
 
 	t.Run("should get the object name by object pointer", func(t *testing.T) {
 		name := GetFullName(&Foo{})
-		assert.Equal(t, "reflector.Foo", name)
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/utils/reflector.Foo", name)
 	})
 
 	t.Run("should get the object name by object pointer", func(t *testing.T) {
 		name := GetLowerCamelFullName(&Foo{})
-		assert.Equal(t, "reflector.foo", name)
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/utils/reflector.foo", name)
 	})
 
 	t.Run("should parse instance name via object", func(t *testing.T) {
 		pkgName, name := GetPkgAndName(new(fooBarService))
-		assert.Equal(t, "reflector", pkgName)
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/utils/reflector", pkgName)
 		assert.Equal(t, "fooBarService", name)
 	})
 
 	t.Run("should parse instance name via object", func(t *testing.T) {
 		pkgName, name := GetPkgAndName(newFooBarService)
-		assert.Equal(t, "reflector", pkgName)
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/utils/reflector", pkgName)
 		assert.Equal(t, "fooBarService", name)
 	})
 
@@ -682,7 +682,6 @@ func TestGetEmbeddedInterfaceField(t *testing.T) {
 			EmbeddedInterfaceA
 			EmbeddedString `value:"Hello"`
 			EmbeddedInterfaceB
-
 		}
 
 		type embeddedTypeB struct {

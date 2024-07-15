@@ -99,7 +99,6 @@ type foobarProperties struct {
 	Username string `default:"fb"`
 }
 
-
 type barProperties struct {
 	at.ConfigurationProperties `value:"bar"`
 	at.AutoWired
@@ -227,8 +226,8 @@ type FooBar struct {
 
 type barConfiguration struct {
 	at.AutoConfiguration
-	
-	barProperties *barProperties 
+
+	barProperties *barProperties
 }
 
 func newBarConfiguration(barProperties *barProperties) *barConfiguration {
@@ -246,7 +245,7 @@ func init() {
 
 type fakeConfiguration struct {
 	app.Configuration
-	FakeProperties *FakeProperties 
+	FakeProperties *FakeProperties
 }
 
 func newFakeConfiguration(fakeProperties *FakeProperties) *fakeConfiguration {
@@ -449,7 +448,7 @@ func TestConfigurableFactory(t *testing.T) {
 		_, err = f.BuildProperties()
 		assert.Equal(t, nil, err)
 	})
-	
+
 	f.Build([]*factory.MetaData{
 		factory.NewMetaData(newEmptyConfiguration),
 		factory.NewMetaData(newFakeConfiguration),
@@ -494,10 +493,12 @@ func TestConfigurableFactory(t *testing.T) {
 		assert.Equal(t, fakeInstance, gotFakeInstance)
 	})
 
-	t.Run("should get foo configuration", func(t *testing.T) {
-		helloWorld := f.GetInstance("autoconfigure_test.helloWorld")
-		assert.NotEqual(t, nil, helloWorld)
-		assert.Equal(t, HelloWorld("Hello world"), helloWorld)
+	t.Run("should get instance", func(t *testing.T) {
+		inst := new(HelloWorld)
+		err = f.SetInstance(inst)
+		assert.Equal(t, nil, err)
+		helloWorld := f.GetInstance(new(HelloWorld))
+		assert.Equal(t, inst, helloWorld)
 	})
 
 	t.Run("should get runtime created instances", func(t *testing.T) {
@@ -527,7 +528,6 @@ func TestReplacer(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 
-
 	type outConfiguration struct {
 		at.AutoConfiguration
 		Properties *fooProperties `inject:""`
@@ -542,7 +542,7 @@ func TestReplacer(t *testing.T) {
 	fp := f.GetInstance(fooProperties{})
 	assert.NotEqual(t, nil, fp)
 	fooProp := fp.(*fooProperties)
-	
+
 	t.Run("should get foo configuration", func(t *testing.T) {
 		assert.Equal(t, "hiboot-test foo", fooProp.Nickname)
 		assert.Equal(t, "bar", fooProp.Username)
@@ -562,8 +562,10 @@ func newMyService() *myService {
 	return &myService{count: 9}
 }
 
-//_ struct{at.Scheduler `limit:"10"`}
-func (s *myService) Task1(_ struct{at.Scheduled `every:"200" unit:"milliseconds" `}) (done bool) {
+// _ struct{at.Scheduler `limit:"10"`}
+func (s *myService) Task1(_ struct {
+	at.Scheduled `every:"200" unit:"milliseconds" `
+}) (done bool) {
 	log.Info("Running Scheduler Task")
 
 	if s.count <= 0 {
@@ -575,7 +577,9 @@ func (s *myService) Task1(_ struct{at.Scheduled `every:"200" unit:"milliseconds"
 	return
 }
 
-func (s *myService) Task3(_ struct{at.Scheduled `limit:"1"`} ) {
+func (s *myService) Task3(_ struct {
+	at.Scheduled `limit:"1"`
+}) {
 	log.Info("Running Scheduler Task once")
 	return
 }
@@ -592,10 +596,9 @@ func TestScheduler(t *testing.T) {
 	app.Register(newMyService)
 	testApp := web.NewTestApp(t, new(controller)).Run(t)
 
-
 	t.Run("scheduler", func(t *testing.T) {
 		testApp.Get("/").Expect().Status(http.StatusOK)
 	})
 
-	log.Infof("scheduler is done: %v", <- doneSch)
+	log.Infof("scheduler is done: %v", <-doneSch)
 }

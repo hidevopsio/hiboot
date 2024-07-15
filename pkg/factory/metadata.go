@@ -222,7 +222,7 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 			shortName = str.ToLowerCamel(typeName)
 			if kind == reflect.Struct && typ.Name() == types.Method {
 				kindName = types.Method
-				instName = pkgName + "." + shortName
+				name = pkgName + "." + shortName
 			}
 			// [2024-07-14] the method will initialize the pkgName.shortName type, so name = pkgName + "." + shortName
 			// || kindName == types.Method
@@ -285,6 +285,7 @@ func CloneMetaData(src *MetaData) (dst *MetaData) {
 		ShortName:    src.ShortName,
 		TypeName:     src.TypeName,
 		PkgName:      src.PkgName,
+		InstName:     src.InstName,
 		ObjectOwner:  src.ObjectOwner,
 		MetaObject:   src.MetaObject,
 		Type:         src.Type,

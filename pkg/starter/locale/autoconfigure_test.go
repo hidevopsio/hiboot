@@ -15,9 +15,9 @@
 package locale
 
 import (
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/app/fake"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 )
