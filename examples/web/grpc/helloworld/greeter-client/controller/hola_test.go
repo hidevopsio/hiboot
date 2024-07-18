@@ -18,7 +18,7 @@ func TestHolaClient(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockHolaClient := mock.NewMockHolaServiceClient(ctrl)
-	app.Register("protobuf.holaServiceClient", mockHolaClient)
+	app.Register(mockHolaClient)
 
 	testApp := web.NewTestApp(t, newHolaController).SetProperty(logging.Level, logging.LevelDebug).Run(t)
 

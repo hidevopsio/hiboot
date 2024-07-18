@@ -28,6 +28,7 @@ import (
 )
 
 var mu sync.Mutex
+
 func TestRunMain(t *testing.T) {
 	mu.Lock()
 	go main()
@@ -39,11 +40,13 @@ func TestController(t *testing.T) {
 
 	time.Sleep(2 * time.Second)
 
-	app.Register(swagger.ApiInfoBuilder().
-		Title("HiBoot Example - Hello world").
-		Description("This is an example that demonstrate the basic usage"))
+	app.Register(
+		newController,
+		swagger.ApiInfoBuilder().
+			Title("HiBoot Example - Hello world").
+			Description("This is an example that demonstrate the basic usage"))
 
-	web.NewTestApp(t, new(Controller)).
+	web.NewTestApp(t).
 		SetProperty("server.port", "8081").
 		SetProperty(app.ProfilesInclude, swagger.Profile, web.Profile, actuator.Profile).
 		Run(t).

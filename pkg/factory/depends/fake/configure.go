@@ -15,10 +15,23 @@
 // Package fake is the test package for package depends
 package fake
 
-import "github.com/hidevopsio/hiboot/pkg/app"
+import (
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends/bar"
+	"github.com/hidevopsio/hiboot/pkg/factory/depends/foo"
+)
 
 // Configuration fake.Configuration for test only
 type Configuration struct {
-	// depends foo.configuration should be lower camel name of foo.Configuration
-	app.Configuration `depends:"foo.configuration,bar.configuration"`
+	app.Configuration
+
+	fooCfg *foo.Configuration
+	barCfg *bar.Configuration
+}
+
+func NewConfiguration(fooCfg *foo.Configuration, barCfg *bar.Configuration) *Configuration {
+	return &Configuration{
+		fooCfg: fooCfg,
+		barCfg: barCfg,
+	}
 }

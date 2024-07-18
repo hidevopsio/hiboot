@@ -283,7 +283,7 @@ func (c *foobarConfiguration) Bar() *Bar {
 }
 
 type EarthConfiguration struct {
-	app.Configuration
+	app.Configuration  `value:"earth"`
 	instantiateFactory factory.InstantiateFactory
 }
 
@@ -291,7 +291,7 @@ func newEarthConfiguration(instantiateFactory factory.InstantiateFactory) *Earth
 	c := &EarthConfiguration{
 		instantiateFactory: instantiateFactory,
 	}
-	c.RuntimeDeps.Set(c.RuntimeTree, []string{"autoconfigure_test.leaf", "autoconfigure_test.branch"})
+	c.RuntimeDeps.Set(c.RuntimeTree, []string{"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure_test.leaf", "github.com/hidevopsio/hiboot/pkg/factory/autoconfigure_test.branch"})
 	return c
 }
 
@@ -350,8 +350,8 @@ func (c *EarthConfiguration) Leaf() *Leaf {
 }
 
 func (c *EarthConfiguration) RuntimeTree() *RuntimeTree {
-	leaf := c.instantiateFactory.GetInstance("autoconfigure_test.leaf").(*Leaf)
-	branch := c.instantiateFactory.GetInstance("autoconfigure_test.branch").(*Branch)
+	leaf := c.instantiateFactory.GetInstance("github.com/hidevopsio/hiboot/pkg/factory/autoconfigure_test.leaf").(*Leaf)
+	branch := c.instantiateFactory.GetInstance("github.com/hidevopsio/hiboot/pkg/factory/autoconfigure_test.branch").(*Branch)
 	return &RuntimeTree{leaf: leaf, branch: branch}
 }
 
@@ -467,7 +467,7 @@ func TestConfigurableFactory(t *testing.T) {
 
 	f.AppendComponent(newHelloService)
 	ctx := web.NewContext(nil)
-	f.AppendComponent("context.context", ctx)
+	f.AppendComponent("github.com/hidevopsio/hiboot/pkg/app/web/context.context", ctx)
 
 	err = f.BuildComponents()
 
@@ -494,10 +494,11 @@ func TestConfigurableFactory(t *testing.T) {
 	})
 
 	t.Run("should get instance", func(t *testing.T) {
-		inst := new(HelloWorld)
+		type HelloWorldStr string
+		inst := new(HelloWorldStr)
 		err = f.SetInstance(inst)
 		assert.Equal(t, nil, err)
-		helloWorld := f.GetInstance(new(HelloWorld))
+		helloWorld := f.GetInstance(new(HelloWorldStr))
 		assert.Equal(t, inst, helloWorld)
 	})
 

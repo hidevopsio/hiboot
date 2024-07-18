@@ -46,9 +46,11 @@ func init() {
 	app.Register(newConfiguration)
 }
 
-type Handler context.Handler
+type Handler struct {
+	context.Handler
+}
 
-func (c *configuration) Handler() (handler Handler) {
+func (c *configuration) Handler() (handler *Handler) {
 	// TODO: localePath should be configurable in application.yml
 	// locale:
 	//   en-US: ./config/i18n/en-US.ini
@@ -79,14 +81,15 @@ func (c *configuration) Handler() (handler Handler) {
 		return err
 	})
 	if err == nil && len(languages) != 0 {
-		hdl := context.NewHandler(i18n.New(i18n.Config{
+		handler = new(Handler)
+		handler.Handler = context.NewHandler(i18n.New(i18n.Config{
 			Default:      c.Properties.Default,
 			URLParameter: c.Properties.URLParameter,
 			Languages:    languages,
 		}))
 
-		c.applicationContext.Use(hdl)
+		c.applicationContext.Use(handler.Handler)
 	}
 
-	return handler
+	return
 }

@@ -264,7 +264,7 @@ func (f *configurableFactory) injectProperties(cf interface{}) {
 		if fieldObjValue.CanSet() && injectedObjectValue.Type().AssignableTo(fieldObjValue.Type()) {
 			fieldObjValue.Set(injectedObjectValue)
 		} else {
-			log.Errorf("Error: trying to assign %v to %v", injectedObjectValue.Type(), fieldObjValue.Type())
+			log.Warnf("trying to assign %v to %v, it may be a private field", injectedObjectValue.Type(), fieldObjValue.Type())
 		}
 	}
 	return
