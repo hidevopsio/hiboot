@@ -12,26 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package fake is the test package for package depends
-package fake
+// Line 1: main package
+package main
 
 import (
-	"github.com/hidevopsio/hiboot/pkg/app"
-	"github.com/hidevopsio/hiboot/pkg/factory/depends/bar"
-	"github.com/hidevopsio/hiboot/pkg/factory/depends/foo"
+	"sync"
+	"testing"
 )
 
-// Configuration fake.Configuration for test only
-type Configuration struct {
-	app.Configuration
+var mu sync.Mutex
 
-	fooCfg *foo.Configuration
-	barCfg *bar.Configuration
-}
-
-func NewConfiguration(fooCfg *foo.Configuration, barCfg *bar.Configuration) *Configuration {
-	return &Configuration{
-		fooCfg: fooCfg,
-		barCfg: barCfg,
-	}
+func TestRunMain(t *testing.T) {
+	mu.Lock()
+	go main()
+	mu.Unlock()
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/inject/annotation"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/system/types"
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 	"reflect"
@@ -19,6 +18,7 @@ type MetaData struct {
 	ShortName    string
 	TypeName     string
 	PkgName      string
+	InstName     string
 	ObjectOwner  interface{}
 	MetaObject   interface{}
 	Type         reflect.Type
@@ -39,15 +39,24 @@ func appendDep(deps, dep string) (retVal string) {
 
 func findDep(objTyp, inTyp reflect.Type) (name string) {
 	indInTyp := reflector.IndirectType(inTyp)
+	//for _, field := range reflector.DeepFields(objTyp) {
+	//	indFieldTyp := reflector.IndirectType(field.Type)
+	//	//log.Debugf("%v <> %v", indFieldTyp, indInTyp)
+	//	if indFieldTyp == indInTyp {
+	//		name = str.ToLowerCamel(field.Name)
+	//		depPkgName := io.DirName(indFieldTyp.PkgPath())
+	//		if depPkgName != "" {
+	//			name = depPkgName + "." + name
+	//		}
+	//		break
+	//	}
+	//}
 	for _, field := range reflector.DeepFields(objTyp) {
 		indFieldTyp := reflector.IndirectType(field.Type)
 		//log.Debugf("%v <> %v", indFieldTyp, indInTyp)
 		if indFieldTyp == indInTyp {
-			name = str.ToLowerCamel(field.Name)
-			depPkgName := io.DirName(indFieldTyp.PkgPath())
-			if depPkgName != "" {
-				name = depPkgName + "." + name
-			}
+			name = reflector.GetLowerCamelFullNameByType(indFieldTyp)
+			//log.Debugf("dep name: %v", name)
 			break
 		}
 	}
@@ -208,18 +217,23 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 		typ := reflect.TypeOf(metaObject)
 		kind := typ.Kind()
 		kindName := kind.String()
-
+		instName := name
 		if pkgName != "" {
 			shortName = str.ToLowerCamel(typeName)
+			if kind == reflect.Struct && typ.Name() == types.Method {
+				kindName = types.Method
+				name = pkgName + "." + shortName
+			}
+			// [2024-07-14] the method will initialize the pkgName.shortName type, so name = pkgName + "." + shortName
+			// || kindName == types.Method
+
 			if name == "" {
 				name = pkgName + "." + shortName
 			} else if !strings.Contains(name, ".") {
 				name = pkgName + "." + name
 			}
 		}
-		if kind == reflect.Struct && typ.Name() == types.Method {
-			kindName = types.Method
-		}
+
 		var instance interface{}
 		if kindName == types.Method || kindName == types.Func {
 			t, ok := reflector.GetObjectType(metaObject)
@@ -242,6 +256,7 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 			PkgName:      pkgName,
 			TypeName:     typeName,
 			Name:         name,
+			InstName:     instName,
 			ShortName:    shortName,
 			ObjectOwner:  owner,
 			MetaObject:   metaObject,
@@ -263,6 +278,7 @@ func CloneMetaData(src *MetaData) (dst *MetaData) {
 		ShortName:    src.ShortName,
 		TypeName:     src.TypeName,
 		PkgName:      src.PkgName,
+		InstName:     src.InstName,
 		ObjectOwner:  src.ObjectOwner,
 		MetaObject:   src.MetaObject,
 		Type:         src.Type,

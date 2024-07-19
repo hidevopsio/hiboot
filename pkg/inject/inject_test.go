@@ -151,7 +151,7 @@ type UserService interface {
 
 type userService struct {
 	// just put at.RequestMapping here for test only, it has no meaning
-	at.RequestMapping	`value:"/path/to/hiboot"`
+	at.RequestMapping `value:"/path/to/hiboot"`
 
 	FooUser        *FooUser       `inject:"name=foo"`
 	User           *User          `inject:""`
@@ -305,8 +305,8 @@ type helloConfiguration struct {
 	app.Configuration
 }
 
-func (c *helloConfiguration) HelloWorld(h Hello) HelloWorld {
-	return HelloWorld(h + "World")
+func (c *helloConfiguration) HelloWorld(h *Hello) HelloWorld {
+	return HelloWorld(*h + "World")
 }
 
 func (c *helloConfiguration) Bar(f *Foo) *Bar {
@@ -439,7 +439,7 @@ func TestInject(t *testing.T) {
 	})
 
 	t.Run("should get config", func(t *testing.T) {
-		fr := cf.GetInstance("inject_test.fakeRepository")
+		fr := cf.GetInstance("github.com/hidevopsio/hiboot/pkg/inject_test.fakeRepository")
 		assert.NotEqual(t, nil, fr)
 	})
 
@@ -452,12 +452,12 @@ func TestInject(t *testing.T) {
 	})
 
 	t.Run("should inject through method", func(t *testing.T) {
-		fu := cf.GetInstance("inject_test.fooUser")
-		bu := cf.GetInstance("inject_test.user")
-		fp := cf.GetInstance("inject_test.fakeRepository")
+		fu := cf.GetInstance("github.com/hidevopsio/hiboot/pkg/inject_test.fooUser")
+		bu := cf.GetInstance("github.com/hidevopsio/hiboot/pkg/inject_test.user")
+		fp := cf.GetInstance("github.com/hidevopsio/hiboot/pkg/inject_test.fakeRepository")
 		u := new(User)
 
-		cf.SetInstance("inject_test.barUser", u)
+		cf.SetInstance(u)
 
 		svc, err := injecting.IntoFunc(nil, newMethodInjectionService)
 		assert.Equal(t, nil, err)
@@ -547,7 +547,13 @@ func TestInject(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 
-	t.Run("should failed to inject if the type of param and receiver are the same", func(t *testing.T) {
+	t.Run("should be injected if the type of param and receiver are not the same", func(t *testing.T) {
+		err := cf.SetInstance(&buzzObj{
+			Name: "buzz",
+		})
+		assert.Equal(t, nil, err)
+		bo := cf.GetInstance(new(buzzObj))
+		assert.NotNil(t, bo)
 		buzz, err := injecting.IntoFunc(nil, newBuzzService)
 		assert.Equal(t, nil, err)
 		assert.NotEqual(t, nil, buzz)
@@ -676,7 +682,24 @@ func TestInject(t *testing.T) {
 
 	})
 
-	t.Run("should inject into method", func(t *testing.T) {
+	t.Run("should not inject into method if the instance to be injected is nil", func(t *testing.T) {
+		helloConfig := new(helloConfiguration)
+		helloTyp := reflect.TypeOf(helloConfig)
+		numOfMethod := helloTyp.NumMethod()
+		//log.Debug("methods: ", numOfMethod)
+		for mi := 0; mi < numOfMethod; mi++ {
+			method := helloTyp.Method(mi)
+			res, err := injecting.IntoMethod(nil, helloConfig, method)
+			assert.NotEqual(t, nil, err)
+			assert.Equal(t, nil, res)
+		}
+	})
+
+	t.Run("should inject into method if the instance to be injected is not nil", func(t *testing.T) {
+		e := cf.SetInstance(new(Foo))
+		assert.Equal(t, nil, e)
+		e = cf.SetInstance(new(Hello))
+		assert.Equal(t, nil, e)
 		helloConfig := new(helloConfiguration)
 		helloTyp := reflect.TypeOf(helloConfig)
 		numOfMethod := helloTyp.NumMethod()
@@ -707,11 +730,11 @@ func TestInjectIntoFunc(t *testing.T) {
 func TestInjectAnnotation(t *testing.T) {
 	cf := setUp(t)
 	injecting := inject.NewInject(cf)
-	var att struct{
-		at.GetMapping `value:"/path/to/api"`
+	var att struct {
+		at.GetMapping     `value:"/path/to/api"`
 		at.RequestMapping `value:"/parent/path"`
 		at.BeforeMethod
-		Children struct{
+		Children struct {
 			at.Parameter `description:"testing params"`
 		}
 	}
@@ -734,7 +757,7 @@ func TestInjectAnnotation(t *testing.T) {
 	})
 
 	t.Run("should find all annotations that inherit form at.HttpMethod{}", func(t *testing.T) {
-		found := annotation.FindAll(&struct{at.BeforeMethod}{}, at.HttpMethod{})
+		found := annotation.FindAll(&struct{ at.BeforeMethod }{}, at.HttpMethod{})
 		assert.Equal(t, 1, len(found))
 		assert.Equal(t, "BeforeMethod", found[0].Field.StructField.Name)
 	})

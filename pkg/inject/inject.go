@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	value          = "value"
+	value = "value"
 )
 
 var (
@@ -290,14 +290,17 @@ func (i *inject) parseFuncOrMethodInput(instance factory.Instance, inType reflec
 			// should find instance in the component container first
 
 			// if it is not found, then create new instance
-			paramValue = reflect.New(inType)
-			if annotation.IsAnnotation(inType) {
-				inst = paramValue.Elem().Interface()
-			} else {
-				inst = paramValue.Interface()
-			}
-			// TODO: inTypeName
-			i.factory.SetInstance(instance, inst)
+			//paramValue = reflect.New(inType)
+			//if annotation.IsAnnotation(inType) {
+			//	inst = paramValue.Elem().Interface()
+			//} else {
+			//	inst = paramValue.Interface()
+			//}
+			//// TODO: inTypeName
+			//i.factory.SetInstance(instance, inst)
+			// TODO: not inject a new instance that does not exist
+			ok = false
+			break
 		}
 	}
 
@@ -343,8 +346,8 @@ func (i *inject) IntoFunc(instance factory.Instance, object interface{}) (retVal
 	return
 }
 
-//IntoMethod inject object into func and return instance
-//TODO: IntoMethod or IntoFunc should accept metaData, because it contains dependencies
+// IntoMethod inject object into func and return instance
+// TODO: IntoMethod or IntoFunc should accept metaData, because it contains dependencies
 func (i *inject) IntoMethod(instance factory.Instance, object interface{}, m interface{}) (retVal interface{}, err error) {
 	if object != nil && m != nil {
 		switch m.(type) {
@@ -366,7 +369,9 @@ func (i *inject) IntoMethod(instance factory.Instance, object interface{}, m int
 					if reflect.TypeOf(at.AllowNil{}) == ann || annotation.Contains(ann, at.AllowNil{}) {
 						inputs[n] = reflect.Zero(fnInType)
 					} else {
-						return nil, fmt.Errorf("%v is not injected", fnInType.Name())
+						err = fmt.Errorf("%v.%v(%v:%v) is not injected", reflector.GetLowerCamelFullName(object), method.Name, n, reflector.GetLowerCamelFullNameByType(fnInType))
+						log.Error(err)
+						return nil, err
 					}
 				}
 

@@ -15,7 +15,6 @@
 package depends_test
 
 import (
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/factory/depends"
@@ -23,6 +22,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/factory/depends/fake"
 	"github.com/hidevopsio/hiboot/pkg/factory/depends/foo"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 )
@@ -53,7 +53,7 @@ func (c *helloConfiguration) HelloHiboot(h Hello) HelloHiboot {
 
 type helloService struct {
 	HelloWorld  HelloWorld  `inject:""`
-	HibootWorld HelloWorld  `inject:"helloHibootWorld"`
+	HibootWorld HelloWorld  `inject:""`
 	HelloHiboot HelloHiboot `inject:""`
 }
 
@@ -61,44 +61,103 @@ type fooConfiguration struct {
 	app.Configuration
 }
 
+func newFooConfiguration() *fooConfiguration {
+	return &fooConfiguration{}
+}
+
 type barConfiguration struct {
 	app.Configuration
 }
 
+func newBarConfiguration() *barConfiguration {
+	return &barConfiguration{}
+}
+
 type childConfiguration struct {
-	app.Configuration `depends:"parentConfiguration"`
+	app.Configuration
+
+	parent *parentConfiguration
+}
+
+func newChildConfiguration(parent *parentConfiguration) *childConfiguration {
+	return &childConfiguration{parent: parent}
 }
 
 type parentConfiguration struct {
-	app.Configuration `depends:"grantConfiguration"`
+	app.Configuration
+
+	grant *grantConfiguration
+}
+
+func newParentConfiguration(grant *grantConfiguration) *parentConfiguration {
+	return &parentConfiguration{
+		grant: grant,
+	}
 }
 
 type grantConfiguration struct {
-	app.Configuration `depends:"fake.configuration"`
+	app.Configuration
+
+	fakeCfg *fake.Configuration
+}
+
+func newGrantConfiguration(fakeCfg *fake.Configuration) *grantConfiguration {
+	return &grantConfiguration{fakeCfg: fakeCfg}
 }
 
 type circularChildConfiguration struct {
-	app.Configuration `depends:"circularParentConfiguration"`
+	app.Configuration
+
+	circular *circularChildConfiguration
+}
+
+func newCircularChildConfiguration(circular *circularChildConfiguration) *circularChildConfiguration {
+	return &circularChildConfiguration{circular: circular}
 }
 
 type circularParentConfiguration struct {
-	app.Configuration `depends:"circularGrantConfiguration"`
+	app.Configuration
+	circular *circularParentConfiguration
+}
+
+func newCircularParentConfiguration(circular *circularParentConfiguration) *circularParentConfiguration {
+	return &circularParentConfiguration{circular: circular}
 }
 
 type circularGrantConfiguration struct {
-	app.Configuration `depends:"circularParentConfiguration"`
+	app.Configuration
+	circular *circularGrantConfiguration
+}
+
+func newCircularGrantConfiguration(circular *circularGrantConfiguration) *circularGrantConfiguration {
+	return &circularGrantConfiguration{circular: circular}
 }
 
 type circularChildConfiguration2 struct {
-	app.Configuration `depends:"circularParentConfiguration2"`
+	app.Configuration
+	circular *circularChildConfiguration2
+}
+
+func newCircularChildConfiguration2(circular *circularChildConfiguration2) *circularChildConfiguration2 {
+	return &circularChildConfiguration2{circular: circular}
 }
 
 type circularParentConfiguration2 struct {
-	app.Configuration `depends:"circularGrantConfiguration2"`
+	app.Configuration
+	circular *circularParentConfiguration2
+}
+
+func newCircularParentConfiguration2(circular *circularParentConfiguration2) *circularParentConfiguration2 {
+	return &circularParentConfiguration2{circular: circular}
 }
 
 type circularGrantConfiguration2 struct {
-	app.Configuration `depends:"circularChildConfiguration2"`
+	app.Configuration
+	circular *circularGrantConfiguration2
+}
+
+func newCircularGrantConfiguration2(circular *circularGrantConfiguration2) *circularGrantConfiguration2 {
+	return &circularGrantConfiguration2{circular: circular}
 }
 
 type Foo struct {
@@ -175,12 +234,12 @@ func TestSort(t *testing.T) {
 		{
 			title: "should sort dependencies",
 			configurations: []*factory.MetaData{
-				factory.NewMetaData(new(bar.Configuration)),
-				factory.NewMetaData(new(foo.Configuration)),
-				factory.NewMetaData(new(fake.Configuration)),
-				factory.NewMetaData(new(parentConfiguration)),
-				factory.NewMetaData(new(grantConfiguration)),
-				factory.NewMetaData(new(childConfiguration)),
+				factory.NewMetaData(bar.NewConfiguration),
+				factory.NewMetaData(foo.NewConfiguration),
+				factory.NewMetaData(fake.NewConfiguration),
+				factory.NewMetaData(newParentConfiguration),
+				factory.NewMetaData(newGrantConfiguration),
+				factory.NewMetaData(newChildConfiguration),
 				factory.NewMetaData(foo.NewConfiguration),
 			},
 			err: nil,
@@ -188,25 +247,25 @@ func TestSort(t *testing.T) {
 		{
 			title: "should sort dependencies",
 			configurations: []*factory.MetaData{
-				factory.NewMetaData(new(fake.Configuration)),
-				factory.NewMetaData(new(fooConfiguration)),
-				factory.NewMetaData(new(bar.Configuration)),
-				factory.NewMetaData(new(childConfiguration)),
-				factory.NewMetaData(new(grantConfiguration)),
-				factory.NewMetaData(new(parentConfiguration)),
+				factory.NewMetaData(fake.NewConfiguration),
+				factory.NewMetaData(newFooConfiguration),
+				factory.NewMetaData(bar.NewConfiguration),
+				factory.NewMetaData(newChildConfiguration),
+				factory.NewMetaData(newGrantConfiguration),
+				factory.NewMetaData(newParentConfiguration),
 				factory.NewMetaData(foo.NewConfiguration),
-				factory.NewMetaData(new(barConfiguration)),
+				factory.NewMetaData(bar.NewConfiguration),
 			},
 			err: nil,
 		},
 		{
 			title: "should report some of the dependencies are not found",
 			configurations: []*factory.MetaData{
-				factory.NewMetaData(new(fooConfiguration)),
-				factory.NewMetaData(new(childConfiguration)),
-				factory.NewMetaData(new(grantConfiguration)),
-				factory.NewMetaData(new(parentConfiguration)),
-				factory.NewMetaData(new(barConfiguration)),
+				factory.NewMetaData(newFooConfiguration),
+				factory.NewMetaData(newChildConfiguration),
+				factory.NewMetaData(newGrantConfiguration),
+				factory.NewMetaData(newParentConfiguration),
+				factory.NewMetaData(newBarConfiguration),
 			},
 			err: depends.ErrCircularDependency,
 		},
@@ -225,9 +284,9 @@ func TestSort(t *testing.T) {
 		{
 			title: "should fail to sort with circular dependencies 1",
 			configurations: []*factory.MetaData{
-				factory.NewMetaData(new(circularChildConfiguration)),
-				factory.NewMetaData(new(circularParentConfiguration)),
-				factory.NewMetaData(new(circularGrantConfiguration)),
+				factory.NewMetaData(newCircularChildConfiguration),
+				factory.NewMetaData(newCircularParentConfiguration),
+				factory.NewMetaData(newCircularGrantConfiguration),
 			},
 			err: depends.ErrCircularDependency,
 		},
@@ -235,18 +294,18 @@ func TestSort(t *testing.T) {
 			title: "should fail to sort with circular dependencies 2",
 			configurations: []*factory.MetaData{
 				factory.NewMetaData(new(Bar)),
-				factory.NewMetaData(new(circularChildConfiguration)),
-				factory.NewMetaData(new(circularParentConfiguration)),
-				factory.NewMetaData(new(circularGrantConfiguration)),
+				factory.NewMetaData(newCircularChildConfiguration),
+				factory.NewMetaData(newCircularParentConfiguration),
+				factory.NewMetaData(newCircularGrantConfiguration),
 			},
 			err: depends.ErrCircularDependency,
 		},
 		{
 			title: "should fail to sort with circular dependencies 3",
 			configurations: []*factory.MetaData{
-				factory.NewMetaData(new(circularChildConfiguration2)),
-				factory.NewMetaData(new(circularParentConfiguration2)),
-				factory.NewMetaData(new(circularGrantConfiguration2)),
+				factory.NewMetaData(newCircularChildConfiguration2),
+				factory.NewMetaData(newCircularParentConfiguration2),
+				factory.NewMetaData(newCircularGrantConfiguration2),
 			},
 			err: depends.ErrCircularDependency,
 		},

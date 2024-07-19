@@ -99,7 +99,6 @@ type foobarProperties struct {
 	Username string `default:"fb"`
 }
 
-
 type barProperties struct {
 	at.ConfigurationProperties `value:"bar"`
 	at.AutoWired
@@ -227,8 +226,8 @@ type FooBar struct {
 
 type barConfiguration struct {
 	at.AutoConfiguration
-	
-	barProperties *barProperties 
+
+	barProperties *barProperties
 }
 
 func newBarConfiguration(barProperties *barProperties) *barConfiguration {
@@ -246,7 +245,7 @@ func init() {
 
 type fakeConfiguration struct {
 	app.Configuration
-	FakeProperties *FakeProperties 
+	FakeProperties *FakeProperties
 }
 
 func newFakeConfiguration(fakeProperties *FakeProperties) *fakeConfiguration {
@@ -284,7 +283,7 @@ func (c *foobarConfiguration) Bar() *Bar {
 }
 
 type EarthConfiguration struct {
-	app.Configuration
+	app.Configuration  `value:"earth"`
 	instantiateFactory factory.InstantiateFactory
 }
 
@@ -292,7 +291,7 @@ func newEarthConfiguration(instantiateFactory factory.InstantiateFactory) *Earth
 	c := &EarthConfiguration{
 		instantiateFactory: instantiateFactory,
 	}
-	c.RuntimeDeps.Set(c.RuntimeTree, []string{"autoconfigure_test.leaf", "autoconfigure_test.branch"})
+	c.RuntimeDeps.Set(c.RuntimeTree, []string{"github.com/hidevopsio/hiboot/pkg/factory/autoconfigure_test.leaf", "github.com/hidevopsio/hiboot/pkg/factory/autoconfigure_test.branch"})
 	return c
 }
 
@@ -351,8 +350,8 @@ func (c *EarthConfiguration) Leaf() *Leaf {
 }
 
 func (c *EarthConfiguration) RuntimeTree() *RuntimeTree {
-	leaf := c.instantiateFactory.GetInstance("autoconfigure_test.leaf").(*Leaf)
-	branch := c.instantiateFactory.GetInstance("autoconfigure_test.branch").(*Branch)
+	leaf := c.instantiateFactory.GetInstance("github.com/hidevopsio/hiboot/pkg/factory/autoconfigure_test.leaf").(*Leaf)
+	branch := c.instantiateFactory.GetInstance("github.com/hidevopsio/hiboot/pkg/factory/autoconfigure_test.branch").(*Branch)
 	return &RuntimeTree{leaf: leaf, branch: branch}
 }
 
@@ -449,7 +448,7 @@ func TestConfigurableFactory(t *testing.T) {
 		_, err = f.BuildProperties()
 		assert.Equal(t, nil, err)
 	})
-	
+
 	f.Build([]*factory.MetaData{
 		factory.NewMetaData(newEmptyConfiguration),
 		factory.NewMetaData(newFakeConfiguration),
@@ -468,7 +467,7 @@ func TestConfigurableFactory(t *testing.T) {
 
 	f.AppendComponent(newHelloService)
 	ctx := web.NewContext(nil)
-	f.AppendComponent("context.context", ctx)
+	f.AppendComponent("github.com/hidevopsio/hiboot/pkg/app/web/context.context", ctx)
 
 	err = f.BuildComponents()
 
@@ -494,10 +493,13 @@ func TestConfigurableFactory(t *testing.T) {
 		assert.Equal(t, fakeInstance, gotFakeInstance)
 	})
 
-	t.Run("should get foo configuration", func(t *testing.T) {
-		helloWorld := f.GetInstance("autoconfigure_test.helloWorld")
-		assert.NotEqual(t, nil, helloWorld)
-		assert.Equal(t, HelloWorld("Hello world"), helloWorld)
+	t.Run("should get instance", func(t *testing.T) {
+		type HelloWorldStr string
+		inst := new(HelloWorldStr)
+		err = f.SetInstance(inst)
+		assert.Equal(t, nil, err)
+		helloWorld := f.GetInstance(new(HelloWorldStr))
+		assert.Equal(t, inst, helloWorld)
 	})
 
 	t.Run("should get runtime created instances", func(t *testing.T) {
@@ -527,7 +529,6 @@ func TestReplacer(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 
-
 	type outConfiguration struct {
 		at.AutoConfiguration
 		Properties *fooProperties `inject:""`
@@ -542,7 +543,7 @@ func TestReplacer(t *testing.T) {
 	fp := f.GetInstance(fooProperties{})
 	assert.NotEqual(t, nil, fp)
 	fooProp := fp.(*fooProperties)
-	
+
 	t.Run("should get foo configuration", func(t *testing.T) {
 		assert.Equal(t, "hiboot-test foo", fooProp.Nickname)
 		assert.Equal(t, "bar", fooProp.Username)
@@ -562,8 +563,10 @@ func newMyService() *myService {
 	return &myService{count: 9}
 }
 
-//_ struct{at.Scheduler `limit:"10"`}
-func (s *myService) Task1(_ struct{at.Scheduled `every:"200" unit:"milliseconds" `}) (done bool) {
+// _ struct{at.Scheduler `limit:"10"`}
+func (s *myService) Task1(_ struct {
+	at.Scheduled `every:"200" unit:"milliseconds" `
+}) (done bool) {
 	log.Info("Running Scheduler Task")
 
 	if s.count <= 0 {
@@ -575,7 +578,9 @@ func (s *myService) Task1(_ struct{at.Scheduled `every:"200" unit:"milliseconds"
 	return
 }
 
-func (s *myService) Task3(_ struct{at.Scheduled `limit:"1"`} ) {
+func (s *myService) Task3(_ struct {
+	at.Scheduled `limit:"1"`
+}) {
 	log.Info("Running Scheduler Task once")
 	return
 }
@@ -592,10 +597,9 @@ func TestScheduler(t *testing.T) {
 	app.Register(newMyService)
 	testApp := web.NewTestApp(t, new(controller)).Run(t)
 
-
 	t.Run("scheduler", func(t *testing.T) {
 		testApp.Get("/").Expect().Status(http.StatusOK)
 	})
 
-	log.Infof("scheduler is done: %v", <- doneSch)
+	log.Infof("scheduler is done: %v", <-doneSch)
 }

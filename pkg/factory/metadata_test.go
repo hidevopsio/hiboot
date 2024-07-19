@@ -1,17 +1,17 @@
 package factory
 
 import (
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/system/types"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 )
 
 type foo struct {
 	at.Qualifier `value:"foo"`
-	name string
+	name         string
 }
 
 type fooBarService struct {
@@ -22,6 +22,11 @@ type fooBarService struct {
 type Hello string
 type HelloWorld string
 type HelloHiboot string
+
+type HelloAnnotation struct {
+	at.Annotation
+	at.BaseAnnotation
+}
 
 type helloConfiguration struct {
 	Configuration
@@ -37,6 +42,10 @@ func (c *helloConfiguration) HelloWorld(h Hello) HelloWorld {
 
 func (c *helloConfiguration) HelloHiboot(h Hello) HelloHiboot {
 	return HelloHiboot(h + "Hello Hiboot")
+}
+
+func (c *helloConfiguration) HelloAnnotation(_ HelloAnnotation, h Hello) HelloWorld {
+	return HelloWorld(h + "World")
 }
 
 func newFooBarService(foo *foo) *fooBarService {
@@ -58,21 +67,21 @@ func TestUtils(t *testing.T) {
 	t.Run("should parse instance name via object", func(t *testing.T) {
 		md := NewMetaData("", new(fooBarService))
 		assert.Equal(t, "fooBarService", md.TypeName)
-		assert.Equal(t, "factory", md.PkgName)
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/factory", md.PkgName)
 		assert.NotEqual(t, nil, md.MetaObject)
 	})
 
 	t.Run("should parse instance name via object", func(t *testing.T) {
 		md := NewMetaData("", new(fooBarService))
 		assert.Equal(t, "fooBarService", md.TypeName)
-		assert.Equal(t, "factory", md.PkgName)
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/factory", md.PkgName)
 		assert.NotEqual(t, nil, md.MetaObject)
 	})
 
 	t.Run("should parse instance name via object with eliminator", func(t *testing.T) {
 		md := NewMetaData(new(fooBarService))
 		assert.Equal(t, "fooBarService", md.TypeName)
-		assert.Equal(t, "factory.fooBarService", md.Name)
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/factory.fooBarService", md.Name)
 		assert.NotEqual(t, nil, md.MetaObject)
 	})
 
@@ -86,7 +95,7 @@ func TestUtils(t *testing.T) {
 		type service struct{}
 		svc := new(service)
 		md := NewMetaData(svc)
-		assert.Equal(t, "factory.service", md.Name)
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/factory.service", md.Name)
 		assert.Equal(t, svc, md.MetaObject)
 	})
 
@@ -95,7 +104,7 @@ func TestUtils(t *testing.T) {
 		svc := new(service)
 		md := NewMetaData("foo", svc)
 		assert.Equal(t, "service", md.TypeName)
-		assert.Equal(t, "factory.foo", md.Name)
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/factory.foo", md.Name)
 		assert.Equal(t, svc, md.MetaObject)
 	})
 
@@ -103,7 +112,7 @@ func TestUtils(t *testing.T) {
 		type service struct{}
 		svc := new(service)
 		md := NewMetaData(&MetaData{MetaObject: new(service)})
-		assert.Equal(t, "factory.service", md.Name)
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/factory.service", md.Name)
 		assert.Equal(t, svc, md.MetaObject)
 	})
 
@@ -111,7 +120,7 @@ func TestUtils(t *testing.T) {
 		type service struct{}
 		svc := new(service)
 		name, object := ParseParams(svc)
-		assert.Equal(t, "factory.service", name)
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/factory.service", name)
 		assert.Equal(t, svc, object)
 	})
 
@@ -134,7 +143,20 @@ func TestUtils(t *testing.T) {
 		assert.Equal(t, true, ok)
 
 		deps := parseDependencies(fn, types.Func, ft)
-		assert.Equal(t, []string{"factory.foo"}, deps)
+		assert.Equal(t, []string{"github.com/hidevopsio/hiboot/pkg/factory.foo"}, deps)
+	})
+
+	t.Run("should parse method dependencies with annotation", func(t *testing.T) {
+		// Get the type of the struct
+		helloCfgTyp := reflect.TypeOf(new(helloConfiguration))
+		// Get the method by name
+		method, ok := helloCfgTyp.MethodByName("HelloAnnotation")
+		assert.Equal(t, true, ok)
+		typ, ok := reflector.GetObjectType(new(Hello))
+		assert.Equal(t, true, ok)
+
+		deps := parseDependencies(method, types.Method, typ)
+		assert.Equal(t, []string{"github.com/hidevopsio/hiboot/pkg/factory.hello"}, deps)
 	})
 
 	t.Run("should append dep", func(t *testing.T) {
@@ -151,6 +173,10 @@ func TestUtils(t *testing.T) {
 	t.Run("test GetObjectQualifierName", func(t *testing.T) {
 		name := GetObjectQualifierName(reflect.ValueOf(new(foo)), "default")
 		assert.Equal(t, "foo", name)
+	})
+	t.Run("test getFullName with out dot name", func(t *testing.T) {
+		name := getFullName(new(foo), "foo")
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/factory.foo", name)
 	})
 }
 
@@ -178,13 +204,13 @@ func TestParseParams(t *testing.T) {
 		name string
 		obj  interface{}
 	}{
-		{md, nil, "factory.service4", md},
-		{svc1, nil, "factory.service1", svc1},
-		{service1{}, svc1, "factory.service1", svc1},
-		{"factory.myService", svc2, "factory.myService", svc2},
-		{"myService", svc2, "factory.myService", svc2},
-		{"factory.service", nil, "factory.service", nil},
-		{iTyp, MetaData{}, "factory.service3", MetaData{}},
+		{md, nil, "github.com/hidevopsio/hiboot/pkg/factory.service4", md},
+		{svc1, nil, "github.com/hidevopsio/hiboot/pkg/factory.service1", svc1},
+		{service1{}, svc1, "github.com/hidevopsio/hiboot/pkg/factory.service1", svc1},
+		{"github.com/hidevopsio/hiboot/pkg/factory.myService", svc2, "github.com/hidevopsio/hiboot/pkg/factory.myService", svc2},
+		{"github.com/hidevopsio/hiboot/pkg/factory.myService", svc2, "github.com/hidevopsio/hiboot/pkg/factory.myService", svc2},
+		{"github.com/hidevopsio/hiboot/pkg/factory.service", nil, "github.com/hidevopsio/hiboot/pkg/factory.service", nil},
+		{iTyp, MetaData{}, "github.com/hidevopsio/hiboot/pkg/factory.service3", MetaData{}},
 	}
 
 	var name string

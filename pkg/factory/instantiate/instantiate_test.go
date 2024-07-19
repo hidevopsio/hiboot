@@ -157,7 +157,7 @@ func TestInstantiateFactory(t *testing.T) {
 	customProps.Set("app.profiles.active", "local")
 	instFactory = instantiate.NewInstantiateFactory(ic, testComponents, customProps)
 	instFactory.AppendComponent(new(testService))
-	instFactory.AppendComponent("context.context", web.NewContext(nil))
+	instFactory.AppendComponent("github.com/hidevopsio/hiboot/pkg/app/web/context.context", web.NewContext(nil))
 	t.Run("should initialize factory", func(t *testing.T) {
 		assert.Equal(t, true, instFactory.Initialized())
 	})
@@ -168,7 +168,8 @@ func TestInstantiateFactory(t *testing.T) {
 	})
 
 	t.Run("should build components", func(t *testing.T) {
-		instFactory.BuildComponents()
+		err := instFactory.BuildComponents()
+		assert.Equal(t, nil, err)
 	})
 
 	t.Run("should get built instance", func(t *testing.T) {
@@ -269,7 +270,7 @@ func TestInstantiateFactory(t *testing.T) {
 
 	type DevTester struct {
 		Greeter *Greeter
-		Home    string   `value:"${HOME}"`
+		Home    string `value:"${HOME}"`
 	}
 	devTester := new(DevTester)
 	instFactory.SetInstance(greeter)
@@ -365,7 +366,6 @@ func newContextAwareObject(ctx context.Context) *contextAwareFuncObject {
 }
 
 type foo struct {
-
 }
 
 func (f *foo) ContextAwareMethodObject(ctx context.Context) *contextAwareMethodObject {

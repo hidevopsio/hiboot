@@ -21,3 +21,7 @@ import "github.com/hidevopsio/hiboot/pkg/app"
 type Configuration struct {
 	app.Configuration
 }
+
+func NewConfiguration() *Configuration {
+	return &Configuration{}
+}

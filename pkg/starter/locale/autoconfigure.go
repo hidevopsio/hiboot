@@ -16,10 +16,10 @@
 package locale
 
 import (
-	"github.com/kataras/iris/middleware/i18n"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/kataras/iris/middleware/i18n"
 	"os"
 	"path/filepath"
 	"strings"
@@ -46,7 +46,11 @@ func init() {
 	app.Register(newConfiguration)
 }
 
-func (c *configuration) Handler() (handler context.Handler) {
+type Handler struct {
+	context.Handler
+}
+
+func (c *configuration) Handler() (handler *Handler) {
 	// TODO: localePath should be configurable in application.yml
 	// locale:
 	//   en-US: ./config/i18n/en-US.ini
@@ -77,14 +81,15 @@ func (c *configuration) Handler() (handler context.Handler) {
 		return err
 	})
 	if err == nil && len(languages) != 0 {
-		handler = context.NewHandler(i18n.New(i18n.Config{
+		handler = new(Handler)
+		handler.Handler = context.NewHandler(i18n.New(i18n.Config{
 			Default:      c.Properties.Default,
 			URLParameter: c.Properties.URLParameter,
 			Languages:    languages,
 		}))
 
-		c.applicationContext.Use(handler)
+		c.applicationContext.Use(handler.Handler)
 	}
 
-	return handler
+	return
 }

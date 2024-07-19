@@ -29,6 +29,7 @@ require (
 	github.com/kataras/iris v11.0.3+incompatible
 	github.com/kataras/pio v0.0.0-20180511174041-a9733b5b6b83
 	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/moul/http2curl v1.0.0 // indirect
 	github.com/onsi/ginkgo v1.10.1 // indirect
 	github.com/onsi/gomega v1.7.0 // indirect
@@ -45,7 +46,7 @@ require (
 	github.com/uber/jaeger-client-go v2.15.0+incompatible
 	github.com/uber/jaeger-lib v1.5.0+incompatible // indirect
 	github.com/valyala/bytebufferpool v1.0.0
-	golang.org/x/net v0.17.0
+	golang.org/x/net v0.26.0
 	google.golang.org/grpc v1.29.1
 	gopkg.in/yaml.v2 v2.2.8
 )

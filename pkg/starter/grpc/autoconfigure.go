@@ -20,15 +20,15 @@ import (
 
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/health"
-	pb "google.golang.org/grpc/health/grpc_health_v1"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/starter/jaeger"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	pb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 const (
@@ -104,7 +104,7 @@ func registerClient(name string, clientConstructors ...interface{}) {
 			// client should depends on grpc.clientFactory
 			metaData := &factory.MetaData{
 				MetaObject: reflect.New(typ).Interface(),
-				DepNames:   []string{"grpc.clientFactory"},
+				DepNames:   []string{"github.com/hidevopsio/hiboot/pkg/starter/grpc.clientFactory"},
 			}
 			app.Register(metaData)
 		}
@@ -138,7 +138,6 @@ func init() {
 	app.IncludeProfiles(jaeger.Profile)
 	app.Register(newConfiguration, new(properties))
 }
-
 
 // ClientConnector is the interface that connect to grpc client
 // it can be injected to struct at runtime

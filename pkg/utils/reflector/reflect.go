@@ -21,7 +21,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"github.com/hidevopsio/hiboot/pkg/utils/str"
 )
 
@@ -72,7 +71,7 @@ func DeepFields(reflectType reflect.Type) []reflect.StructField {
 		for i := 0; i < reflectType.NumField(); i++ {
 			v := reflectType.Field(i)
 			if v.Anonymous {
-				vk :=  IndirectType(v.Type).Kind()
+				vk := IndirectType(v.Type).Kind()
 				if vk != reflect.Struct && vk != reflect.Interface {
 					fields = append(fields, v)
 				} else {
@@ -125,7 +124,6 @@ func GetFieldValue(f interface{}, name string) reflect.Value {
 	return fv
 }
 
-
 // FindFieldByTag find field by tag
 func FindFieldByTag(obj interface{}, key, name string) (field reflect.StructField, ok bool) {
 	typ, ok := GetObjectType(obj)
@@ -141,7 +139,6 @@ func FindFieldByTag(obj interface{}, key, name string) (field reflect.StructFiel
 
 	return
 }
-
 
 // SetFieldValue set field value
 func SetFieldValue(object interface{}, name string, value interface{}) error {
@@ -288,7 +285,6 @@ func HasField(object interface{}, name string) bool {
 
 	return fv.IsValid()
 }
-
 
 // GetMethodsByAnnotation call method
 func GetMethodsByAnnotation(object interface{}, name string, args ...interface{}) (interface{}, error) {
@@ -488,7 +484,8 @@ func ParseObjectName(obj interface{}, eliminator string) string {
 func ParseObjectPkgName(obj interface{}) string {
 
 	typ := IndirectType(reflect.TypeOf(obj))
-	name := io.DirName(typ.PkgPath())
+	//name := io.DirName(typ.PkgPath())
+	name := typ.PkgPath()
 
 	return name
 }
@@ -565,7 +562,8 @@ func GetPkgAndName(object interface{}) (pkgName, name string) {
 
 	typ, ok := GetObjectType(object)
 	if ok {
-		pkgName = io.DirName(typ.PkgPath())
+		//pkgName = io.DirName(typ.PkgPath())
+		pkgName = typ.PkgPath()
 		name = typ.Name()
 	}
 	return
@@ -574,7 +572,8 @@ func GetPkgAndName(object interface{}) (pkgName, name string) {
 // GetLowerCamelFullNameByType get the object name with package name by type, e.g. pkg.Object
 func GetLowerCamelFullNameByType(objType reflect.Type) (name string) {
 	indTyp := IndirectType(objType)
-	depPkgName := io.DirName(indTyp.PkgPath())
+	//depPkgName := io.DirName(indTyp.PkgPath())
+	depPkgName := indTyp.PkgPath()
 	name = depPkgName + "." + str.ToLowerCamel(indTyp.Name())
 	return
 }

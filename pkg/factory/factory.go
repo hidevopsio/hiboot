@@ -26,9 +26,9 @@ import (
 
 const (
 	// InstantiateFactoryName is the instance name of factory.instantiateFactory
-	InstantiateFactoryName = "factory.instantiateFactory"
+	InstantiateFactoryName = "github.com/hidevopsio/hiboot/pkg/factory.instantiateFactory"
 	// ConfigurableFactoryName is the instance name of factory.configurableFactory
-	ConfigurableFactoryName = "factory.configurableFactory"
+	ConfigurableFactoryName = "github.com/hidevopsio/hiboot/pkg/factory.configurableFactory"
 )
 
 // Factory interface
