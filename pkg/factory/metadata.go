@@ -56,7 +56,7 @@ func findDep(objTyp, inTyp reflect.Type) (name string) {
 		//log.Debugf("%v <> %v", indFieldTyp, indInTyp)
 		if indFieldTyp == indInTyp {
 			name = reflector.GetLowerCamelFullNameByType(indFieldTyp)
-			log.Infof("dep name: %v", name)
+			//log.Debugf("dep name: %v", name)
 			break
 		}
 	}

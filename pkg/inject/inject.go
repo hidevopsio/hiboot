@@ -370,7 +370,7 @@ func (i *inject) IntoMethod(instance factory.Instance, object interface{}, m int
 						inputs[n] = reflect.Zero(fnInType)
 					} else {
 						err = fmt.Errorf("%v.%v(%v:%v) is not injected", reflector.GetLowerCamelFullName(object), method.Name, n, reflector.GetLowerCamelFullNameByType(fnInType))
-						log.Fatal(err)
+						log.Error(err)
 						return nil, err
 					}
 				}

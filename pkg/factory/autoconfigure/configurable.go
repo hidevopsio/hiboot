@@ -284,7 +284,7 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 				continue
 			}
 		}
-		log.Infof("Auto configuration %v is configured on %v.", item.PkgName, item.Type)
+		log.Debugf("Auto configuration %v is configured on %v.", item.PkgName, item.Type)
 
 		err = f.initProperties(config)
 
