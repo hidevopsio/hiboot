@@ -226,13 +226,6 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 			}
 			// [2024-07-14] the method will initialize the pkgName.shortName type, so name = pkgName + "." + shortName
 			// || kindName == types.Method
-			// TODO: remove it later
-			if pkgName == "google.golang.org/grpc" {
-				log.Debug(pkgName)
-			}
-			if typeName == "Handler" {
-				log.Debug(pkgName)
-			}
 
 			if name == "" {
 				name = pkgName + "." + shortName

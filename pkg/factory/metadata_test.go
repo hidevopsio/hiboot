@@ -23,6 +23,11 @@ type Hello string
 type HelloWorld string
 type HelloHiboot string
 
+type HelloAnnotation struct {
+	at.Annotation
+	at.BaseAnnotation
+}
+
 type helloConfiguration struct {
 	Configuration
 }
@@ -37,6 +42,10 @@ func (c *helloConfiguration) HelloWorld(h Hello) HelloWorld {
 
 func (c *helloConfiguration) HelloHiboot(h Hello) HelloHiboot {
 	return HelloHiboot(h + "Hello Hiboot")
+}
+
+func (c *helloConfiguration) HelloAnnotation(_ HelloAnnotation, h Hello) HelloWorld {
+	return HelloWorld(h + "World")
 }
 
 func newFooBarService(foo *foo) *fooBarService {
@@ -137,6 +146,19 @@ func TestUtils(t *testing.T) {
 		assert.Equal(t, []string{"github.com/hidevopsio/hiboot/pkg/factory.foo"}, deps)
 	})
 
+	t.Run("should parse method dependencies with annotation", func(t *testing.T) {
+		// Get the type of the struct
+		helloCfgTyp := reflect.TypeOf(new(helloConfiguration))
+		// Get the method by name
+		method, ok := helloCfgTyp.MethodByName("HelloAnnotation")
+		assert.Equal(t, true, ok)
+		typ, ok := reflector.GetObjectType(new(Hello))
+		assert.Equal(t, true, ok)
+
+		deps := parseDependencies(method, types.Method, typ)
+		assert.Equal(t, []string{"github.com/hidevopsio/hiboot/pkg/factory.hello"}, deps)
+	})
+
 	t.Run("should append dep", func(t *testing.T) {
 		dep := appendDep("", "a.b")
 		dep = appendDep(dep, "c.d")
@@ -151,6 +173,10 @@ func TestUtils(t *testing.T) {
 	t.Run("test GetObjectQualifierName", func(t *testing.T) {
 		name := GetObjectQualifierName(reflect.ValueOf(new(foo)), "default")
 		assert.Equal(t, "foo", name)
+	})
+	t.Run("test getFullName with out dot name", func(t *testing.T) {
+		name := getFullName(new(foo), "foo")
+		assert.Equal(t, "github.com/hidevopsio/hiboot/pkg/factory.foo", name)
 	})
 }
 
