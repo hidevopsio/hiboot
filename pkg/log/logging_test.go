@@ -74,7 +74,11 @@ func TestLogging(t *testing.T) {
 	})
 
 	t.Run("should pass log.SetTimeFormat() test", func(t *testing.T) {
-		SetTimeFormat("[2006-01-02 15:04]")
+		SetTimeFormat("[2006-01-02 15:04:05.000]")
+		Info("TestSetTimeFormat")
+		time.Sleep(2000000)
+		Info("TestSetTimeFormat")
+		time.Sleep(1234567)
 		Info("TestSetTimeFormat")
 	})
 

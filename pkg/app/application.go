@@ -161,6 +161,8 @@ func (a *BaseApplication) Build() {
 
 	// set logging level
 	log.SetLevel(a.systemConfig.Logging.Level)
+	// set logging time format
+	log.SetTimeFormat(a.systemConfig.Logging.TimeFormat)
 }
 
 // SystemConfig returns application config
