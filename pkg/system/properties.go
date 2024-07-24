@@ -28,8 +28,8 @@ type Profiles struct {
 
 type banner struct {
 	// disable banner
-	Disabled bool `json:"disabled" default:"false"`
-	Custom string `json:"custom"`
+	Disabled bool   `json:"disabled" default:"false"`
+	Custom   string `json:"custom"`
 }
 
 type ContactInfo struct {
@@ -75,10 +75,10 @@ type Server struct {
 	at.ConfigurationProperties `value:"server" json:"-"`
 	at.AutoWired
 
-	Schemes                    []string `json:"schemes,omitempty" default:"http"`
-	Host                       string   `json:"host,omitempty" default:"localhost"`
-	Port                       string   `json:"port,omitempty" default:"8080"`
-	ContextPath                string   `json:"context_path,omitempty" default:"/"`
+	Schemes     []string `json:"schemes,omitempty" default:"http"`
+	Host        string   `json:"host,omitempty" default:"localhost"`
+	Port        string   `json:"port,omitempty" default:"8080"`
+	ContextPath string   `json:"context_path,omitempty" default:"/"`
 }
 
 // Logging is the properties of logging
@@ -87,6 +87,6 @@ type Logging struct {
 	at.ConfigurationProperties `value:"logging" json:"-"`
 	at.AutoWired
 
-	Level string `json:"level,omitempty" default:"info"`
+	Level      string `json:"level,omitempty" default:"info"`
+	TimeFormat string `json:"timeFormat" default:"[2006-01-02 15:04:05.000]"`
 }
-
