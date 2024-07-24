@@ -2,19 +2,12 @@
 
 <p align="center">
   <a href="https://hiboot.hidevops.io">
-    <img src="https://hiboot.hidevops.io/images/logo.png" alt="hiboot">
+    <img src="https://hiboot.netlify.app/images/logo.png" alt="hiboot">
   </a>
 </p>
 
 <p align="center">
-  <a href="https://travis-ci.org/hidevopsio/hiboot?branch=master">
-    <img src="https://travis-ci.org/hidevopsio/hiboot.svg?branch=master" alt="Build Status"/>
-  </a>
-  <a class="badge-align" href="https://www.codacy.com/app/john-deng/hiboot?utm_source=github.com&utm_medium=referral&utm_content=hidevopsio/hiboot&utm_campaign=Badge_Grade"><img src="https://api.codacy.com/project/badge/Grade/ee8ddbf56ece4f46a6efeb216c351a0f"/></a>
-  <a href="https://github.com/hidevopsio/hiboot">
-    <img src="https://tokei.rs/b1/github/hidevopsio/hiboot" />
-  </a>
-  <a href="https://codecov.io/gh/hidevopsio/hiboot">
+    <a href="https://codecov.io/gh/hidevopsio/hiboot">
     <img src="https://codecov.io/gh/hidevopsio/hiboot/branch/master/graph/badge.svg" />
   </a>
   <a href="https://opensource.org/licenses/Apache-2.0">
