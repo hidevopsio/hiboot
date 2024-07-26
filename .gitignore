@@ -19,6 +19,6 @@ application-fake.yml
 
 .idea/
 vendor/
-
+debug/
 .vscode/
 !/pkg/app/web/application.go

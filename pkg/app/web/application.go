@@ -107,8 +107,10 @@ func (a *application) Run() {
 		// serve web app with server port, default port number is 8080
 		if err == nil {
 			if conf.Server.TlsCert != "" && conf.Server.TlsKey != "" {
-				iris.TLS(serverPort, conf.Server.TlsCert, conf.Server.TlsKey)
+				log.Infof("Serving Hiboot web application with TLS")
+				err = http.ListenAndServeTLS(serverPort, conf.Server.TlsCert, conf.Server.TlsKey, nil)
 			} else {
+				log.Infof("Serving Hiboot web application")
 				err = http.ListenAndServe(serverPort, nil)
 				log.Debug(err)
 			}
