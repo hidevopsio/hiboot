@@ -22,12 +22,12 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/kataras/iris"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/kataras/iris"
 )
 
 const (
@@ -106,8 +106,12 @@ func (a *application) Run() {
 
 		// serve web app with server port, default port number is 8080
 		if err == nil {
-			err = http.ListenAndServe(serverPort, nil)
-			log.Debug(err)
+			if conf.Server.TlsCert != "" && conf.Server.TlsKey != "" {
+				iris.TLS(serverPort, conf.Server.TlsCert, conf.Server.TlsKey)
+			} else {
+				err = http.ListenAndServe(serverPort, nil)
+				log.Debug(err)
+			}
 		}
 	}
 }
