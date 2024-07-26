@@ -79,6 +79,8 @@ type Server struct {
 	Host        string   `json:"host,omitempty" default:"localhost"`
 	Port        string   `json:"port,omitempty" default:"8080"`
 	ContextPath string   `json:"context_path,omitempty" default:"/"`
+	TlsCert     string   `json:"tls_cert,omitempty" `
+	TlsKey      string   `json:"tls_key,omitempty" `
 }
 
 // Logging is the properties of logging
