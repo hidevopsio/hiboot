@@ -276,9 +276,9 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 		name := f.parseName(item)
 		config := item.MetaObject
 
-		isContextAware := annotation.Contains(item.MetaObject, at.ContextAware{})
+		isRequestScoped := annotation.Contains(item.MetaObject, at.RequestScope{})
 		if f.systemConfig != nil {
-			if !isContextAware &&
+			if !isRequestScoped &&
 				f.systemConfig != nil && !str.InSlice(path.Base(name), f.systemConfig.App.Profiles.Include) {
 				log.Warnf("Auto configuration %v is filtered out! Just ignore this warning if you intended to do so.", name)
 				continue

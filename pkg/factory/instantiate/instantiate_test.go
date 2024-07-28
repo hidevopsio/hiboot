@@ -39,14 +39,14 @@ const (
 	hiboot     = "Hiboot"
 )
 
-type ContextAwareFooBar struct {
-	at.ContextAware
+type ScopedFooBar struct {
+	at.RequestScope
 	Name    string
 	context context.Context
 }
 
-func newContextAwareFooBar(context context.Context) *ContextAwareFooBar {
-	return &ContextAwareFooBar{context: context}
+func newScopedFooBar(context context.Context) *ScopedFooBar {
+	return &ScopedFooBar{context: context}
 }
 
 type FooBar struct {
@@ -134,7 +134,7 @@ func TestInstantiateFactory(t *testing.T) {
 
 	testComponents = append(testComponents, factory.NewMetaData(f),
 		factory.NewMetaData(web.NewContext(nil)),
-		factory.NewMetaData(newContextAwareFooBar),
+		factory.NewMetaData(newScopedFooBar),
 		factory.NewMetaData(&FooBar{Name: testName}),
 		factory.NewMetaData(&BarServiceImpl{}),
 		factory.NewMetaData(newFooBarService),
@@ -349,27 +349,27 @@ func TestMapSet(t *testing.T) {
 	fmt.Println(allClasses.IsSuperset(mapset.NewSetFromSlice([]interface{}{"Welding", "Automotive", "English"}))) //true
 }
 
-type contextAwareFuncObject struct {
-	at.ContextAware
+type scopedFuncObject struct {
+	at.RequestScope
 
 	context context.Context
 }
-type contextAwareMethodObject struct {
-	at.ContextAware
+type scopedMethodObject struct {
+	at.RequestScope
 
 	context context.Context
 }
 
-func newContextAwareObject(ctx context.Context) *contextAwareFuncObject {
+func newScopedObject(ctx context.Context) *scopedFuncObject {
 	//log.Infof("context: %v", ctx)
-	return &contextAwareFuncObject{context: ctx}
+	return &scopedFuncObject{context: ctx}
 }
 
 type foo struct {
 }
 
-func (f *foo) ContextAwareMethodObject(ctx context.Context) *contextAwareMethodObject {
-	return &contextAwareMethodObject{context: ctx}
+func (f *foo) ScopedMethodObject(ctx context.Context) *scopedMethodObject {
+	return &scopedMethodObject{context: ctx}
 }
 
 func TestRuntimeInstance(t *testing.T) {
@@ -383,12 +383,12 @@ func TestRuntimeInstance(t *testing.T) {
 	ft := reflect.TypeOf(f)
 
 	ctxMd := factory.NewMetaData(reflector.GetLowerCamelFullName(new(context.Context)), ctx)
-	method, ok := ft.MethodByName("ContextAwareMethodObject")
+	method, ok := ft.MethodByName("ScopedMethodObject")
 	assert.Equal(t, true, ok)
 	testComponents = append(testComponents,
 		factory.NewMetaData(f, method),
 		ctxMd,
-		factory.NewMetaData(newContextAwareObject),
+		factory.NewMetaData(newScopedObject),
 	)
 
 	ic := cmap.New()
@@ -397,13 +397,13 @@ func TestRuntimeInstance(t *testing.T) {
 	instFactory := instantiate.NewInstantiateFactory(ic, testComponents, customProps)
 	instFactory.AppendComponent(new(testService))
 	_ = instFactory.BuildComponents()
-	dps := instFactory.GetInstances(at.ContextAware{})
+	dps := instFactory.GetInstances(at.RequestScope{})
 	if len(dps) > 0 {
-		ri, err := instFactory.InjectContextAwareObjects(web.NewContext(nil), dps)
+		ri, err := instFactory.InjectScopedObjects(web.NewContext(nil), dps)
 		assert.Equal(t, nil, err)
 		log.Debug(ri.Items())
 		assert.Equal(t, ctx, ri.Get(new(context.Context)))
-		assert.NotEqual(t, nil, ri.Get(contextAwareFuncObject{}))
-		assert.NotEqual(t, nil, ri.Get(contextAwareMethodObject{}))
+		assert.NotEqual(t, nil, ri.Get(scopedFuncObject{}))
+		assert.NotEqual(t, nil, ri.Get(scopedMethodObject{}))
 	}
 }

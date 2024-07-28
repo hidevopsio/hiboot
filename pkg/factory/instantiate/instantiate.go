@@ -52,15 +52,15 @@ const (
 type instantiateFactory struct {
 	at.Qualifier `value:"github.com/hidevopsio/hiboot/pkg/factory.instantiateFactory"`
 
-	instance             factory.Instance
-	contextAwareInstance factory.Instance
-	components           []*factory.MetaData
-	resolved             []*factory.MetaData
-	defaultProperties    cmap.ConcurrentMap
-	categorized          map[string][]*factory.MetaData
-	inject               inject.Inject
-	builder              system.Builder
-	mutex                sync.Mutex
+	instance          factory.Instance
+	scopedInstance    factory.Instance
+	components        []*factory.MetaData
+	resolved          []*factory.MetaData
+	defaultProperties cmap.ConcurrentMap
+	categorized       map[string][]*factory.MetaData
+	inject            inject.Inject
+	builder           system.Builder
+	mutex             sync.Mutex
 }
 
 // NewInstantiateFactory the constructor of instantiateFactory
@@ -197,13 +197,13 @@ func (f *instantiateFactory) BuildComponents() (err error) {
 	for i, item := range resolved {
 		// log.Debugf("build component: %v %v", idx, item.Type)
 		log.Debugf("%v", i)
-		if item.ContextAware {
-			//log.Debugf("at.ContextAware: %v", item.MetaObject)
+		if item.Scoped {
+			//log.Debugf("at.Scope: %v", item.MetaObject)
 			err = f.SetInstance(item)
 		} else {
 			// inject dependencies into function
 			// components, controllers
-			// TODO: should save the upstream dependencies that contains item.ContextAware annotation for runtime injection
+			// TODO: should save the upstream dependencies that contains item.Scoped annotation for runtime injection
 			err = f.injectDependency(f.instance, item)
 		}
 	}
@@ -242,8 +242,8 @@ func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 	}
 
 	if metaData != nil {
-		if metaData.ContextAware && f.contextAwareInstance != nil {
-			_ = f.contextAwareInstance.Set(name, inst)
+		if metaData.Scoped && f.scopedInstance != nil {
+			_ = f.scopedInstance.Set(name, inst)
 		} else {
 			err = instance.Set(name, inst)
 			// categorize instances
@@ -334,16 +334,16 @@ func (f *instantiateFactory) Replace(source string) (retVal interface{}) {
 	return
 }
 
-// InjectContextAwareObject inject context aware objects
-func (f *instantiateFactory) injectContextAwareDependencies(instance factory.Instance, dps []*factory.MetaData) (err error) {
+// InjectScopedObject inject context aware objects
+func (f *instantiateFactory) injectScopedDependencies(instance factory.Instance, dps []*factory.MetaData) (err error) {
 	for _, d := range dps {
 		if len(d.DepMetaData) > 0 {
-			err = f.injectContextAwareDependencies(instance, d.DepMetaData)
+			err = f.injectScopedDependencies(instance, d.DepMetaData)
 			if err != nil {
 				return
 			}
 		}
-		if d.ContextAware {
+		if d.Scoped {
 			// making sure that the context aware instance does not exist before the dependency injection
 			if instance.Get(d.Name) == nil {
 				newItem := factory.CloneMetaData(d)
@@ -357,9 +357,9 @@ func (f *instantiateFactory) injectContextAwareDependencies(instance factory.Ins
 	return
 }
 
-// InjectContextAwareObjects inject context aware objects
-func (f *instantiateFactory) InjectContextAwareObjects(ctx context.Context, dps []*factory.MetaData) (instance factory.Instance, err error) {
-	log.Debugf(">>> InjectContextAwareObjects(%x) ...", &ctx)
+// InjectScopedObjects inject context aware objects
+func (f *instantiateFactory) InjectScopedObjects(ctx context.Context, dps []*factory.MetaData) (instance factory.Instance, err error) {
+	log.Debugf(">>> InjectScopedObjects(%x) ...", &ctx)
 
 	// create new runtime instance
 	instance = newInstance(nil)
@@ -371,7 +371,7 @@ func (f *instantiateFactory) InjectContextAwareObjects(ctx context.Context, dps 
 		return
 	}
 
-	err = f.injectContextAwareDependencies(instance, dps)
+	err = f.injectScopedDependencies(instance, dps)
 	if err != nil {
 		log.Error(err)
 	}

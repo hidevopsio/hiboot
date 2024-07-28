@@ -13,19 +13,19 @@ import (
 
 // MetaData is the injectable object meta data
 type MetaData struct {
-	Kind         string
-	Name         string
-	ShortName    string
-	TypeName     string
-	PkgName      string
-	InstName     string
-	ObjectOwner  interface{}
-	MetaObject   interface{}
-	Type         reflect.Type
-	DepNames     []string
-	DepMetaData  []*MetaData
-	ContextAware bool
-	Instance     interface{}
+	Kind        string
+	Name        string
+	ShortName   string
+	TypeName    string
+	PkgName     string
+	InstName    string
+	ObjectOwner interface{}
+	MetaObject  interface{}
+	Type        reflect.Type
+	DepNames    []string
+	DepMetaData []*MetaData
+	Scoped      bool
+	Instance    interface{}
 }
 
 func appendDep(deps, dep string) (retVal string) {
@@ -246,24 +246,24 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 
 		deps = append(deps, parseDependencies(metaObject, kindName, typ)...)
 
-		// check if it is contextAware
-		contextAware := annotation.Contains(owner, at.ContextAware{}) || annotation.Contains(metaObject, at.ContextAware{})
+		// check if it is scoped
+		scoped := annotation.Contains(owner, at.Scope{}) || annotation.Contains(metaObject, at.Scope{})
 
 		name = GetObjectQualifierName(metaObject, name)
 
 		metaData = &MetaData{
-			Kind:         kindName,
-			PkgName:      pkgName,
-			TypeName:     typeName,
-			Name:         name,
-			InstName:     instName,
-			ShortName:    shortName,
-			ObjectOwner:  owner,
-			MetaObject:   metaObject,
-			Type:         typ,
-			DepNames:     deps,
-			ContextAware: contextAware,
-			Instance:     instance,
+			Kind:        kindName,
+			PkgName:     pkgName,
+			TypeName:    typeName,
+			Name:        name,
+			InstName:    instName,
+			ShortName:   shortName,
+			ObjectOwner: owner,
+			MetaObject:  metaObject,
+			Type:        typ,
+			DepNames:    deps,
+			Scoped:      scoped,
+			Instance:    instance,
 		}
 	}
 
@@ -273,19 +273,19 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 // CloneMetaData is the func for cloning meta data
 func CloneMetaData(src *MetaData) (dst *MetaData) {
 	dst = &MetaData{
-		Kind:         src.Kind,
-		Name:         src.Name,
-		ShortName:    src.ShortName,
-		TypeName:     src.TypeName,
-		PkgName:      src.PkgName,
-		InstName:     src.InstName,
-		ObjectOwner:  src.ObjectOwner,
-		MetaObject:   src.MetaObject,
-		Type:         src.Type,
-		DepNames:     src.DepNames,
-		DepMetaData:  src.DepMetaData,
-		ContextAware: src.ContextAware,
-		Instance:     src.Instance,
+		Kind:        src.Kind,
+		Name:        src.Name,
+		ShortName:   src.ShortName,
+		TypeName:    src.TypeName,
+		PkgName:     src.PkgName,
+		InstName:    src.InstName,
+		ObjectOwner: src.ObjectOwner,
+		MetaObject:  src.MetaObject,
+		Type:        src.Type,
+		DepNames:    src.DepNames,
+		DepMetaData: src.DepMetaData,
+		Scoped:      src.Scoped,
+		Instance:    src.Instance,
 	}
 	return dst
 }

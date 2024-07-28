@@ -28,7 +28,7 @@ type Controller struct {
 
 // TokenProperties is the struct for parse jwt token properties
 type TokenProperties struct {
-	at.ContextAware
+	at.RequestScope
 	context context.Context
 }
 

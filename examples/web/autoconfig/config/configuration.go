@@ -19,7 +19,7 @@ type configuration struct {
 	properties *properties
 }
 
-func newConfiguration(properties *properties) *configuration  {
+func newConfiguration(properties *properties) *configuration {
 	return &configuration{properties: properties}
 }
 
@@ -32,13 +32,19 @@ type Foo struct {
 }
 
 type Bar struct {
-	at.ContextAware
+	at.RequestScope
 
 	Name string `json:"name" value:"bar"`
 }
 
+type Baz struct {
+	at.Scope `value:"prototype"`
+
+	Name string `json:"name" value:"baz"`
+}
+
 type FooWithError struct {
-	at.ContextAware
+	at.RequestScope
 	Name string `json:"name" value:"foo"`
 }
 
@@ -57,4 +63,8 @@ func (c *configuration) Bar(ctx context.Context) *Bar {
 		return nil
 	}
 	return &Bar{Name: c.properties.Name}
+}
+
+func (c *configuration) Baz() *Baz {
+	return &Baz{}
 }

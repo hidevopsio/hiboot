@@ -124,7 +124,7 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 	app.Register(&FooBar{Name: "fooBar"})
 	app.Register(newFooBarService)
-	app.Register(newHelloContextAware)
+	app.Register(newHelloScoped)
 }
 
 func (c *FooController) Before(ctx context.Context) {
@@ -184,7 +184,6 @@ func (c *FooController) GetByOptions(options []string) (response model.Response)
 	response.SetData(&settings{Options: options})
 	return
 }
-
 
 // GET /foo/fs
 func (c *FooController) GetFs(fs []*Foo) (response model.Response) {
@@ -313,17 +312,17 @@ func (c *FooController) GetRequestParams(request *FooRequestParams) string {
 	return request.Name
 }
 
-type HelloContextAware struct {
-	at.ContextAware
+type HelloScoped struct {
+	at.RequestScope
 
 	context context.Context
 }
 
-func newHelloContextAware(context context.Context) *HelloContextAware {
-	return &HelloContextAware{context: context}
+func newHelloScoped(context context.Context) *HelloScoped {
+	return &HelloScoped{context: context}
 }
 
-func (c *FooController) GetContext(hca *HelloContextAware) string {
+func (c *FooController) GetContext(hca *HelloScoped) string {
 	return "testing context aware dependency injection"
 }
 
@@ -331,10 +330,10 @@ func (c *FooController) GetErr() float32 {
 	return 0.01
 }
 
-
 type Foo struct {
 	Name string
 }
+
 // Get test get
 func (c *FooController) GetInjection(foo *Foo) string {
 	log.Debug(foo)
@@ -831,7 +830,7 @@ func TestWebApplication(t *testing.T) {
 				{
 					Name: "bar",
 				},
-		}).
+			}).
 			Expect().Status(http.StatusOK).
 			Body().Contains("foo")
 	})
@@ -966,8 +965,9 @@ func newConditionalFakeJwtMiddleware() *fakeConditionalJwtMiddleware {
 }
 
 // CheckJwt
-func (m *fakeConditionalJwtMiddleware) CheckJwt(at struct{ at.MiddlewareHandler
-}, ctx context.Context)  {
+func (m *fakeConditionalJwtMiddleware) CheckJwt(at struct {
+	at.MiddlewareHandler
+}, ctx context.Context) {
 	log.Debug("fakeConditionalJwtMiddleware.CheckJwt()")
 	if ctx.URLParam("token") == "" {
 		ctx.StatusCode(http.StatusUnauthorized)
@@ -986,10 +986,10 @@ func newMethodConditionalFakeJwtMiddleware() *fakeMethodConditionalJwtMiddleware
 }
 
 // CheckJwt
-func (m *fakeMethodConditionalJwtMiddleware) CheckJwt(at struct{
+func (m *fakeMethodConditionalJwtMiddleware) CheckJwt(at struct {
 	at.MiddlewareHandler
 	at.UseJwt
-}, ctx context.Context)  {
+}, ctx context.Context) {
 	log.Debug("fakeMethodConditionalJwtMiddleware.CheckJwt()")
 	if ctx.URLParam("token") == "" {
 		ctx.StatusCode(http.StatusUnauthorized)
@@ -998,7 +998,6 @@ func (m *fakeMethodConditionalJwtMiddleware) CheckJwt(at struct{
 	ctx.Next()
 	return
 }
-
 
 type fooMiddleware struct {
 	at.Middleware
@@ -1010,7 +1009,9 @@ func newFooMiddleware() *fooMiddleware {
 
 // Logging is the middleware handler,it support dependency injection, method annotation
 // middleware handler can be annotated to specific purpose or general purpose
-func (m *fooMiddleware) Logging( _ struct{at.MiddlewareHandler `value:"/" `}, ctx context.Context) {
+func (m *fooMiddleware) Logging(_ struct {
+	at.MiddlewareHandler `value:"/" `
+}, ctx context.Context) {
 
 	log.Infof("[logging middleware] %v", ctx.GetCurrentRoute())
 
@@ -1018,9 +1019,12 @@ func (m *fooMiddleware) Logging( _ struct{at.MiddlewareHandler `value:"/" `}, ct
 	ctx.Next()
 	return
 }
+
 // Logging is the middleware handler,it support dependency injection, method annotation
 // middleware handler can be annotated to specific purpose or general purpose
-func (m *fooMiddleware) PostLogging( _ struct{at.MiddlewarePostHandler `value:"/" `}, ctx context.Context) {
+func (m *fooMiddleware) PostLogging(_ struct {
+	at.MiddlewarePostHandler `value:"/" `
+}, ctx context.Context) {
 
 	log.Infof("[logging middleware] %v", ctx.GetCurrentRoute())
 
@@ -1047,9 +1051,9 @@ func newCustomRouterController() *customRouterController {
 
 func (c *customRouterController) PathVariable(
 	at struct {
-	// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
-	at.GetMapping `value:"/{id}/name/{name}"`
-}, id int, name string) (response *CustomResponse, err error) {
+		// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
+		at.GetMapping `value:"/{id}/name/{name}"`
+	}, id int, name string) (response *CustomResponse, err error) {
 	response = new(CustomResponse)
 	log.Infof("PathParamIdAndName: %v", at.AtValue)
 	switch id {
@@ -1070,11 +1074,11 @@ func (c *customRouterController) PathVariable(
 
 func (c *customRouterController) Delete(
 	at struct {
-	// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
-	at.DeleteMapping `value:"/{id}"`
-	// uses jwt auth, it can be placed in struct of method
-	at.UseJwt
-}, id int,) (response *CustomResponse, err error) {
+		// at.GetMapping is an annotation to define request mapping for http method GET /{id}/and/{name}
+		at.DeleteMapping `value:"/{id}"`
+		// uses jwt auth, it can be placed in struct of method
+		at.UseJwt
+	}, id int) (response *CustomResponse, err error) {
 	response = new(CustomResponse)
 	log.Infof("Delete: %v", at.DeleteMapping.AtValue)
 
@@ -1084,13 +1088,13 @@ func (c *customRouterController) Delete(
 }
 
 // BeforeMethod
-func (c *customRouterController) BeforeMethod(at struct{ at.BeforeMethod}, ctx context.Context)  {
+func (c *customRouterController) BeforeMethod(at struct{ at.BeforeMethod }, ctx context.Context) {
 	ctx.Next()
 	return
 }
 
 // AfterMethod
-func (c *customRouterController) AfterMethod(at struct{ at.AfterMethod })  {
+func (c *customRouterController) AfterMethod(at struct{ at.AfterMethod }) {
 	return
 }
 
@@ -1105,12 +1109,16 @@ func newJwtAuthTestController() *jwtAuthTestController {
 }
 
 // Get
-func (c *jwtAuthTestController) Get(at struct{ at.GetMapping `value:"/"` }) string {
+func (c *jwtAuthTestController) Get(at struct {
+	at.GetMapping `value:"/"`
+}) string {
 	return "Get from jwt auth test controller"
 }
 
 // Delete
-func (c *jwtAuthTestController) Delete(at struct{ at.DeleteMapping `value:"/"` }) string  {
+func (c *jwtAuthTestController) Delete(at struct {
+	at.DeleteMapping `value:"/"`
+}) string {
 	return "Delete from jwt auth test controller"
 }
 
@@ -1128,7 +1136,9 @@ func newRegularTestController() *regularTestController {
 }
 
 // Get
-func (c *regularTestController) Get(at struct{ at.GetMapping `value:"/"` }) string  {
+func (c *regularTestController) Get(at struct {
+	at.GetMapping `value:"/"`
+}) string {
 	return "regularTestController.Get()"
 }
 
@@ -1167,7 +1177,7 @@ func newFakeSubscriber() *fakeSubscriber {
 	return &fakeSubscriber{}
 }
 
-func (s *fakeSubscriber) Subscribe(atc *annotation.Annotations, atm *annotation.Annotations)  {
+func (s *fakeSubscriber) Subscribe(atc *annotation.Annotations, atm *annotation.Annotations) {
 	log.Debug("subscribe")
 }
 
@@ -1235,18 +1245,27 @@ func newPublicTestController() *publicTestController {
 }
 
 // UI serve static resource via context StaticResource method
-func (c *publicTestController) UI(at struct{ at.GetMapping `value:"/ui/*"`; at.FileServer `value:"/ui"` }, ctx context.Context) {
+func (c *publicTestController) UI(at struct {
+	at.GetMapping `value:"/ui/*"`
+	at.FileServer `value:"/ui"`
+}, ctx context.Context) {
 	return
 }
 
 // UI serve static resource via context StaticResource method
-func (c *publicTestController) UIIndex(at struct{ at.GetMapping `value:"/ui"`; at.FileServer `value:"/ui"` }, ctx context.Context) {
+func (c *publicTestController) UIIndex(at struct {
+	at.GetMapping `value:"/ui"`
+	at.FileServer `value:"/ui"`
+}, ctx context.Context) {
 	return
 }
 
 // UI serve static resource via context StaticResource method
-func (c *publicTestController) NotFound(at struct{ at.GetMapping `value:"/foo"`; at.FileServer `value:"/ui"` }, ctx context.Context) {
-	ctx.WrapHandler( http.NotFoundHandler() )
+func (c *publicTestController) NotFound(at struct {
+	at.GetMapping `value:"/foo"`
+	at.FileServer `value:"/ui"`
+}, ctx context.Context) {
+	ctx.WrapHandler(http.NotFoundHandler())
 }
 
 func TestController(t *testing.T) {

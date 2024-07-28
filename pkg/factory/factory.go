@@ -61,7 +61,7 @@ type InstantiateFactory interface {
 	InjectIntoObject(instance Instance, object interface{}) error
 	InjectDependency(instance Instance, object interface{}) (err error)
 	Replace(name string) interface{}
-	InjectContextAwareObjects(ctx context.Context, dps []*MetaData) (runtimeInstance Instance, err error)
+	InjectScopedObjects(ctx context.Context, dps []*MetaData) (runtimeInstance Instance, err error)
 }
 
 // ConfigurableFactory configurable factory interface

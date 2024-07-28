@@ -26,6 +26,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/starter/actuator"
 	"github.com/hidevopsio/hiboot/pkg/starter/swagger"
+	"net/http"
 )
 
 // Controller Rest Controller with path /
@@ -38,7 +39,7 @@ type Controller struct {
 	foo *config.Foo
 }
 
-func newController(foo *config.Foo) *Controller  {
+func newController(foo *config.Foo) *Controller {
 	return &Controller{foo: foo}
 }
 
@@ -51,46 +52,41 @@ func (c *Controller) Get(_ struct {
 	at.GetMapping `value:"/"`
 	at.Operation  `id:"helloWorld" description:"This is hello world API"`
 	at.Produces   `values:"text/plain"`
-	Responses struct {
+	Responses     struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"response status OK"`
-			at.Schema `type:"string" description:"returns hello world message"`
+			at.Schema   `type:"string" description:"returns hello world message"`
 		}
 	}
-}, ctx context.Context, bar *config.Bar) string {
+}, ctx context.Context, bar *config.Bar, baz *config.Baz) string {
 	code := ctx.GetStatusCode()
 	log.Info(code)
+	if code == http.StatusUnauthorized {
+		return ""
+	}
+
+	if baz != nil {
+		log.Infof("baz: %v", baz.Name)
+	}
 	// response
 	return "Hello " + c.foo.Name + ", " + bar.Name
 }
-
 
 // GetError GET /
 func (c *Controller) GetError(_ struct {
 	at.GetMapping `value:"/error"`
 	at.Operation  `id:"error" description:"This is hello world API"`
 	at.Produces   `values:"text/plain"`
-	Responses struct {
+	Responses     struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"response status OK"`
-			at.Schema `type:"string" description:"returns hello world message"`
+			at.Schema   `type:"string" description:"returns hello world message"`
 		}
 	}
 }, ctx context.Context, errorWithFoo *config.FooWithError) (response string) {
-	code := ctx.GetStatusCode()
-	log.Info(code)
-
-	if errorWithFoo == nil {
-		response = "injected object errorWithFoo is expected to be nil"
-		log.Info(response)
-	} else {
-		response = "unexpected"
-	}
-	// response
-	return response
+	// will never be executed as errorWithFoo will not be injected
+	return
 }
-
-
 
 // main function
 func main() {

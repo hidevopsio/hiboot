@@ -48,16 +48,16 @@ type Connection struct {
 	context context.Context
 }
 
-type ContextAwareConfiguration struct {
+type ScopedConfiguration struct {
 	at.AutoConfiguration
-	at.ContextAware
+	at.RequestScope
 }
 
-func newContextAwareConfiguration() *ContextAwareConfiguration {
-	return &ContextAwareConfiguration{}
+func newScopedConfiguration() *ScopedConfiguration {
+	return &ScopedConfiguration{}
 }
 
-func (c *ContextAwareConfiguration) Connection(context context.Context) *Connection {
+func (c *ScopedConfiguration) Connection(context context.Context) *Connection {
 	return &Connection{context: context}
 }
 
@@ -462,7 +462,7 @@ func TestConfigurableFactory(t *testing.T) {
 		factory.NewMetaData(newUnsupportedConfiguration),
 		factory.NewMetaData(newFoobarConfiguration),
 		factory.NewMetaData(newEarthConfiguration),
-		factory.NewMetaData(newContextAwareConfiguration),
+		factory.NewMetaData(newScopedConfiguration),
 	})
 
 	f.AppendComponent(newHelloService)
