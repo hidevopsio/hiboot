@@ -313,7 +313,7 @@ func (c *FooController) GetRequestParams(request *FooRequestParams) string {
 }
 
 type HelloScoped struct {
-	at.RequestScope
+	at.Scope `value:"request"`
 
 	context context.Context
 }

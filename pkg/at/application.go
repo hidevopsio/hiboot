@@ -1,6 +1,6 @@
 package at
 
-// HiBootApplication
+// HiBootApplication is the main entry point of the application
 type HiBootApplication struct {
 	Annotation
 

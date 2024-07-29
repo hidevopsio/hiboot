@@ -40,9 +40,9 @@ const (
 )
 
 type ScopedFooBar struct {
-	at.RequestScope
-	Name    string
-	context context.Context
+	at.Scope `value:"request"`
+	Name     string
+	context  context.Context
 }
 
 func newScopedFooBar(context context.Context) *ScopedFooBar {
@@ -350,12 +350,12 @@ func TestMapSet(t *testing.T) {
 }
 
 type scopedFuncObject struct {
-	at.RequestScope
+	at.Scope `value:"request"`
 
 	context context.Context
 }
 type scopedMethodObject struct {
-	at.RequestScope
+	at.Scope `value:"request"`
 
 	context context.Context
 }
@@ -397,7 +397,7 @@ func TestRuntimeInstance(t *testing.T) {
 	instFactory := instantiate.NewInstantiateFactory(ic, testComponents, customProps)
 	instFactory.AppendComponent(new(testService))
 	_ = instFactory.BuildComponents()
-	dps := instFactory.GetInstances(at.RequestScope{})
+	dps := instFactory.GetInstances(at.Scope{})
 	if len(dps) > 0 {
 		ri, err := instFactory.InjectScopedObjects(web.NewContext(nil), dps)
 		assert.Equal(t, nil, err)

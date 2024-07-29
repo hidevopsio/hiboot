@@ -197,13 +197,13 @@ func (f *instantiateFactory) BuildComponents() (err error) {
 	for i, item := range resolved {
 		// log.Debugf("build component: %v %v", idx, item.Type)
 		log.Debugf("%v", i)
-		if item.Scoped {
+		if item.Scope != "" {
 			//log.Debugf("at.Scope: %v", item.MetaObject)
 			err = f.SetInstance(item)
 		} else {
 			// inject dependencies into function
 			// components, controllers
-			// TODO: should save the upstream dependencies that contains item.Scoped annotation for runtime injection
+			// TODO: should save the upstream dependencies that contains item.Scope annotation for runtime injection
 			err = f.injectDependency(f.instance, item)
 		}
 	}
@@ -242,7 +242,7 @@ func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 	}
 
 	if metaData != nil {
-		if metaData.Scoped && f.scopedInstance != nil {
+		if metaData.Scope != "" && f.scopedInstance != nil {
 			_ = f.scopedInstance.Set(name, inst)
 		} else {
 			err = instance.Set(name, inst)
@@ -343,7 +343,7 @@ func (f *instantiateFactory) injectScopedDependencies(instance factory.Instance,
 				return
 			}
 		}
-		if d.Scoped {
+		if d.Scope != "" {
 			// making sure that the context aware instance does not exist before the dependency injection
 			if instance.Get(d.Name) == nil {
 				newItem := factory.CloneMetaData(d)

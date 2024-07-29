@@ -180,7 +180,7 @@ func (h *handler) parseMethod(injectableObject *injectableObject, injectableMeth
 		dp := h.factory.GetInstance(iTyp, factory.MetaData{})
 		if dp != nil {
 			cdp := dp.(*factory.MetaData)
-			if cdp.Scoped {
+			if cdp.Scope != "" {
 				h.dependencies = append(h.dependencies, dp.(*factory.MetaData))
 			}
 		}

@@ -10,7 +10,7 @@ import (
 
 // StatusHandler is the websocket handler
 type StatusHandler struct {
-	at.RequestScope
+	at.Scope   `value:"request"`
 	connection *websocket.Connection
 }
 

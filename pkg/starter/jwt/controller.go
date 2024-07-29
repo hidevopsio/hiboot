@@ -28,8 +28,8 @@ type Controller struct {
 
 // TokenProperties is the struct for parse jwt token properties
 type TokenProperties struct {
-	at.RequestScope
-	context context.Context
+	at.Scope `value:"request"`
+	context  context.Context
 }
 
 // newTokenProperties is the constructor of TokenProperties

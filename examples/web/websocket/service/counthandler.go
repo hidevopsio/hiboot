@@ -11,7 +11,7 @@ import (
 
 // CountHandler is the websocket handler
 type CountHandler struct {
-	at.RequestScope
+	at.Scope   `value:"request"`
 	connection *websocket.Connection
 }
 

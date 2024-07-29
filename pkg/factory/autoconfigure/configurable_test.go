@@ -50,7 +50,7 @@ type Connection struct {
 
 type ScopedConfiguration struct {
 	at.AutoConfiguration
-	at.RequestScope
+	at.Scope `value:"request"`
 }
 
 func newScopedConfiguration() *ScopedConfiguration {

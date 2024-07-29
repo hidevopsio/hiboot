@@ -21,18 +21,17 @@ type Scope struct {
 	BaseAnnotation
 }
 
-// RequestScope is the annotation that has the ability of a component to be
+// ContextAware is the annotation that has the ability of a component to be
 // injected when method of Rest Controller is requested.
 //
 //	type Example struct {
-//	  at.RequestScope
+//	  at.Scope `value:"request"`
 //	  ...
 //	}
-type RequestScope struct {
+//
+// Deprecated: use Scope instead
+type ContextAware struct {
 	Annotation
 
 	Scope `value:"request"`
 }
-
-// Deprecated: use RequestScope instead
-type ContextAware RequestScope

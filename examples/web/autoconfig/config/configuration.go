@@ -32,9 +32,18 @@ type Foo struct {
 }
 
 type Bar struct {
-	at.RequestScope
+	at.Scope `value:"request"`
 
-	Name string `json:"name" value:"bar"`
+	Name       string `json:"name" value:"bar"`
+	FooBarName string `json:"fooBarName" value:"foobar"`
+
+	baz *Baz
+}
+
+type FooBar struct {
+	at.ContextAware
+
+	Name string `json:"name" value:"foobar"`
 }
 
 type Baz struct {
@@ -44,8 +53,8 @@ type Baz struct {
 }
 
 type FooWithError struct {
-	at.RequestScope
-	Name string `json:"name" value:"foo"`
+	at.Scope `value:"request"`
+	Name     string `json:"name" value:"foo"`
 }
 
 func (c *configuration) FooWithError() (foo *FooWithError, err error) {
@@ -57,14 +66,19 @@ func (c *configuration) Foo() *Foo {
 	return &Foo{}
 }
 
-func (c *configuration) Bar(ctx context.Context) *Bar {
+func (c *configuration) Bar(ctx context.Context, foobar *FooBar) *Bar {
 	if ctx.GetHeader("Authorization") == "fake" {
 		ctx.StatusCode(http.StatusUnauthorized)
 		return nil
 	}
-	return &Bar{Name: c.properties.Name}
+	return &Bar{Name: c.properties.Name, FooBarName: foobar.Name}
 }
 
+func (c *configuration) FooBar() *FooBar {
+	return &FooBar{}
+}
+
+// Baz is a prototype scoped instance
 func (c *configuration) Baz() *Baz {
 	return &Baz{}
 }

@@ -11,7 +11,7 @@ import (
 
 // Span  is the wrap of opentracing.Span
 type Span struct {
-	at.RequestScope
+	at.Scope `value:"request"`
 	opentracing.Span
 	context webctx.Context
 }
