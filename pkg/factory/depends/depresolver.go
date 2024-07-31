@@ -79,7 +79,7 @@ func (s depResolver) findDependencies(item *factory.MetaData) (dep []*Node, ok b
 				depMetaData := s[depIdx]
 				item.DepMetaData = append(item.DepMetaData, depMetaData)
 				dep = append(dep, NewNode(depIdx, depMetaData))
-			} else {
+			} else if item.Scope != factory.ScopePrototype {
 				// found external dependency
 				extData := &factory.MetaData{Name: dp}
 				item.DepMetaData = append(item.DepMetaData, extData)

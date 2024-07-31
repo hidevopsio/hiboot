@@ -16,7 +16,7 @@ package at
 //	}
 
 type Scope struct {
-	Annotation
+	Annotation `json:"-"`
 
 	BaseAnnotation
 }

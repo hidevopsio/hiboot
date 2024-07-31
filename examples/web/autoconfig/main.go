@@ -18,11 +18,13 @@ package main
 
 // import web starter from hiboot
 import (
+	"fmt"
 	"github.com/hidevopsio/hiboot/examples/web/autoconfig/config"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/at"
+	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/starter/actuator"
 	"github.com/hidevopsio/hiboot/pkg/starter/swagger"
@@ -37,10 +39,15 @@ type Controller struct {
 	at.RequestMapping `value:"/"`
 
 	foo *config.Foo
+
+	factory *instantiate.ScopedInstanceFactory[*config.Baz]
 }
 
 func newController(foo *config.Foo) *Controller {
-	return &Controller{foo: foo}
+	return &Controller{
+		foo:     foo,
+		factory: &instantiate.ScopedInstanceFactory[*config.Baz]{},
+	}
 }
 
 func init() {
@@ -58,18 +65,20 @@ func (c *Controller) Get(_ struct {
 			at.Schema   `type:"string" description:"returns hello world message"`
 		}
 	}
-}, ctx context.Context, bar *config.Bar, baz *config.Baz) string {
+}, ctx context.Context, bar *config.Bar) string {
 	code := ctx.GetStatusCode()
 	log.Info(code)
 	if code == http.StatusUnauthorized {
 		return ""
 	}
 
-	if baz != nil {
-		log.Infof("baz: %v", baz.Name)
-	}
-	// response
-	return "Hello " + c.foo.Name + ", " + bar.Name
+	result := c.factory.GetInstance(&config.BazConfig{Name: "baz1"})
+	log.Infof("result: %v", result.Name)
+
+	result = c.factory.GetInstance(&config.BazConfig{Name: "baz2"})
+	log.Infof("result: %v", result.Name)
+
+	return fmt.Sprintf("Hello %v, %v, and %v!", c.foo.Name, bar.Name, result.Name)
 }
 
 // GetError GET /

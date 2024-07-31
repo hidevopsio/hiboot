@@ -65,10 +65,10 @@ var (
 // Inject is the interface for inject tag
 type Inject interface {
 	DefaultValue(object interface{}) error
-	IntoObject(instance factory.Instance, object interface{}) error
-	IntoObjectValue(instance factory.Instance, object reflect.Value, property string, tags ...Tag) error
-	IntoMethod(instance factory.Instance, object interface{}, m interface{}) (retVal interface{}, err error)
-	IntoFunc(instance factory.Instance, object interface{}) (retVal interface{}, err error)
+	IntoObject(instance factory.InstanceContainer, object interface{}) error
+	IntoObjectValue(instance factory.InstanceContainer, object reflect.Value, property string, tags ...Tag) error
+	IntoMethod(instance factory.InstanceContainer, object interface{}, m interface{}) (retVal interface{}, err error)
+	IntoFunc(instance factory.InstanceContainer, object interface{}) (retVal interface{}, err error)
 	IntoAnnotations(annotations *annotation.Annotations) (err error)
 }
 
@@ -102,9 +102,9 @@ func AddTag(tag Tag) {
 	}
 }
 
-func (i *inject) getInstance(instance factory.Instance, typ reflect.Type) (inst interface{}) {
+func (i *inject) getInstance(instanceContainer factory.InstanceContainer, typ reflect.Type) (inst interface{}) {
 	n := reflector.GetLowerCamelFullNameByType(typ)
-	inst = i.factory.GetInstance(instance, n)
+	inst = i.factory.GetInstance(instanceContainer, n)
 	return
 }
 
@@ -134,7 +134,7 @@ func (i *inject) IntoAnnotations(annotations *annotation.Annotations) (err error
 }
 
 // IntoObject injects instance into the tagged field with `inject:"instanceName"`
-func (i *inject) IntoObject(instance factory.Instance, object interface{}) (err error) {
+func (i *inject) IntoObject(instance factory.InstanceContainer, object interface{}) (err error) {
 	//
 	//err = annotation.InjectAll(object)
 	//if err != nil {
@@ -174,7 +174,7 @@ func (i *inject) convert(f reflect.StructField, src interface{}) (fov reflect.Va
 }
 
 // IntoObjectValue injects instance into the tagged field with `inject:"instanceName"`
-func (i *inject) IntoObjectValue(instance factory.Instance, object reflect.Value, property string, tags ...Tag) error {
+func (i *inject) IntoObjectValue(instance factory.InstanceContainer, object reflect.Value, property string, tags ...Tag) error {
 	var err error
 
 	//// TODO refactor IntoObject
@@ -275,7 +275,7 @@ func (i *inject) IntoObjectValue(instance factory.Instance, object reflect.Value
 	return err
 }
 
-func (i *inject) parseFuncOrMethodInput(instance factory.Instance, inType reflect.Type) (paramValue reflect.Value, ok bool) {
+func (i *inject) parseFuncOrMethodInput(instance factory.InstanceContainer, inType reflect.Type) (paramValue reflect.Value, ok bool) {
 	inType = reflector.IndirectType(inType)
 	inst := i.getInstance(instance, inType)
 	ok = true
@@ -311,7 +311,7 @@ func (i *inject) parseFuncOrMethodInput(instance factory.Instance, inType reflec
 }
 
 // IntoFunc inject object into func and return instance
-func (i *inject) IntoFunc(instance factory.Instance, object interface{}) (retVal interface{}, err error) {
+func (i *inject) IntoFunc(instance factory.InstanceContainer, object interface{}) (retVal interface{}, err error) {
 	fn := reflect.ValueOf(object)
 	if fn.Kind() == reflect.Func {
 		numIn := fn.Type().NumIn()
@@ -348,7 +348,7 @@ func (i *inject) IntoFunc(instance factory.Instance, object interface{}) (retVal
 
 // IntoMethod inject object into func and return instance
 // TODO: IntoMethod or IntoFunc should accept metaData, because it contains dependencies
-func (i *inject) IntoMethod(instance factory.Instance, object interface{}, m interface{}) (retVal interface{}, err error) {
+func (i *inject) IntoMethod(instance factory.InstanceContainer, object interface{}, m interface{}) (retVal interface{}, err error) {
 	if object != nil && m != nil {
 		switch m.(type) {
 		case reflect.Method:

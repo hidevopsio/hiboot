@@ -109,15 +109,15 @@ func TestInstantiateFactory(t *testing.T) {
 
 	instFactory := instantiate.NewInstantiateFactory(nil, nil, nil)
 	testName := "foobar"
-	t.Run("should failed to set/get instance when factory is not initialized", func(t *testing.T) {
-		inst := instFactory.GetInstance("not-exist-instance")
+	t.Run("should failed to set/get instanceContainer when factory is not initialized", func(t *testing.T) {
+		inst := instFactory.GetInstance("not-exist-instanceContainer")
 		assert.Equal(t, nil, inst)
 
 		err := instFactory.SetInstance("foo", nil)
 		assert.Equal(t, instantiate.ErrNotInitialized, err)
 
 		item := instFactory.Items()
-		// should have 1 instance (of system.Configuration)
+		// should have 1 instanceContainer (of system.Configuration)
 		assert.Equal(t, 6, len(item))
 	})
 
@@ -172,27 +172,27 @@ func TestInstantiateFactory(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 
-	t.Run("should get built instance", func(t *testing.T) {
+	t.Run("should get built instanceContainer", func(t *testing.T) {
 		inst := instFactory.GetInstance(HelloWorld{})
 		assert.NotEqual(t, nil, inst)
 		assert.Equal(t, "Hello world", inst.(*HelloWorld).Message)
 	})
 
-	t.Run("should get built instance in specific type", func(t *testing.T) {
+	t.Run("should get built instanceContainer in specific type", func(t *testing.T) {
 		hmd := instFactory.GetInstance(HelloWorld{}, factory.MetaData{})
 		assert.NotEqual(t, nil, hmd)
 		inst := hmd.(*factory.MetaData).Instance
 		assert.Equal(t, "Hello world", inst.(*HelloWorld).Message)
 	})
 
-	t.Run("should set and get instance from factory", func(t *testing.T) {
+	t.Run("should set and get instanceContainer from factory", func(t *testing.T) {
 		instFactory.SetInstance(f)
 		inst := instFactory.GetInstance(foo{})
 		assert.Equal(t, f, inst)
 	})
 
-	t.Run("should failed to get instance that does not exist", func(t *testing.T) {
-		inst := instFactory.GetInstance("not-exist-instance")
+	t.Run("should failed to get instanceContainer that does not exist", func(t *testing.T) {
+		inst := instFactory.GetInstance("not-exist-instanceContainer")
 		assert.Equal(t, nil, inst)
 	})
 
@@ -201,7 +201,7 @@ func TestInstantiateFactory(t *testing.T) {
 		assert.Equal(t, 0, len(inst))
 	})
 
-	t.Run("should set instance", func(t *testing.T) {
+	t.Run("should set instanceContainer", func(t *testing.T) {
 		err := instFactory.SetInstance(new(foo))
 		assert.NotEqual(t, nil, err)
 	})

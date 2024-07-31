@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"github.com/hidevopsio/hiboot/pkg/log"
 	"net/http"
 
 	"github.com/hidevopsio/hiboot/pkg/app"
@@ -49,7 +50,7 @@ type FooBar struct {
 type Baz struct {
 	at.Scope `value:"prototype"`
 
-	Name string `json:"name" value:"baz"`
+	Name string `json:"name"`
 }
 
 type FooWithError struct {
@@ -78,7 +79,13 @@ func (c *configuration) FooBar() *FooBar {
 	return &FooBar{}
 }
 
+type BazConfig struct {
+	at.Conditional `value:"Name"`
+	Name           string `json:"name"`
+}
+
 // Baz is a prototype scoped instance
-func (c *configuration) Baz() *Baz {
-	return &Baz{}
+func (c *configuration) Baz(cfg *BazConfig) *Baz {
+	log.Infof("baz config: %+v", cfg)
+	return &Baz{Name: cfg.Name}
 }

@@ -2,9 +2,9 @@ package instantiate
 
 import (
 	"fmt"
+	"github.com/hidevopsio/hiboot/pkg/log"
 
 	"github.com/hidevopsio/hiboot/pkg/factory"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 )
 
@@ -12,7 +12,7 @@ type instance struct {
 	instMap cmap.ConcurrentMap
 }
 
-func newInstance(instMap cmap.ConcurrentMap) factory.Instance {
+func newInstanceContainer(instMap cmap.ConcurrentMap) factory.InstanceContainer {
 	if instMap == nil {
 		instMap = cmap.New()
 	}
@@ -21,11 +21,11 @@ func newInstance(instMap cmap.ConcurrentMap) factory.Instance {
 	}
 }
 
-// Get get instance
+// Get instanceContainer
 func (i *instance) Get(params ...interface{}) (retVal interface{}) {
 	name, obj := factory.ParseParams(params...)
 
-	// get from instance map if external instance map does not have it
+	// get from instanceContainer map if external instanceContainer map does not have it
 	if md, ok := i.instMap.Get(name); ok {
 		metaData := factory.CastMetaData(md)
 		if metaData != nil {
@@ -41,7 +41,7 @@ func (i *instance) Get(params ...interface{}) (retVal interface{}) {
 	return
 }
 
-// Set save instance
+// Set save instanceContainer
 func (i *instance) Set(params ...interface{}) (err error) {
 	name, inst := factory.ParseParams(params...)
 
@@ -52,7 +52,7 @@ func (i *instance) Set(params ...interface{}) (err error) {
 
 	old, ok := i.instMap.Get(name)
 	if ok {
-		err = fmt.Errorf("instance %v is already taken by %v", name, old)
+		err = fmt.Errorf("instanceContainer %v is already taken by %v", name, old)
 		// TODO: should handle such error
 		log.Debugf("%+v", err)
 		return

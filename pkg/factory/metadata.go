@@ -11,6 +11,12 @@ import (
 	"strings"
 )
 
+const (
+	ScopeSingleton = "singleton"
+	ScopePrototype = "prototype"
+	ScopeRequest   = "request"
+)
+
 // MetaData is the injectable object meta data
 type MetaData struct {
 	Kind        string

@@ -892,3 +892,15 @@ func TestImplements(t *testing.T) {
 	assert.True(t, ok)
 
 }
+
+func TestNew(t *testing.T) {
+	t.Run("should create new instance by struct", func(t *testing.T) {
+		c := New[MyNewCompany]()
+		assert.NotNil(t, c)
+	})
+
+	t.Run("should create new instance by the point of struct", func(t *testing.T) {
+		c := New[*MyNewCompany]()
+		assert.NotNil(t, c)
+	})
+}

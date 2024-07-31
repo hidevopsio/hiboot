@@ -80,7 +80,7 @@ type handler struct {
 	responses       []response
 	lenOfPathParams int
 	factory         factory.ConfigurableFactory
-	runtimeInstance factory.Instance
+	runtimeInstance factory.InstanceContainer
 	contextName     string
 	dependencies    []*factory.MetaData
 
@@ -422,7 +422,7 @@ func (h *handler) call(ctx context.Context) {
 	var reqErr error
 	var path string
 	var pvs []string
-	var runtimeInstance factory.Instance
+	var runtimeInstance factory.InstanceContainer
 
 	// init responses
 	log.Debugf("HTTP Handler: %v: %v %v%v", ctx.HandlerIndex(-1), ctx.Method(), ctx.Host(), ctx.Path())
