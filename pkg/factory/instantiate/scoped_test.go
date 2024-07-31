@@ -12,24 +12,6 @@ import (
 	"testing"
 )
 
-//func TestScopedInstanceFactory(t *testing.T) {
-//	t.Run("should get scoped instance", func(t *testing.T) {
-//		type Foo struct {
-//			Name string
-//		}
-//		type FooService struct {
-//			factory *instantiate.ScopedInstanceFactory[Foo]
-//		}
-//		svc := &FooService{}
-//		svc.factory = &instantiate.ScopedInstanceFactory[Foo]{}
-//
-//		result := svc.factory.GetInstance()
-//
-//		assert.NotEqual(t, nil, result)
-//
-//	})
-//}
-
 type bar struct {
 	at.Scope `value:"prototype"`
 	ID       string
