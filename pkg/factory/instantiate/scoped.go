@@ -35,7 +35,19 @@ func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T)
 	instItf := instFactory.GetInstance(typ, factory.MetaData{})
 	if instItf == nil {
 		retVal = reflector.New[T]()
+		ann := annotation.GetAnnotation(t, at.Scope{})
+		if ann == nil {
+			// default is singleton
+			_ = instFactory.SetInstance(retVal)
+		}
 		return
+	} else {
+		// TODO: check if instance is prototype?
+		instObj := instItf.(*factory.MetaData)
+		if instObj.Instance != nil {
+			retVal = instObj.Instance.(T)
+			return
+		}
 	}
 
 	inst := instItf.(*factory.MetaData)

@@ -70,11 +70,23 @@ func TestScopedInstanceFactory(t *testing.T) {
 	instFactory.AppendComponent(newScopedFuncObj)
 	_ = instFactory.BuildComponents()
 
-	t.Run("should get scoped instance by default", func(t *testing.T) {
+	t.Run("should get singleton instance by default", func(t *testing.T) {
 		type Foo struct {
 			Name string
 		}
 		f := &instantiate.ScopedInstanceFactory[*Foo]{}
+		result1 := f.GetInstance()
+		assert.NotEqual(t, nil, result1)
+		result2 := f.GetInstance()
+		assert.NotEqual(t, nil, result2)
+	})
+
+	t.Run("should get scoped instance by default", func(t *testing.T) {
+		type Bar struct {
+			at.Scope `value:"prototype"`
+			Name     string
+		}
+		f := &instantiate.ScopedInstanceFactory[*Bar]{}
 		result1 := f.GetInstance()
 		assert.NotEqual(t, nil, result1)
 		result2 := f.GetInstance()
