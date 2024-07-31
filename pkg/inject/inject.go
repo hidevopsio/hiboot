@@ -65,10 +65,10 @@ var (
 // Inject is the interface for inject tag
 type Inject interface {
 	DefaultValue(object interface{}) error
-	IntoObject(instance factory.InstanceContainer, object interface{}) error
-	IntoObjectValue(instance factory.InstanceContainer, object reflect.Value, property string, tags ...Tag) error
-	IntoMethod(instance factory.InstanceContainer, object interface{}, m interface{}) (retVal interface{}, err error)
-	IntoFunc(instance factory.InstanceContainer, object interface{}) (retVal interface{}, err error)
+	IntoObject(instanceContainer factory.InstanceContainer, object interface{}) error
+	IntoObjectValue(instanceContainer factory.InstanceContainer, object reflect.Value, property string, tags ...Tag) error
+	IntoMethod(instanceContainer factory.InstanceContainer, object interface{}, m interface{}) (retVal interface{}, err error)
+	IntoFunc(instanceContainer factory.InstanceContainer, object interface{}) (retVal interface{}, err error)
 	IntoAnnotations(annotations *annotation.Annotations) (err error)
 }
 

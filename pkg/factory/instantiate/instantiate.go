@@ -183,8 +183,8 @@ func (f *instantiateFactory) injectDependency(instanceContainer factory.Instance
 }
 
 // InjectDependency inject dependency
-func (f *instantiateFactory) InjectDependency(instance factory.InstanceContainer, object interface{}) (err error) {
-	return f.injectDependency(instance, factory.CastMetaData(object))
+func (f *instantiateFactory) InjectDependency(instanceContainer factory.InstanceContainer, object interface{}) (err error) {
+	return f.injectDependency(instanceContainer, factory.CastMetaData(object))
 }
 
 // BuildComponents build all registered components
@@ -219,13 +219,13 @@ func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
-	var instance factory.InstanceContainer
+	var instanceContainer factory.InstanceContainer
 	switch params[0].(type) {
 	case factory.InstanceContainer:
-		instance = params[0].(factory.InstanceContainer)
+		instanceContainer = params[0].(factory.InstanceContainer)
 		params = params[1:]
 	default:
-		instance = f.instanceContainer
+		instanceContainer = f.instanceContainer
 		if len(params) > 1 && params[0] == nil {
 			params = params[1:]
 		}
@@ -246,7 +246,7 @@ func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 		if metaData.Scope != "" && f.scopedInstanceContainer != nil {
 			_ = f.scopedInstanceContainer.Set(name, inst)
 		} else {
-			err = instance.Set(name, inst)
+			err = instanceContainer.Set(name, inst)
 			// categorize instances
 			obj := metaData.MetaObject
 			if metaData.Instance != nil {
@@ -311,8 +311,8 @@ func (f *instantiateFactory) DefaultProperties() map[string]interface{} {
 }
 
 // InjectIntoObject inject into object
-func (f *instantiateFactory) InjectIntoObject(instance factory.InstanceContainer, object interface{}) error {
-	return f.inject.IntoObject(instance, object)
+func (f *instantiateFactory) InjectIntoObject(instanceContainer factory.InstanceContainer, object interface{}) error {
+	return f.inject.IntoObject(instanceContainer, object)
 }
 
 // InjectDefaultValue inject default value
@@ -321,13 +321,13 @@ func (f *instantiateFactory) InjectDefaultValue(object interface{}) error {
 }
 
 // InjectIntoFunc inject into func
-func (f *instantiateFactory) InjectIntoFunc(instance factory.InstanceContainer, object interface{}) (retVal interface{}, err error) {
-	return f.inject.IntoFunc(instance, object)
+func (f *instantiateFactory) InjectIntoFunc(instanceContainer factory.InstanceContainer, object interface{}) (retVal interface{}, err error) {
+	return f.inject.IntoFunc(instanceContainer, object)
 }
 
 // InjectIntoMethod inject into method
-func (f *instantiateFactory) InjectIntoMethod(instance factory.InstanceContainer, owner, object interface{}) (retVal interface{}, err error) {
-	return f.inject.IntoMethod(instance, owner, object)
+func (f *instantiateFactory) InjectIntoMethod(instanceContainer factory.InstanceContainer, owner, object interface{}) (retVal interface{}, err error) {
+	return f.inject.IntoMethod(instanceContainer, owner, object)
 }
 
 func (f *instantiateFactory) Replace(source string) (retVal interface{}) {
@@ -359,20 +359,20 @@ func (f *instantiateFactory) InjectScopedDependencies(instanceContainer factory.
 }
 
 // InjectScopedObjects inject context aware objects
-func (f *instantiateFactory) InjectScopedObjects(ctx context.Context, dps []*factory.MetaData) (instance factory.InstanceContainer, err error) {
+func (f *instantiateFactory) InjectScopedObjects(ctx context.Context, dps []*factory.MetaData) (instanceContainer factory.InstanceContainer, err error) {
 	log.Debugf(">>> InjectScopedObjects(%x) ...", &ctx)
 
 	// create new runtime instanceContainer
-	instance = newInstanceContainer(nil)
+	instanceContainer = newInstanceContainer(nil)
 
 	// update context
-	err = instance.Set(reflector.GetLowerCamelFullName(new(context.Context)), ctx)
+	err = instanceContainer.Set(reflector.GetLowerCamelFullName(new(context.Context)), ctx)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 
-	err = f.InjectScopedDependencies(instance, dps)
+	err = f.InjectScopedDependencies(instanceContainer, dps)
 	if err != nil {
 		log.Error(err)
 	}
