@@ -223,8 +223,8 @@ github.com/hashicorp/memberlist v0.1.3/go.mod h1:ajVTdAv/9Im8oMAAj5G31PhhMCZJV2p
 github.com/hashicorp/serf v0.8.2/go.mod h1:6hOLApaqBFA1NXqRQAsxw9QxuDEvNxSQRwA/JwenrHc=
 github.com/hidevopsio/gocron v1.6.1-0.20210602042859-a8b1ada7665d h1:tyb3Uofi0B2+J6ocO34jjzDjKTxMQMVLMRMEBG5Z/4c=
 github.com/hidevopsio/gocron v1.6.1-0.20210602042859-a8b1ada7665d/go.mod h1:r7hFZ8FQUTzUrBwbBao1OPpKO0/dZGTOEkBVFar+Fww=
-github.com/hidevopsio/iris v0.0.0-20240522043519-7932916d1d89 h1:y8AecXmfH/tZOnW+eB3R3xTgAKv5PfyO9a2wfJ4IbsY=
-github.com/hidevopsio/iris v0.0.0-20240522043519-7932916d1d89/go.mod h1:wENXcJFz8sj1p+0bEw+xrTe7BcAazQjml5H+2AlxpNE=
+github.com/hidevopsio/iris v0.0.0-20240522080333-da78b38243dd h1:QqVciTq2xkzRsI45NxDuAoHku7mVuQUz5/jO6+AzNlk=
+github.com/hidevopsio/iris v0.0.0-20240522080333-da78b38243dd/go.mod h1:wENXcJFz8sj1p+0bEw+xrTe7BcAazQjml5H+2AlxpNE=
 github.com/hidevopsio/mapstructure v1.1.3-0.20190908102033-f8832fd9e307 h1:Zc7/94OHdzC0A2sbJhrYErhhgho+fVW0qYQHarr8I+A=
 github.com/hidevopsio/mapstructure v1.1.3-0.20190908102033-f8832fd9e307/go.mod h1:HfcSxv9DfiSRv+QktNJmUUS4ByRmkxbldwKCpFglm7A=
 github.com/hidevopsio/viper v1.2.2-0.20210220025633-ccb4b202d169 h1:Ph6BkgjMElcd5eVVcKuUYcIsw615++Ou0aJJwgNED9M=
