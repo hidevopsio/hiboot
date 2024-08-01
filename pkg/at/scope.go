@@ -29,7 +29,7 @@ type Scope struct {
 //	  ...
 //	}
 //
-// Deprecated: use Scope instead
+// Deprecated: use at.Scope `value:"request"` instead
 type ContextAware struct {
 	Annotation
 
