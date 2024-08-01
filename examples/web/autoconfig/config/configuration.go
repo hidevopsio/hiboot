@@ -80,8 +80,8 @@ func (c *configuration) FooBar() *FooBar {
 }
 
 type BazConfig struct {
-	at.Conditional `value:"Name"`
-	Name           string `json:"name"`
+	at.ConditionalOnField `value:"Name"`
+	Name                  string `json:"name"`
 }
 
 // Baz is a prototype scoped instance
