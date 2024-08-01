@@ -13,7 +13,7 @@ require (
 	github.com/go-playground/validator/v10 v10.5.0
 	github.com/gojektech/valkyrie v0.0.0-20190210220504-8f62c1e7ba45
 	github.com/golang/mock v1.4.4
-	github.com/golang/protobuf v1.4.2
+	github.com/golang/protobuf v1.5.0
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.0
 	github.com/gorilla/websocket v1.4.2
@@ -115,7 +115,7 @@ require (
 	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/genproto v0.0.0-20200423170343-7949de9c1215 // indirect
-	google.golang.org/protobuf v1.23.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/ini.v1 v1.51.0 // indirect
 	gopkg.in/russross/blackfriday.v2 v2.0.0+incompatible // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
