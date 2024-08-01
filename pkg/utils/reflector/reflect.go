@@ -598,3 +598,16 @@ func Implements(object interface{}, interfaceType interface{}) (ok bool) {
 
 	return
 }
+
+// New instantiate new object by type
+func New[T any]() T {
+	var t T
+	typ := reflect.TypeOf(t)
+	if typ.Kind() == reflect.Ptr {
+		// If T is a pointer type, create a new instance of the element type and return its address
+		typ = typ.Elem()
+		return reflect.New(typ).Interface().(T)
+	}
+	// If T is not a pointer type, create a new instance of T directly
+	return reflect.New(typ).Elem().Interface().(T)
+}

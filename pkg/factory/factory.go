@@ -34,7 +34,7 @@ const (
 // Factory interface
 type Factory interface{}
 
-type Instance interface {
+type InstanceContainer interface {
 	Get(params ...interface{}) (retVal interface{})
 	Set(params ...interface{}) (err error)
 	Items() map[string]interface{}
@@ -55,13 +55,14 @@ type InstantiateFactory interface {
 	SetProperty(name string, value interface{}) InstantiateFactory
 	SetDefaultProperty(name string, value interface{}) InstantiateFactory
 	DefaultProperties() map[string]interface{}
-	InjectIntoFunc(instance Instance, object interface{}) (retVal interface{}, err error)
-	InjectIntoMethod(instance Instance, owner, object interface{}) (retVal interface{}, err error)
+	InjectIntoFunc(instanceContainer InstanceContainer, object interface{}) (retVal interface{}, err error)
+	InjectIntoMethod(instanceContainer InstanceContainer, owner, object interface{}) (retVal interface{}, err error)
 	InjectDefaultValue(object interface{}) error
-	InjectIntoObject(instance Instance, object interface{}) error
-	InjectDependency(instance Instance, object interface{}) (err error)
+	InjectIntoObject(instanceContainer InstanceContainer, object interface{}) error
+	InjectDependency(instanceContainer InstanceContainer, object interface{}) (err error)
 	Replace(name string) interface{}
-	InjectContextAwareObjects(ctx context.Context, dps []*MetaData) (runtimeInstance Instance, err error)
+	InjectScopedObjects(ctx context.Context, dependencies []*MetaData) (instanceContainer InstanceContainer, err error)
+	InjectScopedDependencies(instanceContainer InstanceContainer, dependencies []*MetaData) (err error)
 }
 
 // ConfigurableFactory configurable factory interface

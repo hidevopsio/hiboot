@@ -39,14 +39,14 @@ const (
 	hiboot     = "Hiboot"
 )
 
-type ContextAwareFooBar struct {
-	at.ContextAware
-	Name    string
-	context context.Context
+type ScopedFooBar struct {
+	at.Scope `value:"request"`
+	Name     string
+	context  context.Context
 }
 
-func newContextAwareFooBar(context context.Context) *ContextAwareFooBar {
-	return &ContextAwareFooBar{context: context}
+func newScopedFooBar(context context.Context) *ScopedFooBar {
+	return &ScopedFooBar{context: context}
 }
 
 type FooBar struct {
@@ -109,15 +109,15 @@ func TestInstantiateFactory(t *testing.T) {
 
 	instFactory := instantiate.NewInstantiateFactory(nil, nil, nil)
 	testName := "foobar"
-	t.Run("should failed to set/get instance when factory is not initialized", func(t *testing.T) {
-		inst := instFactory.GetInstance("not-exist-instance")
+	t.Run("should failed to set/get instanceContainer when factory is not initialized", func(t *testing.T) {
+		inst := instFactory.GetInstance("not-exist-instanceContainer")
 		assert.Equal(t, nil, inst)
 
 		err := instFactory.SetInstance("foo", nil)
 		assert.Equal(t, instantiate.ErrNotInitialized, err)
 
 		item := instFactory.Items()
-		// should have 1 instance (of system.Configuration)
+		// should have 1 instanceContainer (of system.Configuration)
 		assert.Equal(t, 6, len(item))
 	})
 
@@ -134,7 +134,7 @@ func TestInstantiateFactory(t *testing.T) {
 
 	testComponents = append(testComponents, factory.NewMetaData(f),
 		factory.NewMetaData(web.NewContext(nil)),
-		factory.NewMetaData(newContextAwareFooBar),
+		factory.NewMetaData(newScopedFooBar),
 		factory.NewMetaData(&FooBar{Name: testName}),
 		factory.NewMetaData(&BarServiceImpl{}),
 		factory.NewMetaData(newFooBarService),
@@ -172,27 +172,27 @@ func TestInstantiateFactory(t *testing.T) {
 		assert.Equal(t, nil, err)
 	})
 
-	t.Run("should get built instance", func(t *testing.T) {
+	t.Run("should get built instanceContainer", func(t *testing.T) {
 		inst := instFactory.GetInstance(HelloWorld{})
 		assert.NotEqual(t, nil, inst)
 		assert.Equal(t, "Hello world", inst.(*HelloWorld).Message)
 	})
 
-	t.Run("should get built instance in specific type", func(t *testing.T) {
+	t.Run("should get built instanceContainer in specific type", func(t *testing.T) {
 		hmd := instFactory.GetInstance(HelloWorld{}, factory.MetaData{})
 		assert.NotEqual(t, nil, hmd)
 		inst := hmd.(*factory.MetaData).Instance
 		assert.Equal(t, "Hello world", inst.(*HelloWorld).Message)
 	})
 
-	t.Run("should set and get instance from factory", func(t *testing.T) {
+	t.Run("should set and get instanceContainer from factory", func(t *testing.T) {
 		instFactory.SetInstance(f)
 		inst := instFactory.GetInstance(foo{})
 		assert.Equal(t, f, inst)
 	})
 
-	t.Run("should failed to get instance that does not exist", func(t *testing.T) {
-		inst := instFactory.GetInstance("not-exist-instance")
+	t.Run("should failed to get instanceContainer that does not exist", func(t *testing.T) {
+		inst := instFactory.GetInstance("not-exist-instanceContainer")
 		assert.Equal(t, nil, inst)
 	})
 
@@ -201,7 +201,7 @@ func TestInstantiateFactory(t *testing.T) {
 		assert.Equal(t, 0, len(inst))
 	})
 
-	t.Run("should set instance", func(t *testing.T) {
+	t.Run("should set instanceContainer", func(t *testing.T) {
 		err := instFactory.SetInstance(new(foo))
 		assert.NotEqual(t, nil, err)
 	})
@@ -349,27 +349,27 @@ func TestMapSet(t *testing.T) {
 	fmt.Println(allClasses.IsSuperset(mapset.NewSetFromSlice([]interface{}{"Welding", "Automotive", "English"}))) //true
 }
 
-type contextAwareFuncObject struct {
-	at.ContextAware
+type scopedFuncObject struct {
+	at.Scope `value:"request"`
 
 	context context.Context
 }
-type contextAwareMethodObject struct {
-	at.ContextAware
+type scopedMethodObject struct {
+	at.Scope `value:"request"`
 
 	context context.Context
 }
 
-func newContextAwareObject(ctx context.Context) *contextAwareFuncObject {
+func newScopedObject(ctx context.Context) *scopedFuncObject {
 	//log.Infof("context: %v", ctx)
-	return &contextAwareFuncObject{context: ctx}
+	return &scopedFuncObject{context: ctx}
 }
 
 type foo struct {
 }
 
-func (f *foo) ContextAwareMethodObject(ctx context.Context) *contextAwareMethodObject {
-	return &contextAwareMethodObject{context: ctx}
+func (f *foo) ScopedMethodObject(ctx context.Context) *scopedMethodObject {
+	return &scopedMethodObject{context: ctx}
 }
 
 func TestRuntimeInstance(t *testing.T) {
@@ -383,12 +383,12 @@ func TestRuntimeInstance(t *testing.T) {
 	ft := reflect.TypeOf(f)
 
 	ctxMd := factory.NewMetaData(reflector.GetLowerCamelFullName(new(context.Context)), ctx)
-	method, ok := ft.MethodByName("ContextAwareMethodObject")
+	method, ok := ft.MethodByName("ScopedMethodObject")
 	assert.Equal(t, true, ok)
 	testComponents = append(testComponents,
 		factory.NewMetaData(f, method),
 		ctxMd,
-		factory.NewMetaData(newContextAwareObject),
+		factory.NewMetaData(newScopedObject),
 	)
 
 	ic := cmap.New()
@@ -397,13 +397,13 @@ func TestRuntimeInstance(t *testing.T) {
 	instFactory := instantiate.NewInstantiateFactory(ic, testComponents, customProps)
 	instFactory.AppendComponent(new(testService))
 	_ = instFactory.BuildComponents()
-	dps := instFactory.GetInstances(at.ContextAware{})
+	dps := instFactory.GetInstances(at.Scope{})
 	if len(dps) > 0 {
-		ri, err := instFactory.InjectContextAwareObjects(web.NewContext(nil), dps)
+		ri, err := instFactory.InjectScopedObjects(web.NewContext(nil), dps)
 		assert.Equal(t, nil, err)
 		log.Debug(ri.Items())
 		assert.Equal(t, ctx, ri.Get(new(context.Context)))
-		assert.NotEqual(t, nil, ri.Get(contextAwareFuncObject{}))
-		assert.NotEqual(t, nil, ri.Get(contextAwareMethodObject{}))
+		assert.NotEqual(t, nil, ri.Get(scopedFuncObject{}))
+		assert.NotEqual(t, nil, ri.Get(scopedMethodObject{}))
 	}
 }

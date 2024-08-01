@@ -7,7 +7,7 @@ import (
 
 // Connection is the websocket connection
 type Connection struct {
-	at.ContextAware
+	at.Scope `value:"request"`
 	websocket.Connection
 }
 

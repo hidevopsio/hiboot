@@ -80,7 +80,7 @@ type handler struct {
 	responses       []response
 	lenOfPathParams int
 	factory         factory.ConfigurableFactory
-	runtimeInstance factory.Instance
+	runtimeInstance factory.InstanceContainer
 	contextName     string
 	dependencies    []*factory.MetaData
 
@@ -175,12 +175,12 @@ func (h *handler) parseMethod(injectableObject *injectableObject, injectableMeth
 		typ := method.Type.In(i)
 		iTyp := reflector.IndirectType(typ)
 
-		// parse embedded annotation at.ContextAware
-		// append at.ContextAware dependencies
+		// parse embedded annotation at.Scope
+		// append at.Scope dependencies
 		dp := h.factory.GetInstance(iTyp, factory.MetaData{})
 		if dp != nil {
 			cdp := dp.(*factory.MetaData)
-			if cdp.ContextAware {
+			if cdp.Scope != "" {
 				h.dependencies = append(h.dependencies, dp.(*factory.MetaData))
 			}
 		}
@@ -422,7 +422,7 @@ func (h *handler) call(ctx context.Context) {
 	var reqErr error
 	var path string
 	var pvs []string
-	var runtimeInstance factory.Instance
+	var runtimeInstance factory.InstanceContainer
 
 	// init responses
 	log.Debugf("HTTP Handler: %v: %v %v%v", ctx.HandlerIndex(-1), ctx.Method(), ctx.Host(), ctx.Path())
@@ -437,7 +437,7 @@ func (h *handler) call(ctx context.Context) {
 	}
 	var results []reflect.Value
 	if len(h.dependencies) > 0 {
-		runtimeInstance, reqErr = h.factory.InjectContextAwareObjects(ctx, h.dependencies)
+		runtimeInstance, reqErr = h.factory.InjectScopedObjects(ctx, h.dependencies)
 		if reqErr != nil && h.numOut > 0 {
 			results = make([]reflect.Value, h.numOut)
 			if h.numOut > 1 {

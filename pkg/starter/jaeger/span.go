@@ -2,23 +2,22 @@ package jaeger
 
 import (
 	"context"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
 	webctx "github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/at"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 	"net/http"
 )
 
-//Span  is the wrap of opentracing.Span
+// Span  is the wrap of opentracing.Span
 type Span struct {
-	at.ContextAware
+	at.Scope `value:"request"`
 	opentracing.Span
 	context webctx.Context
 }
 
-//ChildSpan
+// ChildSpan
 type ChildSpan Span
-
 
 func (s *Span) Inject(ctx context.Context, method string, url string, req *http.Request) opentracing.Span {
 	c := opentracing.ContextWithSpan(ctx, s)
@@ -35,7 +34,6 @@ func (s *Span) Inject(ctx context.Context, method string, url string, req *http.
 
 	return newSpan
 }
-
 
 func (s *ChildSpan) Inject(ctx context.Context, method string, url string, req *http.Request) opentracing.Span {
 	c := opentracing.ContextWithSpan(ctx, s)

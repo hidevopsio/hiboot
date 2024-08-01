@@ -122,6 +122,6 @@ require (
 )
 
 replace (
-	github.com/kataras/iris => github.com/hidevopsio/iris v0.0.0-20240522043519-7932916d1d89
+	github.com/kataras/iris => github.com/hidevopsio/iris v0.0.0-20240522080333-da78b38243dd
 	google.golang.org/grpc => google.golang.org/grpc v1.26.0
 )

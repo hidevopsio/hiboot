@@ -18,14 +18,17 @@ package main
 
 // import web starter from hiboot
 import (
+	"fmt"
 	"github.com/hidevopsio/hiboot/examples/web/autoconfig/config"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/at"
+	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/starter/actuator"
 	"github.com/hidevopsio/hiboot/pkg/starter/swagger"
+	"net/http"
 )
 
 // Controller Rest Controller with path /
@@ -36,10 +39,15 @@ type Controller struct {
 	at.RequestMapping `value:"/"`
 
 	foo *config.Foo
+
+	factory *instantiate.ScopedInstanceFactory[*config.Baz]
 }
 
-func newController(foo *config.Foo) *Controller  {
-	return &Controller{foo: foo}
+func newController(foo *config.Foo) *Controller {
+	return &Controller{
+		foo:     foo,
+		factory: &instantiate.ScopedInstanceFactory[*config.Baz]{},
+	}
 }
 
 func init() {
@@ -51,46 +59,43 @@ func (c *Controller) Get(_ struct {
 	at.GetMapping `value:"/"`
 	at.Operation  `id:"helloWorld" description:"This is hello world API"`
 	at.Produces   `values:"text/plain"`
-	Responses struct {
+	Responses     struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"response status OK"`
-			at.Schema `type:"string" description:"returns hello world message"`
+			at.Schema   `type:"string" description:"returns hello world message"`
 		}
 	}
 }, ctx context.Context, bar *config.Bar) string {
 	code := ctx.GetStatusCode()
 	log.Info(code)
-	// response
-	return "Hello " + c.foo.Name + ", " + bar.Name
-}
+	if code == http.StatusUnauthorized {
+		return ""
+	}
 
+	result := c.factory.GetInstance(&config.BazConfig{Name: "baz1"})
+	log.Infof("result: %v", result.Name)
+
+	result = c.factory.GetInstance(&config.BazConfig{Name: "baz2"})
+	log.Infof("result: %v", result.Name)
+
+	return fmt.Sprintf("Hello %v, %v, and %v!", c.foo.Name, bar.Name, result.Name)
+}
 
 // GetError GET /
 func (c *Controller) GetError(_ struct {
 	at.GetMapping `value:"/error"`
 	at.Operation  `id:"error" description:"This is hello world API"`
 	at.Produces   `values:"text/plain"`
-	Responses struct {
+	Responses     struct {
 		StatusOK struct {
 			at.Response `code:"200" description:"response status OK"`
-			at.Schema `type:"string" description:"returns hello world message"`
+			at.Schema   `type:"string" description:"returns hello world message"`
 		}
 	}
 }, ctx context.Context, errorWithFoo *config.FooWithError) (response string) {
-	code := ctx.GetStatusCode()
-	log.Info(code)
-
-	if errorWithFoo == nil {
-		response = "injected object errorWithFoo is expected to be nil"
-		log.Info(response)
-	} else {
-		response = "unexpected"
-	}
-	// response
-	return response
+	// will never be executed as errorWithFoo will not be injected
+	return
 }
-
-
 
 // main function
 func main() {
