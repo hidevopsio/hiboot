@@ -8,6 +8,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"reflect"
+	"strings"
 )
 
 // ScopedInstanceFactory implements ScopedInstanceFactory
@@ -57,14 +58,20 @@ func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T)
 		if len(params) > 0 {
 			for _, param := range params {
 				if param != nil {
-					ann := annotation.GetAnnotation(param, at.Conditional{})
+					ann := annotation.GetAnnotation(param, at.ConditionalOnField{})
 					if ann != nil {
-						fieldName, ok := ann.Field.StructField.Tag.Lookup("value")
+						fieldNames, ok := ann.Field.StructField.Tag.Lookup("value")
 						if ok {
-							fv := reflector.GetFieldValue(param, fieldName)
-							switch fv.Interface().(type) {
-							case string:
-								conditionalKey = conditionalKey + "-" + fv.Interface().(string)
+
+							// Split the fieldNames string by comma to get individual field names
+							fieldList := strings.Split(fieldNames, ",")
+
+							for _, fieldName := range fieldList {
+								fv := reflector.GetFieldValue(param, fieldName)
+								switch fv.Interface().(type) {
+								case string:
+									conditionalKey = conditionalKey + "-" + fv.Interface().(string)
+								}
 							}
 						}
 					}

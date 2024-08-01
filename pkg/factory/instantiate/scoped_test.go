@@ -34,9 +34,9 @@ func (f *fooObj) Bar() *bar {
 }
 
 type myConfig struct {
-	at.Conditional `value:"Name"`
-
-	Name string `json:"name"`
+	at.ConditionalOnField `value:"Namespace,Name"`
+	Namespace             string `json:"namespace"`
+	Name                  string `json:"name"`
 }
 type scopedFuncObj struct {
 	at.Scope `value:"prototype"`
@@ -110,6 +110,11 @@ func TestScopedInstanceFactory(t *testing.T) {
 		}
 		svc := &FooService{}
 		svc.factory = &instantiate.ScopedInstanceFactory[*scopedFuncObj]{}
+		err := instFactory.SetInstance(&myConfig{Name: "default"})
+		assert.Equal(t, nil, err)
+		result0 := svc.factory.GetInstance()
+		assert.Equal(t, "default", result0.config.Name)
+
 		result1 := svc.factory.GetInstance(&myConfig{Name: "test1"})
 		assert.Equal(t, "test1", result1.config.Name)
 
@@ -118,5 +123,9 @@ func TestScopedInstanceFactory(t *testing.T) {
 
 		result3 := svc.factory.GetInstance(&myConfig{Name: "test2"})
 		assert.Equal(t, "test2", result3.config.Name)
+
+		result4 := svc.factory.GetInstance(&myConfig{Namespace: "dev", Name: "test4"})
+		assert.Equal(t, "test4", result4.config.Name)
+		assert.Equal(t, "dev", result4.config.Namespace)
 	})
 }
