@@ -1,6 +1,7 @@
 package instantiate_test
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
@@ -127,5 +128,19 @@ func TestScopedInstanceFactory(t *testing.T) {
 		result4 := svc.factory.GetInstance(&myConfig{Namespace: "dev", Name: "test4"})
 		assert.Equal(t, "test4", result4.config.Name)
 		assert.Equal(t, "dev", result4.config.Namespace)
+	})
+
+	t.Run("should get scoped instance with conditional name and context", func(t *testing.T) {
+		type FooService struct {
+			factory *instantiate.ScopedInstanceFactory[*scopedFuncObj]
+		}
+		ctx := web.NewContext(nil)
+		svc := &FooService{}
+		svc.factory = &instantiate.ScopedInstanceFactory[*scopedFuncObj]{}
+		err := instFactory.SetInstance(&myConfig{Name: "default"})
+		assert.Equal(t, nil, err)
+		result0 := svc.factory.GetInstance(ctx)
+		assert.Equal(t, "default", result0.config.Name)
+
 	})
 }

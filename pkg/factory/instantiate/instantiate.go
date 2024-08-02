@@ -359,17 +359,22 @@ func (f *instantiateFactory) InjectScopedDependencies(instanceContainer factory.
 }
 
 // InjectScopedObjects inject context aware objects
-func (f *instantiateFactory) InjectScopedObjects(ctx context.Context, dps []*factory.MetaData) (instanceContainer factory.InstanceContainer, err error) {
+func (f *instantiateFactory) InjectScopedObjects(ctx context.Context, dps []*factory.MetaData, ic factory.InstanceContainer) (instanceContainer factory.InstanceContainer, err error) {
 	log.Debugf(">>> InjectScopedObjects(%x) ...", &ctx)
 
 	// create new runtime instanceContainer
-	instanceContainer = newInstanceContainer(nil)
+	instanceContainer = ic
+	if instanceContainer == nil {
+		instanceContainer = newInstanceContainer(nil)
+	}
 
 	// update context
-	err = instanceContainer.Set(reflector.GetLowerCamelFullName(new(context.Context)), ctx)
-	if err != nil {
-		log.Error(err)
-		return
+	if ctx != nil {
+		err = instanceContainer.Set(reflector.GetLowerCamelFullName(new(context.Context)), ctx)
+		if err != nil {
+			log.Error(err)
+			return
+		}
 	}
 
 	err = f.InjectScopedDependencies(instanceContainer, dps)

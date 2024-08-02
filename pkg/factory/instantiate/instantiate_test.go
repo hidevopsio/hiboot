@@ -202,8 +202,11 @@ func TestInstantiateFactory(t *testing.T) {
 	})
 
 	t.Run("should set instanceContainer", func(t *testing.T) {
-		err := instFactory.SetInstance(new(foo))
-		assert.NotEqual(t, nil, err)
+		fi := new(foo)
+		err := instFactory.SetInstance(fi)
+		assert.Equal(t, nil, err)
+		inst := instFactory.GetInstance(foo{})
+		assert.Equal(t, fi, inst)
 	})
 
 	t.Run("should get factory items", func(t *testing.T) {
@@ -399,7 +402,8 @@ func TestRuntimeInstance(t *testing.T) {
 	_ = instFactory.BuildComponents()
 	dps := instFactory.GetInstances(at.Scope{})
 	if len(dps) > 0 {
-		ri, err := instFactory.InjectScopedObjects(web.NewContext(nil), dps)
+		ctx = web.NewContext(nil)
+		ri, err := instFactory.InjectScopedObjects(ctx, dps, nil)
 		assert.Equal(t, nil, err)
 		log.Debug(ri.Items())
 		assert.Equal(t, ctx, ri.Get(new(context.Context)))
