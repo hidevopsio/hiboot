@@ -1,6 +1,7 @@
 package instantiate
 
 import (
+	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/factory"
 	"github.com/hidevopsio/hiboot/pkg/inject/annotation"
@@ -50,7 +51,7 @@ func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T)
 			return
 		}
 	}
-
+	var ctx context.Context
 	inst := instItf.(*factory.MetaData)
 	if inst.Scope == factory.ScopePrototype {
 		conditionalKey := typName
@@ -58,22 +59,12 @@ func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T)
 		if len(params) > 0 {
 			for _, param := range params {
 				if param != nil {
-					ann := annotation.GetAnnotation(param, at.ConditionalOnField{})
-					if ann != nil {
-						fieldNames, ok := ann.Field.StructField.Tag.Lookup("value")
-						if ok {
-
-							// Split the fieldNames string by comma to get individual field names
-							fieldList := strings.Split(fieldNames, ",")
-
-							for _, fieldName := range fieldList {
-								fv := reflector.GetFieldValue(param, fieldName)
-								switch fv.Interface().(type) {
-								case string:
-									conditionalKey = conditionalKey + "-" + fv.Interface().(string)
-								}
-							}
-						}
+					switch param.(type) {
+					case context.Context:
+						ctx = param.(context.Context)
+						continue
+					default:
+						conditionalKey = f.parseConditionalField(param, conditionalKey)
 					}
 					err = instanceContainer.Set(param)
 					log.Debugf("set instance %v error code: %v", param, err)
@@ -92,7 +83,7 @@ func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T)
 			}
 		}
 
-		err = instFactory.InjectScopedDependencies(instanceContainer, []*factory.MetaData{inst})
+		instanceContainer, err = instFactory.InjectScopedObjects(ctx, []*factory.MetaData{inst}, instanceContainer)
 		if err == nil {
 			finalInst := instanceContainer.Get(typ)
 			retVal = finalInst.(T)
@@ -100,4 +91,25 @@ func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T)
 	}
 
 	return
+}
+
+func (f *ScopedInstanceFactory[T]) parseConditionalField(param interface{}, conditionalKey string) string {
+	ann := annotation.GetAnnotation(param, at.ConditionalOnField{})
+	if ann != nil {
+		fieldNames, ok := ann.Field.StructField.Tag.Lookup("value")
+		if ok {
+
+			// Split the fieldNames string by comma to get individual field names
+			fieldList := strings.Split(fieldNames, ",")
+
+			for _, fieldName := range fieldList {
+				fv := reflector.GetFieldValue(param, fieldName)
+				switch fv.Interface().(type) {
+				case string:
+					conditionalKey = conditionalKey + "-" + fv.Interface().(string)
+				}
+			}
+		}
+	}
+	return conditionalKey
 }

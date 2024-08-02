@@ -437,7 +437,7 @@ func (h *handler) call(ctx context.Context) {
 	}
 	var results []reflect.Value
 	if len(h.dependencies) > 0 {
-		runtimeInstance, reqErr = h.factory.InjectScopedObjects(ctx, h.dependencies)
+		runtimeInstance, reqErr = h.factory.InjectScopedObjects(ctx, h.dependencies, nil)
 		if reqErr != nil && h.numOut > 0 {
 			results = make([]reflect.Value, h.numOut)
 			if h.numOut > 1 {

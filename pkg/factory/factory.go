@@ -61,7 +61,7 @@ type InstantiateFactory interface {
 	InjectIntoObject(instanceContainer InstanceContainer, object interface{}) error
 	InjectDependency(instanceContainer InstanceContainer, object interface{}) (err error)
 	Replace(name string) interface{}
-	InjectScopedObjects(ctx context.Context, dependencies []*MetaData) (instanceContainer InstanceContainer, err error)
+	InjectScopedObjects(ctx context.Context, dependencies []*MetaData, ic InstanceContainer) (instanceContainer InstanceContainer, err error)
 	InjectScopedDependencies(instanceContainer InstanceContainer, dependencies []*MetaData) (err error)
 }
 
