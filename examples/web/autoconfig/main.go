@@ -65,20 +65,26 @@ func (c *Controller) Get(_ struct {
 			at.Schema   `type:"string" description:"returns hello world message"`
 		}
 	}
-}, ctx context.Context, bar *config.Bar) string {
+}, ctx context.Context, bar *config.Bar) (response string, err error) {
 	code := ctx.GetStatusCode()
 	log.Info(code)
 	if code == http.StatusUnauthorized {
-		return ""
+		return
 	}
-
-	result := c.factory.GetInstance(&config.BazConfig{Name: "baz1"})
+	var result *config.Baz
+	result, err = c.factory.GetInstance(&config.BazConfig{Name: "baz1"})
+	if err != nil {
+		return
+	}
 	log.Infof("result: %v", result.Name)
 
-	result = c.factory.GetInstance(&config.BazConfig{Name: "baz2"})
+	result, err = c.factory.GetInstance(&config.BazConfig{Name: "baz2"})
+	if err != nil {
+		return
+	}
 	log.Infof("result: %v", result.Name)
-
-	return fmt.Sprintf("Hello %v, %v, and %v!", c.foo.Name, bar.Name, result.Name)
+	response = fmt.Sprintf("Hello %v, %v, and %v!", c.foo.Name, bar.Name, result.Name)
+	return
 }
 
 // GetError GET /

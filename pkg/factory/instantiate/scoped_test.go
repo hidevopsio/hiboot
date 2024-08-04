@@ -76,10 +76,12 @@ func TestScopedInstanceFactory(t *testing.T) {
 			Name string
 		}
 		f := &instantiate.ScopedInstanceFactory[*TestFoo]{}
-		result1 := f.GetInstance()
-		assert.NotEqual(t, nil, result1)
-		result2 := f.GetInstance()
-		assert.NotEqual(t, nil, result2)
+		result1, err1 := f.GetInstance()
+		assert.Nil(t, err1)
+		assert.NotNil(t, result1)
+		result2, err2 := f.GetInstance()
+		assert.Nil(t, err2)
+		assert.NotNil(t, result2)
 	})
 
 	t.Run("should get scoped instance by default", func(t *testing.T) {
@@ -88,10 +90,12 @@ func TestScopedInstanceFactory(t *testing.T) {
 			Name     string
 		}
 		f := &instantiate.ScopedInstanceFactory[*TestBar]{}
-		result1 := f.GetInstance()
-		assert.NotEqual(t, nil, result1)
-		result2 := f.GetInstance()
-		assert.NotEqual(t, nil, result2)
+		result1, err1 := f.GetInstance()
+		assert.Nil(t, err1)
+		assert.NotNil(t, result1)
+		result2, err2 := f.GetInstance()
+		assert.Nil(t, err2)
+		assert.NotNil(t, result2)
 	})
 
 	t.Run("should get scoped instance each time", func(t *testing.T) {
@@ -100,8 +104,10 @@ func TestScopedInstanceFactory(t *testing.T) {
 		}
 		svc := &FooService{}
 		svc.factory = &instantiate.ScopedInstanceFactory[*bar]{}
-		result1 := svc.factory.GetInstance()
-		result2 := svc.factory.GetInstance()
+		result1, err1 := svc.factory.GetInstance()
+		assert.Nil(t, err1)
+		result2, err2 := svc.factory.GetInstance()
+		assert.Nil(t, err2)
 		assert.NotEqual(t, result1.ID, result2.ID)
 	})
 
@@ -113,19 +119,24 @@ func TestScopedInstanceFactory(t *testing.T) {
 		svc.factory = &instantiate.ScopedInstanceFactory[*scopedFuncObj]{}
 		err := instFactory.SetInstance(&myConfig{Name: "default"})
 		assert.Equal(t, nil, err)
-		result0 := svc.factory.GetInstance()
+		result0, err0 := svc.factory.GetInstance()
+		assert.Nil(t, err0)
 		assert.Equal(t, "default", result0.config.Name)
 
-		result1 := svc.factory.GetInstance(&myConfig{Name: "test1"})
+		result1, err1 := svc.factory.GetInstance(&myConfig{Name: "test1"})
+		assert.Nil(t, err1)
 		assert.Equal(t, "test1", result1.config.Name)
 
-		result2 := svc.factory.GetInstance(&myConfig{Name: "test2"})
+		result2, err2 := svc.factory.GetInstance(&myConfig{Name: "test2"})
+		assert.Nil(t, err2)
 		assert.Equal(t, "test2", result2.config.Name)
 
-		result3 := svc.factory.GetInstance(&myConfig{Name: "test2"})
+		result3, err3 := svc.factory.GetInstance(&myConfig{Name: "test2"})
+		assert.Nil(t, err3)
 		assert.Equal(t, "test2", result3.config.Name)
 
-		result4 := svc.factory.GetInstance(&myConfig{Namespace: "dev", Name: "test4"})
+		result4, err4 := svc.factory.GetInstance(&myConfig{Namespace: "dev", Name: "test4"})
+		assert.Nil(t, err4)
 		assert.Equal(t, "test4", result4.config.Name)
 		assert.Equal(t, "dev", result4.config.Namespace)
 	})
@@ -139,7 +150,8 @@ func TestScopedInstanceFactory(t *testing.T) {
 		svc.factory = &instantiate.ScopedInstanceFactory[*scopedFuncObj]{}
 		err := instFactory.SetInstance(&myConfig{Name: "default"})
 		assert.Equal(t, nil, err)
-		result0 := svc.factory.GetInstance(ctx)
+		result0, err0 := svc.factory.GetInstance(ctx)
+		assert.Nil(t, err0)
 		assert.Equal(t, "default", result0.config.Name)
 
 	})

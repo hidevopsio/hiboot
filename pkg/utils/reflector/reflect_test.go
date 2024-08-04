@@ -904,3 +904,23 @@ func TestNew(t *testing.T) {
 		assert.NotNil(t, c)
 	})
 }
+
+func TestPrivateField(t *testing.T) {
+	// Define a struct with an unexported field
+	type myStruct struct {
+		privateField string
+	}
+
+	// Create an instance of the struct
+	s := myStruct{privateField: "initial value"}
+
+	// Get the reflection value object
+	v := reflect.ValueOf(&s).Elem()
+
+	// Get the unexported field by name
+	field := v.FieldByName("privateField")
+
+	// assert if the field is valid and settable
+	assert.Equal(t, false, field.IsValid() && field.CanSet())
+
+}
