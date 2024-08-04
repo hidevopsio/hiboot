@@ -26,8 +26,7 @@ func initScopedFactory(fct factory.InstantiateFactory) {
 	instanceContainers = newInstanceContainer(cmap.New())
 }
 
-func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T) {
-	var err error
+func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T, err error) {
 	var t T
 	retVal = reflect.Zero(reflect.TypeOf(t)).Interface().(T)
 
@@ -40,7 +39,7 @@ func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T)
 		ann := annotation.GetAnnotation(t, at.Scope{})
 		if ann == nil {
 			// default is singleton
-			_ = instFactory.SetInstance(retVal)
+			err = instFactory.SetInstance(retVal)
 		}
 		return
 	} else {
@@ -70,13 +69,17 @@ func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T)
 					log.Debugf("set instance %v error code: %v", param, err)
 				}
 			}
+			// check if instanceContainer already exists
 			ic := instanceContainers.Get(conditionalKey)
 			if ic != nil {
+				// cached instanceContainer
 				instanceContainer = ic.(factory.InstanceContainer)
 				finalInst := instanceContainer.Get(typ)
-				retVal = finalInst.(T)
-				log.Infof("found prototype scoped instance: %v", retVal)
-				return
+				if finalInst != nil {
+					retVal = finalInst.(T)
+					log.Infof("found prototype scoped instance[%v]: %v", conditionalKey, retVal)
+					return
+				}
 			} else {
 				err = instanceContainers.Set(conditionalKey, instanceContainer)
 				log.Debugf("set instance %v error code: %v", conditionalKey, err)
@@ -86,7 +89,9 @@ func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T)
 		instanceContainer, err = instFactory.InjectScopedObjects(ctx, []*factory.MetaData{inst}, instanceContainer)
 		if err == nil {
 			finalInst := instanceContainer.Get(typ)
-			retVal = finalInst.(T)
+			if finalInst != nil {
+				retVal = finalInst.(T)
+			}
 		}
 	}
 
@@ -106,10 +111,17 @@ func (f *ScopedInstanceFactory[T]) parseConditionalField(param interface{}, cond
 				fv := reflector.GetFieldValue(param, fieldName)
 				switch fv.Interface().(type) {
 				case string:
-					conditionalKey = conditionalKey + "-" + fv.Interface().(string)
+					condition := fv.Interface().(string)
+					if condition != "" {
+						conditionalKey = conditionalKey + "-" + condition
+					}
 				}
 			}
 		}
 	}
 	return conditionalKey
+}
+
+func (f *ScopedInstanceFactory[T]) Error() (err error) {
+	return err
 }
