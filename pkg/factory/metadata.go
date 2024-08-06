@@ -31,6 +31,8 @@ type MetaData struct {
 	DepNames    []string
 	DepMetaData []*MetaData
 	Scope       string
+	BeforeInit  bool
+	AfterInit   bool
 	Instance    interface{}
 }
 
@@ -252,13 +254,10 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 
 		deps = append(deps, parseDependencies(metaObject, kindName, typ)...)
 
-		// check if it is scoped
-		//scoped := annotation.Contains(owner, at.Scope{}) || (scopeAnnotation != nil)
-		scopeAnnotation := annotation.GetAnnotation(metaObject, at.Scope{})
-		var scope string
-		if scopeAnnotation != nil {
-			scope, _ = scopeAnnotation.Field.StructField.Tag.Lookup("value")
-		}
+		// get the scope annotation value
+		scope := annotation.GetValue(metaObject, at.Scope{})
+		beforeInit := annotation.HasAnnotation(metaObject, at.BeforeInit{})
+		afterInit := annotation.HasAnnotation(metaObject, at.AfterInit{})
 
 		name = GetObjectQualifierName(metaObject, name)
 
@@ -274,6 +273,8 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 			Type:        typ,
 			DepNames:    deps,
 			Scope:       scope,
+			BeforeInit:  beforeInit,
+			AfterInit:   afterInit,
 			Instance:    instance,
 		}
 	}
@@ -281,7 +282,7 @@ func NewMetaData(params ...interface{}) (metaData *MetaData) {
 	return metaData
 }
 
-// CloneMetaData is the func for cloning meta data
+// CloneMetaData is the func for cloning metadata
 func CloneMetaData(src *MetaData) (dst *MetaData) {
 	dst = &MetaData{
 		Kind:        src.Kind,
@@ -296,6 +297,8 @@ func CloneMetaData(src *MetaData) (dst *MetaData) {
 		DepNames:    src.DepNames,
 		DepMetaData: src.DepMetaData,
 		Scope:       src.Scope,
+		BeforeInit:  src.BeforeInit,
+		AfterInit:   src.AfterInit,
 		Instance:    src.Instance,
 	}
 	return dst

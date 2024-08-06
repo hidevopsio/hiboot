@@ -50,6 +50,17 @@ func newScopedFuncObj(config *myConfig) *scopedFuncObj {
 	return &scopedFuncObj{config: config}
 }
 
+type barService struct {
+	at.Scope `value:"prototype"`
+	Foo      *foo
+}
+
+func newBarService() *barService {
+	return &barService{Foo: &foo{
+		Name: "barService",
+	}}
+}
+
 func TestScopedInstanceFactory(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 	//log.Debug("methods: ", numOfMethod)
@@ -62,6 +73,7 @@ func TestScopedInstanceFactory(t *testing.T) {
 	assert.Equal(t, true, ok)
 	testComponents = append(testComponents,
 		factory.NewMetaData(fo, method),
+		factory.NewMetaData(newBarService),
 	)
 
 	ic := cmap.New()
@@ -121,6 +133,8 @@ func TestScopedInstanceFactory(t *testing.T) {
 		assert.Equal(t, nil, err)
 		result0, err0 := svc.factory.GetInstance()
 		assert.Nil(t, err0)
+		assert.NotNil(t, result0)
+		assert.NotNil(t, result0.config)
 		assert.Equal(t, "default", result0.config.Name)
 
 		result1, err1 := svc.factory.GetInstance(&myConfig{Name: "test1"})
@@ -153,6 +167,15 @@ func TestScopedInstanceFactory(t *testing.T) {
 		result0, err0 := svc.factory.GetInstance(ctx)
 		assert.Nil(t, err0)
 		assert.Equal(t, "default", result0.config.Name)
+
+	})
+
+	t.Run("should get registered the metadata of scoped instance", func(t *testing.T) {
+
+		f := &instantiate.ScopedInstanceFactory[*barService]{}
+		result0, err0 := f.GetInstance()
+		assert.Nil(t, err0)
+		assert.Equal(t, "barService", result0.Foo.Name)
 
 	})
 }

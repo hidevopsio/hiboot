@@ -364,7 +364,7 @@ func (f *configurableFactory) StartSchedulers(schedulerServices []*factory.MetaD
 			_ = annotation.Inject(ann)
 			switch ann.Field.Value.Interface().(type) {
 			case at.Scheduled:
-				log.Debug("sss")
+				log.Debug("start Scheduler...")
 				schAnn := ann.Field.Value.Interface().(at.Scheduled)
 				f.runTaskEx(schAnn, sch, svc, method, ann)
 			}

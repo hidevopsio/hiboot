@@ -31,6 +31,7 @@ func (i *instance) Get(params ...interface{}) (retVal interface{}) {
 			case factory.MetaData:
 				retVal = metaData
 			default:
+				// TODO: check if metaData.Instance is nil
 				retVal = metaData.Instance
 			}
 		}

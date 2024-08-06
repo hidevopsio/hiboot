@@ -99,6 +99,16 @@ type HelloWorld struct {
 	Message string
 }
 
+type BeforeHelloWorld struct {
+	at.BeforeInit
+	Message string
+}
+
+type AfterHelloWorld struct {
+	at.AfterInit
+	Message string
+}
+
 func (s *helloService) HelloWorld() *HelloWorld {
 	return &HelloWorld{Message: helloWorld}
 }
@@ -140,6 +150,8 @@ func TestInstantiateFactory(t *testing.T) {
 		factory.NewMetaData(newFooBarService),
 		factory.NewMetaData(new(qualifierService)),
 		factory.NewMetaData(newHelloNilService),
+		factory.NewMetaData(new(BeforeHelloWorld)),
+		factory.NewMetaData(new(AfterHelloWorld)),
 	)
 
 	ic := cmap.New()
@@ -369,6 +381,7 @@ func newScopedObject(ctx context.Context) *scopedFuncObject {
 }
 
 type foo struct {
+	Name string
 }
 
 func (f *foo) ScopedMethodObject(ctx context.Context) *scopedMethodObject {

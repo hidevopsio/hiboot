@@ -327,7 +327,9 @@ func (i *inject) IntoFunc(instance factory.InstanceContainer, object interface{}
 				inputs[n] = val
 				//log.Debugf("Injected %v into func parameter %v", val, fnInType)
 			} else {
-				return nil, fmt.Errorf("%v is not injected", fnInType.Name())
+				err = fmt.Errorf("[IntoFunc] %v(%v:%v) is not injected", reflector.GetFuncName(object), n, fnInType.Name())
+				log.Error(err)
+				return
 			}
 
 			paramValue := reflect.Indirect(val)
@@ -369,7 +371,7 @@ func (i *inject) IntoMethod(instance factory.InstanceContainer, object interface
 					if reflect.TypeOf(at.AllowNil{}) == ann || annotation.Contains(ann, at.AllowNil{}) {
 						inputs[n] = reflect.Zero(fnInType)
 					} else {
-						err = fmt.Errorf("%v.%v(%v:%v) is not injected", reflector.GetLowerCamelFullName(object), method.Name, n, reflector.GetLowerCamelFullNameByType(fnInType))
+						err = fmt.Errorf("[IntoMethod] %v.%v(%v:%v) is not injected", reflector.GetLowerCamelFullName(object), method.Name, n, reflector.GetLowerCamelFullNameByType(fnInType))
 						log.Error(err)
 						return nil, err
 					}
