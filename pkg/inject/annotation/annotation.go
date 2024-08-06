@@ -164,7 +164,29 @@ func GetAnnotations(object interface{}) (annotations *Annotations) {
 	return
 }
 
-// Filter is a function that filter specific annotations.
+// GetValue is a function that get the value of a giving annotation of the object
+func GetValue(object interface{}, att interface{}) (retVal string) {
+	if object == nil {
+		return
+	}
+	ann := GetAnnotation(object, att)
+	if ann != nil {
+		retVal, _ = ann.Field.StructField.Tag.Lookup("value")
+	}
+	return
+}
+
+// HasAnnotation is a function that check if a giving annotation if presented in the object
+func HasAnnotation(object interface{}, att interface{}) (retVal bool) {
+	if object == nil {
+		return
+	}
+	ann := GetAnnotation(object, att)
+	retVal = ann != nil
+	return
+}
+
+// FilterIn is a function that filter specific annotations.
 func FilterIn(input *Annotations, att interface{}) (annotations []*Annotation) {
 	var ok bool
 	if input != nil {
@@ -337,8 +359,12 @@ func injectIntoField(field *Field) (err error) {
 	return
 }
 
-// GetAnnotatedMethods
+// FindAnnotatedMethods find the annotated methods
 func FindAnnotatedMethods(object interface{}, att interface{}) (methods []reflect.Method, annotations []*Annotation) {
+	if object == nil {
+		log.Errorf("object must not be nil")
+		return
+	}
 	objVal := reflect.ValueOf(object)
 	objTyp := objVal.Type()
 	numOfMethod := objVal.NumMethod()

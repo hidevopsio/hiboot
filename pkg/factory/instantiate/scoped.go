@@ -14,6 +14,7 @@ import (
 
 // ScopedInstanceFactory implements ScopedInstanceFactory
 type ScopedInstanceFactory[T any] struct {
+	instanceContainer factory.InstanceContainer
 }
 
 var (
@@ -24,6 +25,10 @@ var (
 func initScopedFactory(fct factory.InstantiateFactory) {
 	instFactory = fct
 	instanceContainers = newInstanceContainer(cmap.New())
+}
+
+func (f *ScopedInstanceFactory[T]) GetInstanceContainer() factory.InstanceContainer {
+	return f.instanceContainer
 }
 
 func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T, err error) {
@@ -93,6 +98,7 @@ func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T,
 				retVal = finalInst.(T)
 			}
 		}
+		f.instanceContainer = instanceContainer
 	}
 
 	return

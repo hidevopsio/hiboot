@@ -134,7 +134,7 @@ func (f *instantiateFactory) Append(i ...interface{}) {
 	}
 }
 
-// AppendComponent append component
+// AppendComponent append one component at a time
 func (f *instantiateFactory) AppendComponent(c ...interface{}) {
 	metaData := factory.NewMetaData(c...)
 	f.components = append(f.components, metaData)
@@ -149,16 +149,21 @@ func (f *instantiateFactory) injectDependency(instanceContainer factory.Instance
 		inst, err = f.inject.IntoFunc(instanceContainer, item.MetaObject)
 		name = item.Name
 		// TODO: should report error when err is not nil
-		if err == nil {
-			log.Debugf("inject into func: %v %v", item.ShortName, item.Type)
+		if err != nil {
+			log.Error(err)
+			return
 		}
+		log.Debugf("inject into func: %v %v", item.ShortName, item.Type)
+
 	case types.Method:
 		inst, err = f.inject.IntoMethod(instanceContainer, item.ObjectOwner, item.MetaObject)
 		name = item.Name
 		if err != nil {
+			log.Error(err)
 			return
 		}
 		log.Debugf("inject into method: %v %v", item.Name, item.Type)
+
 	default:
 		name, inst = item.Name, item.MetaObject
 	}
@@ -196,16 +201,26 @@ func (f *instantiateFactory) BuildComponents() (err error) {
 	f.resolved = resolved
 	log.Debugf("Injecting dependencies")
 	// then build components
+
+	// before init
 	for _, item := range resolved {
-		// log.Debugf("build component: %v %v", idx, item.Type)
-		if item.Scope != "" {
-			//log.Debugf("at.Scope: %v", item.MetaObject)
-			err = f.SetInstance(item)
-		} else {
-			// inject dependencies into function
-			// components, controllers
-			// TODO: should save the upstream dependencies that contains item.Scope annotation for runtime injection
-			err = f.injectDependency(f.instanceContainer, item)
+
+		if item.BeforeInit {
+			err = f.injectItem(item)
+		}
+	}
+
+	// init
+	for _, item := range resolved {
+		if !item.BeforeInit && !item.AfterInit {
+			err = f.injectItem(item)
+		}
+	}
+
+	// after init
+	for _, item := range resolved {
+		if item.AfterInit {
+			err = f.injectItem(item)
 		}
 	}
 	if err == nil {
@@ -214,17 +229,32 @@ func (f *instantiateFactory) BuildComponents() (err error) {
 	return
 }
 
+func (f *instantiateFactory) injectItem(item *factory.MetaData) (err error) {
+	if item.Scope != "" {
+		//log.Debugf("at.Scope: %v", item.MetaObject)
+		err = f.SetInstance(item)
+	} else {
+		// inject dependencies into function
+		// components, controllers
+		// TODO: should save the upstream dependencies that contains item.Scope annotation for runtime injection
+		err = f.injectDependency(f.instanceContainer, item)
+	}
+	return err
+}
+
 // SetInstance save instanceContainer
 func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()
 
 	var instanceContainer factory.InstanceContainer
+	var internal bool
 	switch params[0].(type) {
 	case factory.InstanceContainer:
 		instanceContainer = params[0].(factory.InstanceContainer)
 		params = params[1:]
 	default:
+		internal = true
 		instanceContainer = f.instanceContainer
 		if len(params) > 1 && params[0] == nil {
 			params = params[1:]
@@ -243,28 +273,30 @@ func (f *instantiateFactory) SetInstance(params ...interface{}) (err error) {
 	}
 
 	if metaData != nil {
-		if metaData.Scope != "" && f.scopedInstanceContainer != nil {
-			_ = f.scopedInstanceContainer.Set(name, inst)
-		} else {
-			err = instanceContainer.Set(name, inst)
-			// categorize instances
-			obj := metaData.MetaObject
-			if metaData.Instance != nil {
-				obj = metaData.Instance
-			}
 
-			annotations := annotation.GetAnnotations(obj)
-			if annotations != nil {
-				for _, item := range annotations.Items {
-					typeName := reflector.GetLowerCamelFullNameByType(item.Field.StructField.Type)
-					categorised, ok := f.categorized[typeName]
-					if !ok {
-						categorised = make([]*factory.MetaData, 0)
-					}
-					f.categorized[typeName] = append(categorised, metaData)
+		err = instanceContainer.Set(name, inst)
+		// categorize instances
+		obj := metaData.MetaObject
+		if metaData.Instance != nil {
+			obj = metaData.Instance
+		}
+
+		annotations := annotation.GetAnnotations(obj)
+		if annotations != nil {
+			for _, item := range annotations.Items {
+				typeName := reflector.GetLowerCamelFullNameByType(item.Field.StructField.Type)
+				categorised, ok := f.categorized[typeName]
+				if !ok {
+					categorised = make([]*factory.MetaData, 0)
 				}
+				f.categorized[typeName] = append(categorised, metaData)
 			}
 		}
+
+		if internal {
+			f.instanceContainer = instanceContainer
+		}
+
 	}
 
 	return
