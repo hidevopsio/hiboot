@@ -14,7 +14,6 @@ import (
 
 // ScopedInstanceFactory implements ScopedInstanceFactory
 type ScopedInstanceFactory[T any] struct {
-	instanceContainer factory.InstanceContainer
 }
 
 var (
@@ -27,39 +26,22 @@ func initScopedFactory(fct factory.InstantiateFactory) {
 	instanceContainers = newInstanceContainer(cmap.New())
 }
 
-func (f *ScopedInstanceFactory[T]) GetInstanceContainer() factory.InstanceContainer {
-	return f.instanceContainer
-}
-
-func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T, err error) {
+// GetInstanceContainer get the instance container
+func (f *ScopedInstanceFactory[T]) GetInstanceContainer(params ...interface{}) (instanceContainer factory.InstanceContainer, err error) {
 	var t T
-	retVal = reflect.Zero(reflect.TypeOf(t)).Interface().(T)
-
+	instanceContainer = newInstanceContainer(cmap.New())
 	typ := reflect.TypeOf(t)
 	typName := reflector.GetLowerCamelFullNameByType(typ)
 
+	finalInstance := reflect.Zero(reflect.TypeOf(t)).Interface().(T)
 	instItf := instFactory.GetInstance(typ, factory.MetaData{})
 	if instItf == nil {
-		retVal = reflector.New[T]()
-		ann := annotation.GetAnnotation(t, at.Scope{})
-		if ann == nil {
-			// default is singleton
-			err = instFactory.SetInstance(retVal)
-		}
 		return
-	} else {
-		// TODO: check if instance is prototype?
-		instObj := instItf.(*factory.MetaData)
-		if instObj.Instance != nil {
-			retVal = instObj.Instance.(T)
-			return
-		}
 	}
 	var ctx context.Context
 	inst := instItf.(*factory.MetaData)
 	if inst.Scope == factory.ScopePrototype {
 		conditionalKey := typName
-		instanceContainer := newInstanceContainer(cmap.New())
 		if len(params) > 0 {
 			for _, param := range params {
 				if param != nil {
@@ -71,7 +53,7 @@ func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T,
 						conditionalKey = f.parseConditionalField(param, conditionalKey)
 					}
 					err = instanceContainer.Set(param)
-					log.Debugf("set instance %v error code: %v", param, err)
+					log.Debugf("set instance %v: %v error code: %v", conditionalKey, param, err)
 				}
 			}
 			// check if instanceContainer already exists
@@ -81,8 +63,8 @@ func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T,
 				instanceContainer = ic.(factory.InstanceContainer)
 				finalInst := instanceContainer.Get(typ)
 				if finalInst != nil {
-					retVal = finalInst.(T)
-					log.Infof("found prototype scoped instance[%v]: %v", conditionalKey, retVal)
+					finalInstance = finalInst.(T)
+					log.Infof("found prototype scoped instance[%v]: %v", conditionalKey, finalInstance)
 					return
 				}
 			} else {
@@ -92,15 +74,55 @@ func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (retVal T,
 		}
 
 		instanceContainer, err = instFactory.InjectScopedObjects(ctx, []*factory.MetaData{inst}, instanceContainer)
-		if err == nil {
-			finalInst := instanceContainer.Get(typ)
-			if finalInst != nil {
-				retVal = finalInst.(T)
-			}
+	}
+	return
+}
+
+// GetInstance get instance container and get the target instance form the container
+func (f *ScopedInstanceFactory[T]) GetInstance(params ...interface{}) (finalInstance T, err error) {
+	var t T
+	finalInstance = reflect.Zero(reflect.TypeOf(t)).Interface().(T)
+
+	typ := reflect.TypeOf(t)
+	instItf := instFactory.GetInstance(typ, factory.MetaData{})
+	if instItf == nil {
+		finalInstance = reflector.New[T]()
+		ann := annotation.GetAnnotation(t, at.Scope{})
+		if ann == nil {
+			// default is singleton
+			err = instFactory.SetInstance(finalInstance)
 		}
-		f.instanceContainer = instanceContainer
+		return
+	} else {
+		// TODO: check if instance is prototype?
+		instObj := instItf.(*factory.MetaData)
+		if instObj.Instance != nil {
+			finalInstance = instObj.Instance.(T)
+			return
+		}
 	}
 
+	inst := instItf.(*factory.MetaData)
+	if inst.Scope == factory.ScopePrototype {
+		var instanceContainer factory.InstanceContainer
+		instanceContainer, err = f.GetInstanceContainer(params...)
+		if err == nil {
+			finalInstance = f.GetInstanceFromContainer(instanceContainer)
+		}
+	}
+
+	return
+}
+
+// GetInstanceFromContainer get instance from a giving instance container
+func (f *ScopedInstanceFactory[T]) GetInstanceFromContainer(instanceContainer factory.InstanceContainer) (finalInstance T) {
+	var t T
+	typ := reflect.TypeOf(t)
+
+	finalInst := instanceContainer.Get(typ)
+	if finalInst != nil {
+		finalInstance = finalInst.(T)
+	}
 	return
 }
 
@@ -126,8 +148,4 @@ func (f *ScopedInstanceFactory[T]) parseConditionalField(param interface{}, cond
 		}
 	}
 	return conditionalKey
-}
-
-func (f *ScopedInstanceFactory[T]) Error() (err error) {
-	return err
 }
