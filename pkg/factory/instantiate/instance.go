@@ -2,7 +2,6 @@ package instantiate
 
 import (
 	"github.com/hidevopsio/hiboot/pkg/factory"
-	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 )
 
@@ -49,9 +48,9 @@ func (i *instance) Set(params ...interface{}) (err error) {
 		metaData = factory.NewMetaData(inst)
 	}
 
-	old, ok := i.instMap.Get(name)
+	_, ok := i.instMap.Get(name)
 	if ok {
-		log.Debugf("instance %v already contains %v, you are trying to overwrite it with: %v", name, old, metaData)
+		//log.Debugf("instance %v already contains %v, you are trying to overwrite it with: %v", name, old, metaData)
 		return
 	}
 
