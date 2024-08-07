@@ -178,4 +178,24 @@ func TestScopedInstanceFactory(t *testing.T) {
 		assert.Equal(t, "barService", result0.Foo.Name)
 
 	})
+
+	t.Run("should get registered the metadata of scoped instance", func(t *testing.T) {
+
+		f := &instantiate.ScopedInstanceFactory[*barService]{}
+		ic0, err0 := f.GetInstanceContainer()
+		assert.Nil(t, err0)
+		result0 := f.GetInstanceFromContainer(ic0)
+		assert.Equal(t, "barService", result0.Foo.Name)
+
+	})
+
+	t.Run("should get nil scoped instance", func(t *testing.T) {
+		type bez struct {
+			at.Scope `value:"prototype"`
+		}
+		f := &instantiate.ScopedInstanceFactory[*bez]{}
+		ic0, err0 := f.GetInstanceContainer()
+		assert.NotNil(t, ic0)
+		assert.Nil(t, err0)
+	})
 }
