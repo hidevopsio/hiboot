@@ -84,13 +84,13 @@ func (a *application) Initialize() error {
 	return a.BaseApplication.Initialize()
 }
 
-// Run run web application
+// Run web application
 func (a *application) Run() {
 	serverPort := ":8080"
 	// build HiBoot Application
 	err := a.build()
 	conf := a.SystemConfig()
-	if conf != nil && err == nil {
+	if conf != nil && (err == nil || errors.Is(err, ErrControllersNotFound)) {
 		if conf.Server.Port != "" {
 			serverPort = fmt.Sprintf(":%v", conf.Server.Port)
 		}
