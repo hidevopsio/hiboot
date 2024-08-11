@@ -53,7 +53,7 @@ func (f *ScopedInstanceFactory[T]) GetInstanceContainer(params ...interface{}) (
 						conditionalKey = f.parseConditionalField(param, conditionalKey)
 					}
 					err = instanceContainer.Set(param)
-					log.Debugf("set instance for %v, error code: %v", conditionalKey, err)
+					log.Debugf("set instance %v, error code: %v", conditionalKey, err)
 				}
 			}
 			// check if instanceContainer already exists
