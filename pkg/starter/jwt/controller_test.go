@@ -16,8 +16,7 @@ package jwt_test
 
 import (
 	"fmt"
-	jwtgo "github.com/dgrijalva/jwt-go"
-	"github.com/stretchr/testify/assert"
+	jwtgo "github.com/golang-jwt/jwt"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
@@ -25,6 +24,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/starter/jwt"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"strings"
 	"testing"
@@ -198,4 +198,3 @@ func TestJwtController(t *testing.T) {
 	})
 
 }
-

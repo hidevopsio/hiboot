@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
 	"io/ioutil"
 )
