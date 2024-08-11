@@ -20,13 +20,13 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
-	mwjwt "github.com/iris-contrib/middleware/jwt"
-	ictx "github.com/kataras/iris/context"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	ictx "github.com/hidevopsio/iris/context"
+	mwjwt "github.com/hidevopsio/middleware/jwt"
 )
 
-// Middleware derived from github.com/iris-contrib/middleware/jwt/Middleware
+// Middleware derived from github.com/hidevopsio/middleware/jwt/Middleware
 type Middleware struct {
 	mwjwt.Middleware
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/kataras/iris"
+	"github.com/hidevopsio/iris"
 )
 
 const Profile = "web"
@@ -33,7 +33,8 @@ func (c *configuration) Context(app *webApp) context.Context {
 }
 
 // DefaultView set the default view
-type DefaultView interface {}
+type DefaultView interface{}
+
 func (c *configuration) DefaultView(app *webApp) (view DefaultView) {
 
 	if c.Properties.View.Enabled {

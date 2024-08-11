@@ -27,7 +27,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/kataras/iris"
+	"github.com/hidevopsio/iris"
 )
 
 const (

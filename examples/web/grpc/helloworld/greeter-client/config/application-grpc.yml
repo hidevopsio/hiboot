@@ -1,7 +1,0 @@
-# grpc client configs
-
-grpc:
-  client:
-    hello-world-service:
-      host: greeter-server # or greeter-server.${app.project}-${app.profiles.active}
-      port: 7575

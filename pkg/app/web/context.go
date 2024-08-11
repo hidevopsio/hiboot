@@ -19,14 +19,14 @@ import (
 	"sync"
 
 	"github.com/hidevopsio/hiboot/pkg/log"
-	"github.com/kataras/iris"
+	"github.com/hidevopsio/iris"
 
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/model"
 	"github.com/hidevopsio/hiboot/pkg/utils/mapstruct"
 	"github.com/hidevopsio/hiboot/pkg/utils/validator"
-	ctx "github.com/kataras/iris/context"
-	"github.com/kataras/iris/middleware/i18n"
+	ctx "github.com/hidevopsio/iris/context"
+	"github.com/hidevopsio/iris/middleware/i18n"
 )
 
 const maxResponses = 2
@@ -34,11 +34,11 @@ const maxResponses = 2
 // Context Create your own custom Context, put any fields you wanna need.
 type Context struct {
 	iris.Context
-	ann interface{}
+	ann       interface{}
 	responses []interface{}
 }
 
-//NewContext constructor of context.Context
+// NewContext constructor of context.Context
 func NewContext(app ctx.Application) context.Context {
 	return &Context{
 		Context: ctx.NewContext(app),
@@ -100,7 +100,7 @@ func (c *Context) Next() {
 //}
 
 // WrapHandler is a helper function for wrapping http.Handler
-func (c *Context) WrapHandler(h http.Handler)  {
+func (c *Context) WrapHandler(h http.Handler) {
 	h.ServeHTTP(c.ResponseWriter(), c.Request())
 }
 
@@ -164,7 +164,7 @@ func (c *Context) ResponseError(message string, code int) {
 }
 
 // SetAnnotations
-func (c *Context) SetAnnotations(ann interface{})  {
+func (c *Context) SetAnnotations(ann interface{}) {
 	c.ann = ann
 }
 
@@ -184,7 +184,7 @@ func (c *Context) SetURLParam(name, value string) {
 	c.Request().URL.RawQuery = q.Encode()
 }
 
-func (c *Context) InitResponses()  {
+func (c *Context) InitResponses() {
 	c.responses = make([]interface{}, maxResponses)
 }
 

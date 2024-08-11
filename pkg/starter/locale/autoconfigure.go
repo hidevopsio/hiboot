@@ -19,7 +19,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"github.com/kataras/iris/middleware/i18n"
+	"github.com/hidevopsio/iris/middleware/i18n"
 	"os"
 	"path/filepath"
 	"strings"

@@ -20,11 +20,10 @@ import (
 	"io"
 	"runtime"
 
-	"github.com/kataras/golog"
-	"github.com/kataras/pio"
+	"github.com/hidevopsio/golog"
+	"github.com/hidevopsio/pio"
 )
 
-//
 // Available level names are:
 // "disable"
 // "fatal"
@@ -32,7 +31,6 @@ import (
 // "warn"
 // "info"
 // "debug"
-//
 const (
 	DebugLevel = "debug"
 	InfoLevel  = "info"
@@ -72,7 +70,7 @@ var withCallerf = func(fn func(format string, v ...interface{}), format string, 
 // NewLine can override the default package-level line breaker, "\n".
 // It should be called (in-sync) before  the print or leveled functions.
 //
-// See `github.com/kataras/pio#NewLine` and `Logger#NewLine` too.
+// See `github.com/hidevopsio/pio#NewLine` and `Logger#NewLine` too.
 func NewLine(newLineChar string) {
 	golog.NewLine(newLineChar)
 }
@@ -223,6 +221,7 @@ func Install(logger golog.ExternalLogger) {
 // it can be used only once per `golog#Logger` instance.
 //
 // Example Code:
+//
 //	import "log"
 //	myLogger := log.New(os.Stdout, "", 0)
 //	InstallStd(myLogger)
