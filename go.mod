@@ -4,24 +4,24 @@ go 1.22.6
 
 require (
 	github.com/deckarep/golang-set v1.7.1
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/camelcase v1.0.0
 	github.com/go-openapi/runtime v0.19.4
 	github.com/go-openapi/spec v0.19.2
 	github.com/go-playground/validator/v10 v10.5.0
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/websocket v1.4.2
 	github.com/hidevopsio/go-uuid v0.0.0-20240811102623-0749af16addf
 	github.com/hidevopsio/gocron v1.6.1-0.20210602042859-a8b1ada7665d
 	github.com/hidevopsio/golog v0.0.0-20240811115351-6b4a7711e704
 	github.com/hidevopsio/httpexpect v0.0.0-20240811100504-92ed99bc8bec
-	github.com/hidevopsio/iris v0.0.0-20240811120319-a03367d74765
+	github.com/hidevopsio/iris v0.0.0-20240811142313-7ed19cd46895
 	github.com/hidevopsio/mapstructure v1.1.3-0.20190908102033-f8832fd9e307
-	github.com/hidevopsio/middleware v0.0.0-20240811120446-d33171889250
+	github.com/hidevopsio/middleware v0.0.0-20240811142457-7e33354fa83f
 	github.com/hidevopsio/pio v0.0.0-20240811115022-e705bbf749aa
 	github.com/hidevopsio/viper v1.2.2-0.20210220025633-ccb4b202d169
 	github.com/rakyll/statik v0.1.6
-	github.com/sony/sonyflake v0.0.0-20160530021500-fa881fb1052b
+	github.com/sony/sonyflake v1.2.0
 	github.com/spf13/afero v1.1.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
@@ -101,5 +101,3 @@ require (
 	gopkg.in/russross/blackfriday.v2 v2.0.0+incompatible // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
