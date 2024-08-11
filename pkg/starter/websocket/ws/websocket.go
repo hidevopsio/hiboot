@@ -1,26 +1,25 @@
-/*Package websocket provides rich websocket support for the iris web framework.
+/*
+Package websocket provides rich websocket support for the iris web framework.
 
 Source code and other details for the project are available at GitHub:
 
-   https://github.com/kataras/iris/tree/master/websocket
+	https://github.com/hidevopsio/iris/tree/master/websocket
 
 Installation
 
-    $ go get -u github.com/kataras/iris/websocket
-
+	$ go get -u github.com/hidevopsio/iris/websocket
 
 Example code:
-
 
 	package main
 
 	import (
 		"fmt"
 
-		"github.com/kataras/iris"
-		"github.com/kataras/iris/context"
+		"github.com/hidevopsio/iris"
+		"github.com/hidevopsio/iris/context"
 
-		"github.com/kataras/iris/websocket"
+		"github.com/hidevopsio/iris/websocket"
 	)
 
 	func main() {
@@ -69,6 +68,5 @@ Example code:
 			c.To(websocket.Broadcast).Emit("chat", msg)
 		})
 	}
-
 */
 package websocket

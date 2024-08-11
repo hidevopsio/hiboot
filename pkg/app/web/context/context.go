@@ -3,8 +3,8 @@ package context
 import (
 	"net/http"
 
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/context"
+	"github.com/hidevopsio/iris"
+	"github.com/hidevopsio/iris/context"
 )
 
 // ExtendedContext extended context
@@ -20,7 +20,7 @@ type ExtendedContext interface {
 	SetResponse(idx int, response interface{})
 	GetResponses() (responses []interface{})
 	GetResponse(idx int) (response interface{})
-//StaticResource(system http.FileSystem)
+	//StaticResource(system http.FileSystem)
 }
 
 // Context is the interface of web app context

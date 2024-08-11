@@ -16,8 +16,8 @@ package log
 
 import (
 	"fmt"
-	"github.com/kataras/golog"
-	"github.com/kataras/pio"
+	"github.com/hidevopsio/golog"
+	"github.com/hidevopsio/pio"
 	"os"
 	"testing"
 	"time"

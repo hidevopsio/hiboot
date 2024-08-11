@@ -18,10 +18,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/iris-contrib/httpexpect"
-	"github.com/kataras/iris/httptest"
-	"github.com/stretchr/testify/assert"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/httpexpect"
+	"github.com/hidevopsio/iris/httptest"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestApplication the test web application interface for unit test only
