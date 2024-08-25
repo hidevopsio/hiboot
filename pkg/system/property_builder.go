@@ -74,7 +74,7 @@ func NewPropertyBuilder(path string, customProperties map[string]interface{}) Bu
 
 // setCustomPropertiesFromArgs returns application config
 func (b *propertyBuilder) setCustomPropertiesFromArgs() {
-	log.Println(os.Args)
+	log.Debug(os.Args)
 	for _, val := range os.Args {
 		if len(val) < 2 {
 			continue
