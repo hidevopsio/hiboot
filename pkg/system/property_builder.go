@@ -18,6 +18,7 @@ package system
 
 import (
 	"embed"
+	"fmt"
 	"io"
 	"io/fs"
 	"os"
@@ -47,6 +48,7 @@ type ConfigFile struct {
 	path     string
 	name     string
 	fileType string
+	profile  string
 }
 
 type propertyBuilder struct {
@@ -155,6 +157,49 @@ func (b *propertyBuilder) Save(p interface{}) (err error) {
 	return
 }
 
+// parseConfigFile takes a full file path and splits it into its components.
+// It returns a ConfigFile struct and an error if the filename doesn't match the expected pattern.
+func (b *propertyBuilder) parseConfigFile(fullPath string) (config *ConfigFile, err error) {
+	config = new(ConfigFile)
+
+	// Extract the directory path
+	dir := filepath.Dir(fullPath)
+	config.path = dir
+
+	// Extract the base filename
+	base := filepath.Base(fullPath)
+
+	// Extract the file extension
+	ext := filepath.Ext(base)
+	if ext == "" {
+		return config, fmt.Errorf("file '%s' does not have an extension", fullPath)
+	}
+	config.fileType = strings.TrimPrefix(ext, ".")
+
+	// Remove the extension to get the filename without extension
+	nameWithoutExt := strings.TrimSuffix(base, ext)
+	config.name = nameWithoutExt
+
+	// Define the expected prefix
+	prefix := "application"
+
+	if nameWithoutExt == prefix {
+		// Case: "application.yml" with default profile
+		config.profile = "default"
+	} else if strings.HasPrefix(nameWithoutExt, prefix+"-") {
+		// Case: "application-<profile>.yml"
+		profile := strings.TrimPrefix(nameWithoutExt, prefix+"-")
+		if profile == "" {
+			return config, fmt.Errorf("filename '%s' does not contain a profile (with filename prefix)", fullPath)
+		}
+		config.profile = profile
+	} else {
+		return config, nil //fmt.Errorf("filename '%s' does not start with the expected prefix '%s'", fullPath, prefix)
+	}
+
+	return config, nil
+}
+
 // Build config file
 func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error) {
 	// parse profiles
@@ -207,49 +252,45 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 				continue
 			}
 
-			fileAndExt := strings.Split(name, ".")
-			if len(fileAndExt) == 2 {
-				file, ext := fileAndExt[0], fileAndExt[1]
-
-				if str.InSlice(ext, viper.SupportedExts) {
-					if embedConfigFiles[dir] == nil {
-						embedConfigFiles[dir] = make(map[string][]*ConfigFile)
+			configFile, err := b.parseConfigFile(name)
+			if err != nil {
+				log.Warnf("skip %v, error: %v", name, err)
+				continue
+			}
+			if str.InSlice(configFile.fileType, viper.SupportedExts) {
+				if embedConfigFiles[dir] == nil {
+					embedConfigFiles[dir] = make(map[string][]*ConfigFile)
+				}
+				fd, e := b.embedFS.Open(filepath.Join(dir, name))
+				if e == nil {
+					configFile.fd = fd
+					if !strings.Contains(name, "-") {
+						embedDefaultProfileConfigFile = configFile
+						continue
 					}
-					fd, e := b.embedFS.Open(filepath.Join(dir, name))
-					if e == nil {
-						configFile := &ConfigFile{
-							fd:       fd,
-							path:     dir,
-							name:     file,
-							fileType: ext,
-						}
-						if !strings.Contains(name, "-") {
-							embedDefaultProfileConfigFile = configFile
+					if configFile.profile != "" {
+						if strings.Contains(name, "-"+profile) {
+							embedActiveProfileConfigFile = configFile
 							continue
-						}
-						if profile != "" {
-							if strings.Contains(name, "-"+profile) {
-								embedActiveProfileConfigFile = configFile
-								continue
-							} else {
-								embedConfigFiles[dir][ext] = append(embedConfigFiles[dir][ext], configFile)
-							}
 						} else {
-							embedConfigFiles[dir][ext] = append(embedConfigFiles[dir][ext], configFile)
+							embedConfigFiles[dir][configFile.profile] = append(embedConfigFiles[dir][configFile.profile], configFile)
 						}
-						foundDir := false
-						for _, d := range embedPaths {
-							if d == dir {
-								foundDir = true
-								break
-							}
+					} else {
+						embedConfigFiles[dir][configFile.profile] = append(embedConfigFiles[dir][configFile.profile], configFile)
+					}
+					foundDir := false
+					for _, d := range embedPaths {
+						if d == dir {
+							foundDir = true
+							break
 						}
-						if !foundDir {
-							embedPaths = append(embedPaths, dir)
-						}
+					}
+					if !foundDir {
+						embedPaths = append(embedPaths, dir)
 					}
 				}
 			}
+			//}
 		}
 	}
 
@@ -262,49 +303,46 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 			//*files = append(*files, path)
 			if !info.IsDir() {
 				//log.Debug(path)
-				dir, file := filepath.Split(path)
-				fileAndExt := strings.Split(file, ".")
-				if len(fileAndExt) == 2 {
-					file, ext := fileAndExt[0], fileAndExt[1]
-					if file != "" {
-						configFile := &ConfigFile{
-							path:     dir,
-							name:     file,
-							fileType: ext,
+				configFile, err := b.parseConfigFile(path)
+				if err != nil {
+					log.Warnf("skip config file: %v, reason: %v", path, err)
+					return nil
+				}
+
+				if str.InSlice(configFile.fileType, viper.SupportedExts) {
+					if configFiles[configFile.path] == nil {
+						configFiles[configFile.path] = make(map[string][]string)
+					}
+					// do not add default profile, will be handled later
+					if configFile.profile == "default" {
+						defaultProfileConfigFile = configFile
+						return nil
+					}
+
+					// TODO: check if profile is filter out properly
+
+					if profile != "" {
+						if activeProfileConfigFile == nil && configFile.profile == profile {
+							activeProfileConfigFile = configFile
+						} else {
+							configFiles[configFile.path][configFile.fileType] = append(configFiles[configFile.path][configFile.fileType], configFile.name)
 						}
-
-						if str.InSlice(ext, viper.SupportedExts) {
-							if configFiles[dir] == nil {
-								configFiles[dir] = make(map[string][]string)
-							}
-							// do not add default profile, will be handled later
-							if defaultProfileConfigFile == nil && !strings.Contains(file, "-") {
-								defaultProfileConfigFile = configFile
-								return nil
-							}
-
-							if profile != "" {
-								if activeProfileConfigFile == nil && strings.Contains(file, "-"+profile) {
-									activeProfileConfigFile = configFile
-								} else {
-									configFiles[dir][ext] = append(configFiles[dir][ext], file)
-								}
-							} else {
-								configFiles[dir][ext] = append(configFiles[dir][ext], file)
-							}
-							foundDir := false
-							for _, d := range paths {
-								if d == dir {
-									foundDir = true
-									break
-								}
-							}
-							if !foundDir {
-								paths = append(paths, dir)
-							}
+					} else {
+						configFiles[configFile.path][configFile.fileType] = append(configFiles[configFile.path][configFile.fileType], configFile.name)
+					}
+					foundDir := false
+					for _, d := range paths {
+						if d == configFile.path {
+							foundDir = true
+							break
 						}
 					}
+					if !foundDir {
+						paths = append(paths, configFile.path)
+					}
 				}
+				//}
+				//}
 			}
 		}
 		return err
