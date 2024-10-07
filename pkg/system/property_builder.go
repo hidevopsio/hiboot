@@ -264,12 +264,12 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 				fd, e := b.embedFS.Open(filepath.Join(dir, name))
 				if e == nil {
 					configFile.fd = fd
-					if !strings.Contains(name, "-") {
+					if configFile.profile == "default" {
 						embedDefaultProfileConfigFile = configFile
 						continue
 					}
 					if configFile.profile != "" {
-						if strings.Contains(name, "-"+profile) {
+						if configFile.profile == profile {
 							embedActiveProfileConfigFile = configFile
 							continue
 						} else {
