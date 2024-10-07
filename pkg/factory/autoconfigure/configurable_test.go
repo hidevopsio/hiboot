@@ -369,6 +369,14 @@ func newHelloService(foo *Foo) *helloService {
 	return &helloService{foo: foo}
 }
 
+type vnsConfig struct {
+	at.AutoConfiguration `value:"venus"`
+}
+
+func newVnsConfig() *vnsConfig {
+	return &vnsConfig{}
+}
+
 func setFactory(t *testing.T, configDir string, customProperties cmap.ConcurrentMap) factory.ConfigurableFactory {
 	io.ChangeWorkDir(os.TempDir())
 
@@ -463,6 +471,7 @@ func TestConfigurableFactory(t *testing.T) {
 		factory.NewMetaData(newFoobarConfiguration),
 		factory.NewMetaData(newEarthConfiguration),
 		factory.NewMetaData(newScopedConfiguration),
+		factory.NewMetaData(newVnsConfig),
 	})
 
 	f.AppendComponent(newHelloService)

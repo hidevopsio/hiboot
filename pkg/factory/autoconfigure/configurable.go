@@ -219,11 +219,22 @@ func (f *configurableFactory) Instantiate(configuration interface{}) (err error)
 	return
 }
 
-func (f *configurableFactory) parseName(item *factory.MetaData) string {
+func (f *configurableFactory) parseName(item *factory.MetaData) (name string) {
+	//first, read the annotation of at.AutoConfiguration as the name
+	ann := annotation.GetAnnotation(item.MetaObject, at.AutoConfiguration{})
+	if ann != nil {
+		var ok bool
+		name, ok = ann.Field.StructField.Tag.Lookup("value")
+		if ok {
+			return
+		}
+	}
 
-	//return item.PkgName
-	name := strings.Replace(item.TypeName, PostfixConfiguration, "", -1)
-	name = str.ToLowerCamel(name)
+	//then check the type name has PostfixConfiguration
+	if len(name) == 0 && strings.Contains(item.TypeName, PostfixConfiguration) {
+		name = strings.Replace(item.TypeName, PostfixConfiguration, "", -1)
+		name = str.ToLowerCamel(name)
+	}
 
 	if name == "" || name == strings.ToLower(PostfixConfiguration) {
 		name = item.PkgName

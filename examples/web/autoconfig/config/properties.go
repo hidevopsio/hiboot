@@ -5,7 +5,7 @@ import "github.com/hidevopsio/hiboot/pkg/at"
 type properties struct {
 	at.ConfigurationProperties `value:"config"`
 
-	Enabled bool `json:"enabled" `
+	Enabled bool `json:"enabled"`
 
 	Name string `json:"name" default:"foo"`
 
