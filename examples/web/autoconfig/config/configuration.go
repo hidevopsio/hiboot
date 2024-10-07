@@ -14,14 +14,14 @@ const Profile string = "config"
 
 var ErrFoo = errors.New("foo with error")
 
-type configuration struct {
+type appConfig struct {
 	at.AutoConfiguration
 
 	properties *properties
 }
 
-func newConfiguration(properties *properties) *configuration {
-	return &configuration{properties: properties}
+func newConfiguration(properties *properties) *appConfig {
+	return &appConfig{properties: properties}
 }
 
 func init() {
@@ -42,7 +42,7 @@ type Bar struct {
 }
 
 type FooBar struct {
-	at.ContextAware
+	at.Scope `value:"request"`
 
 	Name string `json:"name" value:"foobar"`
 }
@@ -58,16 +58,16 @@ type FooWithError struct {
 	Name     string `json:"name" value:"foo"`
 }
 
-func (c *configuration) FooWithError() (foo *FooWithError, err error) {
+func (c *appConfig) FooWithError() (foo *FooWithError, err error) {
 	err = ErrFoo
 	return
 }
 
-func (c *configuration) Foo() *Foo {
+func (c *appConfig) Foo() *Foo {
 	return &Foo{}
 }
 
-func (c *configuration) Bar(ctx context.Context, foobar *FooBar) *Bar {
+func (c *appConfig) Bar(ctx context.Context, foobar *FooBar) *Bar {
 	if ctx.GetHeader("Authorization") == "fake" {
 		ctx.StatusCode(http.StatusUnauthorized)
 		return nil
@@ -75,7 +75,7 @@ func (c *configuration) Bar(ctx context.Context, foobar *FooBar) *Bar {
 	return &Bar{Name: c.properties.Name, FooBarName: foobar.Name}
 }
 
-func (c *configuration) FooBar() *FooBar {
+func (c *appConfig) FooBar() *FooBar {
 	return &FooBar{}
 }
 
@@ -85,7 +85,7 @@ type BazConfig struct {
 }
 
 // Baz is a prototype scoped instance
-func (c *configuration) Baz(cfg *BazConfig) *Baz {
+func (c *appConfig) Baz(cfg *BazConfig) *Baz {
 	log.Infof("baz config: %+v", cfg)
 	return &Baz{Name: cfg.Name}
 }

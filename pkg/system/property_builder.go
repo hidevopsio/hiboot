@@ -402,7 +402,7 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 	return
 }
 
-// Read single file
+// Load single file
 func (b *propertyBuilder) Load(properties interface{}, opts ...func(*mapstructure.DecoderConfig)) (err error) {
 	ann := annotation.GetAnnotation(properties, at.ConfigurationProperties{})
 	if ann != nil {
@@ -417,7 +417,7 @@ func (b *propertyBuilder) Load(properties interface{}, opts ...func(*mapstructur
 	return
 }
 
-// Replace replace reference and
+// Replace reference and
 func (b *propertyBuilder) Replace(source string) (retVal interface{}) {
 	result := source
 	matches := replacer.GetMatches(source)
