@@ -22,12 +22,13 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/kataras/iris"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/at"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/kataras/iris"
+	"github.com/kataras/iris/core/router"
 )
 
 const (
@@ -188,6 +189,10 @@ func (a *application) Use(handlers ...context.Handler) {
 	for _, hdl := range handlers {
 		a.webApp.Use(Handler(hdl))
 	}
+}
+
+func (a *application) WrapRouter(handler router.WrapperFunc) {
+	a.webApp.WrapRouter(handler)
 }
 
 func (a *application) initialize(controllers ...interface{}) (err error) {
