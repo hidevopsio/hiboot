@@ -32,6 +32,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/system/scheduler"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
+	"github.com/kataras/iris/core/router"
 )
 
 const (
@@ -60,6 +61,7 @@ type ApplicationContext interface {
 	Use(handlers ...context.Handler)
 	GetProperty(name string) (value interface{}, ok bool)
 	GetInstance(params ...interface{}) (instance interface{})
+	WrapRouter(handler router.WrapperFunc)
 }
 
 // BaseApplication is the base application
@@ -83,7 +85,7 @@ var (
 	configContainer    []*factory.MetaData
 	componentContainer []*factory.MetaData
 	// Profiles include profiles initially
-	Profiles           []string
+	Profiles []string
 
 	// ErrInvalidObjectType indicates that configuration type is invalid
 	ErrInvalidObjectType = errors.New("[app] invalid Configuration type, one of app.Configuration need to be embedded")

@@ -15,7 +15,10 @@
 // Package fake provides fake.ApplicationContext for unit testing
 package fake
 
-import "github.com/hidevopsio/hiboot/pkg/app/web/context"
+import (
+	"github.com/hidevopsio/hiboot/pkg/app/web/context"
+	"github.com/kataras/iris/core/router"
+)
 
 // ApplicationContext application context
 type ApplicationContext struct {
@@ -39,4 +42,7 @@ func (a *ApplicationContext) GetProperty(name string) (value interface{}, ok boo
 // GetInstance get application instance by name
 func (a *ApplicationContext) GetInstance(params ...interface{}) (instance interface{}) {
 	return
+}
+
+func (a *ApplicationContext) WrapRouter(handler router.WrapperFunc) {
 }
