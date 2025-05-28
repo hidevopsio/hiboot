@@ -111,6 +111,9 @@ func (a *application) Run() {
 	a.build()
 	//log.Debug(commandContainer)
 	if a.root != nil {
-		a.root.Exec()
+		err := a.root.Exec()
+		if err != nil {
+			os.Exit(1)
+		}
 	}
 }
