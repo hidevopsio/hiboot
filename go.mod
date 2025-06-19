@@ -1,6 +1,6 @@
 module github.com/hidevopsio/hiboot
 
-go 1.22.6
+go 1.24.2
 
 require (
 	github.com/deckarep/golang-set v1.7.1
@@ -15,7 +15,7 @@ require (
 	github.com/hidevopsio/gocron v1.6.1-0.20210602042859-a8b1ada7665d
 	github.com/hidevopsio/golog v0.0.0-20240811115351-6b4a7711e704
 	github.com/hidevopsio/httpexpect v0.0.0-20240811100504-92ed99bc8bec
-	github.com/hidevopsio/iris v0.0.0-20240811142313-7ed19cd46895
+	github.com/hidevopsio/iris v0.0.0-20250619080008-fd8c753eba09
 	github.com/hidevopsio/mapstructure v1.1.3-0.20190908102033-f8832fd9e307
 	github.com/hidevopsio/middleware v0.0.0-20240811142457-7e33354fa83f
 	github.com/hidevopsio/pio v0.0.0-20240811115022-e705bbf749aa
@@ -92,11 +92,11 @@ require (
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0 // indirect
 	github.com/yudai/gojsondiff v1.0.0 // indirect
 	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
-	golang.org/x/crypto v0.26.0 // indirect
-	golang.org/x/net v0.28.0 // indirect
-	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.24.0 // indirect
-	golang.org/x/text v0.17.0 // indirect
+	golang.org/x/crypto v0.36.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/russross/blackfriday.v2 v2.0.0+incompatible // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
