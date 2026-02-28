@@ -20,9 +20,9 @@ import (
 	"time"
 
 	"fmt"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/hidevopsio/hiboot/pkg/utils/io"
-	"io/ioutil"
+	"os"
 )
 
 // Map is the JWT map
@@ -57,11 +57,11 @@ func (t *jwtToken) Initialize(p *Properties) (err error) {
 	}
 	if err == nil {
 		var verifyBytes []byte
-		signBytes, err := ioutil.ReadFile(p.PrivateKeyPath)
+		signBytes, err := os.ReadFile(p.PrivateKeyPath)
 		if err == nil {
 			t.signKey, err = jwt.ParseRSAPrivateKeyFromPEM(signBytes)
 			if err == nil {
-				verifyBytes, err = ioutil.ReadFile(p.PublicKeyPath)
+				verifyBytes, err = os.ReadFile(p.PublicKeyPath)
 				if err == nil {
 					t.verifyKey, err = jwt.ParseRSAPublicKeyFromPEM(verifyBytes)
 					if err == nil {

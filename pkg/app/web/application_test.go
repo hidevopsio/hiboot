@@ -758,7 +758,7 @@ func TestWebApplication(t *testing.T) {
 		token, err := jwtToken.Generate(jwt.Map{
 			"username": "johndoe",
 			"password": "PA$$W0RD",
-		}, 100, time.Millisecond)
+		}, 1, time.Second)
 		if err == nil {
 
 			t := fmt.Sprintf("Bearer %v", token)
