@@ -16,11 +16,10 @@
 package jwt
 
 import (
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/at"
-	mw "github.com/hidevopsio/middleware/jwt"
 )
 
 const (
@@ -45,7 +44,7 @@ func newConfiguration() *configuration {
 }
 
 func (c *configuration) Middleware(jwtToken Token) *Middleware {
-	return NewJwtMiddleware(mw.Config{
+	return NewJwtMiddleware(Config{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 			//log.Debug(token)
 			return jwtToken.VerifyKey(), nil

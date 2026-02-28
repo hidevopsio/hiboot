@@ -15,20 +15,90 @@
 package jwt
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/hidevopsio/hiboot/pkg/app/web/context"
 	"github.com/hidevopsio/hiboot/pkg/log"
 	ictx "github.com/hidevopsio/iris/context"
-	mwjwt "github.com/hidevopsio/middleware/jwt"
 )
+
+const (
+	// DefaultContextKey is the default context key for JWT
+	DefaultContextKey = "jwt"
+)
+
+// errorHandler is a function called whenever an error is encountered
+type errorHandler func(ictx.Context, string)
+
+// TokenExtractor is a function that takes a context as input and returns
+// either a token or an error.
+type TokenExtractor func(ictx.Context) (string, error)
+
+// Config is a struct for specifying configuration options for the jwt middleware.
+type Config struct {
+	ValidationKeyGetter jwt.Keyfunc
+	ContextKey          string
+	ErrorHandler        errorHandler
+	CredentialsOptional bool
+	Extractor           TokenExtractor
+	Debug               bool
+	EnableAuthOnOptions bool
+	SigningMethod       jwt.SigningMethod
+}
 
 // Middleware derived from github.com/hidevopsio/middleware/jwt/Middleware
 type Middleware struct {
-	mwjwt.Middleware
+	Config Config
+}
+
+// OnError is the default error handler
+func OnError(ctx ictx.Context, err string) {
+	ctx.StatusCode(http.StatusUnauthorized)
+	ctx.Writef(err)
+}
+
+// FromAuthHeader extracts the JWT token from the Authorization header.
+func FromAuthHeader(ctx ictx.Context) (string, error) {
+	authHeader := ctx.GetHeader("Authorization")
+	if authHeader == "" {
+		return "", nil
+	}
+
+	authHeaderParts := strings.Split(authHeader, " ")
+	if len(authHeaderParts) != 2 || strings.ToLower(authHeaderParts[0]) != "bearer" {
+		return "", fmt.Errorf("Authorization header format must be Bearer {token}")
+	}
+
+	return authHeaderParts[1], nil
+}
+
+// FromParameter returns a function that extracts the token from the specified
+// query string parameter
+func FromParameter(param string) TokenExtractor {
+	return func(ctx ictx.Context) (string, error) {
+		return ctx.URLParam(param), nil
+	}
+}
+
+// FromFirst returns a function that runs multiple token extractors and takes the
+// first token it finds
+func FromFirst(extractors ...TokenExtractor) TokenExtractor {
+	return func(ctx ictx.Context) (string, error) {
+		for _, ex := range extractors {
+			token, err := ex(ctx)
+			if err != nil {
+				return "", err
+			}
+			if token != "" {
+				return token, nil
+			}
+		}
+		return "", nil
+	}
 }
 
 // Serve the middleware's action
@@ -91,7 +161,7 @@ func (m *Middleware) CheckJWT(ctx ictx.Context) error {
 		// If we get here, the required token is missing
 		errorMsg := "Required authorization token not found"
 		log.Debug("  Error: No credentials found (CredentialsOptional=false)")
-		return fmt.Errorf(errorMsg)
+		return errors.New(errorMsg)
 	}
 
 	// Now parse the token
@@ -120,24 +190,24 @@ func (m *Middleware) CheckJWT(ctx ictx.Context) error {
 }
 
 // NewJwtMiddleware New constructs a new Secure instance with supplied options.
-func NewJwtMiddleware(cfg ...mwjwt.Config) *Middleware {
+func NewJwtMiddleware(cfg ...Config) *Middleware {
 
-	var c mwjwt.Config
+	var c Config
 	if len(cfg) != 0 {
 		c = cfg[0]
 	}
 
 	if c.ContextKey == "" {
-		c.ContextKey = mwjwt.DefaultContextKey
+		c.ContextKey = DefaultContextKey
 	}
 
 	if c.ErrorHandler == nil {
-		c.ErrorHandler = mwjwt.OnError
+		c.ErrorHandler = OnError
 	}
 
 	if c.Extractor == nil {
-		c.Extractor = mwjwt.FromAuthHeader
+		c.Extractor = FromAuthHeader
 	}
 
-	return &Middleware{mwjwt.Middleware{Config: c}}
+	return &Middleware{Config: c}
 }
