@@ -34,11 +34,11 @@ const maxResponses = 2
 // Context Create your own custom Context, put any fields you wanna need.
 type Context struct {
 	iris.Context
-	ann interface{}
+	ann       interface{}
 	responses []interface{}
 }
 
-//NewContext constructor of context.Context
+// NewContext constructor of context.Context
 func NewContext(app ctx.Application) context.Context {
 	return &Context{
 		Context: ctx.NewContext(app),
@@ -100,7 +100,7 @@ func (c *Context) Next() {
 //}
 
 // WrapHandler is a helper function for wrapping http.Handler
-func (c *Context) WrapHandler(h http.Handler)  {
+func (c *Context) WrapHandler(h http.Handler) {
 	h.ServeHTTP(c.ResponseWriter(), c.Request())
 }
 
@@ -164,7 +164,7 @@ func (c *Context) ResponseError(message string, code int) {
 }
 
 // SetAnnotations
-func (c *Context) SetAnnotations(ann interface{})  {
+func (c *Context) SetAnnotations(ann interface{}) {
 	c.ann = ann
 }
 
@@ -184,7 +184,7 @@ func (c *Context) SetURLParam(name, value string) {
 	c.Request().URL.RawQuery = q.Encode()
 }
 
-func (c *Context) InitResponses()  {
+func (c *Context) InitResponses() {
 	c.responses = make([]interface{}, maxResponses)
 }
 
@@ -232,6 +232,8 @@ func requestEx(c context.Context, data interface{}, cb func() error) error {
 
 		err = validator.Validate.Struct(data)
 		if err != nil {
+			log.Infof("%v", err.Error())
+
 			c.ResponseError(err.Error(), http.StatusBadRequest)
 			return err
 		}
