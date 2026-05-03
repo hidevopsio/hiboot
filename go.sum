@@ -99,8 +99,8 @@ github.com/go-playground/universal-translator v0.17.0 h1:icxd5fm+REJzpZx7ZfpaD87
 github.com/go-playground/universal-translator v0.17.0/go.mod h1:UkSxE5sNxxRwHyU+Scu5vgOQjsIJAF8j9muTVoKLVtA=
 github.com/go-playground/validator/v10 v10.5.0 h1:X9rflw/KmpACwT8zdrm1upefpvdy6ur8d1kWyq6sg3E=
 github.com/go-playground/validator/v10 v10.5.0/go.mod h1:xm76BBt941f7yWdGnI2DVPFFg1UK3YY04qifoXU3lOk=
-github.com/golang-jwt/jwt v3.2.2+incompatible h1:IfV12K8xAKAnZqdXVzCZ+TOjboZ2keLg81eXfW3O+oY=
-github.com/golang-jwt/jwt v3.2.2+incompatible/go.mod h1:8pz2t5EyA70fFQQSrl6XZXzqecmYZeUEB8OUGHkxJ+I=
+github.com/golang-jwt/jwt/v4 v4.5.2 h1:YtQM7lnr8iZ+j5q71MGKkNw9Mn7AjHM68uc9g5fXeUI=
+github.com/golang-jwt/jwt/v4 v4.5.2/go.mod h1:m21LjoU+eqJr34lmDMbreY2eSTRJ1cv77w39/MY0Ch0=
 github.com/google/go-cmp v0.5.2/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
@@ -132,8 +132,8 @@ github.com/hidevopsio/httpexpect v0.0.0-20240811100504-92ed99bc8bec h1:P8Cc0RBRf
 github.com/hidevopsio/httpexpect v0.0.0-20240811100504-92ed99bc8bec/go.mod h1:bdWZrbWv4cxf1vR3lNiIJ2LBYfVmUAkFDK8ytBubtv8=
 github.com/hidevopsio/i18n v0.0.0-20240811095331-eee3daa5c80f h1:+2IuerGSyOGGQiLe+lGFtmnaFfchXt5k6PfepHqnlEY=
 github.com/hidevopsio/i18n v0.0.0-20240811095331-eee3daa5c80f/go.mod h1:3etx1Wx+FzrAUhnpgYxKBcjhvJD1LmtVk4d7bVpxcJ4=
-github.com/hidevopsio/iris v0.0.0-20240811142313-7ed19cd46895 h1:2D/K010EMrwxuK/geGqMu5FRdww0/3qHibamJUL8amw=
-github.com/hidevopsio/iris v0.0.0-20240811142313-7ed19cd46895/go.mod h1:S5zyawUrZLh96WF7mOFzD5end+2wQ9CWQdQzWgjH/EM=
+github.com/hidevopsio/iris v0.0.0-20250619080008-fd8c753eba09 h1:pI/n1nif++DeikNhjyakkzsIK7DaM79otVN4lD3X1cU=
+github.com/hidevopsio/iris v0.0.0-20250619080008-fd8c753eba09/go.mod h1:RfHloGl/BlF2wT0KwhfRAXAzPMqHVGpd91G4qNLQi2I=
 github.com/hidevopsio/mapstructure v1.1.3-0.20190908102033-f8832fd9e307 h1:Zc7/94OHdzC0A2sbJhrYErhhgho+fVW0qYQHarr8I+A=
 github.com/hidevopsio/mapstructure v1.1.3-0.20190908102033-f8832fd9e307/go.mod h1:HfcSxv9DfiSRv+QktNJmUUS4ByRmkxbldwKCpFglm7A=
 github.com/hidevopsio/middleware v0.0.0-20240811142457-7e33354fa83f h1:zLwYOFUrf9fI6rUYddOPqFxBA8f9aZX5m/+SPPJW6n4=

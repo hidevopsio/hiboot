@@ -8,14 +8,14 @@ require (
 	github.com/go-openapi/runtime v0.19.4
 	github.com/go-openapi/spec v0.19.2
 	github.com/go-playground/validator/v10 v10.5.0
-	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/websocket v1.4.2
 	github.com/hidevopsio/go-uuid v0.0.0-20240811102623-0749af16addf
 	github.com/hidevopsio/gocron v1.6.1-0.20210602042859-a8b1ada7665d
 	github.com/hidevopsio/golog v0.0.0-20240811115351-6b4a7711e704
 	github.com/hidevopsio/httpexpect v0.0.0-20240811100504-92ed99bc8bec
-	github.com/hidevopsio/iris v0.0.0-20240811142313-7ed19cd46895
+	github.com/hidevopsio/iris v0.0.0-20250619080008-fd8c753eba09
 	github.com/hidevopsio/mapstructure v1.1.3-0.20190908102033-f8832fd9e307
 	github.com/hidevopsio/middleware v0.0.0-20240811142457-7e33354fa83f
 	github.com/hidevopsio/pio v0.0.0-20240811115022-e705bbf749aa
