@@ -41,6 +41,15 @@ const (
 	Disable    = "disable"
 )
 
+// ShowFileLine controls whether log messages are prefixed with [file:line].
+// Disabled by default; enable via the `logging.fileline=true` property.
+var ShowFileLine = false
+
+// SetShowFileLine toggles the [file:line] prefix on log messages.
+func SetShowFileLine(enabled bool) {
+	ShowFileLine = enabled
+}
+
 func callerInfo(skip int) (file string, line int, fn string) {
 	var pc uintptr
 	var ok bool
@@ -53,6 +62,10 @@ func callerInfo(skip int) (file string, line int, fn string) {
 // TODO: logger should be able to filter out package by name
 
 var withCaller = func(fn func(v ...interface{}), v ...interface{}) {
+	if !ShowFileLine {
+		fn(v...)
+		return
+	}
 	argv := make([]interface{}, 1)
 	file, line, _ := callerInfo(3)
 	argv[0] = fmt.Sprintf("[%v:%v] ", filepath.Base(file), line)
@@ -62,6 +75,10 @@ var withCaller = func(fn func(v ...interface{}), v ...interface{}) {
 }
 
 var withCallerf = func(fn func(format string, v ...interface{}), format string, v ...interface{}) {
+	if !ShowFileLine {
+		fn(format, v...)
+		return
+	}
 	file, line, _ := callerInfo(3)
 	f := fmt.Sprintf("[%v:%v] %v", filepath.Base(file), line, format)
 

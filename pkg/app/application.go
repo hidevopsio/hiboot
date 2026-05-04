@@ -165,6 +165,8 @@ func (a *BaseApplication) Build() {
 	log.SetLevel(a.systemConfig.Logging.Level)
 	// set logging time format
 	log.SetTimeFormat(a.systemConfig.Logging.TimeFormat)
+	// set logging fileline prefix toggle
+	log.SetShowFileLine(a.systemConfig.Logging.FileLine)
 }
 
 // SystemConfig returns application config
