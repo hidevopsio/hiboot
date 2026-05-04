@@ -18,6 +18,7 @@ package log
 import (
 	"fmt"
 	"io"
+	"path/filepath"
 	"runtime"
 
 	"github.com/hidevopsio/golog"
@@ -53,16 +54,16 @@ func callerInfo(skip int) (file string, line int, fn string) {
 
 var withCaller = func(fn func(v ...interface{}), v ...interface{}) {
 	argv := make([]interface{}, 1)
-	_, line, fnName := callerInfo(3)
-	argv[0] = fmt.Sprintf("[%v:%v] ", fnName, line)
+	file, line, _ := callerInfo(3)
+	argv[0] = fmt.Sprintf("[%v:%v] ", filepath.Base(file), line)
 	argv = append(argv, v...)
 
 	fn(argv...)
 }
 
 var withCallerf = func(fn func(format string, v ...interface{}), format string, v ...interface{}) {
-	_, line, fnName := callerInfo(3)
-	f := fmt.Sprintf("[%v:%v] %v", fnName, line, format)
+	file, line, _ := callerInfo(3)
+	f := fmt.Sprintf("[%v:%v] %v", filepath.Base(file), line, format)
 
 	fn(f, v...)
 }
