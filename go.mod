@@ -23,8 +23,8 @@ require (
 	github.com/rakyll/statik v0.1.6
 	github.com/sony/sonyflake v1.2.0
 	github.com/spf13/afero v1.1.2
-	github.com/spf13/cobra v0.0.5
-	github.com/spf13/pflag v1.0.3
+	github.com/spf13/cobra v1.10.2
+	github.com/spf13/pflag v1.0.9
 	github.com/stretchr/testify v1.11.1
 	github.com/valyala/bytebufferpool v1.0.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -63,7 +63,7 @@ require (
 	github.com/hidevopsio/formBinder v0.0.0-20240811094544-2118e9d3668d // indirect
 	github.com/hidevopsio/i18n v0.0.0-20240811095331-eee3daa5c80f // indirect
 	github.com/imkira/go-interpol v1.1.0 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/juju/errors v1.0.0 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
