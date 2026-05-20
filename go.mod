@@ -20,7 +20,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/hidevopsio/gocron v1.6.1-0.20210602042859-a8b1ada7665d
 	github.com/hidevopsio/mapstructure v1.1.3-0.20190908102033-f8832fd9e307
-	github.com/hidevopsio/viper v1.2.2-0.20210220025633-ccb4b202d169
+	github.com/hidevopsio/viper v1.3.3-0.20260503071915-a02befe2b888
 	github.com/iris-contrib/go.uuid v2.0.0+incompatible
 	github.com/iris-contrib/httpexpect v0.0.0-20180314041918-ebe99fcebbce
 	github.com/iris-contrib/middleware v0.0.0-20171114084220-1060fbb0ce08
