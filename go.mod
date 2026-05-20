@@ -32,8 +32,8 @@ require (
 	github.com/rakyll/statik v0.1.6
 	github.com/sony/sonyflake v0.0.0-20160530021500-fa881fb1052b
 	github.com/spf13/afero v1.1.2
-	github.com/spf13/cobra v0.0.5
-	github.com/spf13/pflag v1.0.3
+	github.com/spf13/cobra v1.10.2
+	github.com/spf13/pflag v1.0.9
 	github.com/stretchr/testify v1.7.0
 	github.com/uber/jaeger-client-go v2.15.0+incompatible
 	github.com/valyala/bytebufferpool v1.0.0
@@ -74,7 +74,7 @@ require (
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/imkira/go-interpol v1.1.0 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/iris-contrib/formBinder v0.0.0-20190104093907-fbd5963f41e1 // indirect
 	github.com/iris-contrib/i18n v0.0.0-20171121225848-987a633949d0 // indirect
 	github.com/json-iterator/go v1.1.6 // indirect
