@@ -15,6 +15,7 @@
 package web
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"reflect"
@@ -316,6 +317,20 @@ func (h *handler) responseData(ctx context.Context, numOut int, results []reflec
 	return
 }
 
+// writeBareJSON serializes a plain value object as the response body using the
+// standard library json.Encoder: a bare `application/json` Content-Type (no
+// `; charset=UTF-8`) and a body terminated by the newline Encoder appends. This
+// is the default for non-envelope returns (plain structs/slices and
+// map[string]interface{}) so a controller can simply `return dto` and get the
+// idiomatic stdlib wire format, instead of iris's ctx.JSON which adds the
+// charset suffix and omits the trailing newline. The {code,message,data}
+// envelope branches (model.Response / model.ResponseInfo) keep using ctx.JSON.
+func writeBareJSON(ctx context.Context, v interface{}) {
+	w := ctx.ResponseWriter()
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(v)
+}
+
 func (h *handler) finalizeResponse(ctx context.Context) {
 
 	idx, size := ctx.HandlerIndex(-1), len(ctx.Handlers())-1
@@ -356,9 +371,9 @@ func (h *handler) finalizeResponse(ctx context.Context) {
 					ctx.StatusCode(r.GetCode())
 					_, _ = ctx.JSON(r)
 				case map[string]interface{}:
-					_, _ = ctx.JSON(res)
+					writeBareJSON(ctx, res)
 				default:
-					_, _ = ctx.JSON(res)
+					writeBareJSON(ctx, res)
 				}
 			} else {
 				e := ctx.GetResponse(1)
