@@ -49,6 +49,8 @@ type InstantiateFactory interface {
 	Items() map[string]interface{}
 	Append(i ...interface{})
 	AppendComponent(c ...interface{})
+	Components() []*MetaData
+	SetComponents(components []*MetaData)
 	BuildComponents() (err error)
 	Builder() (builder system.Builder)
 	GetProperty(name string) interface{}

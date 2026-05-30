@@ -107,6 +107,14 @@ func newDispatcher(webApp *webApp, configurableFactory factory.ConfigurableFacto
 
 func init() {
 	app.Register(newDispatcher)
+	// Register the webApp constructor so the dispatcher's *webApp dependency can
+	// always be resolved — even in a non-web (e.g. CLI) hiboot app that imports
+	// this package and thus inherits the globally-registered dispatcher in the
+	// process-global component container. A real web.Application registers its
+	// own *webApp instance in initialize(); that same-named instance shadows
+	// this constructor in the dependency graph, so web apps still inject the
+	// exact instance they serve, while a CLI app falls back to a throwaway one.
+	app.Register(newWebApplication)
 }
 
 func (d *Dispatcher) parseAnnotation(object interface{}, method *reflect.Method) (ma *annotation.Annotations) {

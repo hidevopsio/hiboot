@@ -18,6 +18,7 @@ package app
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"reflect"
 	"strings"
 	"sync"
@@ -52,6 +53,9 @@ type Application interface {
 	SetProperty(name string, value ...interface{}) Application
 	GetProperty(name string) (value interface{}, ok bool)
 	SetAddCommandLineProperties(enabled bool) Application
+	// SetFallback sets an http.Handler that serves any request the web router
+	// does not own (no matching route). Non-web applications ignore it.
+	SetFallback(handler http.Handler) Application
 	Run()
 }
 
@@ -213,6 +217,12 @@ func (a *BaseApplication) Use(handlers ...context.Handler) {
 // SetAddCommandLineProperties set add command line properties to be enabled or disabled
 func (a *BaseApplication) SetAddCommandLineProperties(enabled bool) Application {
 	a.addCommandLineProperties = enabled
+	return a
+}
+
+// SetFallback is a no-op on the base application; only the web application
+// serves a fallback handler. Returning the application keeps the call chainable.
+func (a *BaseApplication) SetFallback(handler http.Handler) Application {
 	return a
 }
 

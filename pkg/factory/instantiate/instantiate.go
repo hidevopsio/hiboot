@@ -140,6 +140,18 @@ func (f *instantiateFactory) AppendComponent(c ...interface{}) {
 	f.components = append(f.components, metaData)
 }
 
+// Components returns the registered component metadata slice. Exposed so that
+// higher-level factories (which hold the resolved systemConfig) can pre-filter
+// the component set before BuildComponents resolves and injects it.
+func (f *instantiateFactory) Components() []*factory.MetaData {
+	return f.components
+}
+
+// SetComponents replaces the registered component metadata slice. See Components.
+func (f *instantiateFactory) SetComponents(components []*factory.MetaData) {
+	f.components = components
+}
+
 // injectDependency inject dependency
 func (f *instantiateFactory) injectDependency(instanceContainer factory.InstanceContainer, item *factory.MetaData) (err error) {
 	var name string

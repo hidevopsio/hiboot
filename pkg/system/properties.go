@@ -81,6 +81,10 @@ type Server struct {
 	ContextPath string   `json:"context_path,omitempty" default:"/"`
 	TlsCert     string   `json:"tls_cert,omitempty" `
 	TlsKey      string   `json:"tls_key,omitempty" `
+	// UnixSocket, when set, makes Run() serve on a Unix-domain socket at this
+	// path instead of binding Port over TCP. The caller owns the socket file;
+	// Run() unlinks a stale socket at the path before listening.
+	UnixSocket string `json:"unix_socket,omitempty" `
 }
 
 // Logging is the properties of logging

@@ -49,6 +49,11 @@ const (
 
 	defaultProfileName = "default"
 
+	// webProfile is the profile under which web RestControllers are active.
+	// Declared here rather than imported from pkg/app/web to avoid the import
+	// cycle pkg/app/web -> pkg/app -> pkg/factory/autoconfigure.
+	webProfile = "web"
+
 	Configurations = "github.com/hidevopsio/hiboot/pkg/factory/autoconfigure.configurations"
 )
 
@@ -281,6 +286,28 @@ func (f *configurableFactory) injectProperties(cf interface{}) {
 	return
 }
 
+// BuildComponents pre-filters web RestControllers out of the component set when
+// the "web" profile is not active, then delegates to the embedded factory. This
+// lets a non-web app (e.g. a CLI built from the same binary that globally
+// registers controllers in init()) skip instantiating controllers it cannot
+// serve, mirroring the auto-configuration profile filter in build(). When the
+// "web" profile is active the component set is left untouched.
+func (f *configurableFactory) BuildComponents() (err error) {
+	if f.systemConfig != nil && !str.InSlice(webProfile, f.systemConfig.App.Profiles.Include) {
+		components := f.Components()
+		kept := make([]*factory.MetaData, 0, len(components))
+		for _, item := range components {
+			if item != nil && item.MetaObject != nil && annotation.Contains(item.MetaObject, at.RestController{}) {
+				log.Debugf("RestController %v is filtered out because the 'web' profile is not active. Just ignore this warning if you intended to do so.", item.Name)
+				continue
+			}
+			kept = append(kept, item)
+		}
+		f.SetComponents(kept)
+	}
+	return f.InstantiateFactory.BuildComponents()
+}
+
 func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 	var err error
 	for _, item := range cfgContainer {
@@ -291,7 +318,7 @@ func (f *configurableFactory) build(cfgContainer []*factory.MetaData) {
 		if f.systemConfig != nil {
 			if !isScoped &&
 				f.systemConfig != nil && !str.InSlice(path.Base(name), f.systemConfig.App.Profiles.Include) {
-				log.Warnf("Auto configuration %v is filtered out! Just ignore this warning if you intended to do so.", name)
+				log.Debugf("Auto configuration %v is filtered out! Just ignore this warning if you intended to do so.", name)
 				continue
 			}
 		}
