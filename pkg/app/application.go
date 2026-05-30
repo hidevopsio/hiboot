@@ -214,6 +214,12 @@ func (a *BaseApplication) RegisterController(controller interface{}) error {
 func (a *BaseApplication) Use(handlers ...context.Handler) {
 }
 
+// WrapRouter is a no-op on the base application; only the web application has a
+// router to wrap. Defining it here lets non-web apps (e.g. the cli application)
+// satisfy the ApplicationContext interface through embedding.
+func (a *BaseApplication) WrapRouter(handler router.WrapperFunc) {
+}
+
 // SetAddCommandLineProperties set add command line properties to be enabled or disabled
 func (a *BaseApplication) SetAddCommandLineProperties(enabled bool) Application {
 	a.addCommandLineProperties = enabled
