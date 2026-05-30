@@ -119,6 +119,32 @@ func (a *application) Run() {
 	}
 }
 
+// Handler builds the web application and returns its http.Handler without
+// taking over transport (unlike Run, which calls http.ListenAndServe). The
+// caller owns the net.Listener, so the returned handler can be served on a
+// Unix-socket listener or mounted on a foreign http.ServeMux.
+func (a *application) Handler() (http.Handler, error) {
+	err := a.build()
+	if err != nil && !errors.Is(err, ErrControllersNotFound) {
+		return nil, err
+	}
+	a.webApp.Configure(iris.WithConfiguration(defaultConfiguration()))
+	if err = a.webApp.Build(); err != nil {
+		return nil, err
+	}
+	return a.webApp, nil
+}
+
+// NewHandler creates a web application from the given controllers and returns
+// its built http.Handler, for mounting on a caller-owned listener or mux.
+func NewHandler(controllers ...interface{}) (http.Handler, error) {
+	wa, ok := NewApplication(controllers...).(*application)
+	if !ok {
+		return nil, ErrInvalidController
+	}
+	return wa.Handler()
+}
+
 func unique(intSlice []string) []string {
 	keys := make(map[string]bool)
 	list := []string{}
