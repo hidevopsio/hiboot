@@ -241,9 +241,18 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 		}
 	}
 	if b.embedFS != nil {
-		dir := b.GetString(ConfigDir)
-		if dir == "" {
-			dir = "config"
+		// The embed-FS subdir defaults to "config" (matching the conventional
+		// //go:embed config directive). app.config.dir can override it ONLY
+		// when its value is a relative path — an absolute value is on-disk-only
+		// and never valid for embed.FS, which uses paths rooted at the FS root.
+		//
+		// Without this guard, setting app.config.dir to an absolute on-disk
+		// path (the natural way to point at an operator location like
+		// /etc/<app>/config) would silently disable the embed scan
+		// (embedFS.ReadDir on an absolute path errors).
+		dir := "config"
+		if v := b.GetString(ConfigDir); v != "" && !filepath.IsAbs(v) {
+			dir = v
 		}
 		var files []fs.DirEntry
 		files, err = b.embedFS.ReadDir(dir)
