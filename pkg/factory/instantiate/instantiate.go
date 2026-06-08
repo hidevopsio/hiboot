@@ -87,7 +87,7 @@ func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory
 
 	customProps := defaultProperties.Items()
 	f.builder = system.NewPropertyBuilder(
-		filepath.Join(workDir, config),
+		resolveConfigPath(workDir, defaultProperties),
 		customProps,
 	)
 
@@ -96,6 +96,23 @@ func NewInstantiateFactory(instanceMap cmap.ConcurrentMap, components []*factory
 	initScopedFactory(f)
 
 	return f
+}
+
+// resolveConfigPath determines the directory to load external (filesystem) config
+// files from. By default it is <workDir>/config, but it can be customized via the
+// app.config.dir property, e.g. SetProperty(app.ConfigDir, "/path/to/config").
+// An absolute path is used as-is; a relative path is resolved against the working dir.
+func resolveConfigPath(workDir string, defaultProperties cmap.ConcurrentMap) string {
+	dir := config
+	if v, ok := defaultProperties.Get(system.ConfigDir); ok {
+		if s, isStr := v.(string); isStr && s != "" {
+			dir = s
+		}
+	}
+	if filepath.IsAbs(dir) {
+		return dir
+	}
+	return filepath.Join(workDir, dir)
 }
 
 // Initialized check if factory is initialized

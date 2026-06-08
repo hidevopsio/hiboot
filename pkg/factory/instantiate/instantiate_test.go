@@ -17,6 +17,7 @@ package instantiate_test
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -29,6 +30,7 @@ import (
 	"github.com/hidevopsio/hiboot/pkg/factory/instantiate"
 	"github.com/hidevopsio/hiboot/pkg/inject"
 	"github.com/hidevopsio/hiboot/pkg/log"
+	"github.com/hidevopsio/hiboot/pkg/system"
 	"github.com/hidevopsio/hiboot/pkg/utils/cmap"
 	"github.com/hidevopsio/hiboot/pkg/utils/reflector"
 	"github.com/stretchr/testify/assert"
@@ -423,4 +425,35 @@ func TestRuntimeInstance(t *testing.T) {
 		assert.NotEqual(t, nil, ri.Get(scopedFuncObject{}))
 		assert.NotEqual(t, nil, ri.Get(scopedMethodObject{}))
 	}
+}
+
+func TestCustomConfigDir(t *testing.T) {
+	// write an application.yml into a custom (non-default) config dir
+	configDir := filepath.Join(os.TempDir(), "hiboot-custom-config")
+	_ = os.MkdirAll(configDir, os.ModePerm)
+	defer os.RemoveAll(configDir)
+
+	content := []byte("app:\n  project: custom-config-dir\n")
+	err := os.WriteFile(filepath.Join(configDir, "application.yml"), content, os.ModePerm)
+	assert.Equal(t, nil, err)
+
+	t.Run("should load config from absolute app.config.dir", func(t *testing.T) {
+		customProps := cmap.New()
+		customProps.Set(system.ConfigDir, configDir)
+
+		instFactory := instantiate.NewInstantiateFactory(cmap.New(), nil, customProps)
+		builder := instFactory.Builder()
+		_, err := builder.Build("default")
+		assert.Equal(t, nil, err)
+
+		assert.Equal(t, "custom-config-dir", instFactory.GetProperty("app.project"))
+	})
+
+	t.Run("should fall back to default config dir when not set", func(t *testing.T) {
+		instFactory := instantiate.NewInstantiateFactory(cmap.New(), nil, cmap.New())
+		builder := instFactory.Builder()
+		_, _ = builder.Build("default")
+		// the custom value must NOT leak in when app.config.dir is unset
+		assert.NotEqual(t, "custom-config-dir", instFactory.GetProperty("app.project"))
+	})
 }

@@ -16,10 +16,13 @@
 package main
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/hidevopsio/hiboot/pkg/app/cli"
 	"sync"
 	"testing"
+
+	"github.com/hidevopsio/hiboot/pkg/app"
+	"github.com/hidevopsio/hiboot/pkg/app/cli"
+	"github.com/hidevopsio/hiboot/pkg/starter/logging"
+	"github.com/stretchr/testify/assert"
 )
 
 var mu sync.Mutex
@@ -30,7 +33,9 @@ func TestRunMain(t *testing.T) {
 }
 
 func TestHelloCommands(t *testing.T) {
-	testApp := cli.NewTestApplication(t, newRootCommand)
+	testApp := cli.NewTestApplication(t, newRootCommand).
+		SetProperty(app.ProfilesInclude, logging.Profile).
+		SetProperty(logging.Level, logging.LevelDebug)
 
 	t.Run("should run hello command", func(t *testing.T) {
 		_, err := testApp.Run("--to", "${app.name}-cmd")

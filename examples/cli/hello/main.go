@@ -19,6 +19,7 @@ package main
 // import cli starter and fmt
 import (
 	"fmt"
+
 	"github.com/hidevopsio/hiboot/pkg/app"
 	"github.com/hidevopsio/hiboot/pkg/app/cli"
 )
@@ -54,6 +55,11 @@ func (c *rootCommand) Run(args []string) error {
 func main() {
 	// create new cli application and run it
 	cli.NewApplication(newRootCommand).
+		// SetProperty(app.ProfilesInclude, logging.Profile).
+		// SetProperty(logging.Level, logging.LevelDebug).
+		// customize where hiboot loads config files from; an absolute path is used
+		// as-is, a relative path is resolved against the working dir.
+		// SetProperty(app.ConfigDir, "/path/to/config").
 		SetProperty(app.BannerDisabled, true).
 		Run()
 }

@@ -239,6 +239,8 @@ func (b *propertyBuilder) Build(profiles ...string) (conf interface{}, err error
 		case *embed.FS:
 			b.embedFS = cfg.(*embed.FS)
 		}
+	}
+	if b.embedFS != nil {
 		dir := b.GetString(ConfigDir)
 		if dir == "" {
 			dir = "config"
